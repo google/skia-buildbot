@@ -267,13 +267,19 @@ func makeGitilesGetFileFunc(repo gitiles.GitilesRepo, branch string) version_fil
 }
 
 func (dv *deepvalidator) makeGitilesGetFileFuncFromConfig(c *config.GitilesConfig) (version_file_common.GetFileFunc, error) {
-	repo := gitiles.NewRepo(c.RepoUrl, dv.client)
+	repo, err := gitiles.NewRepoWithClient(c.RepoUrl, dv.client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return makeGitilesGetFileFunc(repo, c.Branch), nil
 }
 
 // deepValidateGitilesRepo performs deep validation of a Gitiles repo.
 func (dv *deepvalidator) deepValidateGitilesRepo(ctx context.Context, repoUrl, branch string) (version_file_common.GetFileFunc, *revision.Revision, error) {
-	repo := gitiles.NewRepo(repoUrl, dv.client)
+	repo, err := gitiles.NewRepoWithClient(repoUrl, dv.client)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
 	details, err := repo.Details(ctx, branch)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "failed to resolve branch %q of repo %q", branch, repoUrl)
@@ -533,7 +539,10 @@ func (dv *deepvalidator) gitCheckoutConfig(ctx context.Context, c *config.GitChe
 // gitilesChildConfig performs validation of the GitilesChildConfig,
 // making external network requests as needed.
 func (dv *deepvalidator) gitilesChildConfig(ctx context.Context, c *config.GitilesChildConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
-	repo := gitiles.NewRepo(c.Gitiles.RepoUrl, dv.client)
+	repo, err := gitiles.NewRepoWithClient(c.Gitiles.RepoUrl, dv.client)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
 	child, err := child.NewGitiles(ctx, c, repo)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
@@ -555,7 +564,10 @@ func (dv *deepvalidator) gitilesChildConfig(ctx context.Context, c *config.Gitil
 // gitSemVerChildConfig performs validation of the GitSemVerChildConfig,
 // making external network requests as needed.
 func (dv *deepvalidator) gitSemVerChildConfig(ctx context.Context, c *config.GitSemVerChildConfig) (version_file_common.GetFileFunc, *revision.Revision, error) {
-	repo := gitiles.NewRepo(c.Gitiles.RepoUrl, dv.client)
+	repo, err := gitiles.NewRepoWithClient(c.Gitiles.RepoUrl, dv.client)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
 	child, err := child.NewGitSemVerChild(ctx, c, repo)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
@@ -585,7 +597,10 @@ func (dv *deepvalidator) freeTypeParentConfig(ctx context.Context, c *config.Fre
 // gitilesParentConfig performs validation of the GitilesParentConfig,
 // making external network requests as needed.
 func (dv *deepvalidator) gitilesParentConfig(ctx context.Context, c *config.GitilesParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
-	repo := gitiles.NewRepo(c.Gitiles.RepoUrl, dv.client)
+	repo, err := gitiles.NewRepoWithClient(c.Gitiles.RepoUrl, dv.client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	p, err := parent.NewGitilesFile(ctx, c, repo, nil, "")
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -666,9 +681,17 @@ func (dv *deepvalidator) fuchsiaSDKChildConfig(ctx context.Context, c *config.Fu
 func (dv *deepvalidator) cipdChildConfig(ctx context.Context, c *config.CIPDChildConfig) (*revision.Revision, error) {
 	var repo gitiles.GitilesRepo
 	if c.GitilesRepo != "" {
-		repo = gitiles.NewRepo(c.GitilesRepo, dv.client)
+		r, err := gitiles.NewRepoWithClient(c.GitilesRepo, dv.client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		repo = r
 	} else if c.SourceRepo != nil {
-		repo = gitiles.NewRepo(c.SourceRepo.RepoUrl, dv.client)
+		r, err := gitiles.NewRepoWithClient(c.SourceRepo.RepoUrl, dv.client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		repo = r
 	}
 	cipdChild, err := child.NewCIPD(ctx, c, dv.cipdClient, repo, "")
 	if err != nil {
@@ -730,7 +753,10 @@ func (dv *deepvalidator) semVerGCSChildConfig(ctx context.Context, c *config.Sem
 // copyParentConfig performs validation of the CopyParentConfig, making
 // external network requests as needed.
 func (dv *deepvalidator) copyParentConfig(ctx context.Context, c *config.CopyParentConfig, getFileChild version_file_common.GetFileFunc) (version_file_common.GetFileFunc, error) {
-	repo := gitiles.NewRepo(c.Gitiles.Gitiles.RepoUrl, dv.client)
+	repo, err := gitiles.NewRepoWithClient(c.Gitiles.Gitiles.RepoUrl, dv.client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	p, err := parent.NewCopy(ctx, c, repo, nil, "", nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)

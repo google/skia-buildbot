@@ -369,7 +369,7 @@ func (m *URLMock) List() []string {
 // AssertExpectations asserts that URLMock is empty.
 func (m *URLMock) AssertExpectations(t mock.TestingT) bool {
 	ok := m.Empty()
-	assert.True(t, ok)
+	assert.True(t, ok, "unmet expectations: %v", m.List())
 	return ok
 }
 

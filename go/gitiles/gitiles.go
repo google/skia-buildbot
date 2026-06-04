@@ -16,11 +16,13 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"golang.org/x/oauth2/google"
 	"golang.org/x/time/rate"
 )
 
@@ -62,6 +64,20 @@ var (
 	// LogFn which indicates that iteration over commits should stop.
 	ErrStopIteration = errors.New("stop iteration")
 )
+
+// GetAuthenticatedURL returns the authenticated endpoint associated with the given repo URL.
+func GetAuthenticatedURL(repoUrl string) (string, error) {
+	u, err := url.Parse(repoUrl)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to parse gitiles url")
+	}
+	split := strings.Split(strings.TrimPrefix(u.Path, "/"), "/")
+	if split[0] != "a" {
+		split = append([]string{"a"}, split...)
+	}
+	u.Path = "/" + strings.Join(split, "/")
+	return u.String(), nil
+}
 
 // GitilesRepo is an interface to Gitiles.
 type GitilesRepo interface {
@@ -134,17 +150,31 @@ type Repo struct {
 }
 
 // NewRepo creates and returns a new Repo object.
-func NewRepo(url string, c *http.Client) *Repo {
-	// TODO(borenet):Stop supporting a nil client; we should enforce that we
-	// always use an authenticated client to talk to Gitiles.
-	if c == nil {
-		c = httputils.NewTimeoutClient()
+func NewRepo(ctx context.Context, repoUrl string) (*Repo, error) {
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create token source")
+	}
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+
+	r, err := NewRepoWithClient(repoUrl, c)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+// NewRepoWithClient creates and returns a new Repo object with the given client.
+func NewRepoWithClient(repoUrl string, c *http.Client) (*Repo, error) {
+	repoUrl, err := GetAuthenticatedURL(repoUrl)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
 	return &Repo{
 		client: c,
 		rl:     rate.NewLimiter(maxQPS, maxBurst),
-		url:    url,
-	}
+		url:    repoUrl,
+	}, nil
 }
 
 // get executes a GET request to the given URL, returning the http.Response.

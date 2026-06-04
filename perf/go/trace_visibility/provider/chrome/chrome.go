@@ -57,7 +57,10 @@ func (f *chromeProvider) GetExpectedRules(ctx context.Context) (map[string]bool,
 }
 
 func (f *chromeProvider) fetchRulesForSource(ctx context.Context, s config.VisibilitySourceConfig) (map[string]bool, error) {
-	repo := gitiles.NewRepo(s.GitRepo, f.client)
+	repo, err := gitiles.NewRepoWithClient(s.GitRepo, f.client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	b, err := repo.ReadFile(ctx, s.Path)
 	if err != nil {

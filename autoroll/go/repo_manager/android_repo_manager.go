@@ -661,7 +661,10 @@ func (r *androidRepoManager) GetNotSubmittedReason(ctx context.Context, rev *rev
 	// branches are from a non-default remote. Therefore, we can't just pass
 	// r.childRepo into GetNotSubmittedReason. Instead we assume that there's a
 	// Gitiles repo associated with the child and use that.
-	gitilesRepo := gitiles.NewRepo(r.childRepoURL, r.httpClient)
+	gitilesRepo, err := gitiles.NewRepoWithClient(r.childRepoURL, r.httpClient)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
 	return git_common.GetNotSubmittedReason(ctx, gitilesRepo, rev.Id, r.childBranch)
 }
 

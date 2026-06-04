@@ -28,6 +28,7 @@ go_test(
         "//go/allowed/mocks",
         "//go/gerrit",
         "//go/gitiles/mocks",
+        "//go/skerr",
         "//go/testutils",
         "//skcq/go/codereview/mocks",
         "//task_scheduler/go/specs",

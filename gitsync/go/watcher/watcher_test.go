@@ -30,7 +30,6 @@ import (
 )
 
 func TestIngestCommits(t *testing.T) {
-
 	ctx := context.Background()
 	gs := &mocks.GitStore{}
 	ri := &repoImpl{
@@ -151,13 +150,14 @@ func TestIngestCommits(t *testing.T) {
 }
 
 func TestGetFilteredBranches(t *testing.T) {
-
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
 	urlMock := mockhttpclient.NewURLMock()
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.CheckoutDir(g.Dir()), urlMock)
+	gitilesRepo, err := gitiles.NewRepoWithClient(g.RepoUrl(), urlMock.Client())
+	require.NoError(t, err)
 	ri := &repoImpl{
-		gitiles: gitiles.NewRepo(g.RepoUrl(), urlMock.Client()),
+		gitiles: gitilesRepo,
 	}
 
 	// Create two branches.
@@ -181,14 +181,15 @@ func TestGetFilteredBranches(t *testing.T) {
 }
 
 func TestRepoImplIncludeBranches(t *testing.T) {
-
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
 	gs := &mocks.GitStore{}
 	urlMock := mockhttpclient.NewURLMock()
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.CheckoutDir(g.Dir()), urlMock)
+	gitilesRepo, err := gitiles.NewRepoWithClient(g.RepoUrl(), urlMock.Client())
+	require.NoError(t, err)
 	ri := &repoImpl{
-		gitiles:          gitiles.NewRepo(g.RepoUrl(), urlMock.Client()),
+		gitiles:          gitilesRepo,
 		gitstore:         gs,
 		MemCacheRepoImpl: repograph.NewMemCacheRepoImpl(nil, nil),
 	}
@@ -385,7 +386,8 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 	_, _, gs := gitstore_testutils.SetupAndLoadBTGitStore(t, ctx, wd, g.RepoUrl(), true)
 	urlMock := mockhttpclient.NewURLMock()
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.CheckoutDir(g.Dir()), urlMock)
-	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
+	repo, err := gitiles.NewRepoWithClient(g.RepoUrl(), urlMock.Client())
+	require.NoError(t, err)
 	gcsClient := mem_gcsclient.New("fake-bucket")
 	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", nil, nil, nil)
 	require.NoError(t, err)
@@ -442,7 +444,6 @@ func TestBranchMembershipGitSync(t *testing.T) {
 }
 
 func TestMissingOldBranchHeadFallback(t *testing.T) {
-
 	ctx, g, repo, ud, cleanup := setupGitsync(t)
 	defer cleanup()
 
@@ -467,7 +468,9 @@ func TestMissingOldBranchHeadFallback(t *testing.T) {
 	require.Equal(t, orig, strings.TrimSpace(g.Git(ctx, "rev-parse", "HEAD")))
 	next := g.CommitGen(ctx, "fake")
 	ud.gitiles.MockBranches(ctx)
-	ud.gitiles.URLMock.MockOnce(fmt.Sprintf(gitiles.LogURL, g.RepoUrl(), git.LogFromTo(deleted, next)), mockhttpclient.MockGetError("404 Not Found", http.StatusNotFound))
+	repoUrl, err := gitiles.GetAuthenticatedURL(g.RepoUrl())
+	require.NoError(t, err)
+	ud.gitiles.URLMock.MockOnce(fmt.Sprintf(gitiles.LogURL, repoUrl, git.LogFromTo(deleted, next)), mockhttpclient.MockGetError("404 Not Found", http.StatusNotFound))
 	ud.gitiles.MockLog(ctx, next)
 	require.NoError(t, repo.Update(ctx))
 	require.True(t, ud.gitiles.Empty())

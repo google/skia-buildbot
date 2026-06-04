@@ -22,7 +22,9 @@ func TestParseDepsRealWorld(t *testing.T) {
 	// checkDeps loads the DEPS file from the given repo at the given
 	// revision and asserts that it contains the given deps.
 	checkDeps := func(repo string, rev string, expectMap map[string]*depsEntryPos) {
-		contents, err := gitiles.NewRepo(repo, nil).ReadFileAtRef(ctx, "DEPS", rev)
+		gRepo, err := gitiles.NewRepo(ctx, repo)
+		require.NoError(t, err)
+		contents, err := gRepo.ReadFileAtRef(ctx, "DEPS", rev)
 		require.NoError(t, err)
 		actual, poss, err := parseDeps(string(contents), true)
 		require.NoError(t, err)

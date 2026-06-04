@@ -13,6 +13,7 @@ import (
 	allowed_mocks "go.skia.org/infra/go/allowed/mocks"
 	"go.skia.org/infra/go/gerrit"
 	gitiles_mocks "go.skia.org/infra/go/gitiles/mocks"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	cr_mocks "go.skia.org/infra/skcq/go/codereview/mocks"
 )
@@ -63,7 +64,6 @@ func setupGetSkCQCfg(t *testing.T, match bool, cfgContents []byte, readFileError
 }
 
 func TestGetSkCQCfg_UpdatedInChange(t *testing.T) {
-
 	treeStatusURL := "http://tree-status-url"
 	skCfg := &SkCQCfg{
 		VisibilityType:   InternalVisibility,
@@ -82,7 +82,6 @@ func TestGetSkCQCfg_UpdatedInChange(t *testing.T) {
 }
 
 func TestGetSkCQCfg_UpdatedInChange_NotAllowed(t *testing.T) {
-
 	configReader := setupGetSkCQCfg(t, false, []byte{}, nil, []string{"dir1/*", SkCQCfgPath}, SkCQCfgPath, true)
 	cfg, err := configReader.GetSkCQCfg(context.Background())
 	require.Nil(t, cfg)
@@ -92,7 +91,6 @@ func TestGetSkCQCfg_UpdatedInChange_NotAllowed(t *testing.T) {
 }
 
 func TestGetSkCQCfg_NotUpdatedInChange(t *testing.T) {
-
 	treeStatusURL := "http://tree-status-url"
 	skCfg := &SkCQCfg{
 		VisibilityType:   PublicVisibility,
@@ -111,17 +109,15 @@ func TestGetSkCQCfg_NotUpdatedInChange(t *testing.T) {
 }
 
 func TestGetSkCQCfg_NotFound(t *testing.T) {
-
 	configReader := setupGetSkCQCfg(t, true, []byte{}, errors.New("NOT_FOUND"), []string{"dir1/*", "dir2/dir3/DEPS"}, SkCQCfgPath, false)
 	cfg, err := configReader.GetSkCQCfg(context.Background())
 	require.Nil(t, cfg)
 	require.NotNil(t, err)
-	_, ok := err.(*ConfigNotFoundError)
+	_, ok := skerr.Unwrap(err).(*ConfigNotFoundError)
 	require.True(t, ok)
 }
 
 func TestGetSkCQCfg_ValidationFailed(t *testing.T) {
-
 	treeStatusURL := "http://tree-status-url"
 	// Missing CommitterList and DryRunAccessList.
 	skCfg := &SkCQCfg{
@@ -137,7 +133,6 @@ func TestGetSkCQCfg_ValidationFailed(t *testing.T) {
 }
 
 func TestGetTasksCfg_UpdatedInChange(t *testing.T) {
-
 	tasksJSONPath := "test/path/tasks.json"
 	tasksJSON := &specs.TasksCfg{}
 	tasksJSONContents, err := json.Marshal(tasksJSON)
@@ -150,7 +145,6 @@ func TestGetTasksCfg_UpdatedInChange(t *testing.T) {
 }
 
 func TestGetTasksCfg_NotUpdatedInChange(t *testing.T) {
-
 	tasksJSONPath := "test/path/tasks.json"
 	tasksJSON := &specs.TasksCfg{}
 	tasksJSONContents, err := json.Marshal(tasksJSON)

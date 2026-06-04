@@ -11,10 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/oauth2/google"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitiles"
@@ -81,16 +79,11 @@ func main() {
 
 	ctx := context.Background()
 
-	// OAuth2.0 TokenSource.
-	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
+	// Gitiles repo.
+	repo, err := gitiles.NewRepo(ctx, *configRepo)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	// Authenticated HTTP client.
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-
-	// Gitiles repo.
-	repo := gitiles.NewRepo(*configRepo, httpClient)
 
 	// Kubernetes API client.
 	var client k8s.Client

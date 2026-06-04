@@ -9,16 +9,13 @@ go_library(
         "//cd/go/stages",
         "//go/common",
         "//go/docker",
-        "//go/gerrit",
         "//go/gitiles",
-        "//go/httputils",
         "//go/k8s",
         "//go/kube/clusterconfig",
         "//go/repo_root",
         "//go/skerr",
         "//go/sklog",
         "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
-        "@org_golang_x_oauth2//google",
     ],
 )
 

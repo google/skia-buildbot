@@ -54,7 +54,12 @@ func (m *MidpointHandler) WithRepo(url string, r gitiles.GitilesRepo) *MidpointH
 func (m *MidpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
 	gr, ok := m.repos[url]
 	if !ok {
-		gr = gitiles.NewRepo(url, m.c)
+		var err error
+		gr, err = gitiles.NewRepoWithClient(url, m.c)
+		if err != nil {
+			sklog.Errorf("failed to create repo for url %q: %s", url, err)
+			return nil
+		}
 		m.repos[url] = gr
 	}
 	return gr

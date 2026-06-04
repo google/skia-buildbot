@@ -7,11 +7,9 @@ go_library(
     importpath = "go.skia.org/infra/k8s-checker/go/k8s-checker",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/git",
         "//go/gitiles",
-        "//go/httputils",
         "//go/k8s",
         "//go/kube/clusterconfig",
         "//go/metrics2",
@@ -22,7 +20,6 @@ go_library(
         "//k8s-checker/go/k8s_config",
         "@io_k8s_api//core/v1:core",
         "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
-        "@org_golang_x_oauth2//google",
     ],
 )
 

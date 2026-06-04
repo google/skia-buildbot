@@ -43,7 +43,11 @@ func updateLastModifiedMetrics(ctx context.Context, client *http.Client, reposTo
 func StartLastModifiedMetrics(ctx context.Context, client *http.Client, filesByRepo map[string][]string) {
 	reposToFiles := make(map[*gitiles.Repo][]string, len(filesByRepo))
 	for repo, filePaths := range filesByRepo {
-		r := gitiles.NewRepo(repo, client)
+		r, err := gitiles.NewRepoWithClient(repo, client)
+		if err != nil {
+			sklog.Errorf("Failed to create gitiles repo for %s: %s", repo, err)
+			continue
+		}
 		reposToFiles[r] = filePaths
 	}
 

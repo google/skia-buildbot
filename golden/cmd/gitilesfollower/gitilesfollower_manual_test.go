@@ -33,8 +33,9 @@ func TestUpdateCycle_Load1501CommitsFromGitiles_Success(t *testing.T) {
 	ctx := overrideLatestGitHash(latestGitHash)
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
-	gitilesClient := gitiles.NewRepo(rfc.GitRepoURL, httputils.NewTimeoutClient())
-	err := updateCycle(ctx, db, gitilesClient, rfc)
+	gitilesClient, err := gitiles.NewRepoWithClient(rfc.GitRepoURL, httputils.NewTimeoutClient())
+	require.NoError(t, err)
+	err = updateCycle(ctx, db, gitilesClient, rfc)
 	require.NoError(t, err)
 
 	row := db.QueryRow(ctx, `SELECT count(*) FROM GitCommits`)

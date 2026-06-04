@@ -27,7 +27,10 @@ func createGitilesClient(ctx context.Context, repositoryUrl string) (*gitiles.Re
 	// Note that Gitiles will return non 200 for ~1 minute if we hit the API rate limit.
 	// DefaultClientConfig implements DefaultBackOffConfig()
 	c := httputils.DefaultClientConfig().WithTokenSource(token).With2xxOnly().Client()
-	repo := gitiles.NewRepo(repositoryUrl, c)
+	repo, err := gitiles.NewRepoWithClient(repositoryUrl, c)
+	if err != nil {
+		return nil, err
+	}
 
 	return repo, nil
 }

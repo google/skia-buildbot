@@ -109,7 +109,10 @@ func releaseBranch(ctx context.Context, newBranch string, reviewers []string, al
 		return skerr.Wrap(err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	repo := gitiles.NewRepo(common.REPO_SKIA, client)
+	repo, err := gitiles.NewRepoWithClient(common.REPO_SKIA, client)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	g, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, client)
 	if err != nil {
 		return skerr.Wrap(err)

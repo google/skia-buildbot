@@ -85,7 +85,10 @@ func New() (baseapp.App, error) {
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Creating Gerrit Client.")
 	}
-	gitilesRepo := gitiles.NewRepo("https://skia.googlesource.com/k8s-config", client)
+	gitilesRepo, err := gitiles.NewRepoWithClient("https://skia.googlesource.com/k8s-config", client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	gerritProject := ""
 	if *repo != "" {

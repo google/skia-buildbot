@@ -33,12 +33,16 @@ type Gitiles struct {
 }
 
 // New returns a new instance of Gitiles.
-func New(c *http.Client, instanceConfig *config.InstanceConfig) *Gitiles {
+func New(c *http.Client, instanceConfig *config.InstanceConfig) (*Gitiles, error) {
+	gr, err := gitiles.NewRepoWithClient(instanceConfig.GitRepoConfig.URL, c)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return &Gitiles{
-		gr:          gitiles.NewRepo(instanceConfig.GitRepoConfig.URL, c),
+		gr:          gr,
 		startCommit: instanceConfig.GitRepoConfig.StartCommit,
 		branch:      instanceConfig.GitRepoConfig.Branch,
-	}
+	}, nil
 }
 
 // CommitsFromMostRecentGitHashToHead implements provider.Provider.

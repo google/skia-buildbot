@@ -189,7 +189,10 @@ func main() {
 	}
 
 	// Instantiate Gitiles using the specified repo URL.
-	repo := gitiles.NewRepo(*repoUrl, httpClient)
+	repo, err := gitiles.NewRepoWithClient(*repoUrl, httpClient)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// TODO(rmistry): Use pubsub instead of polling.
 	util.RepeatCtx(ctx, *pollingPeriod, func(ctx context.Context) {

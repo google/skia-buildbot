@@ -77,7 +77,10 @@ type GitilesConfigReader struct {
 
 // NewGitilesConfigReader returns an instance of GitilesConfigReader.
 func NewGitilesConfigReader(ctx context.Context, httpClient *http.Client, ci *gerrit.ChangeInfo, cr codereview.CodeReview, canModifyCfgsOnTheFly allowed.Allow) (*GitilesConfigReader, error) {
-	gitilesRepo := gitiles.NewRepo(cr.GetRepoUrl(ci), httpClient)
+	gitilesRepo, err := gitiles.NewRepoWithClient(cr.GetRepoUrl(ci), httpClient)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	changedFiles, err := cr.GetFileNames(ctx, ci)
 	if err != nil {
 		return nil, skerr.Fmt("Not able to get changed files for %d: %s", ci.Issue, err)
@@ -96,7 +99,7 @@ func (gc *GitilesConfigReader) GetSkCQCfg(ctx context.Context) (*SkCQCfg, error)
 	// If SkCQ cfg is in list of changed files then use that. Else use from HEAD.
 	contents, modifiedInCL, err := gc.getFileContents(ctx, SkCQCfgPath)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	if modifiedInCL && !gc.canModifyCfgsOnTheFly.Member(gc.ci.Owner.Email) {
 		return nil, &CannotModifyCfgsOnTheFlyError{

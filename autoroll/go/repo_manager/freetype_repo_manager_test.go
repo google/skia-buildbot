@@ -89,7 +89,8 @@ func setupFreeType(t *testing.T) (context.Context, *config.FreeTypeRepoManagerCo
 	}
 
 	p, parentGitiles, parentGerrit, cleanup := parent.NewFreeTypeForTesting(t, cfg.Parent)
-	repo := gitiles.NewRepo(cfg.Child.Gitiles.RepoUrl, urlmock.Client())
+	repo, err := gitiles.NewRepoWithClient(cfg.Child.Gitiles.RepoUrl, urlmock.Client())
+	require.NoError(t, err)
 	c, err := child.NewGitiles(ctx, cfg.Child, repo)
 	require.NoError(t, err)
 

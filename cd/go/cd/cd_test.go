@@ -5,12 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/docker"
 	docker_mocks "go.skia.org/infra/go/docker/mocks"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -47,8 +49,7 @@ To https://my-project.googlesource.com/my-repo.git
 func TestMatchDockerImagesToGitCommits(t *testing.T) {
 	ctx := context.Background()
 	dockerClient := &docker_mocks.Client{}
-	urlmock := mockhttpclient.NewURLMock()
-	repo := gitiles.NewRepo("https://my-repo.git", urlmock.Client())
+	repo := &mocks.GitilesRepo{}
 	image := "gcr.io/skia-public/autoroll-be"
 	limit := 3
 
@@ -75,58 +76,37 @@ func TestMatchDockerImagesToGitCommits(t *testing.T) {
 		},
 	}, nil)
 	ts := time.Unix(1684339486, 0).UTC()
-	tsStr := ts.Format("Mon Jan 02 15:04:05 2006")
-	b := append([]byte(")]}'\n"), []byte(testutils.MarshalJSON(t, &gitiles.Log{
-		Log: []*gitiles.Commit{
+	repo.On("LogFnBatch", testutils.AnyContext, git.MainBranch, mock.Anything, gitiles.LogBatchSize(limit)).Run(func(args mock.Arguments) {
+		commits := []*vcsinfo.LongCommit{
 			{
-				Commit:  "1111111111111111111111111111111111111111",
-				Parents: []string{"2222222222222222222222222222222222222222"},
-				Author: &gitiles.Author{
-					Name:  "1111",
-					Email: "1111@google.com",
-					Time:  tsStr,
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash:   "1111111111111111111111111111111111111111",
+					Author: "1111 (1111@google.com)",
 				},
-				Committer: &gitiles.Author{
-					Name:  "1111",
-					Email: "1111@google.com",
-					Time:  tsStr,
-				},
-				Message: "",
+				Parents:   []string{"2222222222222222222222222222222222222222"},
+				Timestamp: ts,
 			},
 			{
-				Commit:  "2222222222222222222222222222222222222222",
-				Parents: []string{"3333333333333333333333333333333333333333"},
-				Author: &gitiles.Author{
-					Name:  "2222",
-					Email: "2222@google.com",
-					Time:  tsStr,
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash:   "2222222222222222222222222222222222222222",
+					Author: "2222 (2222@google.com)",
 				},
-				Committer: &gitiles.Author{
-					Name:  "2222",
-					Email: "2222@google.com",
-					Time:  tsStr,
-				},
-				Message: "",
+				Parents:   []string{"3333333333333333333333333333333333333333"},
+				Timestamp: ts,
 			},
 			{
-				Commit:  "3333333333333333333333333333333333333333",
-				Parents: []string{"4444444444444444444444444444444444444444"},
-				Author: &gitiles.Author{
-					Name:  "3333",
-					Email: "3333@google.com",
-					Time:  tsStr,
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash:   "3333333333333333333333333333333333333333",
+					Author: "3333 (3333@google.com)",
 				},
-				Committer: &gitiles.Author{
-					Name:  "3333",
-					Email: "3333@google.com",
-					Time:  tsStr,
-				},
-				Message: "",
+				Parents:   []string{"4444444444444444444444444444444444444444"},
+				Timestamp: ts,
 			},
-		},
-		Next: "4444444444444444444444444444444444444444",
-	}))...)
-	urlmock.MockOnce("https://my-repo.git/+log/main?format=JSON&n=3", mockhttpclient.MockGetDialogue(b))
+		}
+		fn, ok := args.Get(2).(func(context.Context, []*vcsinfo.LongCommit) error)
+		require.True(t, ok, "callback function argument has incorrect type")
+		require.Equal(t, gitiles.ErrStopIteration, fn(ctx, commits))
+	}).Return(nil)
 
 	images, err := MatchDockerImagesToGitCommits(ctx, dockerClient, repo, image, limit)
 	require.NoError(t, err)

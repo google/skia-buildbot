@@ -52,8 +52,12 @@ func (mr *MockRepo) Empty() bool {
 func MockReadFile(t sktest.TestingT, c *mockhttpclient.URLMock, repoUrl, srcPath, ref string, contents []byte, stat fs.FileInfo) {
 	body := make([]byte, base64.StdEncoding.EncodedLen(len(contents)))
 	base64.StdEncoding.Encode(body, contents)
-	url := fmt.Sprintf(gitiles.DownloadURL, repoUrl, ref, srcPath)
 	md := mockhttpclient.MockGetDialogue(body)
+
+	repoUrl, err := gitiles.GetAuthenticatedURL(repoUrl)
+	require.NoError(t, err)
+	url := fmt.Sprintf(gitiles.DownloadURL, repoUrl, ref, srcPath)
+
 	typ := git.ObjectTypeBlob
 	if stat.IsDir() {
 		typ = git.ObjectTypeTree
@@ -90,6 +94,8 @@ func MockGetCommit(t sktest.TestingT, c *mockhttpclient.URLMock, repoUrl, ref st
 	b, err := json.Marshal(commit)
 	require.NoError(t, err)
 	b = append([]byte(XSSLine), b...)
+	repoUrl, err = gitiles.GetAuthenticatedURL(repoUrl)
+	require.NoError(t, err)
 	url := fmt.Sprintf(gitiles.CommitURLJSON, repoUrl, ref)
 	c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
@@ -109,6 +115,8 @@ func MockBranches(t sktest.TestingT, c *mockhttpclient.URLMock, repoUrl string, 
 	b, err := json.Marshal(res)
 	require.NoError(t, err)
 	b = append([]byte(XSSLine), b...)
+	repoUrl, err = gitiles.GetAuthenticatedURL(repoUrl)
+	require.NoError(t, err)
 	url := fmt.Sprintf(gitiles.RefsURL, repoUrl)
 	c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
@@ -128,6 +136,8 @@ func MockLog(t sktest.TestingT, c *mockhttpclient.URLMock, repoUrl, logExpr stri
 	if path != "" {
 		logExpr += "/" + path
 	}
+	repoUrl, err = gitiles.GetAuthenticatedURL(repoUrl)
+	require.NoError(t, err)
 	url := fmt.Sprintf(gitiles.LogURL, repoUrl, logExpr)
 	if query != "" {
 		url += "&" + query

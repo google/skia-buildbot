@@ -66,7 +66,11 @@ type Client struct {
 
 // GetSkiaCQTryBots is a Skia implementation of GetCQTryBotsFn.
 func GetSkiaCQTryBots() ([]string, error) {
-	cfg, err := GetCQJobsToConfig(gitiles.NewRepo(common.REPO_SKIA, nil), MAIN_REF)
+	r, err := gitiles.NewRepo(context.Background(), common.REPO_SKIA)
+	if err != nil {
+		return nil, err
+	}
+	cfg, err := GetCQJobsToConfig(r, MAIN_REF)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +79,11 @@ func GetSkiaCQTryBots() ([]string, error) {
 
 // GetSkiaInfraCQTryBots is a Skia Infra implementation of GetCQTryBotsFn.
 func GetSkiaInfraCQTryBots() ([]string, error) {
-	cfg, err := GetCQJobsToConfig(gitiles.NewRepo(common.REPO_SKIA_INFRA, nil), MAIN_REF)
+	r, err := gitiles.NewRepo(context.Background(), common.REPO_SKIA_INFRA)
+	if err != nil {
+		return nil, err
+	}
+	cfg, err := GetCQJobsToConfig(r, MAIN_REF)
 	if err != nil {
 		return nil, err
 	}

@@ -11,9 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/oauth2/google"
-
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/gitiles"
@@ -75,11 +72,10 @@ func main() {
 	)
 	ctx := context.Background()
 
-	client, err := google.DefaultClient(ctx, auth.ScopeGerrit)
+	gitilesRepo, err := gitiles.NewRepo(ctx, repo)
 	if err != nil {
-		sklog.Fatalf("Creating authenticated HTTP client: %s", err)
+		sklog.Fatalf("Creating gitiles repo: %s", err)
 	}
-	gitilesRepo := gitiles.NewRepo(repo, client)
 
 	srv := &server{
 		gitilesRepo:              gitilesRepo,

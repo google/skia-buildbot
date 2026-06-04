@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/gitstore/pubsub"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -57,8 +56,10 @@ func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL string, incl
 	if err != nil {
 		return skerr.Wrapf(err, "Error instantiating git store for %s.", repoURL)
 	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	gr := gitiles.NewRepo(gitilesURL, client)
+	gr, err := gitiles.NewRepo(ctx, gitilesURL)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	s, err := storage.NewClient(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create storage client for %s.", gcsBucket)

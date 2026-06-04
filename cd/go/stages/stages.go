@@ -45,7 +45,11 @@ type CommitResolver func(ctx context.Context, repoURL, reference string) (string
 // given http.Client to resolve commits.
 func GitilesCommitResolver(httpClient *http.Client) CommitResolver {
 	return func(ctx context.Context, repoURL, reference string) (string, error) {
-		return gitiles.NewRepo(repoURL, httpClient).ResolveRef(ctx, reference)
+		repo, err := gitiles.NewRepoWithClient(repoURL, httpClient)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return repo.ResolveRef(ctx, reference)
 	}
 }
 

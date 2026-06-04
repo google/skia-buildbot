@@ -139,7 +139,10 @@ func main() {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	gitilesClient := gitiles.NewRepo(rfc.GitRepoURL, client)
+	gitilesClient, err := gitiles.NewRepoWithClient(rfc.GitRepoURL, client)
+	if err != nil {
+		sklog.Fatalf("Problem creating gitiles repo: %s", err)
+	}
 	// This starts a goroutine in the background
 	if err := pollRepo(ctx, db, gitilesClient, rfc); err != nil {
 		sklog.Fatalf("Could not do initial update: %s", err)
@@ -340,7 +343,11 @@ func checkForLanded(ctx context.Context, db *pgxpool.Pool, client *http.Client, 
 	sklog.Infof("Doing initial check for landed CLs")
 	var gClients []*gitiles.Repo
 	for _, repo := range rfc.ReposToMonitorCLs {
-		gClients = append(gClients, gitiles.NewRepo(repo.RepoURL, client))
+		r, err := gitiles.NewRepoWithClient(repo.RepoURL, client)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to create gitiles repo for %s", repo.RepoURL)
+		}
+		gClients = append(gClients, r)
 	}
 	for i, client := range gClients {
 		cfg := rfc.ReposToMonitorCLs[i]

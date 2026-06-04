@@ -85,7 +85,10 @@ func TestLog(t *testing.T) {
 	}
 
 	urlMock := mockhttpclient.NewURLMock()
-	r := NewRepo(gb.RepoUrl(), urlMock.Client())
+	repoUrl, err := GetAuthenticatedURL(gb.RepoUrl())
+	require.NoError(t, err)
+	r, err := NewRepoWithClient(repoUrl, urlMock.Client())
+	require.NoError(t, err)
 	r.rl.SetLimit(rate.Inf)
 
 	// Helper function for mocking gitiles API calls.
@@ -114,7 +117,7 @@ func TestLog(t *testing.T) {
 		}
 		js := testutils.MarshalJSON(t, results)
 		js = ")]}'\n" + js
-		urlMock.MockOnce(fmt.Sprintf(LogURL, gb.RepoUrl(), git.LogFromTo(from, to)), mockhttpclient.MockGetDialogue([]byte(js)))
+		urlMock.MockOnce(fmt.Sprintf(LogURL, repoUrl, git.LogFromTo(from, to)), mockhttpclient.MockGetDialogue([]byte(js)))
 	}
 
 	// Return a slice of the hashes for the given commits.
@@ -211,9 +214,10 @@ func TestLogPagination(t *testing.T) {
 
 	// Gitiles API paginates logs over 100 commits long.
 	ctx := context.Background()
-	repoURL := "https://fake/repo"
+	repoURL := "https://fake/a/repo"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoURL, urlMock.Client())
+	repo, err := NewRepoWithClient(repoURL, urlMock.Client())
+	require.NoError(t, err)
 	repo.rl.SetLimit(rate.Inf)
 	next := 0
 	hash := func() string {
@@ -341,7 +345,8 @@ func TestLogLimit(t *testing.T) {
 
 	repoURL := "https://fake/repo"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoURL, urlMock.Client())
+	repo, err := NewRepoWithClient(repoURL, urlMock.Client())
+	require.NoError(t, err)
 	repo.rl.SetLimit(rate.Inf)
 
 	mock := func(logExpr string, limit int, commits []*vcsinfo.LongCommit, start, next string) {
@@ -428,14 +433,15 @@ func TestLogPath(t *testing.T) {
 	ctx := context.Background()
 	repoURL := "https://fake/repo"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoURL, urlMock.Client())
+	repo, err := NewRepoWithClient(repoURL, urlMock.Client())
+	require.NoError(t, err)
 	repo.rl.SetLimit(rate.Inf)
 	b := append([]byte(")]}'\n"), []byte(testutils.MarshalJSON(t, &Log{
 		Log:  []*Commit{},
 		Next: "",
 	}))...)
 	// Just verify that we used the correct URL.
-	urlMock.MockOnce("https://fake/repo/+log/myref/mypath?format=JSON", mockhttpclient.MockGetDialogue(b))
+	urlMock.MockOnce("https://fake/a/repo/+log/myref/mypath?format=JSON", mockhttpclient.MockGetDialogue(b))
 	commits, err := repo.Log(ctx, "myref", LogPath("mypath"))
 	require.NoError(t, err)
 	require.Equal(t, 0, len(commits))
@@ -444,9 +450,10 @@ func TestLogPath(t *testing.T) {
 func TestGetTreeDiffs(t *testing.T) {
 
 	ctx := context.Background()
-	repoURL := "https://skia.googlesource.com/buildbot.git"
+	repoURL := "https://skia.googlesource.com/a/buildbot.git"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoURL, urlMock.Client())
+	repo, err := NewRepoWithClient(repoURL, urlMock.Client())
+	require.NoError(t, err)
 	repo.rl.SetLimit(rate.Inf)
 
 	resp := `)]}'
@@ -496,9 +503,10 @@ func TestGetTreeDiffs(t *testing.T) {
 func TestListDir(t *testing.T) {
 
 	ctx := context.Background()
-	repoURL := "https://skia.googlesource.com/buildbot.git"
+	repoURL := "https://skia.googlesource.com/a/buildbot.git"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoURL, urlMock.Client())
+	repo, err := NewRepoWithClient(repoURL, urlMock.Client())
+	require.NoError(t, err)
 	repo.rl.SetLimit(rate.Inf)
 
 	resp1 := base64.StdEncoding.EncodeToString([]byte(`100644 blob 573680d74f404d64a7c3441f8a502c007fdcd3b7    gitiles.go
@@ -579,9 +587,10 @@ func TestLogOptionsToQuery(t *testing.T) {
 func TestDetails(t *testing.T) {
 	// Setup.
 	ctx := cipd_git.UseGitFinder(context.Background())
-	repoURL := "https://skia.googlesource.com/buildbot.git"
+	repoURL := "https://skia.googlesource.com/a/buildbot.git"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoURL, urlMock.Client())
+	repo, err := NewRepoWithClient(repoURL, urlMock.Client())
+	require.NoError(t, err)
 	gb := git_testutils.GitInit(t, ctx)
 	co := git.CheckoutDir(gb.Dir())
 
@@ -686,7 +695,7 @@ func TestParseURL(t *testing.T) {
 
 func TestTags(t *testing.T) {
 	urlMock := mockhttpclient.NewURLMock()
-	url := fmt.Sprintf(TagsURL, "fake.googlesource.com")
+	url := fmt.Sprintf(TagsURL, "https://fake.googlesource.com/a/repo")
 	resp := `)]}'
 {
   "upstream/v1.4.5": {
@@ -712,7 +721,8 @@ func TestTags(t *testing.T) {
   }
 }`
 	urlMock.MockOnce(url, mockhttpclient.MockGetDialogue([]byte(resp)))
-	r := NewRepo("fake.googlesource.com", urlMock.Client())
+	r, err := NewRepoWithClient("https://fake.googlesource.com/repo", urlMock.Client())
+	require.NoError(t, err)
 	tags, err := r.Tags(t.Context())
 	require.NoError(t, err)
 	require.Equal(t, map[string]string{
@@ -723,4 +733,35 @@ func TestTags(t *testing.T) {
 		"upstream/v1.5.0": "a488ba114ec17ea1054b9057c26a046fc122b3b6",
 		"upstream/v1.5.1": "791626dfb92acf4a3d3ba0342636b0dd82848e01",
 	}, tags)
+}
+
+func TestGetAuthenticatedURL(t *testing.T) {
+	testCases := []struct {
+		input  string
+		expect string
+	}{
+		{
+			input:  "https://skia.googlesource.com/skia",
+			expect: "https://skia.googlesource.com/a/skia",
+		},
+		{
+			input:  "https://skia.googlesource.com/skia.git",
+			expect: "https://skia.googlesource.com/a/skia.git",
+		},
+		{
+			input:  "https://skia.googlesource.com/skia/",
+			expect: "https://skia.googlesource.com/a/skia/",
+		},
+		{
+			input:  "https://skia.googlesource.com/a/skia.git/",
+			expect: "https://skia.googlesource.com/a/skia.git/",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			actual, err := GetAuthenticatedURL(tc.input)
+			require.NoError(t, err)
+			require.Equal(t, tc.expect, actual)
+		})
+	}
 }

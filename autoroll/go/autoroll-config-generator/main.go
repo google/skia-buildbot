@@ -287,7 +287,10 @@ func createTemplateVars(ctx context.Context, client *http.Client, privacySandbox
 	// Load the privacy sandbox versions for each of the active milestones.
 	if privacySandboxAndroidRepoURL != "" && privacySandboxAndroidVersionsPath != "" {
 		var eg errgroup.Group
-		repo := gitiles.NewRepo(privacySandboxAndroidRepoURL, client)
+		repo, err := gitiles.NewRepoWithClient(privacySandboxAndroidRepoURL, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		var mtx sync.Mutex
 		milestones := append(vars.Branches.ActiveMilestones, vars.Branches.Chromium.Main)
 		for _, m := range milestones {

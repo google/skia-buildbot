@@ -162,14 +162,17 @@ func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autorol
 	if err != nil {
 		return nil, err
 	}
-	gitiles := gitiles.NewRepo(g.GetRepoUrl()+"/"+ci.Project, client)
+	gitilesRepo, err := gitiles.NewRepoWithClient(g.GetRepoUrl()+"/"+ci.Project, client)
+	if err != nil {
+		return nil, err
+	}
 	return &gerritRoll{
 		ci:               ci,
 		issue:            issue,
 		issueUrl:         fmt.Sprintf("%s%d", issueUrlBase, issue.Issue),
 		finishedCallback: cb,
 		g:                g,
-		gitiles:          gitiles,
+		gitiles:          gitilesRepo,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context) (*gerrit.ChangeInfo, error) {
 			return updateIssueFromGerrit(ctx, cfg, issue, g)

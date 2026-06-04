@@ -30,7 +30,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
@@ -61,14 +60,17 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 
 	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, "production", ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
-	commits, err := gitiles.NewRepo(*repo, client).Log(ctx, logExpr, gitiles.LogLimit(*limit))
+	gitilesRepo, err := gitiles.NewRepo(ctx, *repo)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	commits, err := gitilesRepo.Log(ctx, logExpr, gitiles.LogLimit(*limit))
 	if err != nil {
 		sklog.Fatal(err)
 	}

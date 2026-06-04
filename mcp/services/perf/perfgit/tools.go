@@ -105,7 +105,10 @@ func GetTools(httpClient *http.Client, crrevClient *backends.CrrevClientImpl) []
 				}
 				repoURL := fmt.Sprintf("https://%s.googlesource.com/%s/", crrevResponse.Project, crrevResponse.Repo)
 				commitHash := crrevResponse.GitHash
-				repo := gitiles.NewRepo(repoURL, httpClient)
+				repo, err := gitiles.NewRepoWithClient(repoURL, httpClient)
+				if err != nil {
+					return mcp.NewToolResultError(err.Error()), nil
+				}
 				longCommits, err := repo.Log(ctx, commitHash, gitiles.LogLimit(1))
 				if err != nil {
 					return mcp.NewToolResultError(err.Error()), nil
@@ -145,7 +148,10 @@ func GetTools(httpClient *http.Client, crrevClient *backends.CrrevClientImpl) []
 			if err != nil {
 				return mcp.NewToolResultError(err.Error()), nil
 			}
-			repo := gitiles.NewRepo(repoURL, httpClient)
+			repo, err := gitiles.NewRepoWithClient(repoURL, httpClient)
+			if err != nil {
+				return mcp.NewToolResultError(err.Error()), nil
+			}
 			longCommits, err := repo.Log(ctx, commitHash, gitiles.LogLimit(1))
 			if err != nil {
 				return mcp.NewToolResultError(err.Error()), nil

@@ -204,7 +204,12 @@ func cycle(ctx context.Context, repos []*gitiles.Repo, oldMetrics map[metrics2.I
 func Start(ctx context.Context, repoUrls []string, client *http.Client, swarm swarmingv2.SwarmingV2Client, pools []string) {
 	repos := make([]*gitiles.Repo, 0, len(repoUrls))
 	for _, repo := range repoUrls {
-		repos = append(repos, gitiles.NewRepo(repo, client))
+		r, err := gitiles.NewRepoWithClient(repo, client)
+		if err != nil {
+			sklog.Errorf("Failed to create gitiles repo for %s: %s", repo, err)
+			continue
+		}
+		repos = append(repos, r)
 	}
 	lv := metrics2.NewLiveness("last_successful_supported_branches_update")
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}

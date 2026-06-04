@@ -460,8 +460,10 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 		sklog.Fatal(err)
 	}
 
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	k8sConfigGitiles := gitiles.NewRepo(k8sConfigRepoUrl, httpClient)
+	k8sConfigGitiles, err := gitiles.NewRepo(ctx, k8sConfigRepoUrl)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 
 	// Find the timestamp of the last-ingested commit.
 	lastFinished := time.Now()
@@ -569,12 +571,23 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 	if err != nil {
 		return skerr.Wrapf(err, "failed to create Gerrit client")
 	}
-	louhiRepos := []gitiles.GitilesRepo{
-		gitiles.NewRepo("https://skia.googlesource.com/buildbot.git", louhiHttpClient),
-		gitiles.NewRepo("https://skia.googlesource.com/k8s-config.git", louhiHttpClient),
-		gitiles.NewRepo("https://skia.googlesource.com/skia.git", louhiHttpClient),
-		gitiles.NewRepo("https://skia.googlesource.com/skia-autoroll-internal-config.git", louhiHttpClient),
+	r1, err := gitiles.NewRepoWithClient("https://skia.googlesource.com/buildbot.git", louhiHttpClient)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
+	r2, err := gitiles.NewRepoWithClient("https://skia.googlesource.com/k8s-config.git", louhiHttpClient)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	r3, err := gitiles.NewRepoWithClient("https://skia.googlesource.com/skia.git", louhiHttpClient)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	r4, err := gitiles.NewRepoWithClient("https://skia.googlesource.com/skia-autoroll-internal-config.git", louhiHttpClient)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	louhiRepos := []gitiles.GitilesRepo{r1, r2, r3, r4}
 	if err := pubsub.ListenPubSub(ctx, db, local, pubsubProject, g, louhiRepos); err != nil {
 		return skerr.Wrapf(err, "failed to initiate Louhi pub/sub listener")
 	}

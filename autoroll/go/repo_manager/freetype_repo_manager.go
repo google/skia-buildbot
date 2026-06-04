@@ -16,7 +16,10 @@ import (
 // NewFreeTypeRepoManager returns a RepoManager instance which rolls FreeType
 // in DEPS and updates header files and README.chromium.
 func NewFreeTypeRepoManager(ctx context.Context, c *config.FreeTypeRepoManagerConfig, workdir, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
-	parentRepo := gitiles.NewRepo(c.Parent.Gitiles.Gitiles.RepoUrl, client)
+	parentRepo, err := gitiles.NewRepoWithClient(c.Parent.Gitiles.Gitiles.RepoUrl, client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	gc, ok := codereview.GerritConfigs[c.Parent.Gitiles.Gerrit.Config]
 	if !ok {
 		return nil, skerr.Fmt("Unknown Gerrit config %s", c.Parent.Gitiles.Gerrit.Config)
@@ -29,7 +32,10 @@ func NewFreeTypeRepoManager(ctx context.Context, c *config.FreeTypeRepoManagerCo
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	childRepo := gitiles.NewRepo(c.Child.Gitiles.RepoUrl, client)
+	childRepo, err := gitiles.NewRepoWithClient(c.Child.Gitiles.RepoUrl, client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	childRM, err := child.NewGitiles(ctx, c.GetChild(), childRepo)
 	if err != nil {
 		return nil, skerr.Wrap(err)

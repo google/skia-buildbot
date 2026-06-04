@@ -30,7 +30,6 @@ go_library(
     importpath = "go.skia.org/infra/skfe/go/zone-apply",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/executil",
         "//go/gitiles",
@@ -38,7 +37,6 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "@org_golang_x_oauth2//google",
     ],
 )
 

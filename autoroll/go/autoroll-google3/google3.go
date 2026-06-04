@@ -63,12 +63,16 @@ func NewAutoRoller(ctx context.Context, cfg *config.Config, client *http.Client,
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	childRepo, err := gitiles.NewRepoWithClient(cfg.GetGoogle3RepoManager().ChildRepo, client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	a := &AutoRoller{
 		cfg:         cfg,
 		recent:      recent,
 		status:      cache,
 		childBranch: cfg.GetGoogle3RepoManager().ChildBranch,
-		childRepo:   gitiles.NewRepo(cfg.GetGoogle3RepoManager().ChildRepo, client),
+		childRepo:   childRepo,
 		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
 

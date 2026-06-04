@@ -13,15 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/oauth2/google"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/k8s"
 	"go.skia.org/infra/go/kube/clusterconfig"
 	"go.skia.org/infra/go/metrics2"
@@ -101,18 +98,15 @@ func main() {
 		sklog.Fatalf("Failed to create k8s client: %s", err)
 	}
 
-	// OAuth2.0 TokenSource.
-	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	// Authenticated HTTP client.
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-
 	liveness := metrics2.NewLiveness(livenessMetric)
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	go util.RepeatCtx(ctx, *dirtyConfigChecksPeriod, func(ctx context.Context) {
-		newMetrics, err := performChecks(ctx, *cluster, clusterConfig.Repo, k8sClient, *ignoreNamespaces, gitiles.NewRepo(clusterConfig.Repo, httpClient), oldMetrics, allowedAppsByNamespace)
+		repo, err := gitiles.NewRepo(ctx, clusterConfig.Repo)
+		if err != nil {
+			sklog.Errorf("Error when creating gitiles repo: %s", err)
+			return
+		}
+		newMetrics, err := performChecks(ctx, *cluster, clusterConfig.Repo, k8sClient, *ignoreNamespaces, repo, oldMetrics, allowedAppsByNamespace)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
 		} else {

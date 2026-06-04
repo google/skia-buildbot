@@ -39,9 +39,9 @@ import (
 )
 
 const (
-	fakeGitRepo    = "https://fake.googlesource.com/fake.git"
-	fakeParentRepo = "https://fake.googlesource.com/parent.git"
-	fakeChildRepo  = "https://fake.googlesource.com/child.git"
+	fakeGitRepo    = "https://fake.googlesource.com/a/fake.git"
+	fakeParentRepo = "https://fake.googlesource.com/a/parent.git"
+	fakeChildRepo  = "https://fake.googlesource.com/a/child.git"
 
 	fakeGitHubRepoOwner    = "fake"
 	fakeGitHubRepoName     = "skia"

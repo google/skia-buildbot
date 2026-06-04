@@ -9,10 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/luciconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -23,7 +21,6 @@ import (
 	"go.skia.org/infra/perf/go/subscription"
 	subscription_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/protobuf/encoding/prototext"
 )
 
@@ -206,12 +203,10 @@ func CreateConfigProvider(ctx context.Context, isLocal bool, gitilesRepoUrl stri
 
 	if gitilesRepoUrl != "" && sheriffConfigPath != "" {
 		// Setup primary Gitiles client
-		ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
+		repo, err := gitiles.NewRepo(ctx, gitilesRepoUrl)
 		if err != nil {
-			primaryErr = skerr.Wrapf(err, "Failed to create token source for gitiles")
+			primaryErr = skerr.Wrapf(err, "Failed to create gitiles repo")
 		} else {
-			client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-			repo := gitiles.NewRepo(gitilesRepoUrl, client)
 			primaryClient = NewGitilesConfigProvider(repo, sheriffConfigPath)
 		}
 	} else {

@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -43,7 +44,14 @@ const (
 //
 // If client is nil then a default timeout client is used.
 func GetSkiaHead(client *http.Client) (string, error) {
-	head, err := gitiles.NewRepo(common.REPO_SKIA, client).Details(context.TODO(), git.MasterBranch)
+	if client == nil {
+		client = httputils.NewTimeoutClient()
+	}
+	repo, err := gitiles.NewRepoWithClient(common.REPO_SKIA, client)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	head, err := repo.Details(context.TODO(), git.MasterBranch)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Could not get Skia's HEAD")
 	}
@@ -54,7 +62,14 @@ func GetSkiaHead(client *http.Client) (string, error) {
 //
 // If client is nil then a default timeout client is used.
 func GetSkiaHash(client *http.Client) (string, error) {
-	depsContents, err := gitiles.NewRepo(common.REPO_CHROMIUM, client).ReadFile(context.TODO(), deps_parser.DepsFileName)
+	if client == nil {
+		client = httputils.NewTimeoutClient()
+	}
+	repo, err := gitiles.NewRepoWithClient(common.REPO_CHROMIUM, client)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	depsContents, err := repo.ReadFile(context.TODO(), deps_parser.DepsFileName)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to read Chromium DEPS")
 	}

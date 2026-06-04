@@ -194,7 +194,10 @@ func imagesList(ctx context.Context, sm *stages.StageManager, httpClient *http.C
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-	repo := gitiles.NewRepo(repoURL, httpClient)
+	repo, err := gitiles.NewRepoWithClient(repoURL, httpClient)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
 	stagesByDigest := map[string][]string{}
 	for stageName, stage := range sf.Images[image].Stages {
 		stagesByDigest[stage.Digest] = append(stagesByDigest[stage.Digest], stageName)

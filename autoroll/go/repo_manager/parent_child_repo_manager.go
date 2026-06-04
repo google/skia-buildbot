@@ -77,7 +77,10 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		parentRM, err = parent.NewGitCheckoutGithubFile(ctx, c.GetGitCheckoutGithubFileParent(), client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitilesParent() != nil {
 		cfg := c.GetGitilesParent()
-		repo := gitiles.NewRepo(cfg.Gitiles.RepoUrl, client)
+		repo, err := gitiles.NewRepoWithClient(cfg.Gitiles.RepoUrl, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		gc, ok := codereview.GerritConfigs[cfg.Gerrit.Config]
 		if !ok {
 			return nil, skerr.Fmt("Unknown Gerrit config %s", cfg.Gerrit.Config)
@@ -96,15 +99,24 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// Create the Child.
 	if c.GetCipdChild() != nil {
-		repo := gitiles.NewRepo(c.GetCipdChild().GitilesRepo, client)
+		repo, err := gitiles.NewRepoWithClient(c.GetCipdChild().GitilesRepo, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		childRM, err = child.NewCIPD(ctx, c.GetCipdChild(), cipdClient, repo, workdir)
 	} else if c.GetFuchsiaSdkChild() != nil {
 		childRM, err = child.NewFuchsiaSDK(ctx, c.GetFuchsiaSdkChild(), client)
 	} else if c.GetGitilesChild() != nil {
-		repo := gitiles.NewRepo(c.GetGitilesChild().Gitiles.RepoUrl, client)
+		repo, err := gitiles.NewRepoWithClient(c.GetGitilesChild().Gitiles.RepoUrl, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		childRM, err = child.NewGitiles(ctx, c.GetGitilesChild(), repo)
 	} else if c.GetGitSemverChild() != nil {
-		repo := gitiles.NewRepo(c.GetGitSemverChild().Gitiles.RepoUrl, client)
+		repo, err := gitiles.NewRepoWithClient(c.GetGitSemverChild().Gitiles.RepoUrl, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		childRM, err = child.NewGitSemVerChild(ctx, c.GetGitSemverChild(), repo)
 	} else if c.GetGitCheckoutChild() != nil {
 		childRM, err = child.NewGitCheckout(ctx, c.GetGitCheckoutChild(), workdir, cr, childCheckout)
@@ -129,7 +141,10 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	// Some Parent implementations require a Child to be passed in.
 	if c.GetCopyParent() != nil {
 		cfg := c.GetCopyParent().Gitiles
-		repo := gitiles.NewRepo(cfg.Gitiles.RepoUrl, client)
+		repo, err := gitiles.NewRepoWithClient(cfg.Gitiles.RepoUrl, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		gc, ok := codereview.GerritConfigs[cfg.Gerrit.Config]
 		if !ok {
 			return nil, skerr.Fmt("Unknown Gerrit config %s", cfg.Gerrit.Config)

@@ -4,15 +4,12 @@ import (
 	"context"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
 
 	"go.skia.org/infra/pinpoint/go/backends"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
-	"golang.org/x/oauth2/google"
 )
 
 type httpClientContext struct{}
@@ -37,12 +34,7 @@ func FetchTaskActivity(ctx context.Context, taskID string) (*apipb.TaskResultRes
 }
 
 func createNewRepo(ctx context.Context, repository string) (*gitiles.Repo, error) {
-	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "problem setting up default token source")
-	}
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).Client()
-	return gitiles.NewRepo(repository, httpClient), nil
+	return gitiles.NewRepo(ctx, repository)
 }
 
 func getRepository(ctx context.Context, repository string) (gitiles.GitilesRepo, error) {

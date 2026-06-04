@@ -24,10 +24,11 @@ func TestFS(t *testing.T) {
 	ctx := cipd_git.UseGitFinder(context.Background())
 	repoURL := "https://fake.repo.git"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := gitiles.NewRepo(repoURL, urlMock.Client())
+	repo, err := gitiles.NewRepoWithClient(repoURL, urlMock.Client())
+	require.NoError(t, err)
 	tmp := shared_tests.MakeTestFiles(t)
 	gd := git.CheckoutDir(tmp)
-	_, err := gd.Git(ctx, "init")
+	_, err = gd.Git(ctx, "init")
 	require.NoError(t, err)
 	_, err = gd.Git(ctx, "add", ".")
 	require.NoError(t, err)

@@ -11,15 +11,12 @@ import (
 	"go.skia.org/infra/cd/go/stages"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/docker"
-	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/k8s"
 	"go.skia.org/infra/go/kube/clusterconfig"
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"golang.org/x/oauth2/google"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -59,12 +56,10 @@ func main() {
 	}
 
 	// Set up clients.
-	ts, err := google.DefaultTokenSource(ctx, gerrit.AuthScope)
+	repo, err := gitiles.NewRepo(ctx, *repoURL)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	httpClient := httputils.DefaultClientConfig().With2xxAnd3xx().WithTokenSource(ts).Client()
-	repo := gitiles.NewRepo(*repoURL, httpClient)
 	dockerClient, err := docker.NewClient(ctx)
 	if err != nil {
 		sklog.Fatal(err)

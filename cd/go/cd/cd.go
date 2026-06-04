@@ -7,19 +7,16 @@ import (
 	"strings"
 
 	"go.skia.org/infra/cd/go/stages"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/louhi"
 	"go.skia.org/infra/go/louhi/pubsub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_driver/go/td"
-	"golang.org/x/oauth2/google"
 )
 
 var uploadedCLRegex = regexp.MustCompile(`https://.*review\.googlesource\.com.*\d+`)
@@ -55,12 +52,10 @@ func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, srcRepo, src
 	}
 	commitMsg += "\n\n"
 	if srcRepo != "" && srcCommit != "" {
-		ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
+		gitilesRepo, err := gitiles.NewRepo(ctx, srcRepo)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-		gitilesRepo := gitiles.NewRepo(srcRepo, client)
 		commitDetails, err := gitilesRepo.Details(ctx, srcCommit)
 		if err != nil {
 			return skerr.Wrap(err)

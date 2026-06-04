@@ -46,7 +46,10 @@ func NewGitClient(ctx context.Context, repoUrl string, gerritUrl string) (*gitCl
 		return nil, skerr.Wrap(err)
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	repo := gitiles.NewRepo(repoUrl, httpClient)
+	repo, err := gitiles.NewRepoWithClient(repoUrl, httpClient)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	gerritClient, err := gerrit.NewGerrit(gerritUrl, httpClient)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -69,11 +72,6 @@ func NewGitClient(ctx context.Context, repoUrl string, gerritUrl string) (*gitCl
 // ReadGitFileActivity is an Activity that reads the contents of a file from a git commit.
 func ReadGitFileActivity(ctx context.Context, combinedCommit *common.CombinedCommit, path string) ([]byte, error) {
 	sklog.Info("ReadGitFileActivity started")
-	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "problem setting up default token source")
-	}
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).Client()
 
 	var commit *pb.Commit
 	if len(combinedCommit.ModifiedDeps) > 0 {
@@ -82,7 +80,10 @@ func ReadGitFileActivity(ctx context.Context, combinedCommit *common.CombinedCom
 		commit = combinedCommit.Main
 	}
 
-	repo := gitiles.NewRepo(commit.Repository, httpClient)
+	repo, err := gitiles.NewRepo(ctx, commit.Repository)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return repo.ReadFileAtRef(ctx, path, commit.GitHash)
 }
 

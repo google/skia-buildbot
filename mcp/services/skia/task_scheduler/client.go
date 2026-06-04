@@ -105,7 +105,10 @@ func (c *TaskSchedulerClient) GetTaskHealthReportHandler(ctx context.Context, re
 	includeStable := req.GetBool(argIncludeStable, false)
 	includeSuccessful := req.GetBool(argIncludeSuccessful, true)
 
-	repo := gitiles.NewRepo(repoUrl, c.client)
+	repo, err := gitiles.NewRepoWithClient(repoUrl, c.client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	commits, err := repo.Log(ctx, revision, gitiles.LogLimit(limit))
 	if err != nil {

@@ -41,9 +41,13 @@ func New(local bool, gerritURL, gitilesURL string) (*gerritCodeReview, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	gitilesRepo, err := gitiles.NewRepoWithClient(gitilesURL, client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return &gerritCodeReview{
 		gc:      gc,
-		gitiles: gitiles.NewRepo(gitilesURL, client),
+		gitiles: gitilesRepo,
 	}, nil
 }
 

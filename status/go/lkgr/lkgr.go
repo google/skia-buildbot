@@ -35,7 +35,11 @@ func (r *LKGR) Get() string {
 
 // Update LKGR.
 func (r *LKGR) Update(ctx context.Context) error {
-	depsContents, err := gitiles.NewRepo(common.REPO_CHROMIUM, nil).ReadFile(ctx, deps_parser.DepsFileName)
+	gitilesRepo, err := gitiles.NewRepo(ctx, common.REPO_CHROMIUM)
+	if err != nil {
+		return err
+	}
+	depsContents, err := gitilesRepo.ReadFile(ctx, deps_parser.DepsFileName)
 	if err != nil {
 		return err
 	}

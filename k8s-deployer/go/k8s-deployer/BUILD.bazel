@@ -6,7 +6,6 @@ go_library(
     importpath = "go.skia.org/infra/k8s-deployer/go/k8s-deployer",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth",
         "//go/common",
         "//go/exec",
         "//go/gitiles",
@@ -17,7 +16,6 @@ go_library(
         "//go/sklog",
         "//go/util",
         "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
-        "@org_golang_x_oauth2//google",
     ],
 )
 

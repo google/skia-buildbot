@@ -70,9 +70,10 @@ func testGetVerifier(t *testing.T, isCQ, isDryRun bool, submittedTogetherChange 
 		md := mockhttpclient.MockGetDialogue([]byte(encodedResp))
 		md.ResponseHeader(gitiles.ModeHeader, "0777")
 		md.ResponseHeader(gitiles.TypeHeader, "blob")
-		mockClient.Mock("test-repo-url/+show//infra/skcq.json?format=TEXT", md)
+		repoUrl := "https://test-repo-url/a/some-repo"
+		mockClient.Mock(fmt.Sprintf(gitiles.DownloadURL, repoUrl, "", "infra/skcq.json"), md)
 
-		cr.On("GetRepoUrl", submittedTogetherChange).Return("test-repo-url").Once()
+		cr.On("GetRepoUrl", submittedTogetherChange).Return(repoUrl).Once()
 		cr.On("GetFileNames", testutils.AnyContext, submittedTogetherChange).Return([]string{"test-file-name"}, nil).Once()
 		cr.On("GetCommitMessage", testutils.AnyContext, ci.Issue).Return(commitMsg, nil).Once()
 		cr.On("GetCommitMessage", testutils.AnyContext, submittedTogetherChange.Issue).Return(commitMsg, nil).Once()
@@ -90,7 +91,7 @@ func testGetVerifier(t *testing.T, isCQ, isDryRun bool, submittedTogetherChange 
 		allowlistCache: map[string]allowed.Allow{},
 	}
 	verifiers, actualSubmittedTogether, err := vm.GetVerifiers(context.Background(), cfg, ci, false, cfgReader)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	if submittedTogetherChange == nil || isDryRun {
 		require.Len(t, actualSubmittedTogether, 0)
 	} else {

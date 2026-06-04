@@ -41,7 +41,10 @@ func NewValidRevisionFromHTTPRevisionFilter(cfg *config.ValidHttpRevisionFilterC
 		if err != nil {
 			return nil, skerr.Wrapf(err, "failed to parse Gitiles URL")
 		}
-		repo := gitiles.NewRepo(repoURL, client)
+		repo, err := gitiles.NewRepoWithClient(repoURL, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		getFileFunc = func(ctx context.Context) ([]byte, error) {
 			return repo.ReadFileAtRef(ctx, path, ref)
 		}

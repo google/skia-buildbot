@@ -446,8 +446,10 @@ func main() {
 	if *configGerritProject == "" {
 		sklog.Fatal("--config_gerrit_project is required.")
 	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	configGitiles = gitiles.NewRepo(*configRepo, client)
+	configGitiles, err = gitiles.NewRepo(ctx, *configRepo)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	plogin := proxylogin.NewWithDefaults()
 	srv, err = rpc.NewAutoRollServer(ctx, statusDB, configDB, rollsDB, manualRollDB, cleanupDB, throttleDB, *configRefreshInterval, plogin)

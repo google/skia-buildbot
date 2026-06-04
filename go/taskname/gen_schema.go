@@ -47,7 +47,10 @@ func main() {
 	pkgDir := path.Dir(filename)
 
 	// Load the schema from JSON
-	r := gitiles.NewRepo("https://skia.googlesource.com/skia", nil)
+	r, err := gitiles.NewRepo(context.Background(), "https://skia.googlesource.com/skia")
+	if err != nil {
+		sklog.Fatalf("Could not create gitiles repo: %s\n", err)
+	}
 	b, err := r.ReadFileAtRef(context.Background(), "infra/bots/recipe_modules/builder_name_schema/builder_name_schema.json", git.MainBranch)
 	if err != nil {
 		sklog.Fatalf("Could not read schema file: %s\n", err)
