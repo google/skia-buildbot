@@ -28,7 +28,7 @@ var (
 		},
 		CqSuccessLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
-			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAcceptedWithWarnings,
 		},
 		CqFailureLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
@@ -40,7 +40,7 @@ var (
 			LabelPresubmitReady:    LabelPresubmitReadyEnable,
 		},
 		DryRunSuccessLabels: map[string]int{
-			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAcceptedWithWarnings,
 		},
 		DryRunFailureLabels: map[string]int{
 			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,

@@ -122,6 +122,9 @@ const (
 	// LabelPresubmitVerifiedRunning indicates that the presubmit checks have
 	// not finished for this change.
 	LabelPresubmitVerifiedRunning = 0
+	// LabelPresubmitVerifiedAcceptedWithWarnings indicates that the presubmit
+	// checks succeeded for this change, but there were non-blocking warnings.
+	LabelPresubmitVerifiedAcceptedWithWarnings = 1
 	// LabelPresubmitVerifiedAccepted indicates that the presubmit checks
 	// succeeded for this change.
 	LabelPresubmitVerifiedAccepted = 2
