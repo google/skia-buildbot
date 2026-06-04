@@ -64,8 +64,11 @@ case "$BENCHMARK" in
     sp|sp3)
         BENCHMARK="speedometer3"
         ;;
-    js|js2)
+    js2)
         BENCHMARK="jetstream2"
+        ;;
+    js|js3)
+        BENCHMARK="jetstream3"
         ;;
     mm|mm13|mm1.3)
         BENCHMARK="motionmark1.3"
@@ -91,7 +94,7 @@ if [[ "$BENCHMARK" == "loadline2" ]]; then
 fi
 
 # Validate benchmark argument
-VALID_BENCHMARKS=("speedometer3" "jetstream2" "motionmark1.3" "loadline2_phone" "loadline2_tablet" "full")
+VALID_BENCHMARKS=("speedometer3" "jetstream2" "jetstream3" "motionmark1.3" "loadline2_phone" "loadline2_tablet" "full")
 if ! [[ " ${VALID_BENCHMARKS[*]} " =~ " ${BENCHMARK} " ]]; then
     echo "Error: Invalid benchmark '$BENCHMARK'."
     echo "Valid benchmarks are: speedometer3, jetstream2, motionmark1.3, full (or aliases sp, js, mm, ll)."
