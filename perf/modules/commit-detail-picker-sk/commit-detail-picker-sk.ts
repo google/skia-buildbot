@@ -10,11 +10,11 @@ import '../commit-detail-panel-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../day-range-sk';
 
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { html, LitElement } from 'lit';
+import { customElement, property, state, query } from 'lit/decorators.js';
+import { Task, TaskStatus } from '@lit/task';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Commit, CommitNumber, RangeRequest } from '../json';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import { DayRangeSkChangeDetail } from '../day-range-sk/day-range-sk';
@@ -26,144 +26,129 @@ const initialRange = {
   end: Math.floor(Date.now() / 1000),
 };
 
-export class CommitDetailPickerSk extends ElementSk {
+@customElement('commit-detail-picker-sk')
+export class CommitDetailPickerSk extends LitElement {
+  @state()
   private range: DayRangeSkChangeDetail = initialRange;
 
-  private _selection: CommitNumber = CommitNumber(-1);
+  @property({ type: Number })
+  selection: CommitNumber = CommitNumber(-1);
 
+  @state()
   private selected: number = -1;
 
-  private details: Commit[];
+  @state()
+  private _fetchTrigger = 0;
 
-  private dialog: HTMLDialogElement | null = null;
+  @query('dialog')
+  private dialog!: HTMLDialogElement;
 
-  private updatingCommits: boolean = false;
+  private _commitTask = new Task<[number, CommitNumber], Commit[]>(this, {
+    task: async ([_trigger, _selection_arg]: [number, CommitNumber]) => {
+      try {
+        const body: RangeRequest = {
+          begin: this.range.begin,
+          end: this.range.end,
+          offset: this.selection,
+        };
 
-  constructor() {
-    super(CommitDetailPickerSk.template);
-    this.details = [];
-  }
+        const resp = await fetch('/_/cidRange/', {
+          method: 'POST',
+          body: JSON.stringify(body),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const cids = (await jsonOrThrow(resp)) as Commit[];
+        cids.reverse();
 
-  private static _titleFrom = (ele: CommitDetailPickerSk) => {
-    const index = ele.selected;
+        for (let i = 0; i < cids.length; i++) {
+          if ((cids[i] as unknown as Commit).offset === this.selection) {
+            this.selected = i;
+            break;
+          }
+        }
+
+        if (cids.length > 0) {
+          this.range = {
+            ...this.range,
+            begin: cids[cids.length - 1].ts,
+            end: cids[0].ts,
+          };
+        }
+
+        return cids;
+      } catch (error: any) {
+        errorMessage(error);
+        throw error;
+      }
+    },
+    args: () => [this._fetchTrigger, this.selection],
+  });
+
+  private get _title() {
+    const index = this.selected;
     if (index === -1) {
       return NO_COMMIT_SELECTED_MSG;
     }
-    const d = ele.details[index];
+    const d = (this._commitTask.value as Commit[])?.[index];
     if (!d) {
       return NO_COMMIT_SELECTED_MSG;
     }
     return `${d.author} -  ${d.message}`;
-  };
+  }
 
-  private static template = (ele: CommitDetailPickerSk) => html`
-    <button @click=${ele.open}>${CommitDetailPickerSk._titleFrom(ele)}</button>
-    <dialog>
-      <h2>Choose a commit</h2>
-      <commit-detail-panel-sk
-        @commit-selected="${ele.panelSelect}"
-        .details="${ele.details}"
-        selectable
-        selected=${ele.selected}></commit-detail-panel-sk>
-      <button class="close-dialog" @click=${ele.close}>Close</button>
+  createRenderRoot() {
+    return this;
+  }
 
-      <hr />
-      <p class="tiny">Change the range of commits displayed:</p>
-      <details>
-        <summary>Date Range</summary>
-        <day-range-sk
-          id="range"
-          @day-range-change=${ele.rangeChange}
-          begin=${ele.range.begin}
-          end=${ele.range.end}></day-range-sk>
-        <spinner-sk ?active=${ele.updatingCommits}></spinner-sk>
-      </details>
-    </dialog>
-  `;
+  render() {
+    return html`
+      <button @click=${this.open}>${this._title}</button>
+      <dialog>
+        <h2>Choose a commit</h2>
+        <commit-detail-panel-sk
+          @commit-selected="${this.panelSelect}"
+          .details="${this._commitTask.value ?? []}"
+          selectable
+          .selected=${this.selected}></commit-detail-panel-sk>
+        <button class="close-dialog" @click=${this.close}>Close</button>
+
+        <hr />
+        <p class="tiny">Change the range of commits displayed:</p>
+        <details>
+          <summary>Date Range</summary>
+          <day-range-sk
+            id="range"
+            @day-range-change=${this.rangeChange}
+            .begin=${this.range.begin}
+            .end=${this.range.end}></day-range-sk>
+          <spinner-sk ?active=${this._commitTask.status === TaskStatus.PENDING}></spinner-sk>
+        </details>
+      </dialog>
+    `;
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._upgradeProperty('details');
-    this._upgradeProperty('selection');
-    this._render();
-    this.dialog = this.querySelector('dialog')!;
-    void this.updateCommitSelections();
-  }
-
-  attributeChangedCallback(): void {
-    this._render();
+    this._fetchTrigger++;
   }
 
   private rangeChange(e: CustomEvent<DayRangeSkChangeDetail>) {
     this.range = e.detail;
-    void this.updateCommitSelections();
-  }
-
-  private async updateCommitSelections() {
-    this.updatingCommits = true;
-    this._render();
-
-    const body: RangeRequest = {
-      begin: this.range.begin,
-      end: this.range.end,
-      offset: this.selection,
-    };
-
-    try {
-      const resp = await fetch('/_/cidRange/', {
-        method: 'POST',
-        body: JSON.stringify(body),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const cids = (await jsonOrThrow(resp)) as Commit[];
-      cids.reverse();
-
-      this.details = cids;
-
-      for (let i = 0; i < cids.length; i++) {
-        if ((cids[i] as unknown as Commit).offset === this.selection) {
-          this.selected = i;
-          break;
-        }
-      }
-      this.range.begin = cids[cids.length - 1].ts;
-      this.range.end = cids[0].ts;
-      this._render();
-    } catch (error: any) {
-      errorMessage(error);
-    } finally {
-      this.updatingCommits = false;
-      this._render();
-    }
+    this._fetchTrigger++;
   }
 
   private panelSelect(e: Event) {
     this.selected = (e as CustomEvent<CommitDetailPanelSkCommitSelectedDetails>).detail.selected;
-    this._render();
     this.close();
   }
 
   private close() {
-    this.dialog!.close();
-    this._render();
+    this.dialog.close();
   }
 
   private open() {
-    this.dialog!.showModal();
-    this._render();
-  }
-
-  /** The CommitNumber that is selected. */
-  get selection(): CommitNumber {
-    return this._selection;
-  }
-
-  set selection(val: CommitNumber) {
-    this._selection = val;
-    void this.updateCommitSelections();
+    this.dialog.showModal();
   }
 }
-
-define('commit-detail-picker-sk', CommitDetailPickerSk);
