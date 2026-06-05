@@ -8,9 +8,10 @@
  *
  * @example
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Task } from '@lit/task';
+import { repeat } from 'lit/directives/repeat.js';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { Favorites } from '../json';
 import '../window/window';
@@ -20,11 +21,19 @@ import '../favorites-dialog-sk';
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 
-export class FavoritesSk extends ElementSk {
-  private favoritesConfig: Favorites | null = null;
+@customElement('favorites-sk')
+export class FavoritesSk extends LitElement {
+  private _fetchTask = new Task(this, {
+    task: async ([], { signal }) => {
+      const response = await fetch('/_/favorites/', { signal });
+      const json = await jsonOrThrow(response);
+      return json as Favorites;
+    },
+    args: () => [] as const,
+  });
 
-  constructor() {
-    super(FavoritesSk.template);
+  createRenderRoot() {
+    return this;
   }
 
   private deleteFavorite = async (favId: string) => {
@@ -44,7 +53,7 @@ export class FavoritesSk extends ElementSk {
       return;
     }
 
-    await this.fetchFavorites();
+    this._fetchTask.run();
   };
 
   private deleteFavoriteConfirm = async (id: string | undefined, name: string) => {
@@ -55,7 +64,7 @@ export class FavoritesSk extends ElementSk {
       return;
     }
 
-    this.deleteFavorite(id);
+    await this.deleteFavorite(id);
   };
 
   private editFavorite = async (
@@ -69,7 +78,7 @@ export class FavoritesSk extends ElementSk {
     d!
       .open(id, name, desc, url)
       .then(() => {
-        this.fetchFavorites();
+        this._fetchTask.run();
       })
       .catch((e) => {
         if (e !== undefined) {
@@ -78,14 +87,20 @@ export class FavoritesSk extends ElementSk {
       });
   };
 
-  private static template = (ele: FavoritesSk) => html`
-    <header><h1 class="name">Favorites</h1></header>
-    <hr />
-    ${ele.getSectionsTemplate()}
-  `;
+  render() {
+    return html`
+      <header><h1 class="name">Favorites</h1></header>
+      <hr />
+      ${this._fetchTask.render({
+        pending: () => html`<div>Loading favorites...</div>`,
+        error: (e) => html`<div>Error loading favorites: ${e}</div>`,
+        complete: (favoritesConfig) => this.getSectionsTemplate(favoritesConfig),
+      })}
+    `;
+  }
 
-  private getSectionsTemplate() {
-    const sections = this.favoritesConfig?.sections;
+  private getSectionsTemplate(favoritesConfig: Favorites) {
+    const sections = favoritesConfig.sections;
     // eslint-disable-next-line eqeqeq
     if (sections == null || sections.length === 0) {
       return html`No favorites have been configured for this instance.`;
@@ -100,7 +115,9 @@ export class FavoritesSk extends ElementSk {
                 <th>Description</th>
                 <th>Actions</th>
               </tr>
-              ${section.links?.map(
+              ${repeat(
+                section.links || [],
+                (link, index) => link.id || `${link.text}-${index}`,
                 (link) => html`
                   <tr>
                     <td><a href=${link.href}>${link.text}</a></td>
@@ -134,7 +151,9 @@ export class FavoritesSk extends ElementSk {
               <th>Link</th>
               <th>Description</th>
             </tr>
-            ${section.links?.map(
+            ${repeat(
+              section.links || [],
+              (link, index) => link.id || `${link.text}-${index}`,
               (link) => html`
                 <tr>
                   <td><a href=${link.href}>${link.text}</a></td>
@@ -147,21 +166,4 @@ export class FavoritesSk extends ElementSk {
         <hr />`;
     })}`;
   }
-
-  private fetchFavorites = async () => {
-    const response = await fetch('/_/favorites/');
-    const json = await jsonOrThrow(response);
-    this.favoritesConfig = json;
-    this._render();
-  };
-
-  async connectedCallback(): Promise<void> {
-    super.connectedCallback();
-    this._render();
-    if (this.favoritesConfig === null) {
-      this.fetchFavorites().catch(errorMessage);
-    }
-  }
 }
-
-define('favorites-sk', FavoritesSk);

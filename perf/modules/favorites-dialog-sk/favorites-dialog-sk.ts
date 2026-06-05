@@ -7,6 +7,7 @@
  */
 import { html, LitElement } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
+import { live } from 'lit/directives/live.js';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
@@ -180,7 +181,7 @@ export class FavoritesDialogSk extends LitElement {
         <input
           id="name-${this.uniqueId}"
           placeholder="Name"
-          .value="${this.name}"
+          .value="${live(this.name)}"
           @input=${(e: Event) => (this.name = (e.target as HTMLInputElement).value)}>
         </input>
         <br/>
@@ -191,7 +192,7 @@ export class FavoritesDialogSk extends LitElement {
         <input
           id="desc-${this.uniqueId}"
           placeholder="Description"
-          .value="${this.description}"
+          .value="${live(this.description)}"
           @input=${(e: Event) => (this.description = (e.target as HTMLInputElement).value)}></input>
         <br/>
 
@@ -201,7 +202,7 @@ export class FavoritesDialogSk extends LitElement {
         <input
           id="url-${this.uniqueId}"
           placeholder="URL"
-          .value="${this.url}"
+          .value="${live(this.url)}"
           @input=${(e: Event) => (this.url = (e.target as HTMLInputElement).value)}></input>
         <br/>
 
