@@ -127,10 +127,10 @@ definitive report to developers.
   but it's more likely that this is related to the machine(s) running the task.
 - TSAN tasks are inherently inconsistent; the task will fail if a real problem
   is found, but problems are not found on every execution. Treat these as actual
-  failures that need investigation.
+  failures that need investigation, and include the thread safety findings in
+  your report.
 
 
-# Current Task
 `
 
 func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*types.TaskSummary, error) {
@@ -142,7 +142,7 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 		return nil, skerr.Wrap(err)
 	}
 
-	const promptTmpl = `# Extract the error message for failed task "%s"
+	const promptTmpl = generalPromptHeader + `# Task: Extract the error message for failed task "%s"
 
 **CRITICAL:** This is strictly a log analysis and data extraction workflow. You
 MUST NOT attempt to read source code, debug the failure, or formulate a code
@@ -151,11 +151,13 @@ about any other tasks.
 
 ## Workflow
 
-1. Find the relevant failed step(s). Note that some step failures may be
-   expected, for example a step which tests file existence via some command
-   that exits with a non-zero code when it does not exist.
+1. Scan the list of steps below (if any) and find the relevant failed step(s).
+   Note that some step failures may be expected, for example a step which tests
+   file existence via some command that exits with a non-zero code when it does
+   not exist.
 2. If the task is a Task Driver or Recipe, you MUST retrieve the logs for the
-   failed step.
+   failed step. In the case of a raw swarming task, any logs are already
+   included below - you do not need to retrieve anything else.
    - Use the "get_task_driver_step_logs" or "get_recipe_step_logs", depending on
      whether this task is a Task Driver or Recipe.
    - These tools are *paginated* and will return a cursor if additional log
@@ -262,11 +264,19 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 					sb.WriteString(fmt.Sprintf("%v", content))
 				}
 			}
+			// According to the docs for genai.FunctionResponse.Response, the
+			// "output" and "error" keys are special and differentiate between
+			// normal output and a tool error. If not present, the whole map is
+			// considered to be the tool output.
+			key := "output"
+			if toolRes.IsError {
+				key = "error"
+			}
 			toolResponses = append(toolResponses, genai.Part{
 				FunctionResponse: &genai.FunctionResponse{
 					Name: fc.Name,
 					Response: map[string]any{
-						"result": sb.String(),
+						key: sb.String(),
 					},
 				},
 			})

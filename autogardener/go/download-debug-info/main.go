@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -20,8 +21,8 @@ import (
 )
 
 var (
-	gcsBucketDebug = flag.String("gcs-bucket-debug", "", "Optional, GCS bucket name to upload debug information.")
-	object         = flag.String("object", "", "GCS object path")
+	gcsBucketDebug = flag.String("gcs-bucket-debug", "skia-autogardener", "Optional, GCS bucket name to upload debug information.")
+	object         = flag.String("object", "", "GCS object path, eg. \"GetTaskSummary/<taskID>\"")
 )
 
 func main() {
@@ -49,14 +50,31 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+
+	// Write the prompt to a file.
 	if err := os.WriteFile(filepath.Join(tmp, "prompt.txt"), []byte(debug.Prompt), os.ModePerm); err != nil {
 		util.RemoveAll(tmp)
 		sklog.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmp, "result.txt"), []byte(debug.Result), os.ModePerm); err != nil {
+
+	// Attempt to decode the result as JSON and reformat it for readability.
+	resultFileName := "result.txt"
+	resultContents := []byte(debug.Result)
+	var result interface{}
+	if err := json.NewDecoder(bytes.NewReader(resultContents)).Decode(&result); err == nil {
+		resultFileName = "result.json"
+		b, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		resultContents = b
+	}
+	if err := os.WriteFile(filepath.Join(tmp, resultFileName), resultContents, os.ModePerm); err != nil {
 		util.RemoveAll(tmp)
 		sklog.Fatal(err)
 	}
+
+	// Write details for each tool call to files.
 	for idx, toolCall := range debug.ToolCalls {
 		argNames := make([]string, 0, len(toolCall.Args))
 		for arg := range toolCall.Args {

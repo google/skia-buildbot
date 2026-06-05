@@ -121,13 +121,13 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 		return nil, skerr.Wrap(err)
 	}
 	res.SwarmingTaskState = apipb.TaskState_name[int32(swarmTask.State)]
+	res.SwarmingTaskID = task.SwarmingTaskId
+	res.SwarmingBotID = task.SwarmingBotId
 
 	// Fall back to Recipe steps via LogDog.
 	step, err := c.logdog.GetBuildSteps(ctx, logdogProject, fixupSwarmingTaskID(task.SwarmingTaskId))
 	if err == nil {
 		res.Recipe = toRecipeStep(step)
-		// Populate SwarmingTaskID in case it's needed for log retrieval.
-		res.SwarmingTaskID = task.SwarmingTaskId
 		return &res, nil
 	} else if !strings.Contains(err.Error(), "coordinator: no access") {
 		return nil, skerr.Wrap(err)
@@ -136,12 +136,14 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	// If we couldn't find recipe steps, just return the Swarming task logs.
 	swarmOutput, err := c.swarm.GetStdout(ctx, &apipb.TaskIdWithOffsetRequest{TaskId: task.SwarmingTaskId})
 	if err != nil {
-		if strings.Contains(err.Error(), "404 page not found") {
-			res.SwarmingTaskLogs = "(no log output)"
+		if !strings.Contains(err.Error(), "404 page not found") {
+			return nil, skerr.Wrap(err)
 		}
-		return nil, skerr.Wrap(err)
 	} else {
 		res.SwarmingTaskLogs = string(swarmOutput.Output)
+	}
+	if strings.TrimSpace(res.SwarmingTaskLogs) == "" {
+		res.SwarmingTaskLogs = "(no log output)"
 	}
 	return &res, nil
 }
@@ -196,7 +198,7 @@ func (c *TaskDetailsClient) GetRecipeStepLogsHandler(ctx context.Context, req mc
 	// Retrieve the log lines.
 	lines, done, err := c.fetchLogDogStepLogs(ctx, logPath, startIndex, limit)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "failed to retrieve logs for task %q", swarmingTaskID)
 	}
 
 	// Find the next cursor.
@@ -344,6 +346,7 @@ type GetTaskStepsResult struct {
 
 	SwarmingTaskID    string `json:"swarming_task_id,omitempty"`
 	SwarmingTaskState string `json:"swarming_task_state,omitempty"`
+	SwarmingBotID     string `json:"swarming_bot_id,omitempty"`
 	SwarmingTaskLogs  string `json:"swarming_task_logs,omitempty"`
 }
 
@@ -356,12 +359,14 @@ func (r GetTaskStepsResult) String() string {
 		_, _ = fmt.Fprintf(&sb, "# Recipe\n\n")
 		_, _ = fmt.Fprintf(&sb, "**Swarming Task ID:** %s\n", r.SwarmingTaskID)
 		_, _ = fmt.Fprintf(&sb, "**Swarming Task State:** %s\n", r.SwarmingTaskState)
+		_, _ = fmt.Fprintf(&sb, "**Swarming Bot ID:** %s\n", r.SwarmingBotID)
 		_, _ = fmt.Fprintf(&sb, "**Steps:**\n")
 		printRecipeStep(&sb, r.Recipe, 0)
 	} else {
-		_, _ = fmt.Fprintf(&sb, "# Swarming Task\n\n")
-		_, _ = fmt.Fprintf(&sb, "**ID:**    %s\n", r.SwarmingTaskID)
-		_, _ = fmt.Fprintf(&sb, "**State:** %s\n", r.SwarmingTaskState)
+		_, _ = fmt.Fprintf(&sb, "# Raw Swarming Task (no steps available)\n\n")
+		_, _ = fmt.Fprintf(&sb, "**Swarming Task ID:** %s\n", r.SwarmingTaskID)
+		_, _ = fmt.Fprintf(&sb, "**Swarming Task State:** %s\n", r.SwarmingTaskState)
+		_, _ = fmt.Fprintf(&sb, "**Swarming Bot ID:** %s\n", r.SwarmingBotID)
 		_, _ = fmt.Fprintf(&sb, "**Logs:**\n")
 		_, _ = fmt.Fprintf(&sb, "```\n%s\n```\n", r.SwarmingTaskLogs)
 	}

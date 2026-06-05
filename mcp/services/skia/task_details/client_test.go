@@ -86,6 +86,7 @@ func TestGetTaskStepsResult_String_Recipe(t *testing.T) {
 			},
 		},
 		SwarmingTaskID:    "abc123",
+		SwarmingBotID:     "some-bot",
 		SwarmingTaskState: "FAILURE",
 	}
 
@@ -93,6 +94,7 @@ func TestGetTaskStepsResult_String_Recipe(t *testing.T) {
 
 **Swarming Task ID:** abc123
 **Swarming Task State:** FAILURE
+**Swarming Bot ID:** some-bot
 **Steps:**
 - "Root Step" (SUCCESS)
   - "Sub Step 1" (SUCCESS)
@@ -108,14 +110,16 @@ func TestGetTaskStepsResult_String_Recipe(t *testing.T) {
 func TestGetTaskStepsResult_String_Swarming(t *testing.T) {
 	res := GetTaskStepsResult{
 		SwarmingTaskID:    "abc123",
+		SwarmingBotID:     "some-bot",
 		SwarmingTaskState: "SUCCESS",
 		SwarmingTaskLogs:  "Log line 1\nLog line 2",
 	}
 
-	expected := `# Swarming Task
+	expected := `# Raw Swarming Task (no steps available)
 
-**ID:**    abc123
-**State:** SUCCESS
+**Swarming Task ID:** abc123
+**Swarming Task State:** SUCCESS
+**Swarming Bot ID:** some-bot
 **Logs:**
 ` + "```" + `
 Log line 1
