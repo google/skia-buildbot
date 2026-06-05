@@ -11,6 +11,7 @@ import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import '../window/window';
 
 const weekInSeconds = 7 * 24 * 60 * 60;
 const SECONDS_IN_DAY = 24 * 60 * 60;
@@ -192,10 +193,13 @@ export class ReportNavigationController implements ReactiveController {
 
       // request_type=0 only selects data points for within the range
       // rather than show 250 data points by default
-      const url =
+      let url =
         `${window.location.protocol}//${window.location.host}` +
         `/m/?begin=${timerange[0]}&end=${timerange[1]}` +
         `&request_type=0&shortcut=${this.shortcutUrl}`;
+      if (window.perf && window.perf.default_to_manual_plot_mode) {
+        url += '&manual_plot_mode=true';
+      }
       shortcutUrlList.push(url);
     }
 

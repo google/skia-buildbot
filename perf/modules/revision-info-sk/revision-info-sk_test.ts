@@ -11,8 +11,15 @@ describe('revision-info-sk', () => {
 
   let element: RevisionInfoSk;
   beforeEach(async () => {
+    window.perf = {
+      default_to_manual_plot_mode: false,
+    } as any;
     element = newInstance();
     await element.updateComplete;
+  });
+
+  afterEach(() => {
+    fetchMock.reset();
   });
 
   describe('Send Requests', () => {
@@ -140,6 +147,35 @@ describe('revision-info-sk', () => {
 
       const highlight_params = '&highlight_anomalies=123&highlight_anomalies=456';
       assert.include(url, highlight_params);
+    });
+
+    it('getMultiGraphUrl with manual_plot_mode', async () => {
+      window.perf.default_to_manual_plot_mode = true;
+      const revisionInfos: RevisionInfo[] = [
+        {
+          benchmark: 'b1',
+          bot: 'bot1',
+          bug_id: '111',
+          end_revision: 456,
+          start_revision: 123,
+          start_time: 1712026352,
+          end_time: 1712285552,
+          explore_url: 'https://url',
+          is_improvement: false,
+          master: 'm1',
+          test: 't1/t2/t3',
+          query: 'master=m1&bot=bot1&benchmark=b1&test=t1&subtest_1=t2&subtest_2=t3',
+          anomaly_ids: ['123', '456'],
+        },
+      ];
+
+      fetchMock.post(`/_/shortcut/update`, { id: '1234567' });
+
+      const url = await element.getMultiGraphUrl(revisionInfos);
+      const expected = 'begin=1712026352&end=1712285552&shortcut=1234567';
+
+      assert.include(url, expected);
+      assert.include(url, '&manual_plot_mode=true');
     });
   });
 });

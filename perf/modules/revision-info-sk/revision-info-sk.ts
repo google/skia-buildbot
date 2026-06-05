@@ -16,6 +16,7 @@ import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { errorMessage } from '../errorMessage';
+import '../window/window';
 
 class State {
   revisionId: number = 0; // The revisionId.
@@ -217,7 +218,10 @@ export class RevisionInfoSk extends LitElement {
       highlightAnomalies += `&highlight_anomalies=${anomalyId}`;
     });
 
-    const url = `/m/?begin=${begin}&end=${end}&shortcut=${newShortcut}${highlightAnomalies}`;
+    let url = `/m/?begin=${begin}&end=${end}&shortcut=${newShortcut}${highlightAnomalies}`;
+    if (window.perf && window.perf.default_to_manual_plot_mode) {
+      url += '&manual_plot_mode=true';
+    }
 
     return url;
   }

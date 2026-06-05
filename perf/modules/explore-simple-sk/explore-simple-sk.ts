@@ -1536,7 +1536,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
             `&shortcut=${shortcut}`
           : '#';
 
-        if (newUrl !== '#' && window.perf.default_to_manual_plot_mode) {
+        if (newUrl !== '#' && window.perf && window.perf.default_to_manual_plot_mode) {
           newUrl += '&manual_plot_mode=true';
         }
 

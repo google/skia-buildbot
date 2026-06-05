@@ -35,6 +35,7 @@ sk_element(
         ":interactive-tour-sk_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/const:const_ts_lib",
+        "//perf/modules/window:window_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-v2-sk.ts",

@@ -32,6 +32,7 @@ import { errorMessage } from '../errorMessage';
 import './help-hub-sk';
 import './interactive-tour-sk';
 import { TourStep } from './interactive-tour-sk';
+import '../window/window';
 
 export const SUBREPO_CONFIG: Record<string, { logUrl: string; repoUrl: string }> = {
   V8: {
@@ -2061,6 +2062,9 @@ export class ExploreMultiV2Sk extends LitElement {
     }
     if (this.end && this.end !== UNSET_TIME) {
       urlParams.set('end', this.end.toString());
+    }
+    if (window.perf && window.perf.default_to_manual_plot_mode) {
+      urlParams.set('manual_plot_mode', 'true');
     }
 
     const nextSearch = urlParams.toString();

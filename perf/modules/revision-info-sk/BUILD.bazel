@@ -27,6 +27,7 @@ sk_element(
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/common:graph-config_ts_lib",
+        "//perf/modules/window:window_ts_lib",
     ],
     ts_srcs = [
         "revision-info-sk.ts",
