@@ -586,6 +586,8 @@ describe('explore-multi-v2-sk', () => {
     try {
       // Inject styles to fix white-on-white visibility issue in test environment
       await page.evaluate(() => {
+        (window as any).perf = (window as any).perf || {};
+        (window as any).perf.bug_host_url = 'https://example.bug.url';
         const style = document.createElement('style');
         style.textContent = `
           :root {
@@ -638,6 +640,7 @@ describe('explore-multi-v2-sk', () => {
           [series.id]: {
             [row.commit_number]: {
               id: 'test-anomaly-id',
+              bug_id: 12345,
               bugs: [],
               is_improvement: false,
               commit_number: row.commit_number,
@@ -684,8 +687,8 @@ describe('explore-multi-v2-sk', () => {
       });
       expect(hasBisectBtn).to.be.true;
 
-      // Verify triage-menu-sk is present
-      const hasTriageMenu = await page.evaluate(async () => {
+      // Verify triage-menu-sk is present and hidden because a bug is associated
+      const triageMenuDetails = await page.evaluate(async () => {
         const explore = document.querySelector('explore-multi-v2-sk') as any;
         await explore.updateComplete;
         const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
@@ -694,9 +697,40 @@ describe('explore-multi-v2-sk', () => {
         const triageMenu = tooltip
           ? tooltip.shadowRoot.querySelector('#tooltip-triage-menu')
           : null;
-        return triageMenu !== null;
+        if (!triageMenu) {
+          return null;
+        }
+        return {
+          present: true,
+          hidden: triageMenu.hasAttribute('hidden'),
+        };
       });
-      expect(hasTriageMenu).to.be.true;
+      expect(triageMenuDetails).to.not.be.null;
+      expect(triageMenuDetails!.present).to.be.true;
+      expect(triageMenuDetails!.hidden).to.be.true;
+
+      // Verify Bug ID link is present
+      const bugLinkDetails = await page.evaluate(async () => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        await explore.updateComplete;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        await traceChart.updateComplete;
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk');
+        if (!tooltip) {
+          return null;
+        }
+        await tooltip.updateComplete;
+        const link = tooltip.shadowRoot.querySelector('a[href="https://example.bug.url/12345"]');
+        if (!link) {
+          return null;
+        }
+        return {
+          href: link.getAttribute('href'),
+          text: link.textContent?.trim(),
+        };
+      });
+      expect(bugLinkDetails).to.not.be.null;
+      expect(bugLinkDetails!.text).to.equal('12345');
 
       const hasNewBugBtn = await page.evaluate(async () => {
         const explore = document.querySelector('explore-multi-v2-sk') as any;

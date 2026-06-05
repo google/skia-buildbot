@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { TraceSeries, TraceRow, ProcessedTraceSeries } from './trace-types';
 import { Regression, CommitNumber } from '../json';
 import { fromKey } from '../paramtools';
-import { formatNumber, formatPercentage, getPercentChange } from '../common/anomaly';
+import { formatBug, formatNumber, formatPercentage, getPercentChange } from '../common/anomaly';
 import '../commit-range-sk/commit-range-sk';
 import '../json-source-sk/json-source-sk';
 import '../triage-menu-sk/triage-menu-sk';
@@ -27,6 +27,8 @@ export class TraceChartTooltipSk extends LitElement {
   @property({ type: Boolean }) dateMode = false;
 
   @property({ type: String }) yAxisLabel = 'score';
+
+  @property({ type: String }) bug_host_url = window.perf ? window.perf.bug_host_url : '';
 
   @property({ type: Object }) regressions: {
     [trace_id: string]: { [commit: number]: Regression };
@@ -766,10 +768,11 @@ export class TraceChartTooltipSk extends LitElement {
                     </div>
                   `
                 : ''}
-              ${regression.bugs && regression.bugs.length > 0
+              ${(regression as any).bug_id
                 ? html`
                     <div class="tooltip-row">
-                      <strong>Bug ID:</strong> ${regression.bugs[0].bug_id}
+                      <strong>Bug ID:</strong>
+                      <span> ${formatBug(this.bug_host_url, (regression as any).bug_id)} </span>
                     </div>
                   `
                 : ''}
@@ -779,7 +782,9 @@ export class TraceChartTooltipSk extends LitElement {
                   .anomalies=${[regression]}
                   .traceNames=${[s.originalId || s.id]}
                   .nudgeList=${this._nudgeList}
-                  ?hidden=${regression.bugs ? regression.bugs.length > 0 : false}>
+                  ?hidden=${(regression as any).bug_id !== undefined &&
+                  (regression as any).bug_id !== null &&
+                  (regression as any).bug_id !== 0}>
                 </triage-menu-sk>
               </div>
             `;

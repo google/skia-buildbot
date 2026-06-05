@@ -158,7 +158,7 @@ fetchMock.get(
   help_url_override: '',
   trace_format: 'chrome',
   need_alert_action: false,
-  bug_host_url: '',
+  bug_host_url: 'https://issues.chromium.org/issues',
   git_repo_url: '',
   keys_for_commit_range: [],
   keys_for_useful_links: [],
