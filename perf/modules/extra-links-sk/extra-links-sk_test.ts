@@ -25,6 +25,7 @@ describe('extra-links-sk', () => {
     };
 
     element = newInstance();
+    await element.updateComplete;
     assert.isNotNull(element.querySelector('table'));
     assert.equal(element.querySelector('a')?.textContent, 'link 1');
   });
@@ -32,6 +33,7 @@ describe('extra-links-sk', () => {
   it('renders no favorites message if config is empty', async () => {
     window.perf.extra_links = null;
     element = newInstance();
+    await element.updateComplete;
     assert.include(element.textContent || '', 'No links have been configured');
   });
 });

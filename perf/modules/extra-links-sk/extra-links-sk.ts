@@ -8,17 +8,17 @@
  *
  * @example
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
 import '../window/window';
 
-export class ExtraLinksSk extends ElementSk {
-  constructor() {
-    super(ExtraLinksSk.template);
+@customElement('extra-links-sk')
+export class ExtraLinksSk extends LitElement {
+  createRenderRoot() {
+    return this;
   }
 
-  private static template = (_: ExtraLinksSk) => {
+  render() {
     if (window.perf.extra_links) {
       return html` <header><h1 class="name">${window.perf.extra_links?.title}</h1></header>
         <hr />
@@ -41,12 +41,5 @@ export class ExtraLinksSk extends ElementSk {
     } else {
       return html`No links have been configured.`;
     }
-  };
-
-  async connectedCallback(): Promise<void> {
-    super.connectedCallback();
-    this._render();
   }
 }
-
-define('extra-links-sk', ExtraLinksSk);
