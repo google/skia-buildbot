@@ -136,6 +136,14 @@ type frameRequestProcess struct {
 //
 // The finished results are stored in the FrameRequestProcess.Progress.Results.
 func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit.Git, dfBuilder dataframe.DataFrameBuilder, traceStore tracestore.TraceStore, metadataStore tracestore.MetadataStore, shortcutStore shortcut.Store, anomalyStore anomalies.Store, searchAnomaliesTimeBased bool) error {
+	limit := maxTracesInResponse
+	if req.Pivot != nil && req.Pivot.Valid() == nil {
+		limit = 5000
+	} else {
+		limit = maxTracesInResponse
+	}
+	ctx = context.WithValue(ctx, types.LimitContextKey, limit)
+
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1

@@ -211,6 +211,32 @@ func TestReadTracesForCommitRange_TwoCommits_Success(t *testing.T) {
 	}, ts)
 }
 
+func TestReadTracesForCommitRange_WithLimitContextKey(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t)
+
+	keys := []string{
+		",arch=x86,config=8888,",
+		",arch=x86,config=565,",
+	}
+
+	ctxWithLimit2 := context.WithValue(ctx, types.LimitContextKey, 2)
+	ts2, commits2, _, err := s.ReadTracesForCommitRange(ctxWithLimit2, keys, types.CommitNumber(1), types.CommitNumber(1))
+	require.NoError(t, err)
+	assert.Len(t, ts2, 2)
+
+	ctxWithLimit1 := context.WithValue(ctx, types.LimitContextKey, 1)
+	ts1, _, _, err := s.ReadTracesForCommitRange(ctxWithLimit1, keys, types.CommitNumber(1), types.CommitNumber(1))
+	require.NoError(t, err)
+	assert.Len(t, ts1, 1)
+
+	tsNoLimit, commitsNoLimit, _, err := s.ReadTracesForCommitRange(ctx, keys, types.CommitNumber(1), types.CommitNumber(1))
+	require.NoError(t, err)
+	assert.Len(t, tsNoLimit, 2)
+
+	assert.Equal(t, tsNoLimit, ts2)
+	assert.Equal(t, commitsNoLimit, commits2)
+}
+
 func TestQueryTracesIDOnly_EmptyQueryReturnsError(t *testing.T) {
 	ctx, s := commonTestSetup(t, true)
 

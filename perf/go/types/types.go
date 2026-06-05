@@ -405,3 +405,9 @@ type RegressionBug struct {
 
 // CommitHashRangeFormatter defines the signature for callbacks that generate clickable Git range log URLs.
 type CommitHashRangeFormatter func(ctx context.Context, startCommit, endCommit int64) string
+
+type ContextKey string
+
+const (
+	LimitContextKey ContextKey = "limit"
+)

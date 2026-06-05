@@ -898,6 +898,13 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	// Protected by mutex.
 	traceNameMap := map[types.TraceIDForSQLInBytes]string{}
 
+	limit := 1000000
+	if val := ctx.Value(types.LimitContextKey); val != nil {
+		if l, ok := val.(int); ok {
+			limit = l
+		}
+	}
+
 	// Protects traceNameMap and ret.
 	var mutex sync.Mutex
 	traceNames := []string{}
@@ -905,6 +912,13 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	for traceName := range traceNamesChan {
 		if s.inMemoryTraceParams.ShowOnlyPublicTraces() && !s.inMemoryTraceParams.TraceAccessAllowed(traceName) {
 			continue
+		}
+		if len(traceNames) >= limit {
+			go func() {
+				for range traceNamesChan {
+				}
+			}()
+			break
 		}
 		traceNames = append(traceNames, traceName)
 		traceIDBytes := types.TraceIDForSQLInBytesFromTraceName(traceName)
