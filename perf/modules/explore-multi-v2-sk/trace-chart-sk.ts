@@ -170,6 +170,8 @@ export class TraceChartSk extends LitElement {
 
   @property({ type: Boolean }) loading = false;
 
+  @property({ type: Array }) highlightAnomalies: string[] = [];
+
   @query('#chart-canvas')
   private canvas!: HTMLCanvasElement;
 
@@ -1047,6 +1049,23 @@ export class TraceChartSk extends LitElement {
             const px = mapX(this._xAccessor(r));
             const targetY = showSmoothed && r.smoothedVal !== undefined ? r.smoothedVal : r.val;
             const py = mapY(targetY);
+
+            const isHighlighted =
+              this.highlightAnomalies && this.highlightAnomalies.includes(reg.id);
+            if (isHighlighted) {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(px, py, 11, 0, 2 * Math.PI);
+              ctx.strokeStyle = '#fff';
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+              ctx.beginPath();
+              ctx.arc(px, py, 9, 0, 2 * Math.PI);
+              ctx.strokeStyle = '#f4b400';
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+              ctx.restore();
+            }
 
             ctx.beginPath();
             ctx.arc(px, py, 5, 0, 2 * Math.PI);

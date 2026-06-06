@@ -138,6 +138,8 @@ export class ReportPageSk extends ElementSk {
 
   private _endV2: number | null = null;
 
+  private _highlightAnomaliesV2: string[] = [];
+
   private get isV2Enabled(): boolean {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.has('v2') || urlParams.get('explore') === 'v2';
@@ -199,6 +201,7 @@ export class ReportPageSk extends ElementSk {
             .viewportMaxX=${ele._viewportMaxXV2}
             .begin=${ele._beginV2}
             .end=${ele._endV2}
+            .highlightAnomalies=${ele._highlightAnomaliesV2}
             .embedded=${true}>
           </explore-multi-v2-sk>
         `
@@ -492,6 +495,7 @@ export class ReportPageSk extends ElementSk {
     if (!this.isV2Enabled) return;
 
     const selectedAnomalies = this.anomalyTracker.getSelectedAnomalies();
+    this._highlightAnomaliesV2 = selectedAnomalies.map((a) => a.id);
     if (selectedAnomalies.length === 0) {
       this._queriesV2 = [{}];
       this._splitKeysV2 = new Set();

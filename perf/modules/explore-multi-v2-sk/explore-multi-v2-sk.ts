@@ -62,6 +62,8 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @property({ type: Boolean }) embedded = false;
 
+  @property({ type: Array }) highlightAnomalies: string[] = [];
+
   @state() private _queriesExpanded = false;
 
   @state() private _shortcut = '';
@@ -2638,6 +2640,7 @@ export class ExploreMultiV2Sk extends LitElement {
                 .globalPinnedX=${this._globalPinnedX}
                 .loadedBounds=${this._loadedBounds}
                 .globalBounds=${this._globalBounds}
+                .highlightAnomalies=${this.highlightAnomalies}
                 .tooltipDiffs=${this._tooltipDiffs}
                 .selectedSubrepo=${this._selectedSubrepo}
                 .activeSplitKeys=${Array.from(this.splitKeys)}

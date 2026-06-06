@@ -566,4 +566,50 @@ describe('trace-chart-sk', () => {
       (element as any)['_getChartBoundsAndMapping'] = oldGetMapping;
     }
   });
+
+  it('draws extra circles for highlighted anomalies', async () => {
+    element.regressions = {
+      test: {
+        100: {
+          id: 'anomaly-123',
+          commit_number: 100,
+        } as any,
+      },
+    };
+    element.highlightAnomalies = ['anomaly-123'];
+    await element.updateComplete;
+
+    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d')!;
+    const oldArc = ctx.arc;
+    const arcRadii: number[] = [];
+    ctx.arc = function (
+      x: number,
+      y: number,
+      radius: number,
+      startAngle: number,
+      endAngle: number,
+      counterclockwise?: boolean
+    ) {
+      arcRadii.push(radius);
+      oldArc.call(this, x, y, radius, startAngle, endAngle, counterclockwise);
+    };
+
+    try {
+      (element as any)['_processedSeries'] = [
+        {
+          id: 'test',
+          color: '#fff',
+          rows: [{ commit_number: 100, val: 10, createdat: 1000 }],
+        },
+      ];
+      (element as any)['_drawBackground']();
+
+      // Should have drawn concentric circles (radii 11 and 9) in addition to normal dot (radius 5 or 1.5)
+      expect(arcRadii).to.include(11);
+      expect(arcRadii).to.include(9);
+    } finally {
+      ctx.arc = oldArc;
+    }
+  });
 });
