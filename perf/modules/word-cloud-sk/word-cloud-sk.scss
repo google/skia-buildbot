@@ -1,6 +1,6 @@
-@import '../../../elements-sk/modules/colors';
+@use '../../../elements-sk/modules/colors';
 
-@import '../themes/themes.scss';
+@use '../themes/themes.scss';
 
 word-cloud-sk {
   font-size: 12px;

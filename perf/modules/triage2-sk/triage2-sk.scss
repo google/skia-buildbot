@@ -1,6 +1,6 @@
-@import '../../../elements-sk/modules/styles/buttons';
-@import '../../../elements-sk/modules/colors';
-@import '../themes/themes.scss';
+@use '../../../elements-sk/modules/styles/buttons';
+@use '../../../elements-sk/modules/colors';
+@use '../themes/themes.scss';
 
 // Legacy color scheme.
 triage2-sk {
@@ -35,7 +35,6 @@ triage2-sk {
   }
 }
 
-@import '../themes/themes.scss';
 
 // Theme based color scheme.
 .body-sk triage2-sk {

@@ -1,5 +1,5 @@
-@import '../../../elements-sk/modules/styles/select';
-@import '../themes/themes';
+@use '../../../elements-sk/modules/styles/select';
+@use '../themes/themes';
 
 pivot-query-sk {
   display: flex;

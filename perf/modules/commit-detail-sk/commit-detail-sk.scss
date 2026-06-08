@@ -1,4 +1,5 @@
-@import '../../../elements-sk/modules/colors';
+@use '../../../elements-sk/modules/colors';
+@use '../themes/themes.scss';
 
 commit-detail-sk {
   .linkish {
@@ -27,7 +28,6 @@ commit-detail-sk {
   }
 }
 
-@import '../themes/themes.scss';
 
 .body-sk commit-detail-sk {
   .linkish {

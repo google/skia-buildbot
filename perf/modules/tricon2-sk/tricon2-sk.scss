@@ -1,7 +1,7 @@
-@import '../../../elements-sk/modules/styles/buttons';
-@import '../../../elements-sk/modules/colors';
+@use '../../../elements-sk/modules/styles/buttons';
+@use '../../../elements-sk/modules/colors';
 
-@import '../themes/themes.scss';
+@use '../themes/themes.scss';
 
 tricon2-sk {
   check-circle-icon-sk {
