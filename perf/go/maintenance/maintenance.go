@@ -5,6 +5,7 @@ import (
 	"context"
 	"time"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -23,6 +24,7 @@ import (
 	"go.skia.org/infra/perf/go/trace_visibility/provider/chrome"
 	"go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore"
 	"go.skia.org/infra/perf/go/tracing"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -177,10 +179,16 @@ func startVisibilityChecker(ctx context.Context, instanceConfig *config.Instance
 		return
 	}
 
+	var err error
 	client := httputils.NewTimeoutClient()
+	ts, tokenErr := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
+	if tokenErr == nil {
+		client = httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	} else {
+		sklog.Warningf("Failed to create authenticated token source for visibility checker: %s. Using unauthenticated client.", tokenErr)
+	}
 
 	var provider provider.Provider
-	var err error
 	switch instanceConfig.VisibilityConfig.ProviderName {
 	case "chrome":
 		provider, err = chrome.ChromeProvider(*instanceConfig.VisibilityConfig, client)

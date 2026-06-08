@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/maintenance",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/auth",
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
@@ -24,5 +25,6 @@ go_library(
         "//perf/go/trace_visibility/provider/chrome",
         "//perf/go/trace_visibility/sqlconfigstore",
         "//perf/go/tracing",
+        "@org_golang_x_oauth2//google",
     ],
 )
