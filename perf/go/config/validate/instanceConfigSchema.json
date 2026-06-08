@@ -777,6 +777,12 @@
         },
         "pinpoint_task_queue": {
           "type": "string"
+        },
+        "wait_time_for_anomaly_clustering_window": {
+          "$ref": "#/$defs/DurationAsString"
+        },
+        "pinpoint_poll_interval": {
+          "$ref": "#/$defs/DurationAsString"
         }
       },
       "additionalProperties": false,

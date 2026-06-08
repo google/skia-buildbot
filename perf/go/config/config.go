@@ -901,6 +901,12 @@ type TemporalConfig struct {
 
 	// The task queue name where the bisect workflows go to.
 	PinpointTaskQueue string `json:"pinpoint_task_queue,omitempty"`
+
+	// The wait time for anomaly clustering window.
+	WaitTimeForAnomalyClusteringWindow DurationAsString `json:"wait_time_for_anomaly_clustering_window,omitempty"`
+
+	// The pinpoint poll interval.
+	PinpointPollInterval DurationAsString `json:"pinpoint_poll_interval,omitempty"`
 }
 
 // DataPointConfig contains config properties to customize how data for individual points is displayed.

@@ -9,11 +9,17 @@ import (
 )
 
 type CulpritServiceActivity struct {
-	insecure_conn bool
+	insecureConn bool
+}
+
+func NewCulpritServiceActivity(insecure bool) *CulpritServiceActivity {
+	return &CulpritServiceActivity{
+		insecureConn: insecure,
+	}
 }
 
 func (csa *CulpritServiceActivity) PeristCulprit(ctx context.Context, culpritServiceUrl string, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
-	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
+	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecureConn)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +31,7 @@ func (csa *CulpritServiceActivity) PeristCulprit(ctx context.Context, culpritSer
 }
 
 func (csa *CulpritServiceActivity) NotifyUserOfCulprit(ctx context.Context, culpritServiceUrl string, req *pb.NotifyUserOfCulpritRequest) (*pb.NotifyUserOfCulpritResponse, error) {
-	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
+	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecureConn)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +44,7 @@ func (csa *CulpritServiceActivity) NotifyUserOfCulprit(ctx context.Context, culp
 
 func (csa *CulpritServiceActivity) NotifyUserOfAnomaly(ctx context.Context, culpritServiceUrl string, req *pb.NotifyUserOfAnomalyRequest) (*pb.NotifyUserOfAnomalyResponse, error) {
 	sklog.Debugf("[AG] Notify user of anomalies: %s. Group ID: %s", req.Anomaly, req.AnomalyGroupId)
-	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
+	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecureConn)
 	if err != nil {
 		return nil, err
 	}

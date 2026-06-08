@@ -20,7 +20,11 @@ import (
 )
 
 const (
-	_WAIT_TIME_FOR_ANOMALIES = 30 * time.Minute
+	DefaultWaitTimeForAnomalyClusteringWindow = 30 * time.Minute
+	DefaultPinpointPollInterval               = 30 * time.Minute
+	BisectionAnomaliesCount                   = 1
+	ReportingAnomaliesCount                   = 10
+	PinpointJobTimeout                        = 10 * time.Hour
 )
 
 func agsaToken() *AnomalyGroupServiceActivity {
@@ -50,7 +54,12 @@ func MaybeTriggerBisectionWorkflow(
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 
-	if err := waitForAnomalyClusteringWindow(ctx); err != nil {
+	waitTime := input.WaitTimeForAnomalyClusteringWindow
+	if waitTime == 0 {
+		waitTime = DefaultWaitTimeForAnomalyClusteringWindow
+	}
+
+	if err := waitForAnomalyClusteringWindow(ctx, waitTime); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -108,7 +117,7 @@ func processAnomaliesAsBisection(
 	ctx workflow.Context,
 	input *workflows.MaybeTriggerBisectionParam,
 ) (*workflows.MaybeTriggerBisectionResult, error) {
-	anomaliesCount := 1
+	anomaliesCount := BisectionAnomaliesCount
 	topAnomaliesResponse, err := findTopAnomalies(
 		ctx,
 		input.AnomalyGroupServiceUrl,
@@ -149,7 +158,11 @@ func processAnomaliesAsBisection(
 		return nil, skerr.Wrap(err)
 	}
 
-	jobState, err := waitPinpointJobCompletion(ctx, jobId)
+	pollInterval := input.PinpointPollInterval
+	if pollInterval == 0 {
+		pollInterval = DefaultPinpointPollInterval
+	}
+	jobState, err := waitPinpointJobCompletion(ctx, jobId, pollInterval)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -169,7 +182,7 @@ func processAnomaliesAsReporting(
 	input *workflows.MaybeTriggerBisectionParam,
 ) (*workflows.MaybeTriggerBisectionResult, error) {
 	// Load Anomalies data
-	anomaliesCount := 10
+	anomaliesCount := ReportingAnomaliesCount
 	topAnomaliesResponse, err := findTopAnomalies(
 		ctx,
 		input.AnomalyGroupServiceUrl,
@@ -249,8 +262,8 @@ func parseStatisticNameFromChart(chart_name string) (string, string) {
 
 // waitForAnomalyClusteringWindow waits for some time so that more anomalies can
 // be detected and grouped.
-func waitForAnomalyClusteringWindow(ctx workflow.Context) error {
-	if err := workflow.Sleep(ctx, _WAIT_TIME_FOR_ANOMALIES); err != nil {
+func waitForAnomalyClusteringWindow(ctx workflow.Context, waitTime time.Duration) error {
+	if err := workflow.Sleep(ctx, waitTime); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
@@ -436,14 +449,17 @@ func parseStoryChartStat(anomaly *ag_pb.Anomaly) (string, string, string) {
 func waitPinpointJobCompletion(
 	ctx workflow.Context,
 	jobId string,
+	pollInterval time.Duration,
 ) (*pinpoint.FetchJobStateResponse, error) {
+	if pollInterval == 0 {
+		pollInterval = DefaultPinpointPollInterval
+	}
 	// In case of increasing the timeout, keep in mind the workflow runner timeout
 	// settings in perf/go/anomalygroup/utils/anomalygrouputils.go
-	timeout := 10 * time.Hour
-	interval := 30 * time.Minute
+	timeout := PinpointJobTimeout
 	startTime := workflow.Now(ctx)
 	for {
-		if err := workflow.Sleep(ctx, interval); err != nil {
+		if err := workflow.Sleep(ctx, pollInterval); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 

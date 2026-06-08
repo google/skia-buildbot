@@ -3,7 +3,11 @@ load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 go_library(
     name = "worker_lib",
-    srcs = ["main.go"],
+    srcs = [
+        "main.go",
+        "register_mock_dev.go",  # keep
+        "register_mock_prod.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/workflows/worker",
     visibility = ["//visibility:private"],
     deps = [

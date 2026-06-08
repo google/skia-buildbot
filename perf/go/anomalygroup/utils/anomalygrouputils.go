@@ -138,12 +138,14 @@ func ProcessRegression(
 		//   service host url override. We should rename and use one single property.
 		wf, err := temporalClient.ExecuteWorkflow(
 			ctx, wo, workflows.MaybeTriggerBisection, &workflows.MaybeTriggerBisectionParam{
-				AnomalyGroupServiceUrl:  config.Config.BackendServiceHostUrl,
-				AutobisectionServiceUrl: config.Config.BackendServiceHostUrl,
-				CulpritServiceUrl:       config.Config.BackendServiceHostUrl,
-				AnomalyGroupId:          newGroupID.AnomalyGroupId,
-				GroupingTaskQueue:       config.Config.TemporalConfig.GroupingTaskQueue,
-				PinpointTaskQueue:       config.Config.TemporalConfig.PinpointTaskQueue,
+				AnomalyGroupServiceUrl:             config.Config.BackendServiceHostUrl,
+				AutobisectionServiceUrl:            config.Config.BackendServiceHostUrl,
+				CulpritServiceUrl:                  config.Config.BackendServiceHostUrl,
+				AnomalyGroupId:                     newGroupID.AnomalyGroupId,
+				GroupingTaskQueue:                  config.Config.TemporalConfig.GroupingTaskQueue,
+				PinpointTaskQueue:                  config.Config.TemporalConfig.PinpointTaskQueue,
+				WaitTimeForAnomalyClusteringWindow: time.Duration(config.Config.TemporalConfig.WaitTimeForAnomalyClusteringWindow),
+				PinpointPollInterval:               time.Duration(config.Config.TemporalConfig.PinpointPollInterval),
 			})
 		if err != nil {
 			return "", status.Errorf(codes.Internal, "Unable to start grouping workflow (%v).", err)

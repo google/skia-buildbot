@@ -8,17 +8,17 @@ import (
 )
 
 type AutobisectionServiceActivity struct {
-	insecure_conn bool
+	insecureConn bool
 }
 
-func NewAutobisectionServiceActivity() *AutobisectionServiceActivity {
+func NewAutobisectionServiceActivity(insecure bool) *AutobisectionServiceActivity {
 	return &AutobisectionServiceActivity{
-		insecure_conn: false,
+		insecureConn: insecure,
 	}
 }
 
 func (bsa *AutobisectionServiceActivity) SaveAutobisection(ctx context.Context, autobisectionServiceUrl string, req *pb.SaveAutobisectionRequest) (*pb.SaveAutobisectionResponse, error) {
-	apiClient, err := client.NewAutobisectionServiceClient(autobisectionServiceUrl, bsa.insecure_conn)
+	apiClient, err := client.NewAutobisectionServiceClient(autobisectionServiceUrl, bsa.insecureConn)
 	if err != nil {
 		return nil, err
 	}

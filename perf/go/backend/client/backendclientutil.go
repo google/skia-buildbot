@@ -31,7 +31,7 @@ func isBackendEnabled(urlOverride string) bool {
 
 // getGrpcConnection returns a ClientConn object that can be used to create individual
 // service clients for the BE service.
-func getGrpcConnection(backendServiceUrlOverride string, insecure_conn bool) (*grpc.ClientConn, error) {
+func getGrpcConnection(backendServiceUrlOverride string, insecureConn bool) (*grpc.ClientConn, error) {
 	var backendServiceUrl string
 	if backendServiceUrlOverride != "" {
 		backendServiceUrl = backendServiceUrlOverride
@@ -43,7 +43,11 @@ func getGrpcConnection(backendServiceUrlOverride string, insecure_conn bool) (*g
 	// like https://github.com/grpc-ecosystem/grpc-opentracing/tree/master/go/otgrpc
 
 	opts := []grpc.DialOption{}
-	if insecure_conn {
+	if insecureConn {
+		// Strictly validate that insecureConn is false in production configurations.
+		if config.Config != nil && !config.Config.Demo {
+			return nil, skerr.Fmt("insecure connection is not allowed in production configurations")
+		}
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	} else {
 		tlsCreds := credentials.NewTLS(&tls.Config{
@@ -93,12 +97,12 @@ func NewPinpointClient(backendServiceUrlOverride string) (pinpoint.PinpointClien
 }
 
 // NewAnomalyGroupServiceClient returns a new instance of a client for the anomalygroup service.
-func NewAnomalyGroupServiceClient(backendServiceUrlOverride string, insecure_conn bool) (anomalygroup.AnomalyGroupServiceClient, error) {
+func NewAnomalyGroupServiceClient(backendServiceUrlOverride string, insecureConn bool) (anomalygroup.AnomalyGroupServiceClient, error) {
 	if !isBackendEnabled(backendServiceUrlOverride) {
 		return nil, skerr.Fmt("Backend service is not enabled for this instance.")
 	}
 
-	conn, err := getGrpcConnection(backendServiceUrlOverride, insecure_conn)
+	conn, err := getGrpcConnection(backendServiceUrlOverride, insecureConn)
 	if err != nil {
 		return nil, err
 	}
@@ -107,12 +111,12 @@ func NewAnomalyGroupServiceClient(backendServiceUrlOverride string, insecure_con
 }
 
 // NewAutobisectionServiceClient returns a new instance of a client for the autobisection service.
-func NewAutobisectionServiceClient(backendServiceUrlOverride string, insecure_conn bool) (autobisection.AutobisectionServiceClient, error) {
+func NewAutobisectionServiceClient(backendServiceUrlOverride string, insecureConn bool) (autobisection.AutobisectionServiceClient, error) {
 	if !isBackendEnabled(backendServiceUrlOverride) {
 		return nil, skerr.Fmt("Backend service is not enabled for this instance.")
 	}
 
-	conn, err := getGrpcConnection(backendServiceUrlOverride, insecure_conn)
+	conn, err := getGrpcConnection(backendServiceUrlOverride, insecureConn)
 	if err != nil {
 		return nil, err
 	}
@@ -121,12 +125,12 @@ func NewAutobisectionServiceClient(backendServiceUrlOverride string, insecure_co
 }
 
 // NewCulpritServiceClient returns a new instance of a client for the culprit service.
-func NewCulpritServiceClient(backendServiceUrlOverride string, insecure_conn bool) (culprit.CulpritServiceClient, error) {
+func NewCulpritServiceClient(backendServiceUrlOverride string, insecureConn bool) (culprit.CulpritServiceClient, error) {
 	if !isBackendEnabled(backendServiceUrlOverride) {
 		return nil, skerr.Fmt("Backend service is not enabled for this instance.")
 	}
 
-	conn, err := getGrpcConnection(backendServiceUrlOverride, insecure_conn)
+	conn, err := getGrpcConnection(backendServiceUrlOverride, insecureConn)
 	if err != nil {
 		return nil, err
 	}

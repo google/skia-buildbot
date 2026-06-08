@@ -1,6 +1,8 @@
 package workflows
 
 import (
+	"time"
+
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -27,12 +29,14 @@ type ProcessCulpritResult struct {
 }
 
 type MaybeTriggerBisectionParam struct {
-	AnomalyGroupServiceUrl  string
-	AutobisectionServiceUrl string
-	CulpritServiceUrl       string
-	AnomalyGroupId          string
-	GroupingTaskQueue       string
-	PinpointTaskQueue       string
+	AnomalyGroupServiceUrl             string
+	AutobisectionServiceUrl            string
+	CulpritServiceUrl                  string
+	AnomalyGroupId                     string
+	GroupingTaskQueue                  string
+	PinpointTaskQueue                  string
+	WaitTimeForAnomalyClusteringWindow time.Duration
+	PinpointPollInterval               time.Duration
 }
 
 type MaybeTriggerBisectionResult struct {

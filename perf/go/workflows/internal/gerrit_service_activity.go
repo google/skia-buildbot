@@ -8,7 +8,7 @@ import (
 )
 
 type GerritServiceActivity struct {
-	insecure_conn bool
+	insecureConn bool
 }
 
 func (gsa *GerritServiceActivity) GetCommitRevision(ctx context.Context, commitPostion int64) (string, error) {

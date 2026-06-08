@@ -3,9 +3,19 @@ package pinpoint
 
 import "go.skia.org/infra/pinpoint/go/pinpoint/internal"
 
-type TryJobCreateRequest = internal.TryJobCreateRequest
-type BisectJobCreateRequest = internal.BisectJobCreateRequest
-type CreatePinpointResponse = internal.CreatePinpointResponse
+type (
+	TryJobCreateRequest    = internal.TryJobCreateRequest
+	BisectJobCreateRequest = internal.BisectJobCreateRequest
+	CreatePinpointResponse = internal.CreatePinpointResponse
+)
 
-type FetchJobStateRequest = internal.FetchJobStateRequest
-type FetchJobStateResponse = internal.FetchJobStateResponse
+type (
+	FetchJobStateRequest  = internal.FetchJobStateRequest
+	FetchJobStateResponse = internal.FetchJobStateResponse
+)
+
+type (
+	StateItem = internal.StateItem
+	Change    = internal.Change
+	Commit    = internal.Commit
+)

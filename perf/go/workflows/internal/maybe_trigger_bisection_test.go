@@ -62,10 +62,10 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
-	gsa := &GerritServiceActivity{insecure_conn: true}
-	csa := &CulpritServiceActivity{insecure_conn: true}
-	bsa := &AutobisectionServiceActivity{insecure_conn: true}
+	agsa := &AnomalyGroupServiceActivity{insecureConn: true}
+	gsa := &GerritServiceActivity{insecureConn: true}
+	csa := &CulpritServiceActivity{insecureConn: true}
+	bsa := &AutobisectionServiceActivity{insecureConn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
@@ -149,10 +149,10 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
-	gsa := &GerritServiceActivity{insecure_conn: true}
-	csa := &CulpritServiceActivity{insecure_conn: true}
-	bsa := &AutobisectionServiceActivity{insecure_conn: true}
+	agsa := &AnomalyGroupServiceActivity{insecureConn: true}
+	gsa := &GerritServiceActivity{insecureConn: true}
+	csa := &CulpritServiceActivity{insecureConn: true}
+	bsa := &AutobisectionServiceActivity{insecureConn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
@@ -236,10 +236,10 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
-	gsa := &GerritServiceActivity{insecure_conn: true}
-	csa := &CulpritServiceActivity{insecure_conn: true}
-	bsa := &AutobisectionServiceActivity{insecure_conn: true}
+	agsa := &AnomalyGroupServiceActivity{insecureConn: true}
+	gsa := &GerritServiceActivity{insecureConn: true}
+	csa := &CulpritServiceActivity{insecureConn: true}
+	bsa := &AutobisectionServiceActivity{insecureConn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
@@ -352,10 +352,10 @@ func TestMaybeTriggerBisection_GroupActionBisect_BisectionNotAllowed(t *testing.
 	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
-	gsa := &GerritServiceActivity{insecure_conn: true}
-	csa := &CulpritServiceActivity{insecure_conn: true}
-	bsa := &AutobisectionServiceActivity{insecure_conn: true}
+	agsa := &AnomalyGroupServiceActivity{insecureConn: true}
+	gsa := &GerritServiceActivity{insecureConn: true}
+	csa := &CulpritServiceActivity{insecureConn: true}
+	bsa := &AutobisectionServiceActivity{insecureConn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
@@ -469,10 +469,10 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
-	gsa := &GerritServiceActivity{insecure_conn: true}
-	csa := &CulpritServiceActivity{insecure_conn: true}
-	bsa := &AutobisectionServiceActivity{insecure_conn: true}
+	agsa := &AnomalyGroupServiceActivity{insecureConn: true}
+	gsa := &GerritServiceActivity{insecureConn: true}
+	csa := &CulpritServiceActivity{insecureConn: true}
+	bsa := &AutobisectionServiceActivity{insecureConn: true}
 	env.RegisterActivity(agsa)
 	env.RegisterActivity(gsa)
 	env.RegisterActivity(csa)
@@ -550,7 +550,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 func TestCreateLegacyBisectJob(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
+	agsa := &AnomalyGroupServiceActivity{insecureConn: true}
 	env.RegisterActivity(agsa)
 
 	mockAnomaly := &anomalygroup_proto.Anomaly{
@@ -607,7 +607,7 @@ func TestCreateLegacyBisectJob(t *testing.T) {
 func TestCreateLegacyBisectJob_EmptyJobID(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
+	agsa := &AnomalyGroupServiceActivity{insecureConn: true}
 	env.RegisterActivity(agsa)
 
 	mockAnomaly := &anomalygroup_proto.Anomaly{
@@ -681,7 +681,7 @@ func TestWaitPinpointJobCompletion_Completed(t *testing.T) {
 	var actualResp *pinpoint.FetchJobStateResponse
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
-		resp, err := waitPinpointJobCompletion(ctx, jobId)
+		resp, err := waitPinpointJobCompletion(ctx, jobId, 0)
 		actualResp = resp
 		return err
 	})
@@ -709,7 +709,7 @@ func TestWaitPinpointJobCompletion_Failed(t *testing.T) {
 	var actualResp *pinpoint.FetchJobStateResponse
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
-		resp, err := waitPinpointJobCompletion(ctx, jobId)
+		resp, err := waitPinpointJobCompletion(ctx, jobId, 0)
 		actualResp = resp
 		return err
 	})
@@ -737,7 +737,7 @@ func TestWaitPinpointJobCompletion_Cancelled(t *testing.T) {
 	var actualResp *pinpoint.FetchJobStateResponse
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
-		resp, err := waitPinpointJobCompletion(ctx, jobId)
+		resp, err := waitPinpointJobCompletion(ctx, jobId, 0)
 		actualResp = resp
 		return err
 	})
@@ -766,7 +766,7 @@ func TestWaitPinpointJobCompletion_Timeout(t *testing.T) {
 
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
-		_, err := waitPinpointJobCompletion(ctx, jobId)
+		_, err := waitPinpointJobCompletion(ctx, jobId, 0)
 		return err
 	})
 

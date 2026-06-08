@@ -33,7 +33,7 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 	defer cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	csa := &CulpritServiceActivity{insecure_conn: true}
+	csa := &CulpritServiceActivity{insecureConn: true}
 	env.RegisterActivity(csa)
 	pp_commits := []*pinpoint_proto.Commit{
 		{
@@ -95,7 +95,7 @@ func TestProcessCulprit_HappyPath_InvalidCulpritRepo(t *testing.T) {
 	defer cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	csa := &CulpritServiceActivity{insecure_conn: true}
+	csa := &CulpritServiceActivity{insecureConn: true}
 	env.RegisterActivity(csa)
 	pp_commits := []*pinpoint_proto.Commit{
 		{

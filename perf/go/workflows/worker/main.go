@@ -26,6 +26,16 @@ var (
 		"localhost.dev",
 		"Task queue name registered to worker services.",
 	)
+	useMockPinpoint = flag.Bool(
+		"useMockPinpoint",
+		false,
+		"Use a local mock pinpoint client instead of live API integration.",
+	)
+	local = flag.Bool(
+		"local",
+		false,
+		"Whether running in local dev/demo mode. Allows insecure gRPC connections to local backend services.",
+	)
 )
 
 func main() {
@@ -42,28 +52,34 @@ func main() {
 		Namespace:      *namespace,
 	})
 	if err != nil {
-		sklog.Errorf("Unable to create client", err)
-		return
+		sklog.Fatalf("Unable to create client: %s", err)
 	}
 	defer c.Close()
 	w := worker.New(c, *taskQueue, worker.Options{})
-	csa := &internal.CulpritServiceActivity{}
+	csa := internal.NewCulpritServiceActivity(*local)
 	w.RegisterActivity(csa)
 	w.RegisterWorkflowWithOptions(
 		internal.ProcessCulpritWorkflow,
 		workflow.RegisterOptions{Name: workflows.ProcessCulprit},
 	)
 
-	pinpointClient, err := pinpoint.New(context.Background())
-	if err != nil {
-		sklog.Fatalf("Unable to create pinpoint client: %s", err)
+	if *useMockPinpoint {
+		if !devMode {
+			sklog.Fatalf("Mock Pinpoint Client is only available in development builds. Recompile with -tags dev.")
+		}
+		registerMockActivities(w)
+	} else {
+		pinpointClient, err := pinpoint.New(context.Background())
+		if err != nil {
+			sklog.Fatalf("Unable to create pinpoint client: %s", err)
+		}
+		w.RegisterActivity(pinpointClient)
 	}
-	w.RegisterActivity(pinpointClient)
 
-	agsa := internal.NewAnomalyGroupServiceActivity()
+	agsa := internal.NewAnomalyGroupServiceActivity(*local)
+	bsa := internal.NewAutobisectionServiceActivity(*local)
+
 	w.RegisterActivity(agsa)
-
-	bsa := internal.NewAutobisectionServiceActivity()
 	w.RegisterActivity(bsa)
 
 	w.RegisterWorkflowWithOptions(

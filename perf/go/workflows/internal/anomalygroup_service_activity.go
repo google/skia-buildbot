@@ -11,13 +11,13 @@ import (
 )
 
 type AnomalyGroupServiceActivity struct {
-	insecure_conn             bool
+	insecureConn              bool
 	legacyPinpointRateLimiter *rate.Limiter
 }
 
-func NewAnomalyGroupServiceActivity() *AnomalyGroupServiceActivity {
+func NewAnomalyGroupServiceActivity(insecure bool) *AnomalyGroupServiceActivity {
 	return &AnomalyGroupServiceActivity{
-		insecure_conn: false,
+		insecureConn: insecure,
 		// Protects legacy Pinpoint from overloading with bisection job requests.
 		// Set to 1 hour for testing purposes.
 		legacyPinpointRateLimiter: rate.NewLimiter(rate.Every(time.Hour), 1),
@@ -32,7 +32,7 @@ func (agsa *AnomalyGroupServiceActivity) CheckBisectionAllowed(ctx context.Conte
 }
 
 func (agsa *AnomalyGroupServiceActivity) LoadAnomalyGroupByID(ctx context.Context, anomalygroupServiceUrl string, req *pb.LoadAnomalyGroupByIDRequest) (*pb.LoadAnomalyGroupByIDResponse, error) {
-	client, err := backend.NewAnomalyGroupServiceClient(anomalygroupServiceUrl, agsa.insecure_conn)
+	client, err := backend.NewAnomalyGroupServiceClient(anomalygroupServiceUrl, agsa.insecureConn)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (agsa *AnomalyGroupServiceActivity) LoadAnomalyGroupByID(ctx context.Contex
 }
 
 func (agsa *AnomalyGroupServiceActivity) FindTopAnomalies(ctx context.Context, anomalygroupServiceUrl string, req *pb.FindTopAnomaliesRequest) (*pb.FindTopAnomaliesResponse, error) {
-	client, err := backend.NewAnomalyGroupServiceClient(anomalygroupServiceUrl, agsa.insecure_conn)
+	client, err := backend.NewAnomalyGroupServiceClient(anomalygroupServiceUrl, agsa.insecureConn)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (agsa *AnomalyGroupServiceActivity) FindTopAnomalies(ctx context.Context, a
 }
 
 func (agsa *AnomalyGroupServiceActivity) UpdateAnomalyGroup(ctx context.Context, anomalygroupServiceUrl string, req *pb.UpdateAnomalyGroupRequest) (*pb.UpdateAnomalyGroupResponse, error) {
-	client, err := backend.NewAnomalyGroupServiceClient(anomalygroupServiceUrl, agsa.insecure_conn)
+	client, err := backend.NewAnomalyGroupServiceClient(anomalygroupServiceUrl, agsa.insecureConn)
 	if err != nil {
 		return nil, err
 	}
