@@ -268,7 +268,6 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 	startTime := workflow.Now(ctx)
 
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
-	ctx = workflow.WithChildOptions(ctx, cbbRunnerChildWorkflowOptions)
 
 	err := validateParameters(cbb)
 	if err != nil {
@@ -327,6 +326,9 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 			p.Benchmark += ".crossbench"
 		}
 
+		options := cbbRunnerChildWorkflowOptions
+		options.WorkflowID = p.PinpointJobID
+		ctx = workflow.WithChildOptions(ctx, options)
 		var cr *CommitRun
 		if err := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, p).Get(ctx, &cr); err != nil {
 			errs = append(errs, skerr.Wrap(err))
