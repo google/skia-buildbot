@@ -146,53 +146,72 @@ func GetCurrentVersion(ctx context.Context, db pool.Pool) (int, error) {
 func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool) error {
 	sklog.Infof("Starting ValidateAndMigrateNewSchema. Ready to inspect schema transitions.")
 
-	// 1. Ensure the schema_migrations table exists in the database.
-	_, err := db.Exec(ctx, `
-		CREATE TABLE IF NOT EXISTS schema_migrations (
-			version INT PRIMARY KEY,
-			applied_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-		);
-	`)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to create schema_migrations table")
-	}
-	sklog.Infof("Successfully checked or created 'schema_migrations' logging table.")
-
-	// 2. Retrieve the currently applied version from the database (supporting bootstrapping).
-	currentVersion, err := GetCurrentVersion(ctx, db)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to get current or legacy schema version")
-	}
-
-	// 3. Load, parse, sort, and validate all migration files from embed.FS.
-	migrations, err := getMigrations()
-	if err != nil {
-		return skerr.Wrapf(err, "failed to load migrations")
-	}
-	sklog.Infof("Loaded %d total embedded migration scripts from migrations/ package path.", len(migrations))
-
-	// 4. Run the pending migrations step-by-step.
-	appliedAny := false
-	for _, m := range migrations {
-		if m.version > currentVersion {
-			sklog.Infof("Applying pending database migration script: Version=%d, File=%s", m.version, m.name)
-			sklog.Infof("Executing SQL DDL content for migration %s:\n%s", m.name, m.sql)
-			_, err = db.Exec(ctx, m.sql)
-			if err != nil {
-				return skerr.Wrapf(err, "failed to apply migration version %d (%s)", m.version, m.name)
-			}
-			_, err = db.Exec(ctx, `INSERT INTO schema_migrations (version) VALUES ($1)`, m.version)
-			if err != nil {
-				return skerr.Wrapf(err, "failed to record migration version %d as applied", m.version)
-			}
-			currentVersion = m.version
-			sklog.Infof("Successfully upgraded database schema to version %d.", currentVersion)
-			appliedAny = true
+	err := func() error {
+		conn, err := db.Acquire(ctx)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to acquire database connection")
 		}
-	}
+		defer conn.Release()
 
-	if !appliedAny {
-		sklog.Infof("Database schema is already up to date at version %d. No pending migrations to execute.", currentVersion)
+		// Cloud Spanner running via PGAdapter requires autocommit mode for implicit DDL
+		// transactions inside the migration sequence to avoid SQLSTATE 25000 errors.
+		_, err = conn.Exec(ctx, "SET spanner.ddl_transaction_mode = 'AutocommitImplicitTransaction'")
+		if err != nil {
+			return skerr.Wrapf(err, "failed to set ddl_transaction_mode")
+		}
+
+		// 1. Ensure the schema_migrations table exists in the database.
+		_, err = conn.Exec(ctx, `
+			CREATE TABLE IF NOT EXISTS schema_migrations (
+				version INT PRIMARY KEY,
+				applied_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+			);
+		`)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to create schema_migrations table")
+		}
+		sklog.Infof("Successfully checked or created 'schema_migrations' logging table.")
+
+		// 2. Retrieve the currently applied version from the database (supporting bootstrapping).
+		currentVersion, err := GetCurrentVersion(ctx, db)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to get current or legacy schema version")
+		}
+
+		// 3. Load, parse, sort, and validate all migration files from embed.FS.
+		migrations, err := getMigrations()
+		if err != nil {
+			return skerr.Wrapf(err, "failed to load migrations")
+		}
+		sklog.Infof("Loaded %d total embedded migration scripts from migrations/ package path.", len(migrations))
+
+		// 4. Run the pending migrations step-by-step.
+		appliedAny := false
+		for _, m := range migrations {
+			if m.version > currentVersion {
+				sklog.Infof("Applying pending database migration script: Version=%d, File=%s", m.version, m.name)
+				sklog.Infof("Executing SQL DDL content for migration %s:\n%s", m.name, m.sql)
+				_, err = conn.Exec(ctx, m.sql)
+				if err != nil {
+					return skerr.Wrapf(err, "failed to apply migration version %d (%s)", m.version, m.name)
+				}
+				_, err = conn.Exec(ctx, `INSERT INTO schema_migrations (version) VALUES ($1)`, m.version)
+				if err != nil {
+					return skerr.Wrapf(err, "failed to record migration version %d as applied", m.version)
+				}
+				currentVersion = m.version
+				sklog.Infof("Successfully upgraded database schema to version %d.", currentVersion)
+				appliedAny = true
+			}
+		}
+
+		if !appliedAny {
+			sklog.Infof("Database schema is already up to date at version %d. No pending migrations to execute.", currentVersion)
+		}
+		return nil
+	}()
+	if err != nil {
+		return err
 	}
 
 	// 5. Perform final schema check to ensure the actual schema description matches the targets.

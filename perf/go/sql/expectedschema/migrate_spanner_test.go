@@ -2,6 +2,9 @@ package expectedschema_test
 
 import (
 	"context"
+	"slices"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -181,6 +184,26 @@ func getAppliedVersions(t *testing.T, db pool.Pool) []int {
 	return versions
 }
 
+func getExpectedVersions(t *testing.T) []int {
+	entries, err := expectedschema.MigrationsFS.ReadDir("migrations")
+	require.NoError(t, err)
+
+	var versions []int
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
+			continue
+		}
+		name := strings.TrimSuffix(entry.Name(), ".sql")
+		verStr, _, found := strings.Cut(name, "_")
+		require.True(t, found, "invalid filename: %s", entry.Name())
+		v, err := strconv.Atoi(verStr)
+		require.NoError(t, err)
+		versions = append(versions, v)
+	}
+	slices.Sort(versions)
+	return versions
+}
+
 func Test_VersionedMigrations_FromScratch(t *testing.T) {
 	ctx := context.Background()
 	db := sqltest.NewSpannerDBForTests(t, "v_scratch")
@@ -191,7 +214,7 @@ func Test_VersionedMigrations_FromScratch(t *testing.T) {
 	require.NoError(t, err)
 
 	applied := getAppliedVersions(t, db)
-	assert.Equal(t, []int{1, 2}, applied)
+	assert.Equal(t, getExpectedVersions(t), applied)
 
 	// Verify that the final schema matches what we expect from load.
 	expectedSchema, err := expectedschema.Load()
@@ -221,7 +244,7 @@ func Test_VersionedMigrations_BootstrapExisting(t *testing.T) {
 	require.NoError(t, err)
 
 	applied := getAppliedVersions(t, db)
-	assert.Equal(t, []int{1, 2}, applied)
+	assert.Equal(t, getExpectedVersions(t), applied)
 
 	expectedSchema, err := expectedschema.Load()
 	require.NoError(t, err)
