@@ -134,6 +134,8 @@ type Frontend struct {
 
 	templates *template.Template
 
+	templatesMutex sync.RWMutex
+
 	loadTemplatesOnce sync.Once
 
 	anomalygroupStore anomalygroup.Store
@@ -365,34 +367,51 @@ var templateFilenames = []string{
 	"report.html",
 }
 
-func (f *Frontend) loadTemplatesImpl() {
-	f.templates = template.New("")
+func (f *Frontend) loadTemplatesImpl() error {
+	templates := template.New("")
 	for _, filename := range templateFilenames {
 		contents, err := fileContentsFromFileSystem(f.distFileSystem, filename)
 		if err != nil {
+			if f.flags.DevMode {
+				return fmt.Errorf("Fail in fileContentsFromFileSystem: %w", err)
+			}
 			sklog.Fatalf("Fail in fileContentsFromFileSystem: %v", err)
 		}
-		f.templates = f.templates.New(filename).Delims("{%", "%}").Option("missingkey=error")
-		_, err = f.templates.Parse(contents)
+		templates = templates.New(filename).Delims("{%", "%}").Option("missingkey=error")
+		_, err = templates.Parse(contents)
 		if err != nil {
+			if f.flags.DevMode {
+				return fmt.Errorf("Fail in Parse: %w", err)
+			}
 			sklog.Fatalf("Fail in Parse: %v", err)
 		}
 	}
 	for name, snippet := range map[string]string{"googleanalytics": googleAnalyticsSnippet, "cookieconsent": cookieConsentSnippet} {
-		f.templates = f.templates.New(name).Delims("{%", "%}").Option("missingkey=error")
-		_, err := f.templates.Parse(snippet)
+		templates = templates.New(name).Delims("{%", "%}").Option("missingkey=error")
+		_, err := templates.Parse(snippet)
 		if err != nil {
+			if f.flags.DevMode {
+				return fmt.Errorf("Fail in Parse: %w", err)
+			}
 			sklog.Fatalf("Fail in Parse: %v", err)
 		}
 	}
+
+	f.templatesMutex.Lock()
+	defer f.templatesMutex.Unlock()
+	f.templates = templates
+	return nil
 }
 
-func (f *Frontend) loadTemplates() {
+func (f *Frontend) loadTemplates() error {
 	if f.flags.DevMode {
-		f.loadTemplatesImpl()
-		return
+		return f.loadTemplatesImpl()
 	}
-	f.loadTemplatesOnce.Do(f.loadTemplatesImpl)
+	var err error
+	f.loadTemplatesOnce.Do(func() {
+		err = f.loadTemplatesImpl()
+	})
+	return err
 }
 
 // SkPerfConfig is the configuration data that will appear
@@ -517,12 +536,23 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		f.loadTemplates()
+		if err := f.loadTemplates(); err != nil {
+			sklog.Errorf("Failed to load templates: %v", err)
+			http.NotFound(w, r)
+			return
+		}
 		context, err := f.getPageContext()
 		if err != nil {
 			sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
 		}
-		if err := f.templates.ExecuteTemplate(w, name, map[string]interface{}{
+		f.templatesMutex.RLock()
+		tmpl := f.templates
+		f.templatesMutex.RUnlock()
+		if tmpl == nil {
+			http.NotFound(w, r)
+			return
+		}
+		if err := tmpl.ExecuteTemplate(w, name, map[string]interface{}{
 			"context":                      context,
 			"GoogleAnalyticsMeasurementID": config.Config.GoogleAnalyticsMeasurementID,
 			// Look in //machine/pages/BUILD.bazel for where the nonce templates are injected.
@@ -676,7 +706,9 @@ func (f *Frontend) initialize() {
 	}
 
 	sklog.Info("About to parse templates.")
-	f.loadTemplates()
+	if err := f.loadTemplates(); err != nil {
+		sklog.Fatalf("Failed to load templates: %v", err)
+	}
 
 	sklog.Info("About to build trace store.")
 
@@ -968,7 +1000,11 @@ func (f *Frontend) initialize() {
 // helpHandler handles the GET of the main page.
 func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Help Handler: %q\n", r.URL.Path)
-	f.loadTemplates()
+	if err := f.loadTemplates(); err != nil {
+		sklog.Errorf("Failed to load templates: %v", err)
+		http.NotFound(w, r)
+		return
+	}
 	context, err := f.getPageContext()
 	if err != nil {
 		sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
@@ -990,7 +1026,14 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 			Context:                      context,
 			InstanceName:                 config.Config.InstanceName,
 		}
-		if err := f.templates.ExecuteTemplate(w, "help.html", templateContext); err != nil {
+		f.templatesMutex.RLock()
+		tmpl := f.templates
+		f.templatesMutex.RUnlock()
+		if tmpl == nil {
+			http.NotFound(w, r)
+			return
+		}
+		if err := tmpl.ExecuteTemplate(w, "help.html", templateContext); err != nil {
 			sklog.Errorf("Failed to expand template: %v", err)
 		}
 	}
@@ -1536,13 +1579,15 @@ func (f *Frontend) chatHandler(w http.ResponseWriter, r *http.Request) {
 // InitForMock sets up the minimal fields needed to serve templates.
 func (f *Frontend) InitForMock(dist http.FileSystem) {
 	f.distFileSystem = dist
-	f.loadTemplatesImpl()
+	_ = f.loadTemplatesImpl()
 }
 
 // TODO(ansid): This is a temporary solution to allow the mock server to
 // access the template engine. Ideally, we should find a better way to do this.
 // GetTemplates gives the mock access to the parsed template engine.
 func (f *Frontend) GetTemplates() *template.Template {
+	f.templatesMutex.RLock()
+	defer f.templatesMutex.RUnlock()
 	return f.templates
 }
 
