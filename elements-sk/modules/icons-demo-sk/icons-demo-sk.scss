@@ -1,6 +1,6 @@
 // This wouldn't be necessary if we imported our icons from icons-demo-sk.ts directly via
 // "import '../icons/some-icon-sk'" statements rather than via the generated icons.ts file.
-@import '../icons/icon-sk';
+@use '../icons/icon-sk';
 
 icons-demo-sk {
   .search {
