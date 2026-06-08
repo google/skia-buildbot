@@ -183,5 +183,15 @@
     "show_triage_link": false,
     "show_bisect_btn": true,
     "show_hash_ranges_in_tooltip": false,
-    "allow_multiple_regressions_per_alert_id": true
+    "allow_multiple_regressions_per_alert_id": true,
+    "visibility_config": {
+    "provider_name": "chrome",
+        "sources": {
+            "chrome_bot": {
+                "git_repo": "https://chromium.googlesource.com/chromium/src",
+                "path": "tools/perf/public_builders.json",
+                "rule_prefix": "bot="
+            }
+        }
+    }
 }
