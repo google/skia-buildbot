@@ -93,7 +93,7 @@ def sk_element(
     )
 
 def generate_sass_stylesheet_with_imports(name, scss_files_to_import, scss_output_file, visibility = None):
-    """Generates a .scss file with one `@import` statement for each file in scss_files_to_import.
+    """Generates a .scss file with one `@use` statement for each file in scss_files_to_import.
 
     Args:
       name: The name of the target.
@@ -105,7 +105,7 @@ def generate_sass_stylesheet_with_imports(name, scss_files_to_import, scss_outpu
     # Build a list of shell commands to generate the output stylesheet.
     cmds = ["touch $@"]
     for scss_file in scss_files_to_import:
-        import_statement = "@import '$(rootpath %s)';" % scss_file
+        import_statement = "@use '$(rootpath %s)';" % scss_file
         cmds.append("echo \"%s\" >> $@" % import_statement)
 
     native.genrule(
