@@ -45,7 +45,7 @@
     },
     "maintenance_config": {
       "gitiles_repo_url": "https://chrome-internal.googlesource.com/infra/infra_internal",
-      "sheriff_config_path": "infra/config/generated/skia-sheriff-configs.cfg",
+      "sheriff_config_path": "infra/config/subprojects/skiaperf/fuchsia-exp-internal.textpb",
       "fallback_to_lucicfg": false
     },
     "git_repo_config": {
