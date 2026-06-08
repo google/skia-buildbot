@@ -22,9 +22,13 @@ go_library(
 
 go_test(
     name = "regrshortcutstore_test",
-    srcs = ["store_test.go"],
+    srcs = [
+        "cacheregrshortcutstore_test.go",
+        "store_test.go",
+    ],
     embed = [":regrshortcutstore"],
     deps = [
+        "//go/cache/local",
         "//perf/go/sql/sqltest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

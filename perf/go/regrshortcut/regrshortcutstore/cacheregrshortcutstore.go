@@ -46,7 +46,7 @@ func (c *cacheRegressionsShortcutStore) Create(ctx context.Context, regrIdList [
 	shortcut := c.calcHash(regrIdList)
 
 	var buff bytes.Buffer
-	ck := cacheKey{RegrIdList: regrIdList, IsLegacy: true}
+	ck := cacheKey{RegrIdList: regrIdList, IsLegacy: false}
 	err := json.NewEncoder(&buff).Encode(ck)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to encode regression id list")
