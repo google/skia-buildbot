@@ -9,7 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/sql/spanner"
+	"go.skia.org/infra/perf/go/sql/expectedschema"
 )
 
 // flags
@@ -34,10 +34,8 @@ func main() {
 		sklog.Infof("Database %s already exists.", *databaseName)
 	}
 
-	dbSchema := spanner.Schema
-
 	// Apply the schema.
-	_, err = conn.Exec(ctx, dbSchema)
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, conn)
 	if err != nil {
 		sklog.Fatal(err)
 	}
