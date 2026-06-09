@@ -172,6 +172,26 @@ func releaseBranch(ctx context.Context, newBranch string, reviewers []string, al
 		}
 	}
 
+	// Add a CQ config for every supported branch which is missing it.
+	var cqConfigMain []byte
+	for _, ref := range supportedRefs {
+		// TODO(borenet): This assumes that the only reason we could fail to
+		// read the file is that it doesn't exist.
+		if _, err := repo.ReadFileAtRef(ctx, cqJSONFile, ref); err != nil {
+			// Lazily read the CQ config from main and copy it to this branch.
+			if cqConfigMain == nil {
+				b, err := repo.ReadFileAtRef(ctx, cqJSONFile, git.MainBranch)
+				if err != nil {
+					return skerr.Wrap(err)
+				}
+				cqConfigMain = b
+			}
+			if err := addCQ(ctx, g, repo, ref, reviewers, cqConfigMain); err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+	}
+
 	// Update release notes.
 	if currentChromeMilestone != -1 {
 		fmt.Printf("Merging release notes into %s\n", releaseNotesFile)
@@ -530,6 +550,28 @@ func removeCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo,
 	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
 	changes := map[string]string{
 		cqJSONFile: "",
+	}
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, ref, commitMsg, baseCommit, "", changes, reviewers)
+	if ci != nil {
+		fmt.Printf("Uploaded change %s\n", g.Url(ci.Issue))
+	}
+	return skerr.Wrap(err)
+}
+
+func addCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, ref string, reviewers []string, contents []byte) error {
+	// Setup.
+	baseCommitInfo, err := repo.Details(ctx, ref)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	baseCommit := baseCommitInfo.Hash
+
+	// Create the Gerrit CL.
+	commitMsg := fmt.Sprintf("Add CQ for supported branch %s", ref)
+	repoSplit := strings.Split(repo.URL(), "/")
+	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
+	changes := map[string]string{
+		cqJSONFile: string(contents),
 	}
 	ci, err := gerrit.CreateCLWithChanges(ctx, g, project, ref, commitMsg, baseCommit, "", changes, reviewers)
 	if ci != nil {
