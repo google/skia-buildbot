@@ -91,8 +91,6 @@ export class TraceChartSk extends LitElement {
 
   @property({ type: String }) normalizeCentre: 'none' | 'first' | 'average' | 'median' = 'none';
 
-  @property({ type: Object }) activeStats: Set<string> = new Set(['min', 'max']);
-
   @property({ type: Boolean }) dateMode = false;
 
   @property({ type: String }) normalizeScale:
@@ -125,6 +123,8 @@ export class TraceChartSk extends LitElement {
   @property({ type: Number }) globalHoverX: number | null = null;
 
   @property({ type: Number }) globalPinnedX: number | null = null;
+
+  @property({ type: Object }) activeStats: Set<string> = new Set();
 
   @state() private _diffNamesMap: Map<string, string> = new Map();
 
@@ -350,25 +350,6 @@ export class TraceChartSk extends LitElement {
         }
 
         const allStats = s.allStats ? { ...s.allStats } : {};
-        const errRows = allStats['err'] || allStats['error'];
-        if (errRows) {
-          const yValsByCommit = new Map<number, number>();
-          s.rows.forEach((r) => yValsByCommit.set(r.commit_number, r.val));
-
-          const stdMinRows: TraceRow[] = [];
-          const stdMaxRows: TraceRow[] = [];
-
-          errRows.forEach((r) => {
-            const yVal = yValsByCommit.get(r.commit_number);
-            if (yVal !== undefined) {
-              stdMinRows.push({ ...r, val: yVal - r.val });
-              stdMaxRows.push({ ...r, val: yVal + r.val });
-            }
-          });
-
-          allStats['stdMin'] = stdMinRows;
-          allStats['stdMax'] = stdMaxRows;
-        }
 
         const mappedAllStats: Record<string, TraceRow[]> = {};
         for (const [key, rows] of Object.entries(allStats)) {
@@ -425,7 +406,6 @@ export class TraceChartSk extends LitElement {
       changedProperties.has('viewportMaxX') ||
       changedProperties.has('_viewportMinX') ||
       changedProperties.has('_viewportMaxX') ||
-      changedProperties.has('activeStats') ||
       changedProperties.has('selectedSubrepo') ||
       changedProperties.has('evenXAxisSpacing')
     ) {
@@ -572,9 +552,26 @@ export class TraceChartSk extends LitElement {
       mapY,
       minTimestamp,
       maxTimestamp,
-      countMaxY,
-      mapCountY,
     } = this._getChartBoundsAndMapping(rect);
+
+    let countMaxY = 0;
+    this._processedSeries.forEach((s) => {
+      const statRows = s.allStats ? s.allStats['count'] : null;
+      if (statRows) {
+        statRows.forEach((r) => {
+          const valX = this._xAccessor(r);
+          if (valX >= minX && valX <= maxX) {
+            const val = Number(r.val);
+            if (val > countMaxY) {
+              countMaxY = val;
+            }
+          }
+        });
+      }
+    });
+
+    const mapCountY = (val: number) =>
+      padding.top + graphHeight - (val / (countMaxY || 1)) * graphHeight;
 
     if (minX === Infinity) {
       ctx.fillStyle = textColorSecondary;
@@ -1325,8 +1322,7 @@ export class TraceChartSk extends LitElement {
     let minX = Infinity,
       maxX = -Infinity,
       minY = Infinity,
-      maxY = -Infinity,
-      countMaxY = 0;
+      maxY = -Infinity;
     let minTimestamp = Infinity,
       maxTimestamp = -Infinity;
     this._processedSeries.forEach((s) => {
@@ -1341,39 +1337,6 @@ export class TraceChartSk extends LitElement {
           maxTimestamp = r.createdat;
         }
       });
-
-      if (s.allStats && this.activeStats.has('min') && this.activeStats.has('max')) {
-        ['min', 'max'].forEach((statKey) => {
-          const rows = s.allStats![statKey];
-          if (rows) {
-            rows.forEach((r) => {
-              const valX = this._xAccessor(r);
-              // const valY = Number(r.val);
-              if (valX < minX) {
-                minX = valX;
-                minTimestamp = r.createdat;
-              }
-              if (valX > maxX) {
-                maxX = valX;
-                maxTimestamp = r.createdat;
-              }
-              // Do not expand Y bounds for min/max traces to avoid flattening the graph
-              // if (valY < minY) minY = valY;
-              // if (valY > maxY) maxY = valY;
-            });
-          }
-        });
-      }
-
-      if (s.allStats && this.activeStats.has('count')) {
-        const countRows = s.allStats['count'];
-        if (countRows) {
-          countRows.forEach((r) => {
-            const valY = Number(r.val);
-            if (valY > countMaxY) countMaxY = valY;
-          });
-        }
-      }
     });
 
     const displayMinX = this._viewportMinX ?? minX;
@@ -1450,9 +1413,6 @@ export class TraceChartSk extends LitElement {
       mapY,
       unmapX,
       unmapY,
-      countMaxY,
-      mapCountY: (val: number) =>
-        padding.top + graphHeight - (val / (countMaxY * 1.1 || 1)) * graphHeight,
       globalMinX: minX,
       globalMaxX: maxX,
       minTimestamp,

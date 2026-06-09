@@ -1,6 +1,6 @@
 import { Param, TraceData, WasmExports, Query } from './worker-types';
-import { computeSuggestions, SearchCache } from './suggestion_engine';
-import { runWasmBatch, scanWasmBatch, yieldToMain } from './wasm_utils';
+import { computeSuggestions } from './suggestion_engine';
+import { runWasmBatch } from './wasm_utils';
 import { filterTraces } from './worker_logic';
 
 console.log('Worker: filter.worker.ts loaded top-level');
@@ -18,9 +18,6 @@ let paramsOnlyData: { params: Param[] } | null = null;
 const OUTPUT_LIMIT = 10000;
 const MAX_KEYS = 50;
 const QUERY_BUFFER_SIZE = 4 * 1024 * 1024; // Increased to 4MB to accommodate large bitsetSize and prevent Wasm overflow
-
-// Cache State
-const searchCaches: Record<number, SearchCache> = {};
 
 // State for Interruptibility
 let latestFilterRequestId = 0;
@@ -236,9 +233,9 @@ async function handleFilter(queries: Query[], requestId: number, numUserQueries:
 
   let totalFilteredCount = 0;
   const finalTraceIndices = new Set<number>();
-  const queryResults: any[] = [];
+  const queryResults = new Array(queries.length);
 
-  for (let currentQueryIdx = 0; currentQueryIdx < queries.length; currentQueryIdx++) {
+  for (let currentQueryIdx = queries.length - 1; currentQueryIdx >= 0; currentQueryIdx--) {
     if (requestId !== latestFilterRequestId) return; // Check interrupt
 
     const query = queries[currentQueryIdx];
@@ -384,11 +381,11 @@ async function handleFilter(queries: Query[], requestId: number, numUserQueries:
       groupedParams[k].sort((a, b) => a.value.localeCompare(b.value))
     );
 
-    queryResults.push({
+    queryResults[currentQueryIdx] = {
       availableParams: flatParams,
       paramsByKey: groupedParams,
       queryKeysOrder,
-    });
+    };
   }
 
   const unionIndices = Array.from(finalTraceIndices);
@@ -445,15 +442,8 @@ async function handleSuggest(
     params,
     availableParams || null,
     loadedData?.traceData ?? null,
-    loadedData?.wasmFilter ?? null,
-    searchCaches[idx] || { query: '', contextStr: '', indices: null },
-    (cache: SearchCache) => {
-      searchCaches[idx] = cache;
-    },
-    yieldToMain,
     () => requestId !== latestSuggestRequestId,
-    getQueryPtr,
-    scanWasmBatch
+    loadedData?.wasmFilter ?? null
   );
 
   if (suggestions && requestId === latestSuggestRequestId) {

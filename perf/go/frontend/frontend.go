@@ -1475,7 +1475,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		triageBackendLegacy = api.NewChromeperfTriageBackend(f.chromeperfClient)
 	}
 
-	wasmApi := api.NewWasmApi(f.traceStore, f.paramsetRefresher, config.DefaultWasmCacheDir, config.Config)
+	wasmApi := api.NewWasmApi(f.traceStore, f.paramsetRefresher, config.DefaultWasmCacheDir)
 	wasmApi.Start(context.Background())
 
 	return []api.FrontendApi{

@@ -1,13 +1,16 @@
 package api
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
+	"sort"
 	"sync"
 	"time"
 
@@ -17,7 +20,6 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
@@ -39,7 +41,6 @@ type wasmApi struct {
 	traceStore  tracestore.TraceStore
 	psRefresher psrefresh.ParamSetRefresher
 	cacheDir    string
-	filterQuery string
 
 	mutex sync.Mutex
 	cache *wasmCache
@@ -54,39 +55,11 @@ type wasmCache struct {
 	createdAt  time.Time
 }
 
-func inferredFilterQuery(cfg *config.QueryConfig) string {
-	var parts []string
-	if cfg.DefaultParamSelections != nil {
-		for k, v := range cfg.DefaultParamSelections {
-			if len(v) > 0 {
-				if len(v) == 1 {
-					parts = append(parts, fmt.Sprintf("%s=%s", k, v[0]))
-				} else {
-					parts = append(parts, fmt.Sprintf("%s=~(%s)", k, strings.Join(v, "|")))
-				}
-			}
-		}
-	}
-	if cfg.ConditionalDefaults != nil {
-		var metrics []string
-		for _, rule := range cfg.ConditionalDefaults {
-			if rule.Trigger.Param == "metric" {
-				metrics = append(metrics, rule.Trigger.Values...)
-			}
-		}
-		if len(metrics) > 0 {
-			parts = append(parts, fmt.Sprintf("metric=~(%s)", strings.Join(metrics, "|")))
-		}
-	}
-	return strings.Join(parts, "&")
-}
-
-func NewWasmApi(traceStore tracestore.TraceStore, psRefresher psrefresh.ParamSetRefresher, cacheDir string, cfg *config.InstanceConfig) *wasmApi {
+func NewWasmApi(traceStore tracestore.TraceStore, psRefresher psrefresh.ParamSetRefresher, cacheDir string) *wasmApi {
 	return &wasmApi{
 		traceStore:  traceStore,
 		psRefresher: psRefresher,
 		cacheDir:    cacheDir,
-		filterQuery: inferredFilterQuery(&cfg.QueryConfig),
 	}
 }
 
@@ -160,44 +133,73 @@ func (api *wasmApi) ensureCache(ctx context.Context) error {
 			metaBuf, err2 := os.ReadFile(metaFile)
 			paramsBuf, err3 := os.ReadFile(paramsFile)
 			if err1 == nil && err2 == nil && err3 == nil {
-				api.cache = &wasmCache{
-					tileNumber: tile,
-					traces:     tracesBuf,
-					meta:       metaBuf,
-					params:     paramsBuf,
-					createdAt:  stat.ModTime(),
+				gr, err := gzip.NewReader(bytes.NewReader(tracesBuf))
+				if err == nil {
+					decompressedTraces, err := io.ReadAll(gr)
+					_ = gr.Close()
+					if err == nil {
+						api.cache = &wasmCache{
+							tileNumber: tile,
+							traces:     decompressedTraces,
+							meta:       metaBuf,
+							params:     paramsBuf,
+							createdAt:  stat.ModTime(),
+						}
+						return nil
+					} else {
+						sklog.Warningf("Failed to decompress traces cache file on disk: %v. Will regenerate cache.", err)
+					}
+				} else {
+					sklog.Warningf("Failed to parse traces cache gzip header on disk: %v. Will regenerate cache.", err)
 				}
-				return nil
+			} else {
+				sklog.Errorf("Failed to read cache files: %v, %v, %v", err1, err2, err3)
 			}
-			sklog.Errorf("Failed to read cache files: %v, %v, %v", err1, err2, err3)
 		}
 	}
 
 	sklog.Infof("Generating Wasm memory cache for tile %d", tile)
 
 	// Fetch traces to build traces.bin.
-	fmt.Println("filterQuery: ", api.filterQuery)
-	q, err := query.NewFromString(api.filterQuery)
+	q, err := query.New(nil)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 	queryCtx, cancelQuery := context.WithTimeout(ctx, 60*time.Second)
 	defer cancelQuery()
 	queryCtx = context.WithValue(queryCtx, sqltracestore.UseInvertedIndex, true)
+	queryCtx = context.WithValue(queryCtx, sqltracestore.AllowEmptyQuery, true)
 	outParams, err := api.traceStore.QueryTracesIDOnly(queryCtx, tile, q)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
-	var allParams []paramtools.Params
-	var allKeys []string
+	type traceCacheEntry struct {
+		Key    string
+		Params paramtools.Params
+	}
+
+	var entries []traceCacheEntry
 	for p := range outParams {
-		allParams = append(allParams, p)
 		key, err := query.MakeKeyFast(p)
 		if err != nil {
 			continue
 		}
-		allKeys = append(allKeys, key)
+		entries = append(entries, traceCacheEntry{
+			Key:    key,
+			Params: p,
+		})
+	}
+
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Key < entries[j].Key
+	})
+
+	allParams := make([]paramtools.Params, len(entries))
+	allKeys := make([]string, len(entries))
+	for i, entry := range entries {
+		allParams[i] = entry.Params
+		allKeys[i] = entry.Key
 	}
 
 	// Find common params
@@ -255,6 +257,16 @@ func (api *wasmApi) ensureCache(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 
+	var buf bytes.Buffer
+	gw := gzip.NewWriter(&buf)
+	if _, err := gw.Write(tracesBinary); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := gw.Close(); err != nil {
+		return skerr.Wrap(err)
+	}
+	compressedTraces := buf.Bytes()
+
 	api.cache = &wasmCache{
 		tileNumber: tile,
 		version:    version,
@@ -267,7 +279,7 @@ func (api *wasmApi) ensureCache(ctx context.Context) error {
 	sklog.Infof("Generated Wasm cache: traces=%d stride=%d", traceCount, stride)
 
 	// Save to cache files
-	if err := os.WriteFile(tracesFile, tracesBinary, 0644); err != nil {
+	if err := os.WriteFile(tracesFile, compressedTraces, 0644); err != nil {
 		sklog.Errorf("Failed to save traces cache: %v", err)
 	}
 	if err := os.WriteFile(metaFile, metaBytes, 0644); err != nil {
@@ -341,8 +353,17 @@ func encodeTraces(allParams []paramtools.Params, allKeys []string, lookup map[st
 	for _, p := range allParams {
 
 		row := make([]uint16, stride)
+
+		// Extract and sort keys alphabetically to ensure deterministic column order
+		keys := make([]string, 0, len(p))
+		for k := range p {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
 		i := 0
-		for key, val := range p {
+		for _, key := range keys {
+			val := p[key]
 			if l, ok := lookup[key]; ok {
 				if id, ok := l[val]; ok {
 					row[i] = id

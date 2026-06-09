@@ -165,6 +165,8 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _suggestionsForQueryBar: Suggestion[][] = [];
 
+  private _latestSuggestRequestIds: number[] = [];
+
   @property({ attribute: false }) splitKeys: Set<string> = new Set();
 
   @state() private _includeParams: string[] = [];
@@ -216,8 +218,6 @@ export class ExploreMultiV2Sk extends LitElement {
   private _prefetchAbortController: AbortController | null = null;
 
   @state() private _evenXAxisSpacing = false;
-
-  @state() private _activeStats: string[] = ['min', 'max'];
 
   @state() private _tooltipDiffs = false;
 
@@ -283,7 +283,7 @@ export class ExploreMultiV2Sk extends LitElement {
           split: Array.from(this.splitKeys).join(','),
           diff_base: this._diffBase ? `${this._diffBase.key}=${this._diffBase.value}` : '',
           sparklines: this._showSparklines,
-          activeStats: this._activeStats.join(','),
+
           regressions: this._showRegressions,
           tooltipDiffs: this._tooltipDiffs,
           evenXAxisSpacing: this._evenXAxisSpacing,
@@ -368,30 +368,6 @@ export class ExploreMultiV2Sk extends LitElement {
         }
         if (stateObj.sparklines !== undefined) this._showSparklines = stateObj.sparklines;
 
-        const activeStats: string[] = [];
-        if (stateObj.activeStats !== undefined) {
-          activeStats.push(...(stateObj.activeStats ? stateObj.activeStats.split(',') : []));
-        } else if (
-          stateObj.minmax !== undefined ||
-          stateObj.std !== undefined ||
-          stateObj.count !== undefined
-        ) {
-          // Fallback for old URLs
-          if (stateObj.minmax) {
-            activeStats.push('min', 'max');
-          }
-          if (stateObj.std) {
-            activeStats.push('std');
-          }
-          if (stateObj.count) {
-            activeStats.push('count');
-          }
-        } else {
-          // No stat info in URL, use defaults!
-          activeStats.push('min', 'max');
-        }
-        this._activeStats = activeStats;
-
         if (stateObj.regressions !== undefined) this._showRegressions = stateObj.regressions;
         if (stateObj.tooltipDiffs !== undefined) this._tooltipDiffs = stateObj.tooltipDiffs;
         if (stateObj.evenXAxisSpacing !== undefined)
@@ -449,7 +425,10 @@ export class ExploreMultiV2Sk extends LitElement {
       (payload) => {
         this._handleFilterResult(payload);
       },
-      (payload, idx) => {
+      (payload, idx, requestId) => {
+        if (requestId !== this._latestSuggestRequestIds[idx]) {
+          return;
+        }
         const newSuggestions = [...this._suggestionsForQueryBar];
         newSuggestions[idx] = payload;
         this._suggestionsForQueryBar = newSuggestions;
@@ -852,10 +831,6 @@ export class ExploreMultiV2Sk extends LitElement {
       void this._fetchData();
     }
 
-    if (changedProperties.has('_activeStats')) {
-      void this._fetchData();
-    }
-
     if (
       changedProperties.has('_seriesData') ||
       changedProperties.has('_tracePage') ||
@@ -874,7 +849,6 @@ export class ExploreMultiV2Sk extends LitElement {
       changedProperties.has('splitKeys') ||
       changedProperties.has('_diffBase') ||
       changedProperties.has('_showSparklines') ||
-      changedProperties.has('_activeStats') ||
       changedProperties.has('dateMode') ||
       changedProperties.has('_tracePage') ||
       changedProperties.has('_pageSize') ||
@@ -1056,19 +1030,6 @@ export class ExploreMultiV2Sk extends LitElement {
 
       let reqTraceIds = [...visibleIds];
 
-      // Auto-fetch traces for active stats
-      this._activeStats.forEach((stat) => {
-        visibleIds.forEach((id) => {
-          const params = this._parseTraceKey(id);
-          params['stat'] = stat;
-          try {
-            reqTraceIds.push(makeKey(params));
-          } catch (e) {
-            console.error('makeKey failed for stat in _fetchData', e);
-          }
-        });
-      });
-
       reqTraceIds = Array.from(new Set(reqTraceIds));
       console.log('[_fetchData] reqTraceIds:', reqTraceIds);
       if (reqTraceIds.every((id) => loadedIds.has(id))) {
@@ -1094,14 +1055,7 @@ export class ExploreMultiV2Sk extends LitElement {
           for (const [traceId, commitMap] of Object.entries(cached.anomalymap)) {
             if (!commitMap) continue;
 
-            const params = this._parseTraceKey(traceId);
-            delete params['stat'];
-            let primaryKey = traceId;
-            try {
-              primaryKey = makeKey(params);
-            } catch (e) {
-              console.error('makeKey failed in cached anomalymap merge', e);
-            }
+            const primaryKey = traceId;
 
             if (!nextRegressions[primaryKey]) {
               nextRegressions[primaryKey] = {};
@@ -1140,14 +1094,7 @@ export class ExploreMultiV2Sk extends LitElement {
         for (const [traceId, commitMap] of Object.entries(response.anomalymap)) {
           if (!commitMap) continue;
 
-          const params = this._parseTraceKey(traceId);
-          delete params['stat'];
-          let primaryKey = traceId;
-          try {
-            primaryKey = makeKey(params);
-          } catch (e) {
-            console.error('makeKey failed in anomalymap merge', e);
-          }
+          const primaryKey = traceId;
 
           if (!nextRegressions[primaryKey]) {
             nextRegressions[primaryKey] = {};
@@ -1246,17 +1193,7 @@ export class ExploreMultiV2Sk extends LitElement {
     const quantizedEnd = Math.floor(prefetchEnd / 3600) * 3600;
 
     let reqTraceIds = [...visibleIds];
-    this._activeStats.forEach((stat) => {
-      visibleIds.forEach((id) => {
-        const params = this._parseTraceKey(id);
-        params['stat'] = stat;
-        try {
-          reqTraceIds.push(makeKey(params));
-        } catch (e) {
-          console.error('makeKey failed for stat in prefetch', e);
-        }
-      });
-    });
+
     reqTraceIds = Array.from(new Set(reqTraceIds));
 
     const req: FrameRequest = {
@@ -1531,18 +1468,6 @@ export class ExploreMultiV2Sk extends LitElement {
     const loadedIds = new Set(this._seriesData.map((s) => s.id));
 
     const allVisibleIds = [...visibleIds];
-    // Auto-append stat keys dynamically
-    this._activeStats.forEach((stat) => {
-      visibleIds.forEach((id) => {
-        const params = this._parseTraceKey(id);
-        params['stat'] = stat;
-        try {
-          allVisibleIds.push(makeKey(params));
-        } catch (err) {
-          console.error(`Failed to make key for stat ${stat}`, err);
-        }
-      });
-    });
 
     const requests = calculateFetchRequests(
       Array.from(new Set(allVisibleIds)),
@@ -1590,14 +1515,7 @@ export class ExploreMultiV2Sk extends LitElement {
           for (const [traceId, commitMap] of Object.entries(resp.anomalymap)) {
             if (!commitMap) continue;
 
-            const params = this._parseTraceKey(traceId);
-            delete params['stat'];
-            let primaryKey = traceId;
-            try {
-              primaryKey = makeKey(params);
-            } catch (err) {
-              console.error('makeKey failed in fetchTraceValues merge', err);
-            }
+            const primaryKey = traceId;
 
             if (!nextRegressions[primaryKey]) {
               nextRegressions[primaryKey] = {};
@@ -1621,28 +1539,14 @@ export class ExploreMultiV2Sk extends LitElement {
         if (resp && resp.results) {
           const convertedSeries: TraceSeries[] = [];
           for (const [id, rows] of Object.entries(resp.results) as [string, any[]][]) {
-            const params = this._parseTraceKey(id);
-            const stat = params['stat'];
-
-            const primaryParams = { ...params };
-            delete primaryParams['stat'];
-            let primaryKey = id;
-            try {
-              primaryKey = makeKey(primaryParams);
-            } catch (err) {
-              console.error('makeKey failed in fetchTraceValues merge', err);
-            }
+            const primaryKey = id;
 
             let s = convertedSeries.find((cs) => cs.id === primaryKey);
             if (!s) {
               s = { id: primaryKey, rows: [], color: '', allStats: {} };
               convertedSeries.push(s);
             }
-            const defaultStats = this._defaultParamSelections['stat'] || [];
-            const isDefaultStat = (stat && defaultStats.includes(stat)) || !stat;
-            if (!s.originalId && isDefaultStat) {
-              s.originalId = id;
-            }
+            s.originalId = id;
 
             const mappedRows = rows.map((r) => ({
               commit_number: r.commit_number,
@@ -1651,14 +1555,7 @@ export class ExploreMultiV2Sk extends LitElement {
               smoothedVal: r.val,
             }));
 
-            if (isDefaultStat) {
-              s.rows = mappedRows;
-            }
-
-            if (stat) {
-              if (!s.allStats) s.allStats = {};
-              s.allStats[stat] = mappedRows;
-            }
+            s.rows = mappedRows;
           }
           this._mergeSeriesData(convertedSeries);
 
@@ -1762,20 +1659,6 @@ export class ExploreMultiV2Sk extends LitElement {
         existing.rows = Array.from(unique.values()).sort(
           (a, b) => a.commit_number - b.commit_number
         );
-
-        // Merge stats
-        if (os.allStats) {
-          if (!existing.allStats) existing.allStats = {};
-          for (const [stat, rows] of Object.entries(os.allStats)) {
-            const existingRows = existing.allStats[stat] || [];
-            const allStatRows = [...existingRows, ...rows];
-            const uniqueStats = new Map<number, any>();
-            allStatRows.forEach((r) => uniqueStats.set(r.commit_number, r));
-            existing.allStats[stat] = Array.from(uniqueStats.values()).sort(
-              (a, b) => a.commit_number - b.commit_number
-            );
-          }
-        }
       } else {
         newSeries.push(os);
       }
@@ -1820,7 +1703,6 @@ export class ExploreMultiV2Sk extends LitElement {
       console.log('[_translateDataFrame] key:', key, 'stat:', stat);
 
       const primaryParams = { ...params };
-      delete primaryParams['stat'];
       let primaryKey = key;
       try {
         primaryKey = makeKey(primaryParams);
@@ -1833,23 +1715,11 @@ export class ExploreMultiV2Sk extends LitElement {
         s = {
           id: primaryKey,
           color: '', // Will assign color later
-          rows: [],
+          rows: rows,
           allStats: {},
           originalId: key,
         };
         seriesMap.set(primaryKey, s);
-      }
-
-      const defaultStats = this._defaultParamSelections['stat'] || [];
-      const isDefaultStat = (stat && defaultStats.includes(stat)) || !stat;
-      if (isDefaultStat) {
-        s.originalId = key;
-        s.rows = rows;
-      }
-
-      if (stat) {
-        if (!s.allStats) s.allStats = {};
-        s.allStats[stat] = rows;
       }
     });
 
@@ -1882,16 +1752,6 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   private _getPrimaryKey(key: string): string {
-    const params = this._parseTraceKey(key);
-    if (params['stat']) {
-      delete params['stat'];
-      try {
-        return makeKey(params);
-      } catch (e) {
-        console.error('makeKey failed in _getPrimaryKey for', params, e);
-        return key;
-      }
-    }
     return key;
   }
 
@@ -2127,9 +1987,16 @@ export class ExploreMultiV2Sk extends LitElement {
     this._queriesExpanded = !this._queriesExpanded;
   }
 
+  private _clearSuggestions(idx: number) {
+    const newSuggestions = [...this._suggestionsForQueryBar];
+    newSuggestions[idx] = [];
+    this._suggestionsForQueryBar = newSuggestions;
+  }
+
   private _onRemoveQueryBar(idx: number) {
     if (this.queries.length > 1) {
       this.queries = this.queries.filter((_, i) => i !== idx);
+      this._suggestionsForQueryBar = this._suggestionsForQueryBar.filter((_, i) => i !== idx);
     }
   }
 
@@ -2144,6 +2011,10 @@ export class ExploreMultiV2Sk extends LitElement {
     newQueries.splice(idx + 1, 0, clonedQuery);
     this.queries = newQueries;
 
+    const newSuggestions = [...this._suggestionsForQueryBar];
+    newSuggestions.splice(idx + 1, 0, []);
+    this._suggestionsForQueryBar = newSuggestions;
+
     if (this.queries.length > 3) {
       this._queriesExpanded = true;
     }
@@ -2154,7 +2025,9 @@ export class ExploreMultiV2Sk extends LitElement {
     const currentQuery = this.queries[idx] || {};
     const availableParams = this._availableParamsPerQuery[idx] || this._availableParams;
 
-    this._workerController?.suggest(queryInput, currentQuery, idx, availableParams);
+    const reqId =
+      this._workerController?.suggest(queryInput, currentQuery, idx, availableParams) || 0;
+    this._latestSuggestRequestIds[idx] = reqId;
   }
 
   private _handleAddQuery(idx: number, e: CustomEvent<{ key: string; value: string }>) {
@@ -2165,6 +2038,7 @@ export class ExploreMultiV2Sk extends LitElement {
       queries[idx] = { ...queries[idx], [key]: [...current, value] };
       this.queries = queries;
     }
+    this._clearSuggestions(idx);
   }
 
   private _handleRemoveQuery(idx: number, e: CustomEvent<{ key: string; value: string }>) {
@@ -2180,6 +2054,7 @@ export class ExploreMultiV2Sk extends LitElement {
       queries[idx] = { ...queries[idx], [key]: updated };
     }
     this.queries = queries;
+    this._clearSuggestions(idx);
   }
 
   private _handleSetSelected(idx: number, e: CustomEvent<{ key: string; values: string[] }>) {
@@ -2206,6 +2081,7 @@ export class ExploreMultiV2Sk extends LitElement {
     }
 
     this.queries = queries;
+    this._clearSuggestions(idx);
   }
 
   private _handleRemoveKey(idx: number, e: CustomEvent<{ key: string }>) {
@@ -2213,6 +2089,7 @@ export class ExploreMultiV2Sk extends LitElement {
       const queries = [...this.queries];
       queries[idx] = {};
       this.queries = queries;
+      this._clearSuggestions(idx);
       return;
     }
     const { key } = e.detail;
@@ -2221,6 +2098,7 @@ export class ExploreMultiV2Sk extends LitElement {
     delete nextQuery[key];
     queries[idx] = nextQuery;
     this.queries = queries;
+    this._clearSuggestions(idx);
   }
 
   private _handleSplit(e: CustomEvent<{ key: string }>) {
@@ -2264,23 +2142,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
     const traceIdToOriginalId = new Map<string, string>();
     const traceIds = visibleSeries.map((s) => {
-      let tId = s.id;
-      if (s.originalId) {
-        tId = s.originalId;
-      } else {
-        const params = this._parseTraceKey(s.id);
-        if (Object.keys(params).length > 0) {
-          const defaultStats = this._defaultParamSelections['stat'] || [];
-          if (defaultStats.length > 0) {
-            params['stat'] = defaultStats[0];
-          }
-          try {
-            tId = makeKey(params);
-          } catch (e) {
-            console.error('makeKey failed in _fetchMetadataForVisibleTraces', e);
-          }
-        }
-      }
+      const tId = s.originalId || s.id;
       traceIdToOriginalId.set(s.id, tId);
       return tId;
     });
@@ -2407,21 +2269,6 @@ export class ExploreMultiV2Sk extends LitElement {
     } else if (name === 'smooth') {
       this._hoverMode = value ? 'both' : 'original';
     }
-  }
-
-  private get _availableStats(): string[] {
-    const stats = new Set<string>(['min', 'max', 'count']);
-    this._seriesData.forEach((s) => {
-      if (s.allStats) {
-        Object.keys(s.allStats).forEach((k) => stats.add(k));
-      }
-    });
-
-    // Remove default stats as they don't need toggles
-    const defaultStats = this._defaultParamSelections['stat'] || [];
-    defaultStats.forEach((v) => stats.delete(v));
-
-    return Array.from(stats);
   }
 
   private get _availableSplitKeys(): string[] {
@@ -2587,8 +2434,6 @@ export class ExploreMultiV2Sk extends LitElement {
           .showDots=${this._showDots}
           .showSparklines=${this._showSparklines}
           .evenXAxisSpacing=${this._evenXAxisSpacing}
-          .availableStats=${this._availableStats}
-          .activeStats=${this._activeStats}
           .showRegressions=${this._showRegressions}
           .tooltipDiffs=${this._tooltipDiffs}
           .dateMode=${this.dateMode}
@@ -2633,7 +2478,6 @@ export class ExploreMultiV2Sk extends LitElement {
                 .edgeLookahead=${this._edgeLookahead}
                 .showDots=${this._showDots}
                 .evenXAxisSpacing=${this._evenXAxisSpacing}
-                .activeStats=${new Set(this._activeStats)}
                 .viewportMinX=${this.viewportMinX}
                 .viewportMaxX=${this.viewportMaxX}
                 .globalHoverX=${this._globalHoverX}

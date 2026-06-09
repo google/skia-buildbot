@@ -178,66 +178,6 @@ describe('trace-chart-sk', () => {
     }
   });
 
-  it('synthesizes stdMin and stdMax when showStd is enabled', async () => {
-    element.activeStats = new Set(['std']);
-    element.series = [
-      {
-        id: 'test',
-        color: '#fff',
-        rows: [{ commit_number: 100, val: 10.0, createdat: 1000 }],
-        allStats: {
-          error: [{ commit_number: 100, val: 2.0, createdat: 1000 }],
-        },
-      },
-    ];
-    await element.updateComplete;
-
-    const processed = (element as any)['_processedSeries'];
-    expect(processed).to.not.be.empty;
-    const s = processed[0];
-    expect(s.allStats).to.not.be.undefined;
-    expect(s.allStats['stdMin']).to.not.be.undefined;
-    expect(s.allStats['stdMax']).to.not.be.undefined;
-    expect(s.allStats['stdMin'][0].val).to.equal(8.0); // 10.0 - 2.0
-    expect(s.allStats['stdMax'][0].val).to.equal(12.0); // 10.0 + 2.0
-  });
-
-  it('calculates countMaxY when showCount is enabled', async () => {
-    element.activeStats = new Set(['count']);
-    (element as any)['_processedSeries'] = [
-      {
-        id: 'test',
-        color: '#fff',
-        rows: [{ commit_number: 100, val: 10.0, createdat: 1000 }],
-        allStats: {
-          count: [{ commit_number: 100, val: 50.0, createdat: 1000 }],
-        },
-      },
-    ];
-
-    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
-    const rect = canvas.getBoundingClientRect();
-    const mapping = (element as any)['_getChartBoundsAndMapping'](rect);
-
-    expect(mapping.countMaxY).to.equal(50.0);
-  });
-
-  it('triggers background redraw when showStd changes', async () => {
-    let redrawCalled = false;
-    const oldDrawBackground = (element as any)['_drawBackground'];
-    (element as any)['_drawBackground'] = function () {
-      redrawCalled = true;
-      oldDrawBackground.apply(this);
-    };
-
-    try {
-      element.activeStats = new Set(['std']);
-      await element.updateComplete;
-      expect(redrawCalled).to.be.true;
-    } finally {
-      (element as any)['_drawBackground'] = oldDrawBackground;
-    }
-  });
   it('draws No Data message when minX is Infinity', async () => {
     const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d')!;

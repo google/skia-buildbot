@@ -19,7 +19,7 @@ export class ExploreWorkerController {
     private onError: (message: string) => void,
     private onParamsReady: (payload: any) => void,
     private onResult: (payload: any) => void,
-    private onSuggestResult: (payload: any, idx: number) => void
+    private onSuggestResult: (payload: any, idx: number, requestId: number) => void
   ) {}
 
   public init() {
@@ -85,8 +85,8 @@ export class ExploreWorkerController {
     } else if (type === 'RESULT') {
       this.onResult(payload);
     } else if (type === 'SUGGEST_RESULT') {
-      const { idx } = e.data;
-      this.onSuggestResult(payload, idx);
+      const { idx, requestId } = e.data;
+      this.onSuggestResult(payload, idx, requestId);
     }
   }
 
@@ -160,10 +160,10 @@ export class ExploreWorkerController {
     });
   }
 
-  public suggest(query: string, currentQuery: any, idx: number, availableParams?: any[]) {
+  public suggest(query: string, currentQuery: any, idx: number, availableParams?: any[]): number {
     if (!this.worker || !this.ready) {
       console.warn('WorkerController: Worker not ready for suggestions');
-      return;
+      return 0;
     }
     this.workerRequestId++;
     this.worker.postMessage({
@@ -174,6 +174,7 @@ export class ExploreWorkerController {
       idx: idx,
       availableParams: availableParams,
     });
+    return this.workerRequestId;
   }
 
   public getRandomTrace(callback: (query: any) => void) {

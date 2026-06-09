@@ -60,6 +60,7 @@ type InMemoryTraceParams struct {
 type ContextKey string
 
 const UseInvertedIndex ContextKey = "useInvertedIndex"
+const AllowEmptyQuery ContextKey = "allowEmptyQuery"
 
 const (
 	// No of partitions to use when reading traceParams table.

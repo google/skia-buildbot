@@ -5,7 +5,7 @@ export function fuzzyScore(text: string, query: string): number {
   const lowerText = text.toLowerCase();
   const lowerQuery = query.toLowerCase();
 
-  if (lowerQuery === lowerText) return Infinity; // Exact match
+  if (lowerQuery === lowerText) return 100000; // Exact match
 
   let score = 0;
   let textIdx = 0;

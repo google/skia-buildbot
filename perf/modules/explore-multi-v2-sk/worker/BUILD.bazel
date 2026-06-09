@@ -18,6 +18,7 @@ ts_library(
     srcs = ["suggestion_engine.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        ":wasm_utils_ts_lib",
         ":worker-types_ts_lib",
         "//perf/modules/explore-multi-v2-sk:fuzzy_ts_lib",
     ],

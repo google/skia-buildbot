@@ -25,10 +25,6 @@ export class ExploreToolbarSk extends LitElement {
 
   @property({ type: Array }) activeSplitKeys: string[] = [];
 
-  @property({ type: Array }) availableStats: string[] = [];
-
-  @property({ type: Array }) activeStats: string[] = [];
-
   @property({ type: Number }) pageSize = 30;
 
   @property({ type: Boolean }) showRegressions = true;
@@ -372,24 +368,6 @@ export class ExploreToolbarSk extends LitElement {
             <span class="checkmark"></span>
             Sparklines
           </label>
-
-          ${this.availableStats.map(
-            (stat) => html`
-              <label class="custom-checkbox">
-                <input
-                  type="checkbox"
-                  .checked=${this.activeStats.includes(stat)}
-                  @change=${(e: any) => {
-                    const newActiveStats = e.target.checked
-                      ? [...this.activeStats, stat]
-                      : this.activeStats.filter((s) => s !== stat);
-                    this._emitChange('activeStats', newActiveStats);
-                  }} />
-                <span class="checkmark"></span>
-                Show ${stat}
-              </label>
-            `
-          )}
 
           <label class="custom-checkbox">
             <input

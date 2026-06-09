@@ -265,7 +265,8 @@ export class QueryBarSk extends LitElement {
       changedProperties.has('query') ||
       changedProperties.has('availableParams') ||
       changedProperties.has('optionsByKey') ||
-      changedProperties.has('_inputValue')
+      changedProperties.has('_inputValue') ||
+      changedProperties.has('externalSuggestions')
     ) {
       this._updateSuggestions();
     }
@@ -308,6 +309,7 @@ export class QueryBarSk extends LitElement {
   private _updateSuggestions() {
     const trimmed = this._inputValue.trim();
     if (!trimmed) {
+      this.externalSuggestions = null;
       if (this._isOpen) {
         if (!this._selectedCategory) {
           const keys = Object.keys(this.optionsByKey).filter((k) => !this.query[k]);
@@ -364,6 +366,7 @@ export class QueryBarSk extends LitElement {
       'availableParams count:',
       this.availableParams.length
     );
+
     if (trimmed.includes(' ')) {
       const tokens = trimmed
         .split(' ')
@@ -377,17 +380,14 @@ export class QueryBarSk extends LitElement {
       const scored = this.availableParams
         .filter((p) => !this.query[p.key])
         .map((p) => {
-          let totalScore = 0;
-          let matchesAll = true;
+          let bestScore = -Infinity;
           for (const token of tokens) {
             const s = scoreParamAny(p, token);
-            if (s === -Infinity) {
-              matchesAll = false;
-              break;
+            if (s > bestScore) {
+              bestScore = s;
             }
-            totalScore += s;
           }
-          return { p, score: matchesAll ? totalScore : -Infinity };
+          return { p, score: bestScore };
         });
 
       const matches = scored.filter((s) => s.score > -Infinity);
@@ -403,14 +403,14 @@ export class QueryBarSk extends LitElement {
     }
 
     const eqIdx = trimmed.indexOf('=');
-    const vPartCheck = eqIdx !== -1 ? trimmed.substring(eqIdx + 1) : '';
+    const vPartCheck = eqIdx !== -1 ? trimmed.substring(eqIdx + 1) : trimmed;
     const hasGlobChar =
       vPartCheck.includes('*') || vPartCheck.includes('?') || vPartCheck.includes(',');
-    const isGlobSearch = eqIdx !== -1 && hasGlobChar;
+    const isGlobSearch = hasGlobChar;
 
     if (isGlobSearch) {
-      const kPart = trimmed.substring(0, eqIdx);
-      const vPart = trimmed.substring(eqIdx + 1);
+      const kPart = eqIdx !== -1 ? trimmed.substring(0, eqIdx) : '';
+      const vPart = eqIdx !== -1 ? trimmed.substring(eqIdx + 1) : trimmed;
 
       if (!vPart) {
         this._suggestions = [];

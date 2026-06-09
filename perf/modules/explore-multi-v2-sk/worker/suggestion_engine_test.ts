@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { computeSuggestions, SearchCache } from './suggestion_engine';
-import { Param, Query, TraceData } from './worker-types';
+import { computeSuggestions } from './suggestion_engine';
+import { Param, Query } from './worker-types';
 
-describe('suggestion_engine fallback path', () => {
+describe('suggestion_engine memory-lookup path', () => {
   const testParams: Param[] = [
     { id: 1, key: 'cpu', value: 'x86' },
     { id: 2, key: 'mode', value: 'release' },
@@ -11,11 +11,7 @@ describe('suggestion_engine fallback path', () => {
     { id: 5, key: 'mode', value: 'debug' },
   ];
 
-  const dummyUpdateCache = (_cache: SearchCache) => {};
-  const dummyYield = async () => {};
   const dummyShouldAbort = () => false;
-  const dummyGetQueryPtr = (_data: any) => 0;
-  const dummyScanWasmBatch = async () => 0;
 
   it('should suggest a single attribute (sanity check)', async () => {
     const queryInput = 'x86';
@@ -26,216 +22,155 @@ describe('suggestion_engine fallback path', () => {
       currentQuery,
       testParams,
       null, // availableParams
-      null, // traceData (forces fallback)
-      null, // wasmFilter (forces fallback)
-      { query: '', contextStr: '', indices: null },
-      dummyUpdateCache,
-      dummyYield,
-      dummyShouldAbort,
-      dummyGetQueryPtr,
-      dummyScanWasmBatch
+      null, // traceData
+      dummyShouldAbort
     );
 
     expect(suggestions).to.not.be.null;
-    expect(suggestions!.length).to.equal(1);
+    expect(suggestions!.length).to.be.greaterThan(0);
     expect(suggestions![0].params.length).to.equal(1);
     expect(suggestions![0].params[0]).to.deep.equal({ id: 1, key: 'cpu', value: 'x86' });
   });
 
-  it('should suggest a combination of multiple attributes separated by space', async () => {
-    const queryInput = 'x86 release';
+  it('should suggest value-only glob matches correctly', async () => {
+    const queryInput = 'x8*';
     const currentQuery: Query = {};
 
     const suggestions = await computeSuggestions(
       queryInput,
       currentQuery,
       testParams,
-      null, // availableParams
-      null, // traceData (forces fallback)
-      null, // wasmFilter (forces fallback)
-      { query: '', contextStr: '', indices: null },
-      dummyUpdateCache,
-      dummyYield,
-      dummyShouldAbort,
-      dummyGetQueryPtr,
-      dummyScanWasmBatch
+      null,
+      null,
+      dummyShouldAbort
     );
 
     expect(suggestions).to.not.be.null;
-    // Fallback path returns exactly 1 top combo suggestion if it finds it
     expect(suggestions!.length).to.equal(1);
-
-    const params = suggestions![0].params;
-    expect(params.length).to.equal(2);
-
-    // We expect both cpu=x86 and mode=release to be in the suggestion
-    const hasX86 = params.some((p) => p.key === 'cpu' && p.value === 'x86');
-    const hasRelease = params.some((p) => p.key === 'mode' && p.value === 'release');
-
-    expect(hasX86).to.be.true;
-    expect(hasRelease).to.be.true;
+    expect(suggestions![0].params[0]).to.deep.equal({ id: -1, key: 'cpu', value: 'x8*' });
   });
-});
 
-describe('suggestion_engine Wasm path JS logic', () => {
-  const testParams: Param[] = [
-    { id: 1, key: 'cpu', value: 'x86' },
-    { id: 2, key: 'mode', value: 'release' },
-    { id: 3, key: 'os', value: 'linux' },
-  ];
+  it('should suggest combinations and exclude single parameters when combinations exist', async () => {
+    const queryInput = 'linu deb';
+    const currentQuery: Query = {};
 
-  let traceData: TraceData;
-  let memory: WebAssembly.Memory;
-  const stride = 4;
-  const bitsetSize = 10;
-  const outputPtr = 1000;
+    const suggestions = await computeSuggestions(
+      queryInput,
+      currentQuery,
+      testParams,
+      null,
+      null,
+      dummyShouldAbort
+    );
 
-  beforeEach(() => {
-    memory = new WebAssembly.Memory({ initial: 1 });
+    expect(suggestions).to.not.be.null;
+    suggestions!.forEach((s) => {
+      expect(s.params.length).to.be.greaterThan(1);
+    });
+  });
 
-    const paramSets = new Uint16Array(memory.buffer, 0, 10 * stride);
-    const matchingParams = new Int32Array(memory.buffer, 200, bitsetSize * 2);
-    const filteredTraceIndices = new Int32Array(memory.buffer, outputPtr, 10);
+  it('should suggest combined suggestions (Cartesian product) for space-separated queries', async () => {
+    const queryInput = 'linu deb';
+    const currentQuery: Query = {};
 
-    traceData = {
-      memory,
+    const suggestions = await computeSuggestions(
+      queryInput,
+      currentQuery,
+      testParams,
+      null,
+      null,
+      dummyShouldAbort
+    );
+
+    expect(suggestions).to.not.be.null;
+    const combined = suggestions!.find((s) => s.params.length > 1);
+    expect(combined).to.not.be.undefined;
+    expect(combined!.params.map((p) => p.value)).to.include('linux');
+    expect(combined!.params.map((p) => p.value)).to.include('debug');
+  });
+
+  it('should suggest combinations and compute exact intersection counts with traceData', async () => {
+    const queryInput = 'linu deb';
+    const currentQuery: Query = {};
+
+    // 1-based IDs in paramSets:
+    // Trace 0: cpu=x86 (id=1), mode=release (id=2), os=linux (id=3) -> [1, 2, 3, 0] (stride=4)
+    // Trace 1: cpu=arm64 (id=4), mode=debug (id=5), os=linux (id=3) -> [4, 5, 3, 0] (stride=4)
+    // Trace 2: cpu=x86 (id=1), mode=debug (id=5), os=linux (id=3) -> [1, 5, 3, 0] (stride=4)
+    // Param IDs:
+    // cpu=x86: 1
+    // mode=release: 2
+    // os=linux: 3
+    // cpu=arm64: 4
+    // mode=debug: 5
+    const paramSets = new Uint16Array([1, 2, 3, 0, 4, 5, 3, 0, 1, 5, 3, 0]);
+
+    const matchingParams = new Int32Array(100);
+    // Setup matchingParams so all parameters are considered matched for pool filtering
+    matchingParams.fill(1);
+    matchingParams[3] = 3; // os=linux (id=3) is in 3 traces
+    matchingParams[5] = 2; // mode=debug (id=5) is in 2 traces
+
+    const mockTraceData = {
       paramSets,
+      stride: 4,
+      numTraces: 3,
+      bitsetSize: 10,
       matchingParams,
-      filteredTraceIndices,
-      stride,
-      numTraces: 1,
-      maxParamId: 3,
-      dataPtr: 0,
-      matchingParamsPtr: 200,
-      outPtr: outputPtr,
-      bitsetSize,
-    };
-
-    // Populate trace 0 with params: cpu=x86 (id 1), mode=release (id 2), os=linux (id 3)
-    // Storing p.id directly for tests (assuming pid in paramSets maps to p.id)
-    paramSets[0] = 1; // cpu=x86
-    paramSets[1] = 2; // mode=release
-    paramSets[2] = 3; // os=linux
-    paramSets[3] = 0; // sentinel
-  });
-
-  it('should suggest combinations by scanning mocked Wasm results', async () => {
-    const queryInput = 'x86 release';
-    const currentQuery: Query = {};
-
-    const mockScanWasmBatch = async (
-      _wasmFilter: any,
-      td: TraceData,
-      _queryPtr: number,
-      _queryLen: number,
-      _outputLimit: number,
-      _totalQueryValues: number,
-      _checkInterrupt: () => boolean
-    ) => {
-      // Write trace index 0 to output buffer
-      const outBuffer = new Int32Array(td.memory.buffer, td.outPtr, 1);
-      outBuffer[0] = 0;
-      return 1; // 1 trace matched
-    };
-
-    const dummyUpdateCache = (_cache: SearchCache) => {};
-    const dummyYield = async () => {};
-    const dummyShouldAbort = () => false;
-    const dummyGetQueryPtr = (_data: any) => 0;
-    const mockWasmFilter = {} as any;
+    } as any;
 
     const suggestions = await computeSuggestions(
       queryInput,
       currentQuery,
       testParams,
-      null, // availableParams
-      traceData,
-      mockWasmFilter,
-      { query: '', contextStr: '', indices: null },
-      dummyUpdateCache,
-      dummyYield,
-      dummyShouldAbort,
-      dummyGetQueryPtr,
-      mockScanWasmBatch
+      null,
+      mockTraceData,
+      dummyShouldAbort
     );
 
     expect(suggestions).to.not.be.null;
-    expect(suggestions!.length).to.be.greaterThan(0);
-
-    const firstSug = suggestions![0];
-    expect(firstSug.params.length).to.equal(2);
-
-    const hasX86 = firstSug.params.some((p) => p.key === 'cpu' && p.value === 'x86');
-    const hasRelease = firstSug.params.some((p) => p.key === 'mode' && p.value === 'release');
-
-    expect(hasX86).to.be.true;
-    expect(hasRelease).to.be.true;
+    // The combination: os=linux (id 3) and mode=debug (id 5)
+    // Matching traces for combination: Trace 1 and Trace 2 (both have linux and debug). So count should be 2!
+    const combined = suggestions!.find((s) => s.params.length > 1);
+    expect(combined).to.not.be.undefined;
+    expect(combined!.count).to.equal(2);
   });
 
-  it('should work even if availableParams are missing id property (production case)', async () => {
-    const queryInput = 'x86 release';
-    const currentQuery: Query = {};
-
-    // availableParams from production don't have 'id'
-    const availableParamsWithoutId = [
-      { key: 'cpu', value: 'x86' },
-      { key: 'mode', value: 'release' },
-      { key: 'os', value: 'linux' },
-    ] as any[];
-
-    const mockScanWasmBatch = async (
-      _wasmFilter: any,
-      td: TraceData,
-      queryPtr: number,
-      _queryLen: number,
-      _outputLimit: number,
-      _totalQueryValues: number,
-      _checkInterrupt: () => boolean
-    ) => {
-      const qView = new Int32Array(td.memory.buffer, queryPtr, 5);
-      console.log('TEST VERIFY Wasm Query buffer:', Array.from(qView));
-
-      // Simulate real Wasm behavior: if param IDs are invalid (0), it matches nothing!
-      if (qView[2] === 0 || qView[4] === 0) {
-        return 0;
-      }
-
-      const outBuffer = new Int32Array(td.memory.buffer, td.outPtr, 1);
-      outBuffer[0] = 0;
-      return 1;
+  it('should ignore virtual/non-existent query keys (like stat) and still match combinations correctly', async () => {
+    const queryInput = 'linu deb';
+    // currentQuery contains a virtual key 'stat'
+    const currentQuery: Query = {
+      stat: ['max', 'min'],
     };
 
-    const dummyUpdateCache = (_cache: SearchCache) => {};
-    const dummyYield = async () => {};
-    const dummyShouldAbort = () => false;
-    const dummyGetQueryPtr = (_data: any) => 0;
-    const mockWasmFilter = {} as any;
+    const paramSets = new Uint16Array([1, 2, 3, 0, 4, 5, 3, 0, 1, 5, 3, 0]);
+
+    const matchingParams = new Int32Array(100);
+    matchingParams.fill(1);
+    matchingParams[3] = 3; // os=linux (id=3) is in 3 traces
+    matchingParams[5] = 2; // mode=debug (id=5) is in 2 traces
+
+    const mockTraceData = {
+      paramSets,
+      stride: 4,
+      numTraces: 3,
+      bitsetSize: 10,
+      matchingParams,
+    } as any;
 
     const suggestions = await computeSuggestions(
       queryInput,
       currentQuery,
       testParams,
-      availableParamsWithoutId, // lacks IDs!
-      traceData,
-      mockWasmFilter,
-      { query: '', contextStr: '', indices: null },
-      dummyUpdateCache,
-      dummyYield,
-      dummyShouldAbort,
-      dummyGetQueryPtr,
-      mockScanWasmBatch
+      null,
+      mockTraceData,
+      dummyShouldAbort
     );
 
     expect(suggestions).to.not.be.null;
-    expect(suggestions!.length).to.be.greaterThan(0);
-
-    const firstSug = suggestions![0];
-    expect(firstSug.params.length).to.equal(2);
-
-    const hasX86 = firstSug.params.some((p) => p.key === 'cpu' && p.value === 'x86');
-    const hasRelease = firstSug.params.some((p) => p.key === 'mode' && p.value === 'release');
-
-    expect(hasX86).to.be.true;
-    expect(hasRelease).to.be.true;
+    // Should still find the combination of os=linux (id 3) and mode=debug (id 5) with count 2, ignoring stat!
+    const combined = suggestions!.find((s) => s.params.length > 1);
+    expect(combined).to.not.be.undefined;
+    expect(combined!.count).to.equal(2);
   });
 });

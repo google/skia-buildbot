@@ -1,9 +1,12 @@
 import { Param, TraceData, WasmExports, Query } from './worker-types';
 import { scoreParamAny, fuzzyScore } from '../fuzzy';
+import { scanWasmBatch } from './wasm_utils';
 
 export interface SuggestionResult {
   params: Param[];
   score: number;
+  count?: number;
+  countIsLowerBound?: boolean;
 }
 
 export interface SearchCache {
@@ -12,31 +15,14 @@ export interface SearchCache {
   indices: Int32Array | null;
 }
 
-const MAX_CANDIDATES = 100;
-const OUTPUT_LIMIT = 1000000;
-const YIELD_INTERVAL_MS = 12;
-
 export async function computeSuggestions(
   queryInput: string,
   currentQuery: Query,
   params: Param[],
   availableParams: Param[] | null,
   traceData: TraceData | null,
-  wasmFilter: WasmExports | null,
-  searchCache: SearchCache,
-  updateCache: (cache: SearchCache) => void,
-  yieldToMain: () => Promise<void>,
   shouldAbort: () => boolean,
-  getQueryPtr: (data: TraceData) => number,
-  scanWasmBatch: (
-    wasmFilter: WasmExports,
-    traceData: TraceData,
-    queryPtr: number,
-    queryLen: number,
-    outputLimit: number,
-    totalQueryValues: number,
-    checkInterrupt: () => boolean
-  ) => Promise<number>
+  wasmFilter: WasmExports | null = null
 ): Promise<SuggestionResult[] | null> {
   if (shouldAbort()) return null;
 
@@ -92,18 +78,16 @@ export async function computeSuggestions(
   } else {
     pool = params;
   }
-  console.log('[computeSuggestions] tokens:', tokens, 'pool size:', pool.length);
-
   const tokenCandidateSets = tokens.map((token) => {
     const eqIdx = token.indexOf('=');
-    const vPartCheck = eqIdx !== -1 ? token.substring(eqIdx + 1) : '';
+    const vPartCheck = eqIdx !== -1 ? token.substring(eqIdx + 1) : token;
     const hasGlobChar =
       vPartCheck.includes('*') || vPartCheck.includes('?') || vPartCheck.includes(',');
-    const isGlobSearch = eqIdx !== -1 && hasGlobChar;
+    const isGlobSearch = hasGlobChar;
 
     if (isGlobSearch) {
-      const kPart = token.substring(0, eqIdx);
-      const vPart = token.substring(eqIdx + 1);
+      const kPart = eqIdx !== -1 ? token.substring(0, eqIdx) : '';
+      const vPart = eqIdx !== -1 ? token.substring(eqIdx + 1) : token;
 
       if (!vPart) return [];
 
@@ -146,7 +130,7 @@ export async function computeSuggestions(
         }
 
         matches.sort((a, b) => b.score - a.score);
-        return matches.slice(0, 50).map((m) => m.p);
+        return matches.slice(0, 50).map((m) => ({ p: m.p, score: m.score }));
       } catch (_e) {
         return [];
       }
@@ -159,9 +143,9 @@ export async function computeSuggestions(
 
     if (matches.length > 0) {
       const bestScore = matches[0].score;
-      const cutoff = bestScore === Infinity ? 50 : bestScore - 40;
+      const cutoff = bestScore >= 100000 ? 50 : bestScore - 40;
       const qualified = matches.filter((m) => m.score >= cutoff);
-      return qualified.slice(0, 1000).map((m) => m.p);
+      return qualified.slice(0, 1000).map((m) => ({ p: m.p, score: m.score }));
     }
     return [];
   });
@@ -170,102 +154,175 @@ export async function computeSuggestions(
     return [];
   }
 
-  let suggestions: any[] = [];
-  let isSampled = false;
+  // Generate combinations (Cartesian product) of candidates
+  let combinations: { params: Param[]; score: number }[] = [];
 
-  if (traceData && wasmFilter) {
-    const currentContextStr = JSON.stringify(currentQuery);
-    let sourceIndices: Int32Array | null = null;
-    let sourceCount = 0;
-    let isRefinement = false;
+  if (tokens.length === 1) {
+    combinations = tokenCandidateSets[0].map((c) => ({
+      params: [c.p],
+      score: c.score,
+    }));
+  } else {
+    const sets = tokenCandidateSets.map((set) => set.slice(0, 10));
+    const tempResults: { params: Param[]; score: number }[] = [];
 
-    const newChars = queryInput.substring(searchCache.query.length);
-    const addedGlob = newChars.includes('*') || newChars.includes('?') || newChars.includes(',');
+    function generateCombinations(setIndex: number, currentParams: Param[], currentScore: number) {
+      if (setIndex === sets.length) {
+        if (currentParams.length > 0) {
+          tempResults.push({
+            params: [...currentParams],
+            score: currentScore,
+          });
+        }
+        return;
+      }
 
-    if (
-      searchCache.indices &&
-      queryInput.startsWith(searchCache.query) &&
-      currentContextStr === searchCache.contextStr &&
-      !addedGlob
-    ) {
-      sourceIndices = searchCache.indices;
-      sourceCount = sourceIndices.length;
-      isRefinement = true;
+      for (const candidate of sets[setIndex]) {
+        if (currentParams.some((p) => p.key === candidate.p.key)) {
+          continue;
+        }
+        currentParams.push(candidate.p);
+        generateCombinations(setIndex + 1, currentParams, currentScore + candidate.score);
+        currentParams.pop();
+      }
     }
 
-    if (!isRefinement) {
-      const smallSets: { set: Param[]; index: number }[] = [];
-      tokenCandidateSets.forEach((set, i) => {
-        if (set.length <= MAX_CANDIDATES) smallSets.push({ set, index: i });
-      });
+    generateCombinations(0, [], 0);
+    combinations = tempResults;
 
-      if (smallSets.length === 0 && tokens.length > 0) {
-        let bestIdx = -1;
-        let minSize = Infinity;
-        tokenCandidateSets.forEach((set, i) => {
-          if (set.length < minSize) {
-            minSize = set.length;
-            bestIdx = i;
-          }
-        });
-
-        if (bestIdx !== -1) {
-          const RESCUE_LIMIT = 200;
-          const truncatedSet = tokenCandidateSets[bestIdx].slice(0, RESCUE_LIMIT);
-          smallSets.push({ set: truncatedSet, index: bestIdx });
+    // Also include individual candidates as fallback
+    const seenKeys = new Set<string>();
+    for (const set of tokenCandidateSets) {
+      for (const candidate of set) {
+        const key = `${candidate.p.key}=${candidate.p.value}`;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          combinations.push({
+            params: [candidate.p],
+            score: candidate.score,
+          });
         }
+      }
+    }
+  }
+
+  const OUTPUT_LIMIT = 10000;
+  const MAX_KEYS = 50;
+
+  function getQueryPtr(td: any): number {
+    const bitsetBufferSize = td.bitsetSize * (MAX_KEYS + 1);
+    const outputSize = OUTPUT_LIMIT * 4;
+    const bitsetOffset = td.matchingParamsPtr;
+    const bitsetSizeBytes = bitsetBufferSize * 4;
+    const outputPtrRaw = bitsetOffset + bitsetSizeBytes;
+    const outputPtr = (outputPtrRaw + 3) & ~3;
+    const queryPtr = outputPtr + outputSize;
+    return queryPtr;
+  }
+
+  const keyToIndex = new Map<string, number>();
+  currentQueryKeys.forEach((k, i) => keyToIndex.set(k, i));
+
+  const suggestions: SuggestionResult[] = [];
+
+  // Phase 1: O(1) Estimation for fast sorting of all combinations
+  for (const comb of combinations) {
+    if (shouldAbort()) return null;
+    let estCount = 0;
+    if (traceData) {
+      let minCount = traceData.numTraces;
+      for (const p of comb.params) {
+        let bitsetOffset = 0;
+        if (keyToIndex.has(p.key)) {
+          const k = keyToIndex.get(p.key)!;
+          bitsetOffset = (k + 1) * traceData.bitsetSize;
+        }
+        const pCount = traceData.matchingParams[bitsetOffset + p.id];
+        if (pCount < minCount) {
+          minCount = pCount;
+        }
+      }
+      estCount = minCount;
+    }
+
+    suggestions.push({
+      params: comb.params,
+      score: comb.score,
+      count: estCount,
+    } as any);
+  }
+
+  // Sort suggestions by their fuzzy score in descending order
+  suggestions.sort((a, b) => b.score - a.score);
+
+  // Phase 2: O(N) exact Wasm-accelerated counting scan ONLY for the top 20 suggestions
+  const topSuggestions = suggestions.slice(0, 20);
+  const finalSuggestions: SuggestionResult[] = [];
+
+  // Resolve currentQuery values to IDs for fast matching
+  const currentQueryParamIdsMap = new Map<string, number[]>();
+  if (traceData) {
+    for (const [key, values] of Object.entries(currentQuery)) {
+      const ids: number[] = [];
+      for (const val of values) {
+        const hasGlob = val.includes('*') || val.includes('?');
+        if (hasGlob) {
+          const escaped = val.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+          const pattern = '^' + escaped.replace(/\*/g, '.*').replace(/\?/g, '.') + '$';
+          const regex = new RegExp(pattern, 'i');
+          for (const p of params) {
+            if (p.key === key && regex.test(p.value)) {
+              ids.push(p.id);
+            }
+          }
+        } else {
+          const pm = params.find((item) => item.key === key && item.value === val);
+          if (pm) {
+            ids.push(pm.id);
+          }
+        }
+      }
+      if (ids.length > 0) {
+        currentQueryParamIdsMap.set(key, ids);
+      }
+    }
+  }
+
+  for (const s of topSuggestions) {
+    if (shouldAbort()) return null;
+
+    if (traceData && wasmFilter && s.params.length > 1) {
+      const queryMap = new Map<string, number[]>();
+
+      // Add currentQueryParamIds
+      for (const [key, ids] of currentQueryParamIdsMap) {
+        queryMap.set(key, [...ids]);
+      }
+
+      // Add suggestion params
+      for (const p of s.params) {
+        const existing = queryMap.get(p.key) || [];
+        if (!existing.includes(p.id)) {
+          existing.push(p.id);
+        }
+        queryMap.set(p.key, existing);
       }
 
       const serializedQuery: number[] = [];
-      const currentQueryEntries = Object.entries(currentQuery);
-      const totalKeys = smallSets.length + currentQueryEntries.length;
-      serializedQuery.push(totalKeys);
+      serializedQuery.push(queryMap.size);
 
-      for (const { set } of smallSets) {
-        const expandedIds: number[] = [];
-        for (const p of set) {
-          if (p.id === -1) {
-            try {
-              const parts = p.value
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean);
-              const regexes = parts.map((part) => {
-                const escaped = part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const pattern = '^' + escaped.replace(/\\\*/g, '.*').replace(/\\\?/g, '.') + '$';
-                return new RegExp(pattern, 'i');
-              });
-              for (const globalP of params) {
-                if (globalP.key === p.key && regexes.some((r) => r.test(globalP.value))) {
-                  expandedIds.push(globalP.id);
-                }
-              }
-            } catch (_e) {}
-          } else {
-            expandedIds.push(p.id);
-          }
-        }
-        const uniqueIds = Array.from(new Set(expandedIds));
-        serializedQuery.push(uniqueIds.length);
-        serializedQuery.push(...uniqueIds);
-      }
-      for (const [key, values] of currentQueryEntries) {
-        const ids = values
-          .map((v) => params.find((p) => p.key === key && p.value === v)?.id)
-          .filter((id): id is number => id !== undefined);
+      let totalQueryValues = 0;
+      for (const [_, ids] of queryMap) {
         serializedQuery.push(ids.length);
         serializedQuery.push(...ids);
+        totalQueryValues += ids.length;
       }
 
       const queryPtr = getQueryPtr(traceData);
       const queryView = new Int32Array(traceData.memory.buffer, queryPtr, serializedQuery.length);
       queryView.set(serializedQuery);
 
-      let totalQueryValues = 0;
-      for (const { set } of smallSets) totalQueryValues += set.length;
-      for (const [_, values] of currentQueryEntries) totalQueryValues += values.length;
-
-      sourceCount = await scanWasmBatch(
+      const count = await scanWasmBatch(
         wasmFilter,
         traceData,
         queryPtr,
@@ -275,141 +332,24 @@ export async function computeSuggestions(
         shouldAbort
       );
 
-      if (sourceCount === -1) return null;
+      if (count === -1) return null; // Aborted
 
-      isSampled = sourceCount > OUTPUT_LIMIT;
-      sourceIndices = new Int32Array(
-        traceData.memory.buffer,
-        traceData.outPtr,
-        Math.min(sourceCount, OUTPUT_LIMIT)
-      );
-    }
-
-    const checkCount = sourceIndices!.length;
-    const uniquePaths = new Map<string, { params: Param[]; score: number; frequency: number }>();
-    const survivingIndices: number[] = [];
-    let lastYield = performance.now();
-
-    for (let k = 0; k < checkCount; k++) {
-      if (performance.now() - lastYield > YIELD_INTERVAL_MS) {
-        await yieldToMain();
-        if (shouldAbort()) return null;
-        lastYield = performance.now();
-      }
-
-      const traceIndex = sourceIndices![k];
-      const offset = traceIndex * traceData.stride;
-      const traceParamIds = [];
-      for (let j = 0; j < traceData.stride; j++) {
-        const pid = traceData.paramSets[offset + j];
-        if (pid === 0) continue;
-        traceParamIds.push(pid);
-      }
-      const traceParams = traceParamIds.map((id) => params[id - 1]);
-
-      const tokenMatches: { tokenIndex: number; candidates: { p: Param; score: number }[] }[] = [];
-      let possible = true;
-      for (let t = 0; t < tokens.length; t++) {
-        const matchesWithScore = traceParams
-          .map((p) => ({ p, score: scoreParamAny(p, tokens[t]) }))
-          .filter((m) => m.score > -Infinity);
-        if (matchesWithScore.length === 0) {
-          possible = false;
-          break;
-        }
-        const globCand = tokenCandidateSets[t].find(
-          (cand) => cand.id === -1 && matchesWithScore.some((m) => m.p.key === cand.key)
-        );
-        if (globCand) {
-          const bestScore = Math.max(...matchesWithScore.map((m) => m.score));
-          tokenMatches.push({ tokenIndex: t, candidates: [{ p: globCand, score: bestScore }] });
-        } else {
-          matchesWithScore.sort((a, b) => b.score - a.score);
-          tokenMatches.push({ tokenIndex: t, candidates: matchesWithScore });
-        }
-      }
-      if (!possible) continue;
-      survivingIndices.push(traceIndex);
-
-      tokenMatches.sort((a, b) => a.candidates.length - b.candidates.length);
-      const assignments = new Array(tokens.length).fill(null);
-      const usedKeys = new Set<string>();
-      let maxTotalScore = -Infinity;
-      let bestPath: Param[] | null = null;
-
-      const solve = (idx: number, currentScore: number) => {
-        if (idx === tokens.length) {
-          if (currentScore > maxTotalScore) {
-            maxTotalScore = currentScore;
-            const path: Param[] = new Array(tokens.length);
-            for (let i = 0; i < tokens.length; i++) {
-              const tIdx = tokenMatches[i].tokenIndex;
-              path[tIdx] = assignments[i];
-            }
-            bestPath = path;
-          }
-          return;
-        }
-        const { candidates } = tokenMatches[idx];
-        for (const cand of candidates) {
-          if (!usedKeys.has(cand.p.key)) {
-            usedKeys.add(cand.p.key);
-            assignments[idx] = cand.p;
-            solve(idx + 1, currentScore + cand.score);
-            usedKeys.delete(cand.p.key);
-            assignments[idx] = null;
-          }
-        }
-      };
-      solve(0, 0);
-
-      if (bestPath) {
-        const p = bestPath as Param[];
-        const sortedForGrouping = [...p].sort((a, b) => a.id - b.id);
-        const pathKey = sortedForGrouping.map((p) => p.id).join(',');
-        if (uniquePaths.has(pathKey)) {
-          const entry = uniquePaths.get(pathKey)!;
-          entry.frequency++;
-          if (maxTotalScore > entry.score) entry.score = maxTotalScore;
-        } else {
-          uniquePaths.set(pathKey, { params: p, score: maxTotalScore, frequency: 1 });
-        }
-      }
-    }
-
-    const canCache = isRefinement || (!isRefinement && sourceCount <= OUTPUT_LIMIT);
-    if (canCache && survivingIndices.length <= OUTPUT_LIMIT) {
-      updateCache({
-        query: queryInput,
-        contextStr: currentContextStr,
-        indices: new Int32Array(survivingIndices),
-      });
+      s.count = count;
+      s.countIsLowerBound = false; // Exact count!
     } else {
-      updateCache({ query: '', contextStr: '', indices: null });
+      s.countIsLowerBound = false; // Single parameters are already 100% exact
     }
 
-    const allPaths = Array.from(uniquePaths.values());
-    allPaths.sort((a, b) => b.score - a.score);
-    suggestions = allPaths.slice(0, 20).map((p) => ({
-      params: p.params,
-      score: p.score,
-      count: p.frequency,
-      countIsLowerBound: isSampled,
-    }));
-  } else {
-    const topCombo = tokenCandidateSets.map((set) => set[0]);
-    let totalScore = 0;
-    const uniqueCombo: Param[] = [];
-    const seenKeys = new Set<string>();
-    for (let i = 0; i < topCombo.length; i++) {
-      const p = topCombo[i];
-      if (!seenKeys.has(p.key)) {
-        uniqueCombo.push(p);
-        seenKeys.add(p.key);
-      }
-      totalScore += scoreParamAny(p, tokens[i]);
+    if (!traceData || s.count! > 0) {
+      finalSuggestions.push(s);
     }
-    suggestions = [{ params: uniqueCombo, score: totalScore }];
   }
-  return suggestions;
+
+  // Filter: If combinations (length > 1) are present, show NOTHING but the combinations!
+  const hasCombinations = finalSuggestions.some((s) => s.params.length > 1);
+  if (hasCombinations) {
+    return finalSuggestions.filter((s) => s.params.length > 1);
+  }
+
+  return finalSuggestions;
 }

@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -68,7 +67,7 @@ func TestWasmApi_MetaHandler_Success(t *testing.T) {
 		_ = os.RemoveAll(cacheDir)
 	}()
 
-	api := NewWasmApi(ts, ps, cacheDir, &config.InstanceConfig{})
+	api := NewWasmApi(ts, ps, cacheDir)
 
 	ts.On("GetLatestTile", mock.Anything).Return(types.TileNumber(1), nil)
 	ts.On("TileSize").Return(int32(256))
@@ -117,7 +116,7 @@ func TestWasmApi_EmptyQueryWithStat(t *testing.T) {
 		_ = os.RemoveAll(cacheDir)
 	}()
 
-	api := NewWasmApi(ts, ps, cacheDir, &config.InstanceConfig{})
+	api := NewWasmApi(ts, ps, cacheDir)
 
 	ts.On("GetLatestTile", mock.Anything).Return(types.TileNumber(1), nil)
 	ts.On("TileSize").Return(int32(256))
@@ -128,10 +127,8 @@ func TestWasmApi_EmptyQueryWithStat(t *testing.T) {
 	pChan <- p1
 	close(pChan)
 
-	// We expect the query to be empty even though 'stat' is in the paramset!
-	ts.On("QueryTracesIDOnly", mock.Anything, types.TileNumber(1), mock.MatchedBy(func(q *query.Query) bool {
-		return q.String() == ""
-	})).Return((<-chan paramtools.Params)(pChan), nil)
+	// We expect the wildcard name query to match all traces!
+	ts.On("QueryTracesIDOnly", mock.Anything, types.TileNumber(1), mock.Anything).Return((<-chan paramtools.Params)(pChan), nil)
 
 	paramSet := paramtools.ParamSet{}
 	paramSet["config"] = []string{"8888"}
@@ -145,25 +142,6 @@ func TestWasmApi_EmptyQueryWithStat(t *testing.T) {
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 }
 
-func TestInferredFilterQuery(t *testing.T) {
-	cfg := &config.QueryConfig{
-		DefaultParamSelections: map[string][]string{
-			"branch_name": {"aosp-androidx-main"},
-		},
-		ConditionalDefaults: []config.ConditionalDefaultRule{
-			{
-				Trigger: config.TriggerCondition{
-					Param:  "metric",
-					Values: []string{"timeNs", "timeToInitialDisplayMs"},
-				},
-			},
-		},
-	}
-	query := inferredFilterQuery(cfg)
-	require.Contains(t, query, "branch_name=aosp-androidx-main")
-	require.Contains(t, query, "metric=~(timeNs|timeToInitialDisplayMs)")
-}
-
 func TestWasmApi_CommonParamsExtraction(t *testing.T) {
 	ts := &mockTraceStore{}
 	ps := &mockPsRefresher{}
@@ -174,7 +152,7 @@ func TestWasmApi_CommonParamsExtraction(t *testing.T) {
 		_ = os.RemoveAll(cacheDir)
 	}()
 
-	api := NewWasmApi(ts, ps, cacheDir, &config.InstanceConfig{})
+	api := NewWasmApi(ts, ps, cacheDir)
 
 	ts.On("GetLatestTile", mock.Anything).Return(types.TileNumber(1), nil)
 	ts.On("TileSize").Return(int32(256))

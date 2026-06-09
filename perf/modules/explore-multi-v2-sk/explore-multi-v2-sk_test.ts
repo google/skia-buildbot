@@ -60,27 +60,6 @@ describe('explore-multi-v2-sk', () => {
     expect(checkboxes.length).to.be.greaterThan(0);
   });
 
-  it('renders dynamic checkboxes for available stats', async () => {
-    (element as any)._seriesData = [
-      {
-        id: 't1',
-        rows: [],
-        allStats: {
-          min: [{ commit_number: 10, val: 0.5 }],
-          max: [{ commit_number: 10, val: 1.5 }],
-        },
-      },
-    ];
-    await element.updateComplete;
-    const toolbar = element.shadowRoot!.querySelector('explore-toolbar-sk');
-    await (toolbar as any).updateComplete;
-    const labels = Array.from(toolbar!.shadowRoot!.querySelectorAll('.custom-checkbox')).map(
-      (l) => l.textContent?.trim()
-    );
-    expect(labels).to.include('Show min');
-    expect(labels).to.include('Show max');
-  });
-
   it('uses custom sliders for numeric inputs', async () => {
     element['_hoverMode'] = 'smoothed';
     await element.updateComplete;
@@ -120,7 +99,6 @@ describe('explore-multi-v2-sk', () => {
 
   it('syncs all toolbar checkboxes to URL', async () => {
     (element as any)._showSparklines = true;
-    (element as any)._activeStats = ['std', 'count'];
     (element as any)._showRegressions = false;
     (element as any)._tooltipDiffs = true;
     (element as any).dateMode = true;
@@ -136,7 +114,6 @@ describe('explore-multi-v2-sk', () => {
 
     const url = new URL(window.location.href);
     expect(url.searchParams.get('sparklines')).to.equal('true');
-    expect(url.searchParams.get('activeStats')).to.equal('std,count');
     expect(url.searchParams.get('regressions')).to.equal('false');
     expect(url.searchParams.get('tooltipDiffs')).to.equal('true');
     expect(url.searchParams.get('dateMode')).to.equal('true');
@@ -148,15 +125,11 @@ describe('explore-multi-v2-sk', () => {
     expect(url.searchParams.get('outlier')).to.equal('4');
   });
 
-  it('triggers state update on activeStats, dateMode, page, pageSize, showAll, subrepo, edgeFactor or outlier changes', async () => {
+  it('triggers state update on dateMode, page, pageSize, showAll, subrepo, edgeFactor or outlier changes', async () => {
     let stateChangedCalled = false;
     (element as any)._stateHasChanged = () => {
       stateChangedCalled = true;
     };
-
-    element['_activeStats'] = ['std'];
-    await element.updateComplete;
-    expect(stateChangedCalled).to.be.true;
 
     stateChangedCalled = false;
     element['dateMode'] = true;
@@ -410,7 +383,6 @@ describe('explore-multi-v2-sk', () => {
       ];
       element['_loadedBounds'] = { t1: { min: 1000, max: 2000 } };
       element['_globalBounds'] = {}; // Empty global bounds
-      element['_activeStats'] = [];
 
       // Trigger viewport change that requires left fetch
       await element['_doHandleViewportChanged']({
@@ -443,17 +415,17 @@ describe('explore-multi-v2-sk', () => {
     expect(title4).to.equal('');
   });
 
-  it('gets primary key correctly by removing stat', () => {
+  it('returns primary key exactly as given without removing stat', () => {
     const key1 = ',benchmark=A,stat=min,test=B,';
     const primary1 = element['_getPrimaryKey'](key1);
-    expect(primary1).to.equal(',benchmark=A,test=B,');
+    expect(primary1).to.equal(',benchmark=A,stat=min,test=B,');
 
     const key2 = ',benchmark=A,test=B,';
     const primary2 = element['_getPrimaryKey'](key2);
     expect(primary2).to.equal(',benchmark=A,test=B,');
   });
 
-  it('groups traces by primary key and populates allStats', () => {
+  it('translates traceset keys into independent series without grouping', () => {
     const df = {
       header: [{ offset: 10, timestamp: 1000 }],
       traceset: {
@@ -465,15 +437,15 @@ describe('explore-multi-v2-sk', () => {
 
     const series = element['_translateDataFrame'](df);
 
-    expect(series.length).to.equal(1);
-    expect(series[0].id).to.equal(',benchmark=A,test=B,');
-    expect(series[0].rows.length).to.equal(1);
+    expect(series.length).to.equal(3);
+    expect(series.map((s: any) => s.id)).to.deep.equal([
+      ',benchmark=A,test=B,',
+      ',benchmark=A,stat=min,test=B,',
+      ',benchmark=A,stat=max,test=B,',
+    ]);
     expect(series[0].rows[0].val).to.equal(1.0);
-    expect(series[0].allStats).to.not.be.undefined;
-    expect(series[0].allStats!['min']).to.not.be.undefined;
-    expect(series[0].allStats!['min'][0].val).to.equal(0.5);
-    expect(series[0].allStats!['max']).to.not.be.undefined;
-    expect(series[0].allStats!['max'][0].val).to.equal(1.5);
+    expect(series[1].rows[0].val).to.equal(0.5);
+    expect(series[2].rows[0].val).to.equal(1.5);
   });
 
   it('merges series data correctly accumulating stats', () => {
@@ -617,7 +589,6 @@ describe('explore-multi-v2-sk', () => {
       element['_tracePage'] = 0;
       element['_pageSize'] = 10;
       element['_seriesData'] = [];
-      element['_activeStats'] = [];
 
       await element.updateComplete;
 
@@ -825,7 +796,46 @@ describe('explore-multi-v2-sk', () => {
     expect((element as any).queries[0]['stat']).to.deep.equal(['min']);
   });
 
-  it('merges anomalymap from fetchTraceValues response correctly stripping stat', async () => {
+  it('clears suggestions list on query modification events', () => {
+    element['_suggestionsForQueryBar'] = [[{ params: [], score: 100 }]];
+
+    element['_handleAddQuery'](
+      0,
+      new CustomEvent('add-query', {
+        detail: { key: 'metric', value: 'time' },
+      })
+    );
+    expect(element['_suggestionsForQueryBar'][0]).to.deep.equal([]);
+
+    element['_suggestionsForQueryBar'] = [[{ params: [], score: 100 }]];
+    element['_handleRemoveQuery'](
+      0,
+      new CustomEvent('remove-query', {
+        detail: { key: 'metric', value: 'time' },
+      })
+    );
+    expect(element['_suggestionsForQueryBar'][0]).to.deep.equal([]);
+
+    element['_suggestionsForQueryBar'] = [[{ params: [], score: 100 }]];
+    element['_handleSetSelected'](
+      0,
+      new CustomEvent('set-selected', {
+        detail: { key: 'metric', values: ['time'] },
+      })
+    );
+    expect(element['_suggestionsForQueryBar'][0]).to.deep.equal([]);
+
+    element['_suggestionsForQueryBar'] = [[{ params: [], score: 100 }]];
+    element['_handleRemoveKey'](
+      0,
+      new CustomEvent('remove-key', {
+        detail: { key: 'metric' },
+      })
+    );
+    expect(element['_suggestionsForQueryBar'][0]).to.deep.equal([]);
+  });
+
+  it('merges anomalymap from fetchTraceValues response correctly under the uncollapsed trace ID', async () => {
     const mockDataService = {
       getLinksBatch: async () => ({}),
       fetchTraceValues: async (_arg: any) => {
@@ -866,17 +876,17 @@ describe('explore-multi-v2-sk', () => {
     });
 
     try {
-      element['_matchingTraceIds'] = [',benchmark=A,test=B,'];
+      element['_matchingTraceIds'] = [',benchmark=A,test=B,stat=value,'];
       element['_tracePage'] = 0;
       element['_pageSize'] = 10;
       element['_seriesData'] = [
         {
-          id: ',benchmark=A,test=B,',
+          id: ',benchmark=A,test=B,stat=value,',
           rows: [{ commit_number: 150, createdat: 0, val: 1.0 }],
           color: '#fff',
         },
       ];
-      element['_loadedBounds'] = { ',benchmark=A,test=B,': { min: 100, max: 200 } };
+      element['_loadedBounds'] = { ',benchmark=A,test=B,stat=value,': { min: 100, max: 200 } };
       element['_globalBounds'] = {};
 
       // Trigger viewport change that requires left fetch
@@ -885,7 +895,7 @@ describe('explore-multi-v2-sk', () => {
       });
 
       expect(element['_regressions']).to.not.be.empty;
-      const reg = element['_regressions'][',benchmark=A,test=B,'];
+      const reg = element['_regressions'][',benchmark=A,test=B,stat=value,'];
       expect(reg).to.not.be.undefined;
       expect(reg[100]).to.not.be.undefined;
       expect(reg[100].is_improvement).to.be.true;
@@ -966,7 +976,7 @@ describe('explore-multi-v2-sk', () => {
     }
   });
 
-  it('puts stat=median rows into s.rows and allStats', async () => {
+  it('merges stat=median rows cleanly as independent series', async () => {
     const mockDataService = {
       getLinksBatch: async () => ({}),
       fetchTraceValues: async (_arg: any) => {
@@ -994,13 +1004,15 @@ describe('explore-multi-v2-sk', () => {
     });
 
     try {
-      element['_matchingTraceIds'] = [',benchmark=A,test=B,'];
+      element['_matchingTraceIds'] = [',benchmark=A,test=B,stat=median,'];
       element['_tracePage'] = 0;
       element['_pageSize'] = 10;
-      element['_seriesData'] = [{ id: ',benchmark=A,test=B,', rows: [], color: '#fff' }];
-      element['_loadedBounds'] = { ',benchmark=A,test=B,': { min: 100, max: 200 } };
+      element['_seriesData'] = [
+        { id: ',benchmark=A,test=B,stat=median,', rows: [], color: '#fff' },
+      ];
+      element['_loadedBounds'] = { ',benchmark=A,test=B,stat=median,': { min: 100, max: 200 } };
       element['_globalBounds'] = {};
-      element['_activeStats'] = [];
+
       element['_defaultParamSelections'] = { stat: ['median'] };
 
       await element['_doHandleViewportChanged']({
@@ -1008,10 +1020,9 @@ describe('explore-multi-v2-sk', () => {
       });
 
       const series = element['_seriesData'][0];
-      expect(series.rows.length).to.equal(1); // Should be in rows!
+      expect(series.id).to.equal(',benchmark=A,test=B,stat=median,');
+      expect(series.rows.length).to.equal(1);
       expect(series.rows[0].val).to.equal(1.5);
-      expect(series.allStats?.['median']).to.not.be.undefined; // Should ALSO be in allStats!
-      expect(series.allStats?.['median'][0].val).to.equal(1.5);
     } finally {
       (DataService as any).instance = oldInstance;
       TraceDatabase.prototype.get = oldGet;
@@ -1022,6 +1033,7 @@ describe('explore-multi-v2-sk', () => {
       });
     }
   });
+
   it('renders config pills when diffBase or splitKeys is set', async () => {
     element['_diffBase'] = { key: 'test', value: 'Score' };
     element['splitKeys'] = new Set(['bot']);

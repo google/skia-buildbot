@@ -818,15 +818,17 @@ func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNu
 
 // QueryTracesIDOnly implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error) {
+	if q == nil || q.Empty() {
+		if ctx.Value(AllowEmptyQuery) != true {
+			return nil, skerr.Fmt("empty query not allowed")
+		}
+	}
+
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly")
 	defer span.End()
 
 	defer timer.New("QueryTracesIDOnlyByIndex").Stop()
 	outParams := make(chan paramtools.Params, queryTracesIDOnlyByIndexChannelSize)
-	if q.Empty() {
-		close(outParams)
-		return outParams, skerr.Fmt("Can't run QueryTracesIDOnlyByIndex for the empty query.")
-	}
 
 	s.inMemoryTraceParams.QueryTraceIDs(ctx, tileNumber, q, outParams)
 	return outParams, nil
