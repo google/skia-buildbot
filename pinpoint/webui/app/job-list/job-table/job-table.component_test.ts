@@ -1,5 +1,7 @@
+import 'zone.js';
+import 'zone.js/testing';
 import '@angular/compiler';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { JobTableComponent } from './job-table.component';
 import { JobTableColumnsService, JobTableColumn } from '../job-table-columns.service';
@@ -8,8 +10,6 @@ import { JobType, JobStatus } from '../../gateway/gateway';
 import { JobsService } from '../jobs.service';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-
-const flushEffects = () => new Promise((resolve) => setTimeout(resolve));
 
 describe('JobTableComponent', () => {
   let stubConsoleError: sinon.SinonStub;
@@ -58,18 +58,18 @@ describe('JobTableComponent', () => {
     return TestBed.runInInjectionContext(() => new JobTableComponent());
   }
 
-  it('should load jobs on init successfully', async () => {
+  it('should load jobs on init successfully', fakeAsync(() => {
     const component = createComponent();
     component.ngOnInit();
-    await flushEffects();
+    tick();
 
     assert.isFalse(component.loading());
     assert.isNull(component.error());
     assert.equal(component.jobs().length, 1);
     assert.equal(component.jobs()[0].jobId, '123456');
-  });
+  }));
 
-  it('should handle query failures and set error signal', async () => {
+  it('should handle query failures and set error signal', fakeAsync(() => {
     const testError = new Error('Failed to query');
     const component = createComponent({
       QueryJobList: async () => {
@@ -78,25 +78,25 @@ describe('JobTableComponent', () => {
     });
 
     component.ngOnInit();
-    await flushEffects();
+    tick();
 
     assert.isFalse(component.loading());
     assert.equal(component.error(), 'Failed to query');
     assert.equal(component.jobs().length, 0);
     assert.isTrue(stubConsoleError.calledOnceWithExactly('Failed to load jobs:', testError));
-  });
+  }));
 
-  it('should reset paginator pageIndex to 0 when showOnlyUserJobs filter changes', async () => {
+  it('should reset paginator pageIndex to 0 when showOnlyUserJobs filter changes', fakeAsync(() => {
     const component = createComponent();
     const service = TestBed.inject(JobsService);
 
     component.paginator = { pageIndex: 3 } as any;
 
-    await service.setShowOnlyUserJobs(false);
-    await flushEffects();
+    service.setShowOnlyUserJobs(false);
+    tick();
 
     assert.equal(component.paginator.pageIndex, 0);
-  });
+  }));
 
   it('should dynamically retrieve displayedColumns from JobTableColumnsService', () => {
     const component = createComponent();

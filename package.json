@@ -114,7 +114,8 @@
     "utf-8-validate": "^5.0.10",
     "vanilla-jsoneditor": "^0.23.2",
     "verdaccio": "^5.7.0",
-    "zod": "^3.25.55"
+    "zod": "^3.25.55",
+    "zone.js": "~0.16.0"
   },
   "scripts": {
     "lint": "npm run lint:ts && npm run lint:go && npm run lint:py && npm run lint:sh",

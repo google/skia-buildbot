@@ -1,5 +1,7 @@
+import 'zone.js';
+import 'zone.js/testing';
 import '@angular/compiler';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { NewJobComponent } from './new-job.component';
@@ -96,7 +98,7 @@ describe('NewJobComponent', () => {
     assert.isTrue(gateway.CreateTryJob.notCalled);
   });
 
-  it('should submit job successfully', async () => {
+  it('should submit job successfully', fakeAsync(() => {
     const gateway = {
       CreateTryJob: sinon.stub().resolves({ jobId: 'job_12345' }),
     };
@@ -105,16 +107,15 @@ describe('NewJobComponent', () => {
     component.submitJob();
 
     assert.isTrue(component.submitting());
-    // wait for promise resolution
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    tick();
 
     assert.isFalse(component.submitting());
     assert.equal(component.createdJobId(), 'job_12345');
     assert.equal(component.errorMessage(), '');
     assert.isTrue(gateway.CreateTryJob.calledOnce);
-  });
+  }));
 
-  it('should handle submit job failure', async () => {
+  it('should handle submit job failure', fakeAsync(() => {
     const gateway = {
       CreateTryJob: sinon.stub().rejects(new Error('Failed to create')),
     };
@@ -123,16 +124,15 @@ describe('NewJobComponent', () => {
     component.submitJob();
 
     assert.isTrue(component.submitting());
-    // wait for promise resolution
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    tick();
 
     assert.isFalse(component.submitting());
     assert.equal(component.createdJobId(), '');
     assert.equal(component.errorMessage(), 'Failed to create');
     assert.isTrue(gateway.CreateTryJob.calledOnce);
-  });
+  }));
 
-  it('should handle submit job failure with HttpErrorResponse', async () => {
+  it('should handle submit job failure with HttpErrorResponse', fakeAsync(() => {
     const errorResponse = new HttpErrorResponse({
       error: { message: 'Invalid bot configuration' },
       status: 400,
@@ -146,12 +146,11 @@ describe('NewJobComponent', () => {
     component.submitJob();
 
     assert.isTrue(component.submitting());
-    // wait for promise resolution
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    tick();
 
     assert.isFalse(component.submitting());
     assert.equal(component.createdJobId(), '');
     assert.equal(component.errorMessage(), 'Invalid bot configuration');
     assert.isTrue(gateway.CreateTryJob.calledOnce);
-  });
+  }));
 });
