@@ -305,7 +305,7 @@ export class PerfScaffoldSk extends ElementSk {
   }
 
   private static revisionLinkTemplateOld = () => {
-    if (window.perf.fetch_chrome_perf_anomalies) {
+    if (window.perf.fetch_chrome_perf_anomalies || window.perf.fetch_anomalies_from_sql) {
       return html`<a href="/v" tab-index="0"
         ><trending-up-icon-sk></trending-up-icon-sk><span>Revision Info</span></a
       >`;
@@ -314,7 +314,7 @@ export class PerfScaffoldSk extends ElementSk {
   };
 
   private static revisionLinkTemplateNew = (ele: PerfScaffoldSk) => {
-    if (window.perf.fetch_chrome_perf_anomalies) {
+    if (window.perf.fetch_chrome_perf_anomalies || window.perf.fetch_anomalies_from_sql) {
       return html`<a href="/v" tab-index="0" class="${ele.isPageActive('/v') ? 'active' : ''}"
         >Revision Info</a
       >`;
