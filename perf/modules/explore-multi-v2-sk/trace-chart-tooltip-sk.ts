@@ -89,6 +89,16 @@ export class TraceChartTooltipSk extends LitElement {
       font-family: 'JetBrains Mono', monospace;
     }
 
+    .hover-tooltip a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .hover-tooltip a:hover {
+      text-decoration: underline;
+      color: var(--primary-variant);
+    }
+
     .tooltip-row {
       margin-bottom: 4px;
       overflow: hidden;
