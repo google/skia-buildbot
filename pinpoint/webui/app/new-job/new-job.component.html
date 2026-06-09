@@ -55,7 +55,7 @@
         <div>
           <mat-form-field matTooltip="The specific story or sub-test within the benchmark suite to execute.">
             <mat-label>Story</mat-label>
-            <input matInput formControlName="story" placeholder="e.g. Speedometer3" required />
+            <input matInput formControlName="story" placeholder="e.g. Speedometer3" />
             <mat-error>Story is required</mat-error>
           </mat-form-field>
         </div>
@@ -210,9 +210,26 @@
         </mat-expansion-panel>
       </mat-card-content>
     </mat-card>
-
     <div class="actions-container">
-      <button mat-raised-button color="primary" type="submit" [disabled]="jobForm.invalid">
+      @if (errorMessage()) {
+        <span class="error-message">{{ errorMessage() }}</span>
+      }
+      @if (createdJobId()) {
+        <span>
+          Job successfully created! Job ID:
+          <a href="https://pinpoint-dot-chromeperf.appspot.com/job/{{ createdJobId() }}"
+          target="_blank" rel="noopener noreferrer">
+            {{ createdJobId() }}
+          </a>
+        </span>
+      }
+
+      <span class="spacer"></span>
+
+      @if (submitting()) {
+        <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+      }
+      <button mat-flat-button class="no-shrink" color="primary" type="submit" [disabled]="submitting()">
         Create Job
       </button>
     </div>

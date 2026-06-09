@@ -12,9 +12,14 @@ import (
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
+type pinpointClient interface {
+	QueryJobList(ctx context.Context, req *pb.QueryJobListRequest) (*pb.QueryJobListResponse, error)
+	CreatePinpointTryJob(ctx context.Context, req *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error)
+}
+
 type gatewayServer struct {
 	pb.UnimplementedPinpointGatewayServer
-	client *Client
+	client pinpointClient
 }
 
 // NewGatewayJSONHandler registers the http handlers for the PinpointGateway
@@ -41,24 +46,48 @@ func (s *gatewayServer) QueryJobList(
 	ctx context.Context,
 	req *pb.QueryJobListRequest,
 ) (*pb.QueryJobListResponse, error) {
-	return s.client.QueryJobList(ctx, req)
+	resp, err := s.client.QueryJobList(ctx, req)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
+}
+
+func getEmailFromContext(ctx context.Context) string {
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		// When the request is from HTTP, like the Angular Web UI.
+		if emails := md.Get("grpcmetadata-x-webauth-user"); len(emails) > 0 {
+			return emails[0]
+		}
+		// A fallback in case the request is from a direct gRPC call.
+		if emails := md.Get("x-webauth-user"); len(emails) > 0 {
+			return emails[0]
+		}
+	}
+	return ""
 }
 
 func (s *gatewayServer) GetUserInfo(
 	ctx context.Context,
 	req *pb.GetUserInfoRequest,
 ) (*pb.GetUserInfoResponse, error) {
-	email := ""
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		// When the request is from HTTP, like the Angular Web UI.
-		if emails := md.Get("grpcmetadata-x-webauth-user"); len(emails) > 0 {
-			email = emails[0]
-			// A fallback in case the request is from a direct gRPC call.
-		} else if emails := md.Get("x-webauth-user"); len(emails) > 0 {
-			email = emails[0]
-		}
-	}
 	return &pb.GetUserInfoResponse{
-		Email: email,
+		Email: getEmailFromContext(ctx),
 	}, nil
+}
+
+func (s *gatewayServer) CreateTryJob(
+	ctx context.Context,
+	req *pb.CreateTryJobRequest,
+) (*pb.CreateJobResponse, error) {
+	if req.User == "" {
+		req.User = getEmailFromContext(ctx)
+	}
+
+	resp, err := s.client.CreatePinpointTryJob(ctx, req)
+	if err != nil {
+		// Unwrap the error because it may be displayed to the user.
+		return nil, skerr.Unwrap(err)
+	}
+	return resp, nil
 }

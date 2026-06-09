@@ -7,6 +7,8 @@ import {
   QueryJobListResponse,
   GetUserInfoRequest,
   GetUserInfoResponse,
+  CreateTryJobRequest,
+  CreateJobResponse,
 } from './gateway';
 
 @Injectable({
@@ -28,5 +30,9 @@ export class GatewayService implements PinpointGateway {
 
   GetUserInfo(_request: GetUserInfoRequest): Promise<GetUserInfoResponse> {
     return firstValueFrom(this.http.get<GetUserInfoResponse>('/pinpoint/v1/user'));
+  }
+
+  CreateTryJob(request: CreateTryJobRequest): Promise<CreateJobResponse> {
+    return firstValueFrom(this.http.post<CreateJobResponse>('/pinpoint/v1/new', request));
   }
 }

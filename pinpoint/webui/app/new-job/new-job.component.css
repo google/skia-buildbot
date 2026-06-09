@@ -22,10 +22,11 @@ mat-card-header {
   padding-bottom: 16px;
 }
 
-/* Aligns action buttons (e.g. Create Job) to the bottom right corner. */
+/* Makes Create Job button and labels vertically centered and sets a gap beetween them. */
 .actions-container {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
 }
 
 /* Stretches form fields to the full width of the form container. */
@@ -63,4 +64,13 @@ mat-expansion-panel-header {
  */
 ::ng-deep .mat-expansion-panel-body {
   padding: 0 !important;
+}
+
+.error-message {
+  color: var(--mat-sys-error);
+  word-break: break-word;
+}
+
+.no-shrink {
+  flex-shrink: 0;
 }

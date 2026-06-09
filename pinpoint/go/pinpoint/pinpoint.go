@@ -26,7 +26,11 @@ func (c *Client) CreateTryJob(
 	ctx context.Context,
 	req *TryJobCreateRequest,
 ) (*CreatePinpointResponse, error) {
-	return c.legacyClient.CreateTryJob(ctx, req)
+	resp, err := c.legacyClient.CreateTryJob(ctx, req)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
 }
 
 // CreateBisect calls pinpoint API to create bisect job.
@@ -35,7 +39,11 @@ func (c *Client) CreateBisect(
 	req *BisectJobCreateRequest,
 	isNewAnomaly bool,
 ) (*CreatePinpointResponse, error) {
-	return c.legacyClient.CreateBisect(ctx, req, isNewAnomaly)
+	resp, err := c.legacyClient.CreateBisect(ctx, req, isNewAnomaly)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
 }
 
 // FetchJobState retrieve job state details.
@@ -43,7 +51,11 @@ func (c *Client) FetchJobState(
 	ctx context.Context,
 	req internal.FetchJobStateRequest,
 ) (*FetchJobStateResponse, error) {
-	return c.legacyClient.FetchJobState(ctx, req)
+	resp, err := c.legacyClient.FetchJobState(ctx, req)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
 }
 
 // QueryJobList retrieves a list of Pinpoint jobs using the QueryJobListRequest filters.
@@ -51,5 +63,21 @@ func (c *Client) QueryJobList(
 	ctx context.Context,
 	req *pb.QueryJobListRequest,
 ) (*pb.QueryJobListResponse, error) {
-	return c.legacyClient.QueryJobList(ctx, req)
+	resp, err := c.legacyClient.QueryJobList(ctx, req)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
+}
+
+// CreatePinpointTryJob calls the legacy pinpoint API to create a try job.
+func (c *Client) CreatePinpointTryJob(
+	ctx context.Context,
+	req *pb.CreateTryJobRequest,
+) (*pb.CreateJobResponse, error) {
+	resp, err := c.legacyClient.CreatePinpointTryJob(ctx, req)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
 }

@@ -101,6 +101,81 @@ message GetUserInfoResponse {
   string email = 1;
 }
 
+// Extra arguments to pass to the benchmark or Chrome browser on run execution.
+message ExtraArgs {
+  // Extra command line arguments to pass directly to the benchmark runner execution.
+  string benchmark_runner_args = 1;
+
+  // Additional command line flags to pass to the Chrome browser on launch.
+  // These flags will be wrapped inside --extra-browser-args.
+  string extra_browser_args = 2;
+
+  // V8 JavaScript engine flags to pass to Chrome.
+  // These flags will be wrapped inside --js-flags.
+  string js_flags = 3;
+
+  // Chrome features to enable on launch.
+  // These features will be wrapped inside --enable-features.
+  string enable_features = 4;
+
+  // Chrome features to disable on launch.
+  // These features will be wrapped inside --disable-features.
+  string disable_features = 5;
+}
+
+// Configuration for a job variant (e.g. base or experiment arm).
+message VariantConfig {
+  // Git commit hash, revision number, or  "HEAD".
+  string commit = 1 [(validate.rules).string = {min_len: 1}];
+
+  // Gerrit patch to apply to the commit.
+  string patch = 2;
+
+  // Extra browser or runner arguments specific to this variant.
+  ExtraArgs extra_args = 3;
+}
+
+// Request message to create a new Pinpoint try job.
+// A try job compares the performance between a base and an experiment variants.
+message CreateTryJobRequest {
+  // Chrome performance benchmark name.
+  string benchmark = 1 [(validate.rules).string = {min_len: 1}];
+
+  // Bot/builder configuration to run on (e.g., 'linux-perf').
+  string configuration = 2 [(validate.rules).string = {min_len: 1}];
+
+  // Story or benchmark sub-test to run.
+  string story = 3;
+
+  // Optional story tags to filter stories.
+  string story_tags = 4;
+
+  // Configuration for the base variant.
+  VariantConfig base = 5 [(validate.rules).message.required = true];
+
+  // Configuration for the experiment variant.
+  VariantConfig experiment = 6 [(validate.rules).message.required = true];
+
+  // The number of times to repeat the runs. Default is 30.
+  int32 attempt_count = 7 [(validate.rules).int32 = {gt: 0}];
+
+  // Optional bug ID associated with the job.
+  optional int64 bug_id = 8;
+
+  // Optional email of the user who triggered the job. If empty or not set, the
+  // current user's email is used.
+  string user = 9;
+
+  // Optional name for the new try job.
+  string job_name = 10;
+}
+
+// Response message containing the created job details or error.
+message CreateJobResponse {
+  // The unique identifier of the created Pinpoint job.
+  string job_id = 1;
+}
+
 // Service definition for Pinpoint Gateway API.
 service PinpointGateway {
   // Queries a list of jobs based on filters and pagination options.
@@ -114,6 +189,14 @@ service PinpointGateway {
   rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse) {
     option (google.api.http) = {
       get: "/pinpoint/v1/user"
+    };
+  }
+
+  // Creates a new Pinpoint try job.
+  rpc CreateTryJob(CreateTryJobRequest) returns (CreateJobResponse) {
+    option (google.api.http) = {
+      post: "/pinpoint/v1/new"
+      body: "*"
     };
   }
 }

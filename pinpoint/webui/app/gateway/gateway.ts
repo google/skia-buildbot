@@ -109,10 +109,90 @@ export interface GetUserInfoResponse {
   email: string;
 }
 
+/** Extra arguments to pass to the benchmark or Chrome browser on run execution. */
+export interface ExtraArgs {
+  /** Extra command line arguments to pass directly to the benchmark runner execution. */
+  benchmarkRunnerArgs: string;
+  /**
+   * Additional command line flags to pass to the Chrome browser on launch.
+   * These flags will be wrapped inside --extra-browser-args.
+   */
+  extraBrowserArgs: string;
+  /**
+   * V8 JavaScript engine flags to pass to Chrome.
+   * These flags will be wrapped inside --js-flags.
+   */
+  jsFlags: string;
+  /**
+   * Chrome features to enable on launch.
+   * These features will be wrapped inside --enable-features.
+   */
+  enableFeatures: string;
+  /**
+   * Chrome features to disable on launch.
+   * These features will be wrapped inside --disable-features.
+   */
+  disableFeatures: string;
+}
+
+/** Configuration for a job variant (e.g. base or experiment arm). */
+export interface VariantConfig {
+  /** Git commit hash, revision number, or  "HEAD". */
+  commit: string;
+  /** Gerrit patch to apply to the commit. */
+  patch: string;
+  /** Extra browser or runner arguments specific to this variant. */
+  extraArgs: ExtraArgs | undefined;
+}
+
+/**
+ * Request message to create a new Pinpoint try job.
+ * A try job compares the performance between a base and an experiment variants.
+ */
+export interface CreateTryJobRequest {
+  /** Chrome performance benchmark name. */
+  benchmark: string;
+  /** Bot/builder configuration to run on (e.g., 'linux-perf'). */
+  configuration: string;
+  /** Story or benchmark sub-test to run. */
+  story: string;
+  /** Optional story tags to filter stories. */
+  storyTags: string;
+  /** Configuration for the base variant. */
+  base:
+    | VariantConfig
+    | undefined;
+  /** Configuration for the experiment variant. */
+  experiment:
+    | VariantConfig
+    | undefined;
+  /** The number of times to repeat the runs. Default is 30. */
+  attemptCount: number;
+  /** Optional bug ID associated with the job. */
+  bugId?:
+    | number
+    | undefined;
+  /**
+   * Optional email of the user who triggered the job. If empty or not set, the
+   * current user's email is used.
+   */
+  user: string;
+  /** Optional name for the new try job. */
+  jobName: string;
+}
+
+/** Response message containing the created job details or error. */
+export interface CreateJobResponse {
+  /** The unique identifier of the created Pinpoint job. */
+  jobId: string;
+}
+
 /** Service definition for Pinpoint Gateway API. */
 export interface PinpointGateway {
   /** Queries a list of jobs based on filters and pagination options. */
   QueryJobList(request: QueryJobListRequest): Promise<QueryJobListResponse>;
   /** Retrieves information about the currently logged-in user. */
   GetUserInfo(request: GetUserInfoRequest): Promise<GetUserInfoResponse>;
+  /** Creates a new Pinpoint try job. */
+  CreateTryJob(request: CreateTryJobRequest): Promise<CreateJobResponse>;
 }

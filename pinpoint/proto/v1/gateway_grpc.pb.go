@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	PinpointGateway_QueryJobList_FullMethodName = "/pinpoint.v1.PinpointGateway/QueryJobList"
 	PinpointGateway_GetUserInfo_FullMethodName  = "/pinpoint.v1.PinpointGateway/GetUserInfo"
+	PinpointGateway_CreateTryJob_FullMethodName = "/pinpoint.v1.PinpointGateway/CreateTryJob"
 )
 
 // PinpointGatewayClient is the client API for PinpointGateway service.
@@ -34,6 +35,8 @@ type PinpointGatewayClient interface {
 	QueryJobList(ctx context.Context, in *QueryJobListRequest, opts ...grpc.CallOption) (*QueryJobListResponse, error)
 	// Retrieves information about the currently logged-in user.
 	GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
+	// Creates a new Pinpoint try job.
+	CreateTryJob(ctx context.Context, in *CreateTryJobRequest, opts ...grpc.CallOption) (*CreateJobResponse, error)
 }
 
 type pinpointGatewayClient struct {
@@ -64,6 +67,16 @@ func (c *pinpointGatewayClient) GetUserInfo(ctx context.Context, in *GetUserInfo
 	return out, nil
 }
 
+func (c *pinpointGatewayClient) CreateTryJob(ctx context.Context, in *CreateTryJobRequest, opts ...grpc.CallOption) (*CreateJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateJobResponse)
+	err := c.cc.Invoke(ctx, PinpointGateway_CreateTryJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PinpointGatewayServer is the server API for PinpointGateway service.
 // All implementations must embed UnimplementedPinpointGatewayServer
 // for forward compatibility.
@@ -74,6 +87,8 @@ type PinpointGatewayServer interface {
 	QueryJobList(context.Context, *QueryJobListRequest) (*QueryJobListResponse, error)
 	// Retrieves information about the currently logged-in user.
 	GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error)
+	// Creates a new Pinpoint try job.
+	CreateTryJob(context.Context, *CreateTryJobRequest) (*CreateJobResponse, error)
 	mustEmbedUnimplementedPinpointGatewayServer()
 }
 
@@ -89,6 +104,9 @@ func (UnimplementedPinpointGatewayServer) QueryJobList(context.Context, *QueryJo
 }
 func (UnimplementedPinpointGatewayServer) GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserInfo not implemented")
+}
+func (UnimplementedPinpointGatewayServer) CreateTryJob(context.Context, *CreateTryJobRequest) (*CreateJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateTryJob not implemented")
 }
 func (UnimplementedPinpointGatewayServer) mustEmbedUnimplementedPinpointGatewayServer() {}
 func (UnimplementedPinpointGatewayServer) testEmbeddedByValue()                         {}
@@ -147,6 +165,24 @@ func _PinpointGateway_GetUserInfo_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PinpointGateway_CreateTryJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTryJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointGatewayServer).CreateTryJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PinpointGateway_CreateTryJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointGatewayServer).CreateTryJob(ctx, req.(*CreateTryJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PinpointGateway_ServiceDesc is the grpc.ServiceDesc for PinpointGateway service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -161,6 +197,10 @@ var PinpointGateway_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserInfo",
 			Handler:    _PinpointGateway_GetUserInfo_Handler,
+		},
+		{
+			MethodName: "CreateTryJob",
+			Handler:    _PinpointGateway_CreateTryJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

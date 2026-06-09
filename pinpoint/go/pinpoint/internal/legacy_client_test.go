@@ -165,15 +165,17 @@ func setupTestMocks(t *testing.T, handler http.HandlerFunc) *LegacyClient {
 	}
 
 	pc := &LegacyClient{
-		httpClient:          client,
-		createBisectCalled:  metrics2.GetCounter("pinpoint_create_bisect_called"),
-		createBisectFailed:  metrics2.GetCounter("pinpoint_create_bisect_failed"),
-		createTryJobCalled:  metrics2.GetCounter("pinpoint_create_try_job_called"),
-		createTryJobFailed:  metrics2.GetCounter("pinpoint_create_try_job_failed"),
-		fetchJobStateCalled: metrics2.GetCounter("pinpoint_fetch_job_state_called"),
-		fetchJobStateFailed: metrics2.GetCounter("pinpoint_fetch_job_state_failed"),
-		queryJobListCalled:  metrics2.GetCounter("pinpoint_query_job_list_called"),
-		queryJobListFailed:  metrics2.GetCounter("pinpoint_query_job_list_failed"),
+		httpClient:                 client,
+		createBisectCalled:         metrics2.GetCounter("pinpoint_create_bisect_called"),
+		createBisectFailed:         metrics2.GetCounter("pinpoint_create_bisect_failed"),
+		createTryJobCalled:         metrics2.GetCounter("pinpoint_create_try_job_called"),
+		createTryJobFailed:         metrics2.GetCounter("pinpoint_create_try_job_failed"),
+		fetchJobStateCalled:        metrics2.GetCounter("pinpoint_fetch_job_state_called"),
+		fetchJobStateFailed:        metrics2.GetCounter("pinpoint_fetch_job_state_failed"),
+		queryJobListCalled:         metrics2.GetCounter("pinpoint_query_job_list_called"),
+		queryJobListFailed:         metrics2.GetCounter("pinpoint_query_job_list_failed"),
+		createPinpointTryJobCalled: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_called"),
+		createPinpointTryJobFailed: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_failed"),
 	}
 
 	return pc
@@ -190,7 +192,7 @@ func TestDoPostRequest(t *testing.T) {
 			_, _ = w.Write(expectedResponseBody)
 		})
 
-		resp, err := pc.doPostRequest(context.Background(), pinpointLegacyURL)
+		resp, err := pc.doPostRequest(context.Background(), pinpointLegacyNewJobURL)
 		require.NoError(t, err)
 		body, err := pc.readResponseBody(resp)
 		require.NoError(t, err)
@@ -203,7 +205,7 @@ func TestDoPostRequest(t *testing.T) {
 			_, _ = w.Write([]byte(`{"error": "Internal Server Error"}`))
 		})
 
-		resp, err := pc.doPostRequest(context.Background(), pinpointLegacyURL)
+		resp, err := pc.doPostRequest(context.Background(), pinpointLegacyNewJobURL)
 		require.NoError(t, err)
 		body, err := pc.readResponseBody(resp)
 		require.Error(t, err)
@@ -779,5 +781,428 @@ func TestQueryJobList(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Internal Server Error")
 		assert.Nil(t, resp)
+	})
+}
+
+func TestCombineExtraBrowserArgs(t *testing.T) {
+	testCases := []struct {
+		name             string
+		benchmark        string
+		expected         string
+		extraBrowserArgs []string
+	}{
+		{
+			name:             "empty args non-crossbench",
+			extraBrowserArgs: []string{},
+			benchmark:        "testBenchmark",
+			expected:         "",
+		},
+		{
+			name:             "empty args crossbench",
+			extraBrowserArgs: []string{},
+			benchmark:        "testBenchmark.crossbench",
+			expected:         "",
+		},
+		{
+			name:             "non-empty args non-crossbench",
+			extraBrowserArgs: []string{"--flag-a", "--flag-b"},
+			benchmark:        "testBenchmark",
+			expected:         `--extra-browser-args="--flag-a --flag-b"`,
+		},
+		{
+			name:             "non-empty args crossbench",
+			extraBrowserArgs: []string{"--flag-a", "--flag-b"},
+			benchmark:        "testBenchmark.crossbench",
+			expected:         `--flag-a --flag-b`,
+		},
+		{
+			name:             "args with empty strings non-crossbench",
+			extraBrowserArgs: []string{"", "--flag-a  ", ""},
+			benchmark:        "testBenchmark",
+			expected:         `--extra-browser-args="--flag-a"`,
+		},
+		{
+			name:             "args with empty strings crossbench",
+			extraBrowserArgs: []string{" ", "  --flag-a", ""},
+			benchmark:        "testBenchmark.crossbench",
+			expected:         `--flag-a`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := combineExtraBrowserArgs(tc.extraBrowserArgs, tc.benchmark)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestGetExtraArgsString(t *testing.T) {
+	testCases := []struct {
+		name      string
+		extraArgs *pb.ExtraArgs
+		benchmark string
+		expected  string
+	}{
+		{
+			name:      "nil extra args",
+			extraArgs: nil,
+			benchmark: "testBenchmark",
+			expected:  "",
+		},
+		{
+			name:      "empty extra args",
+			extraArgs: &pb.ExtraArgs{},
+			benchmark: "testBenchmark",
+			expected:  "",
+		},
+		{
+			name: "all browser args non-crossbench",
+			extraArgs: &pb.ExtraArgs{
+				ExtraBrowserArgs: "--browser-flag",
+				JsFlags:          "flag-b",
+				EnableFeatures:   "FeatureA",
+				DisableFeatures:  "FeatureB",
+			},
+			benchmark: "testBenchmark",
+			expected: `--extra-browser-args="--browser-flag --js-flags=flag-b ` +
+				`--enable-features=FeatureA --disable-features=FeatureB"`,
+		},
+		{
+			name: "all browser args crossbench",
+			extraArgs: &pb.ExtraArgs{
+				ExtraBrowserArgs: "--browser-flag",
+				JsFlags:          "flag-b",
+				EnableFeatures:   "FeatureA",
+				DisableFeatures:  "FeatureB",
+			},
+			benchmark: "testBenchmark.crossbench",
+			expected: "--browser-flag --js-flags=flag-b --enable-features=FeatureA " +
+				"--disable-features=FeatureB",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := getExtraArgsString(tc.extraArgs, tc.benchmark)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestBuildCreateTryJobRequestURL_ValidationErrors(t *testing.T) {
+	validReq := func() *pb.CreateTryJobRequest {
+		return &pb.CreateTryJobRequest{
+			Benchmark:     "testBenchmark",
+			Configuration: "testConfig",
+			Story:         "testStory",
+			AttemptCount:  30,
+			Base: &pb.VariantConfig{
+				Commit: "baseCommit",
+			},
+			Experiment: &pb.VariantConfig{
+				Commit: "expCommit",
+			},
+			User: "test-user@google.com",
+		}
+	}
+
+	testCases := []struct {
+		name        string
+		modify      func(*pb.CreateTryJobRequest)
+		expectedErr string
+	}{
+		{
+			name: "missing benchmark",
+			modify: func(r *pb.CreateTryJobRequest) {
+				r.Benchmark = ""
+			},
+			expectedErr: "Benchmark must be specified",
+		},
+		{
+			name: "missing configuration",
+			modify: func(r *pb.CreateTryJobRequest) {
+				r.Configuration = ""
+			},
+			expectedErr: "Configuration must be specified",
+		},
+
+		{
+			name: "attempt count zero",
+			modify: func(r *pb.CreateTryJobRequest) {
+				r.AttemptCount = 0
+			},
+			expectedErr: "Attempt count should be greater than zero",
+		},
+		{
+			name: "attempt count negative",
+			modify: func(r *pb.CreateTryJobRequest) {
+				r.AttemptCount = -5
+			},
+			expectedErr: "Attempt count should be greater than zero",
+		},
+		{
+			name: "missing base variant",
+			modify: func(r *pb.CreateTryJobRequest) {
+				r.Base = nil
+			},
+			expectedErr: "Base variant configuration is required",
+		},
+		{
+			name: "missing experiment variant",
+			modify: func(r *pb.CreateTryJobRequest) {
+				r.Experiment = nil
+			},
+			expectedErr: "Experiment variant configuration is required",
+		},
+		{
+			name: "empty user",
+			modify: func(r *pb.CreateTryJobRequest) {
+				r.User = ""
+			},
+			expectedErr: "User email must be specified",
+		},
+		{
+			name: "invalid bug id",
+			modify: func(r *pb.CreateTryJobRequest) {
+				bugId := int64(0)
+				r.BugId = &bugId
+			},
+			expectedErr: "Bug ID should be greater than zero",
+		},
+		{
+			name: "negative bug id",
+			modify: func(r *pb.CreateTryJobRequest) {
+				bugId := int64(-10)
+				r.BugId = &bugId
+			},
+			expectedErr: "Bug ID should be greater than zero",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := validReq()
+			tc.modify(r)
+			_, err := buildCreateTryJobRequestURL(r)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.expectedErr)
+		})
+	}
+}
+
+func TestBuildCreateTryJobRequestURL_Success(t *testing.T) {
+	t.Run("all custom parameters", func(t *testing.T) {
+		bugId := int64(9876)
+		req := &pb.CreateTryJobRequest{
+			Benchmark:     "testBenchmark",
+			Configuration: "testConfig",
+			Story:         "testStory",
+			StoryTags:     "tag1,tag2",
+			AttemptCount:  45,
+			Base: &pb.VariantConfig{
+				Commit: "baseCommit",
+				Patch:  "basePatch",
+				ExtraArgs: &pb.ExtraArgs{
+					BenchmarkRunnerArgs: "--runner-flag-a",
+					ExtraBrowserArgs:    "--browser-flag-a",
+					JsFlags:             "flag-a",
+					EnableFeatures:      "FeatureA",
+					DisableFeatures:     "FeatureB",
+				},
+			},
+			Experiment: &pb.VariantConfig{
+				Commit: "expCommit",
+				Patch:  "expPatch",
+				ExtraArgs: &pb.ExtraArgs{
+					BenchmarkRunnerArgs: "--runner-flag-b",
+					ExtraBrowserArgs:    "--browser-flag-b",
+					JsFlags:             "flag-b",
+					EnableFeatures:      "FeatureC",
+					DisableFeatures:     "FeatureD",
+				},
+			},
+			User:    "test-user@google.com",
+			JobName: "Custom Try Job",
+			BugId:   &bugId,
+		}
+
+		urlStr, err := buildCreateTryJobRequestURL(req)
+		require.NoError(t, err)
+
+		parsedURL, err := url.Parse(urlStr)
+		require.NoError(t, err)
+
+		expected := url.Values{
+			"comparison_mode":       []string{"try"},
+			"benchmark":             []string{"testBenchmark"},
+			"configuration":         []string{"testConfig"},
+			"story":                 []string{"testStory"},
+			"story_tags":            []string{"tag1,tag2"},
+			"initial_attempt_count": []string{"45"},
+			"base_git_hash":         []string{"baseCommit"},
+			"end_git_hash":          []string{"expCommit"},
+			"base_patch":            []string{"basePatch"},
+			"experiment_patch":      []string{"expPatch"},
+			"base_extra_args": []string{
+				`--runner-flag-a --extra-browser-args="--browser-flag-a --js-flags=` +
+					`flag-a --enable-features=FeatureA --disable-features=FeatureB"`,
+			},
+			"experiment_extra_args": []string{
+				`--runner-flag-b --extra-browser-args="--browser-flag-b --js-flags=` +
+					`flag-b --enable-features=FeatureC --disable-features=FeatureD"`,
+			},
+			"user":   []string{"test-user@google.com"},
+			"name":   []string{"Custom Try Job"},
+			"bug_id": []string{"9876"},
+			"tags":   []string{`{"origin":"New Pinpoint"}`},
+		}
+
+		assert.Equal(t, expected, parsedURL.Query())
+	})
+
+	t.Run("default job name", func(t *testing.T) {
+		req := &pb.CreateTryJobRequest{
+			Benchmark:     "testBenchmark",
+			Configuration: "testConfig",
+			Story:         "testStory",
+			AttemptCount:  30,
+			Base: &pb.VariantConfig{
+				Commit: "baseCommit",
+			},
+			Experiment: &pb.VariantConfig{
+				Commit: "expCommit",
+			},
+			User: "test-user@google.com",
+		}
+
+		urlStr, err := buildCreateTryJobRequestURL(req)
+		require.NoError(t, err)
+
+		parsedURL, err := url.Parse(urlStr)
+		require.NoError(t, err)
+		assert.Equal(t, "Try job on testConfig/testBenchmark", parsedURL.Query().Get("name"))
+	})
+
+	t.Run("empty story", func(t *testing.T) {
+		req := &pb.CreateTryJobRequest{
+			Benchmark:     "testBenchmark",
+			Configuration: "testConfig",
+			AttemptCount:  30,
+			Base: &pb.VariantConfig{
+				Commit: "baseCommit",
+			},
+			Experiment: &pb.VariantConfig{
+				Commit: "expCommit",
+			},
+			User: "test-user@google.com",
+		}
+
+		urlStr, err := buildCreateTryJobRequestURL(req)
+		require.NoError(t, err)
+
+		parsedURL, err := url.Parse(urlStr)
+		require.NoError(t, err)
+		assert.False(t, parsedURL.Query().Has("story"))
+	})
+}
+
+func TestCreatePinpointTryJob(t *testing.T) {
+	validReq := func() *pb.CreateTryJobRequest {
+		return &pb.CreateTryJobRequest{
+			Benchmark:     "testBenchmark",
+			Configuration: "testConfig",
+			Story:         "testStory",
+			AttemptCount:  30,
+			Base: &pb.VariantConfig{
+				Commit: "baseCommit",
+			},
+			Experiment: &pb.VariantConfig{
+				Commit: "expCommit",
+			},
+			User: "somebody@google.com",
+		}
+	}
+
+	t.Run("successful request creation", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodPost, r.Method)
+			assert.Equal(t, "/api/new", r.URL.Path)
+
+			// verify some key parameters in post request URL
+			assert.Equal(t, "testBenchmark", r.URL.Query().Get("benchmark"))
+			assert.Equal(t, "testConfig", r.URL.Query().Get("configuration"))
+			assert.Equal(t, "testStory", r.URL.Query().Get("story"))
+			assert.Equal(t, "30", r.URL.Query().Get("initial_attempt_count"))
+			assert.Equal(t, "somebody@google.com", r.URL.Query().Get("user"))
+
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"jobId": "try-job-123", "jobUrl": "https://example.com/123"}`))
+		})
+
+		pc.createPinpointTryJobCalled.Reset()
+		pc.createPinpointTryJobFailed.Reset()
+
+		resp, err := pc.CreatePinpointTryJob(context.Background(), validReq())
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Equal(t, "try-job-123", resp.JobId)
+		assert.Equal(t, int64(1), pc.createPinpointTryJobCalled.Get())
+		assert.Equal(t, int64(0), pc.createPinpointTryJobFailed.Get())
+	})
+
+	t.Run("validation failure returns error before sending HTTP request", func(t *testing.T) {
+		// Mock HTTP server that should never be called
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			t.Fail()
+		})
+
+		pc.createPinpointTryJobCalled.Reset()
+		pc.createPinpointTryJobFailed.Reset()
+
+		invalidReq := validReq()
+		invalidReq.Benchmark = "" // trigger validation error
+
+		resp, err := pc.CreatePinpointTryJob(context.Background(), invalidReq)
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "Failed to generate Pinpoint request URL.")
+		assert.Contains(t, err.Error(), "Benchmark must be specified")
+		assert.Equal(t, int64(1), pc.createPinpointTryJobCalled.Get())
+		assert.Equal(t, int64(1), pc.createPinpointTryJobFailed.Get())
+	})
+
+	t.Run("http status error returns error", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error": "something went wrong on server"}`))
+		})
+
+		pc.createPinpointTryJobCalled.Reset()
+		pc.createPinpointTryJobFailed.Reset()
+
+		resp, err := pc.CreatePinpointTryJob(context.Background(), validReq())
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "[Error 500] something went wrong on server")
+		assert.Equal(t, int64(1), pc.createPinpointTryJobCalled.Get())
+		assert.Equal(t, int64(1), pc.createPinpointTryJobFailed.Get())
+	})
+
+	t.Run("invalid json response from server returns error", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`invalid-json`))
+		})
+
+		pc.createPinpointTryJobCalled.Reset()
+		pc.createPinpointTryJobFailed.Reset()
+
+		resp, err := pc.CreatePinpointTryJob(context.Background(), validReq())
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "Failed to parse pinpoint response body.")
+		assert.Equal(t, int64(1), pc.createPinpointTryJobCalled.Get())
+		assert.Equal(t, int64(1), pc.createPinpointTryJobFailed.Get())
 	})
 }

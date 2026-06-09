@@ -2,6 +2,7 @@ package pinpoint
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -64,4 +65,101 @@ func TestNewGatewayJSONHandler_GetUserInfo(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Contains(t, rr.Body.String(), `"email":"user@google.com"`)
+}
+
+type mockPinpointClient struct {
+	queryJobListFunc         func(ctx context.Context, req *pb.QueryJobListRequest) (*pb.QueryJobListResponse, error)
+	createPinpointTryJobFunc func(ctx context.Context, req *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error)
+}
+
+func (m *mockPinpointClient) QueryJobList(
+	ctx context.Context,
+	req *pb.QueryJobListRequest,
+) (*pb.QueryJobListResponse, error) {
+	if m.queryJobListFunc != nil {
+		return m.queryJobListFunc(ctx, req)
+	}
+	return nil, nil
+}
+
+func (m *mockPinpointClient) CreatePinpointTryJob(
+	ctx context.Context,
+	req *pb.CreateTryJobRequest,
+) (*pb.CreateJobResponse, error) {
+	if m.createPinpointTryJobFunc != nil {
+		return m.createPinpointTryJobFunc(ctx, req)
+	}
+	return nil, nil
+}
+
+func TestCreateTryJob(t *testing.T) {
+	validReq := func() *pb.CreateTryJobRequest {
+		return &pb.CreateTryJobRequest{
+			Benchmark:     "testBenchmark",
+			Configuration: "testConfig",
+			Story:         "testStory",
+			AttemptCount:  30,
+			Base: &pb.VariantConfig{
+				Commit: "baseCommit",
+			},
+			Experiment: &pb.VariantConfig{
+				Commit: "expCommit",
+			},
+		}
+	}
+
+	t.Run("with user email specified in request", func(t *testing.T) {
+		req := validReq()
+		req.User = "somebody@google.com"
+
+		client := &mockPinpointClient{
+			createPinpointTryJobFunc: func(ctx context.Context, r *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error) {
+				assert.Equal(t, "somebody@google.com", r.User)
+				return &pb.CreateJobResponse{JobId: "try-job-123"}, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.CreateTryJob(context.Background(), req)
+		require.NoError(t, err)
+		assert.Equal(t, "try-job-123", resp.JobId)
+	})
+
+	t.Run("without user email, gets user email from context", func(t *testing.T) {
+		req := validReq()
+
+		client := &mockPinpointClient{
+			createPinpointTryJobFunc: func(ctx context.Context, r *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error) {
+				assert.Equal(t, "user-http@google.com", r.User)
+				return &pb.CreateJobResponse{JobId: "try-job-456"}, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		// Inject HTTP header in context
+		ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs(
+			"grpcmetadata-x-webauth-user", "user-http@google.com",
+		))
+
+		resp, err := srv.CreateTryJob(ctx, req)
+		require.NoError(t, err)
+		assert.Equal(t, "try-job-456", resp.JobId)
+	})
+
+	t.Run("client returns error", func(t *testing.T) {
+		client := &mockPinpointClient{
+			createPinpointTryJobFunc: func(ctx context.Context, r *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error) {
+				return nil, errors.New("legacy endpoint failed")
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		req := validReq()
+		req.User = "somebody@google.com"
+
+		resp, err := srv.CreateTryJob(context.Background(), req)
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Equal(t, "legacy endpoint failed", err.Error())
+	})
 }

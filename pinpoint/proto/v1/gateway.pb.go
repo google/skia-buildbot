@@ -553,6 +553,331 @@ func (x *GetUserInfoResponse) GetEmail() string {
 	return ""
 }
 
+// Extra arguments to pass to the benchmark or Chrome browser on run execution.
+type ExtraArgs struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Extra command line arguments to pass directly to the benchmark runner execution.
+	BenchmarkRunnerArgs string `protobuf:"bytes,1,opt,name=benchmark_runner_args,json=benchmarkRunnerArgs,proto3" json:"benchmark_runner_args,omitempty"`
+	// Additional command line flags to pass to the Chrome browser on launch.
+	// These flags will be wrapped inside --extra-browser-args.
+	ExtraBrowserArgs string `protobuf:"bytes,2,opt,name=extra_browser_args,json=extraBrowserArgs,proto3" json:"extra_browser_args,omitempty"`
+	// V8 JavaScript engine flags to pass to Chrome.
+	// These flags will be wrapped inside --js-flags.
+	JsFlags string `protobuf:"bytes,3,opt,name=js_flags,json=jsFlags,proto3" json:"js_flags,omitempty"`
+	// Chrome features to enable on launch.
+	// These features will be wrapped inside --enable-features.
+	EnableFeatures string `protobuf:"bytes,4,opt,name=enable_features,json=enableFeatures,proto3" json:"enable_features,omitempty"`
+	// Chrome features to disable on launch.
+	// These features will be wrapped inside --disable-features.
+	DisableFeatures string `protobuf:"bytes,5,opt,name=disable_features,json=disableFeatures,proto3" json:"disable_features,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ExtraArgs) Reset() {
+	*x = ExtraArgs{}
+	mi := &file_gateway_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExtraArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExtraArgs) ProtoMessage() {}
+
+func (x *ExtraArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExtraArgs.ProtoReflect.Descriptor instead.
+func (*ExtraArgs) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ExtraArgs) GetBenchmarkRunnerArgs() string {
+	if x != nil {
+		return x.BenchmarkRunnerArgs
+	}
+	return ""
+}
+
+func (x *ExtraArgs) GetExtraBrowserArgs() string {
+	if x != nil {
+		return x.ExtraBrowserArgs
+	}
+	return ""
+}
+
+func (x *ExtraArgs) GetJsFlags() string {
+	if x != nil {
+		return x.JsFlags
+	}
+	return ""
+}
+
+func (x *ExtraArgs) GetEnableFeatures() string {
+	if x != nil {
+		return x.EnableFeatures
+	}
+	return ""
+}
+
+func (x *ExtraArgs) GetDisableFeatures() string {
+	if x != nil {
+		return x.DisableFeatures
+	}
+	return ""
+}
+
+// Configuration for a job variant (e.g. base or experiment arm).
+type VariantConfig struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Git commit hash, revision number, or  "HEAD".
+	Commit string `protobuf:"bytes,1,opt,name=commit,proto3" json:"commit,omitempty"`
+	// Gerrit patch to apply to the commit.
+	Patch string `protobuf:"bytes,2,opt,name=patch,proto3" json:"patch,omitempty"`
+	// Extra browser or runner arguments specific to this variant.
+	ExtraArgs     *ExtraArgs `protobuf:"bytes,3,opt,name=extra_args,json=extraArgs,proto3" json:"extra_args,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VariantConfig) Reset() {
+	*x = VariantConfig{}
+	mi := &file_gateway_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VariantConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VariantConfig) ProtoMessage() {}
+
+func (x *VariantConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VariantConfig.ProtoReflect.Descriptor instead.
+func (*VariantConfig) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *VariantConfig) GetCommit() string {
+	if x != nil {
+		return x.Commit
+	}
+	return ""
+}
+
+func (x *VariantConfig) GetPatch() string {
+	if x != nil {
+		return x.Patch
+	}
+	return ""
+}
+
+func (x *VariantConfig) GetExtraArgs() *ExtraArgs {
+	if x != nil {
+		return x.ExtraArgs
+	}
+	return nil
+}
+
+// Request message to create a new Pinpoint try job.
+// A try job compares the performance between a base and an experiment variants.
+type CreateTryJobRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Chrome performance benchmark name.
+	Benchmark string `protobuf:"bytes,1,opt,name=benchmark,proto3" json:"benchmark,omitempty"`
+	// Bot/builder configuration to run on (e.g., 'linux-perf').
+	Configuration string `protobuf:"bytes,2,opt,name=configuration,proto3" json:"configuration,omitempty"`
+	// Story or benchmark sub-test to run.
+	Story string `protobuf:"bytes,3,opt,name=story,proto3" json:"story,omitempty"`
+	// Optional story tags to filter stories.
+	StoryTags string `protobuf:"bytes,4,opt,name=story_tags,json=storyTags,proto3" json:"story_tags,omitempty"`
+	// Configuration for the base variant.
+	Base *VariantConfig `protobuf:"bytes,5,opt,name=base,proto3" json:"base,omitempty"`
+	// Configuration for the experiment variant.
+	Experiment *VariantConfig `protobuf:"bytes,6,opt,name=experiment,proto3" json:"experiment,omitempty"`
+	// The number of times to repeat the runs. Default is 30.
+	AttemptCount int32 `protobuf:"varint,7,opt,name=attempt_count,json=attemptCount,proto3" json:"attempt_count,omitempty"`
+	// Optional bug ID associated with the job.
+	BugId *int64 `protobuf:"varint,8,opt,name=bug_id,json=bugId,proto3,oneof" json:"bug_id,omitempty"`
+	// Optional email of the user who triggered the job. If empty or not set, the
+	// current user's email is used.
+	User string `protobuf:"bytes,9,opt,name=user,proto3" json:"user,omitempty"`
+	// Optional name for the new try job.
+	JobName       string `protobuf:"bytes,10,opt,name=job_name,json=jobName,proto3" json:"job_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateTryJobRequest) Reset() {
+	*x = CreateTryJobRequest{}
+	mi := &file_gateway_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateTryJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateTryJobRequest) ProtoMessage() {}
+
+func (x *CreateTryJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateTryJobRequest.ProtoReflect.Descriptor instead.
+func (*CreateTryJobRequest) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CreateTryJobRequest) GetBenchmark() string {
+	if x != nil {
+		return x.Benchmark
+	}
+	return ""
+}
+
+func (x *CreateTryJobRequest) GetConfiguration() string {
+	if x != nil {
+		return x.Configuration
+	}
+	return ""
+}
+
+func (x *CreateTryJobRequest) GetStory() string {
+	if x != nil {
+		return x.Story
+	}
+	return ""
+}
+
+func (x *CreateTryJobRequest) GetStoryTags() string {
+	if x != nil {
+		return x.StoryTags
+	}
+	return ""
+}
+
+func (x *CreateTryJobRequest) GetBase() *VariantConfig {
+	if x != nil {
+		return x.Base
+	}
+	return nil
+}
+
+func (x *CreateTryJobRequest) GetExperiment() *VariantConfig {
+	if x != nil {
+		return x.Experiment
+	}
+	return nil
+}
+
+func (x *CreateTryJobRequest) GetAttemptCount() int32 {
+	if x != nil {
+		return x.AttemptCount
+	}
+	return 0
+}
+
+func (x *CreateTryJobRequest) GetBugId() int64 {
+	if x != nil && x.BugId != nil {
+		return *x.BugId
+	}
+	return 0
+}
+
+func (x *CreateTryJobRequest) GetUser() string {
+	if x != nil {
+		return x.User
+	}
+	return ""
+}
+
+func (x *CreateTryJobRequest) GetJobName() string {
+	if x != nil {
+		return x.JobName
+	}
+	return ""
+}
+
+// Response message containing the created job details or error.
+type CreateJobResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The unique identifier of the created Pinpoint job.
+	JobId         string `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateJobResponse) Reset() {
+	*x = CreateJobResponse{}
+	mi := &file_gateway_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateJobResponse) ProtoMessage() {}
+
+func (x *CreateJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateJobResponse.ProtoReflect.Descriptor instead.
+func (*CreateJobResponse) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateJobResponse) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
 var File_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_proto_rawDesc = "" +
@@ -599,7 +924,36 @@ const file_gateway_proto_rawDesc = "" +
 	"\a_bug_id\"\x14\n" +
 	"\x12GetUserInfoRequest\"+\n" +
 	"\x13GetUserInfoResponse\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email*J\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\"\xdc\x01\n" +
+	"\tExtraArgs\x122\n" +
+	"\x15benchmark_runner_args\x18\x01 \x01(\tR\x13benchmarkRunnerArgs\x12,\n" +
+	"\x12extra_browser_args\x18\x02 \x01(\tR\x10extraBrowserArgs\x12\x19\n" +
+	"\bjs_flags\x18\x03 \x01(\tR\ajsFlags\x12'\n" +
+	"\x0fenable_features\x18\x04 \x01(\tR\x0eenableFeatures\x12)\n" +
+	"\x10disable_features\x18\x05 \x01(\tR\x0fdisableFeatures\"}\n" +
+	"\rVariantConfig\x12\x1f\n" +
+	"\x06commit\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x06commit\x12\x14\n" +
+	"\x05patch\x18\x02 \x01(\tR\x05patch\x125\n" +
+	"\n" +
+	"extra_args\x18\x03 \x01(\v2\x16.pinpoint.v1.ExtraArgsR\textraArgs\"\xa4\x03\n" +
+	"\x13CreateTryJobRequest\x12%\n" +
+	"\tbenchmark\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\tbenchmark\x12-\n" +
+	"\rconfiguration\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\rconfiguration\x12\x14\n" +
+	"\x05story\x18\x03 \x01(\tR\x05story\x12\x1d\n" +
+	"\n" +
+	"story_tags\x18\x04 \x01(\tR\tstoryTags\x128\n" +
+	"\x04base\x18\x05 \x01(\v2\x1a.pinpoint.v1.VariantConfigB\b\xfaB\x05\x8a\x01\x02\x10\x01R\x04base\x12D\n" +
+	"\n" +
+	"experiment\x18\x06 \x01(\v2\x1a.pinpoint.v1.VariantConfigB\b\xfaB\x05\x8a\x01\x02\x10\x01R\n" +
+	"experiment\x12,\n" +
+	"\rattempt_count\x18\a \x01(\x05B\a\xfaB\x04\x1a\x02 \x00R\fattemptCount\x12\x1a\n" +
+	"\x06bug_id\x18\b \x01(\x03H\x00R\x05bugId\x88\x01\x01\x12\x12\n" +
+	"\x04user\x18\t \x01(\tR\x04user\x12\x19\n" +
+	"\bjob_name\x18\n" +
+	" \x01(\tR\ajobNameB\t\n" +
+	"\a_bug_id\"*\n" +
+	"\x11CreateJobResponse\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\tR\x05jobId*J\n" +
 	"\aJobType\x12\x18\n" +
 	"\x14JOB_TYPE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fJOB_TYPE_TRY\x10\x01\x12\x13\n" +
@@ -610,10 +964,11 @@ const file_gateway_proto_rawDesc = "" +
 	"\x12JOB_STATUS_RUNNING\x10\x02\x12\x18\n" +
 	"\x14JOB_STATUS_COMPLETED\x10\x03\x12\x15\n" +
 	"\x11JOB_STATUS_FAILED\x10\x04\x12\x18\n" +
-	"\x14JOB_STATUS_CANCELLED\x10\x052\xee\x01\n" +
+	"\x14JOB_STATUS_CANCELLED\x10\x052\xdd\x02\n" +
 	"\x0fPinpointGateway\x12n\n" +
 	"\fQueryJobList\x12 .pinpoint.v1.QueryJobListRequest\x1a!.pinpoint.v1.QueryJobListResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/jobs\x12k\n" +
-	"\vGetUserInfo\x12\x1f.pinpoint.v1.GetUserInfoRequest\x1a .pinpoint.v1.GetUserInfoResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/userB0Z.go.skia.org/infra/pinpoint/proto/v1;pinpointpbb\x06proto3"
+	"\vGetUserInfo\x12\x1f.pinpoint.v1.GetUserInfoRequest\x1a .pinpoint.v1.GetUserInfoResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/user\x12m\n" +
+	"\fCreateTryJob\x12 .pinpoint.v1.CreateTryJobRequest\x1a\x1e.pinpoint.v1.CreateJobResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/pinpoint/v1/newB0Z.go.skia.org/infra/pinpoint/proto/v1;pinpointpbb\x06proto3"
 
 var (
 	file_gateway_proto_rawDescOnce sync.Once
@@ -628,7 +983,7 @@ func file_gateway_proto_rawDescGZIP() []byte {
 }
 
 var file_gateway_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_gateway_proto_goTypes = []any{
 	(JobType)(0),                  // 0: pinpoint.v1.JobType
 	(JobStatus)(0),                // 1: pinpoint.v1.JobStatus
@@ -638,25 +993,34 @@ var file_gateway_proto_goTypes = []any{
 	(*JobSummary)(nil),            // 5: pinpoint.v1.JobSummary
 	(*GetUserInfoRequest)(nil),    // 6: pinpoint.v1.GetUserInfoRequest
 	(*GetUserInfoResponse)(nil),   // 7: pinpoint.v1.GetUserInfoResponse
-	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
+	(*ExtraArgs)(nil),             // 8: pinpoint.v1.ExtraArgs
+	(*VariantConfig)(nil),         // 9: pinpoint.v1.VariantConfig
+	(*CreateTryJobRequest)(nil),   // 10: pinpoint.v1.CreateTryJobRequest
+	(*CreateJobResponse)(nil),     // 11: pinpoint.v1.CreateJobResponse
+	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
 }
 var file_gateway_proto_depIdxs = []int32{
-	0, // 0: pinpoint.v1.QueryJobListRequest.job_type:type_name -> pinpoint.v1.JobType
-	2, // 1: pinpoint.v1.QueryJobListRequest.pagination:type_name -> pinpoint.v1.Pagination
-	5, // 2: pinpoint.v1.QueryJobListResponse.jobs:type_name -> pinpoint.v1.JobSummary
-	2, // 3: pinpoint.v1.QueryJobListResponse.pagination:type_name -> pinpoint.v1.Pagination
-	0, // 4: pinpoint.v1.JobSummary.job_type:type_name -> pinpoint.v1.JobType
-	8, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
-	1, // 6: pinpoint.v1.JobSummary.job_status:type_name -> pinpoint.v1.JobStatus
-	3, // 7: pinpoint.v1.PinpointGateway.QueryJobList:input_type -> pinpoint.v1.QueryJobListRequest
-	6, // 8: pinpoint.v1.PinpointGateway.GetUserInfo:input_type -> pinpoint.v1.GetUserInfoRequest
-	4, // 9: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
-	7, // 10: pinpoint.v1.PinpointGateway.GetUserInfo:output_type -> pinpoint.v1.GetUserInfoResponse
-	9, // [9:11] is the sub-list for method output_type
-	7, // [7:9] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	0,  // 0: pinpoint.v1.QueryJobListRequest.job_type:type_name -> pinpoint.v1.JobType
+	2,  // 1: pinpoint.v1.QueryJobListRequest.pagination:type_name -> pinpoint.v1.Pagination
+	5,  // 2: pinpoint.v1.QueryJobListResponse.jobs:type_name -> pinpoint.v1.JobSummary
+	2,  // 3: pinpoint.v1.QueryJobListResponse.pagination:type_name -> pinpoint.v1.Pagination
+	0,  // 4: pinpoint.v1.JobSummary.job_type:type_name -> pinpoint.v1.JobType
+	12, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
+	1,  // 6: pinpoint.v1.JobSummary.job_status:type_name -> pinpoint.v1.JobStatus
+	8,  // 7: pinpoint.v1.VariantConfig.extra_args:type_name -> pinpoint.v1.ExtraArgs
+	9,  // 8: pinpoint.v1.CreateTryJobRequest.base:type_name -> pinpoint.v1.VariantConfig
+	9,  // 9: pinpoint.v1.CreateTryJobRequest.experiment:type_name -> pinpoint.v1.VariantConfig
+	3,  // 10: pinpoint.v1.PinpointGateway.QueryJobList:input_type -> pinpoint.v1.QueryJobListRequest
+	6,  // 11: pinpoint.v1.PinpointGateway.GetUserInfo:input_type -> pinpoint.v1.GetUserInfoRequest
+	10, // 12: pinpoint.v1.PinpointGateway.CreateTryJob:input_type -> pinpoint.v1.CreateTryJobRequest
+	4,  // 13: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
+	7,  // 14: pinpoint.v1.PinpointGateway.GetUserInfo:output_type -> pinpoint.v1.GetUserInfoResponse
+	11, // 15: pinpoint.v1.PinpointGateway.CreateTryJob:output_type -> pinpoint.v1.CreateJobResponse
+	13, // [13:16] is the sub-list for method output_type
+	10, // [10:13] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_gateway_proto_init() }
@@ -666,13 +1030,14 @@ func file_gateway_proto_init() {
 	}
 	file_gateway_proto_msgTypes[0].OneofWrappers = []any{}
 	file_gateway_proto_msgTypes[3].OneofWrappers = []any{}
+	file_gateway_proto_msgTypes[8].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_proto_rawDesc), len(file_gateway_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   6,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

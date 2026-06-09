@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,7 +25,7 @@ import (
 
 const (
 	pinpointLegacyBaseURL     = "https://pinpoint-dot-chromeperf.appspot.com"
-	pinpointLegacyURL         = pinpointLegacyBaseURL + "/api/new"
+	pinpointLegacyNewJobURL   = pinpointLegacyBaseURL + "/api/new"
 	pinpointLegacyJobsURL     = pinpointLegacyBaseURL + "/api/jobs"
 	pinpointLegacyJobStateURL = pinpointLegacyBaseURL + "/api/job"
 	contentType               = "application/json"
@@ -36,15 +35,17 @@ const (
 )
 
 type LegacyClient struct {
-	httpClient          *http.Client
-	createBisectCalled  metrics2.Counter
-	createBisectFailed  metrics2.Counter
-	createTryJobCalled  metrics2.Counter
-	createTryJobFailed  metrics2.Counter
-	fetchJobStateCalled metrics2.Counter
-	fetchJobStateFailed metrics2.Counter
-	queryJobListCalled  metrics2.Counter
-	queryJobListFailed  metrics2.Counter
+	httpClient                 *http.Client
+	createBisectCalled         metrics2.Counter
+	createBisectFailed         metrics2.Counter
+	createTryJobCalled         metrics2.Counter
+	createTryJobFailed         metrics2.Counter
+	fetchJobStateCalled        metrics2.Counter
+	fetchJobStateFailed        metrics2.Counter
+	queryJobListCalled         metrics2.Counter
+	queryJobListFailed         metrics2.Counter
+	createPinpointTryJobCalled metrics2.Counter
+	createPinpointTryJobFailed metrics2.Counter
 }
 
 // New returns a new LegacyClient instance.
@@ -56,19 +57,24 @@ func NewLegacyClient(ctx context.Context) (*LegacyClient, error) {
 
 	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 	return &LegacyClient{
-		httpClient:          client,
-		createBisectCalled:  metrics2.GetCounter("pinpoint_create_bisect_called"),
-		createBisectFailed:  metrics2.GetCounter("pinpoint_create_bisect_failed"),
-		createTryJobCalled:  metrics2.GetCounter("pinpoint_create_try_job_called"),
-		createTryJobFailed:  metrics2.GetCounter("pinpoint_create_try_job_failed"),
-		fetchJobStateCalled: metrics2.GetCounter("pinpoint_fetch_job_state_called"),
-		fetchJobStateFailed: metrics2.GetCounter("pinpoint_fetch_job_state_failed"),
-		queryJobListCalled:  metrics2.GetCounter("pinpoint_query_job_list_called"),
-		queryJobListFailed:  metrics2.GetCounter("pinpoint_query_job_list_failed"),
+		httpClient:         client,
+		createBisectCalled: metrics2.GetCounter("pinpoint_create_bisect_called"),
+		createBisectFailed: metrics2.GetCounter("pinpoint_create_bisect_failed"),
+		// Two metrics below refence to calling Pinpoint via Chromeperf.
+		createTryJobCalled: metrics2.GetCounter("pinpoint_create_try_job_called"),
+		createTryJobFailed: metrics2.GetCounter("pinpoint_create_try_job_failed"),
+
+		// Metrics for calling the legacy Pinpoint API from the gateway.
+		fetchJobStateCalled:        metrics2.GetCounter("pinpoint_fetch_job_state_called"),
+		fetchJobStateFailed:        metrics2.GetCounter("pinpoint_fetch_job_state_failed"),
+		queryJobListCalled:         metrics2.GetCounter("pinpoint_query_job_list_called"),
+		queryJobListFailed:         metrics2.GetCounter("pinpoint_query_job_list_failed"),
+		createPinpointTryJobCalled: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_called"),
+		createPinpointTryJobFailed: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_failed"),
 	}, nil
 }
 
-// CreateTryJob calls the legacy pinpoint API to create a try job.
+// CreateTryJob calls the Chromeperf API to create a try job.
 func (pc *LegacyClient) CreateTryJob(
 	ctx context.Context,
 	req *TryJobCreateRequest,
@@ -97,7 +103,7 @@ func (pc *LegacyClient) CreateTryJob(
 	return resp, nil
 }
 
-// CreateBisect calls pinpoint API to create bisect job.
+// CreateBisect calls Chromeperf API to create bisect job.
 func (pc *LegacyClient) CreateBisect(
 	ctx context.Context,
 	req *BisectJobCreateRequest,
@@ -371,7 +377,7 @@ func buildTryJobRequestURL(req *TryJobCreateRequest) (string, error) {
 	setIfNotEmpty(params, "user", req.User)
 	params.Set("tags", "{\"origin\":\"skia_perf\"}")
 
-	return fmt.Sprintf("%s?%s", pinpointLegacyURL, params.Encode()), nil
+	return fmt.Sprintf("%s?%s", pinpointLegacyNewJobURL, params.Encode()), nil
 }
 
 func buildBisectJobRequestURL(req *BisectJobCreateRequest, isNewAnomaly bool) string {
@@ -456,14 +462,147 @@ func (pc *LegacyClient) readResponseBody(
 		if resp.Request != nil && resp.Request.URL != nil {
 			url = resp.Request.URL.String()
 		}
-		errMsg := fmt.Sprintf(
+		sklog.Errorf(
 			"Request to %s failed with status code %d and error: %s",
 			url,
 			resp.StatusCode,
 			requestErrorMessage,
 		)
-		return nil, skerr.Wrap(errors.New(errMsg))
+		return nil, skerr.Fmt("[Error %d] %s", resp.StatusCode, requestErrorMessage)
 	}
 
 	return body, nil
+}
+
+// CreatePinpointTryJob calls the legacy pinpoint API to create a try job.
+func (pc *LegacyClient) CreatePinpointTryJob(
+	ctx context.Context,
+	req *pb.CreateTryJobRequest,
+) (resp *pb.CreateJobResponse, err error) {
+	pc.createPinpointTryJobCalled.Inc(1)
+	defer func() { trackError(pc.createPinpointTryJobFailed, err) }()
+
+	requestURL, err := buildCreateTryJobRequestURL(req)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to generate Pinpoint request URL.")
+	}
+
+	httpResp, err := pc.doPostRequest(ctx, requestURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	body, err := pc.readResponseBody(httpResp)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	var legacyResp CreatePinpointResponse
+	if err = json.Unmarshal(body, &legacyResp); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse pinpoint response body.")
+	}
+	return &pb.CreateJobResponse{
+		JobId: legacyResp.JobID,
+	}, nil
+}
+
+func buildCreateTryJobRequestURL(req *pb.CreateTryJobRequest) (string, error) {
+	if req.Benchmark == "" {
+		return "", skerr.Fmt("Benchmark must be specified but is empty.")
+	}
+	if req.Configuration == "" {
+		return "", skerr.Fmt("Configuration must be specified but is empty.")
+	}
+	if req.AttemptCount <= 0 {
+		return "", skerr.Fmt("Attempt count should be greater than zero.")
+	}
+	if req.Base == nil {
+		return "", skerr.Fmt("Base variant configuration is required.")
+	}
+	if req.Experiment == nil {
+		return "", skerr.Fmt("Experiment variant configuration is required.")
+	}
+	if req.User == "" {
+		return "", skerr.Fmt("User email must be specified but is empty.")
+	}
+
+	params := url.Values{}
+	params.Set("comparison_mode", tryJobComparisonMode)
+	params.Set("benchmark", req.Benchmark)
+	params.Set("configuration", req.Configuration)
+	setIfNotEmpty(params, "story", req.Story)
+	setIfNotEmpty(params, "story_tags", req.StoryTags)
+	params.Set("initial_attempt_count", strconv.Itoa(int(req.AttemptCount)))
+
+	if req.BugId != nil {
+		if *req.BugId <= 0 {
+			return "", skerr.Fmt("Bug ID should be greater than zero.")
+		}
+		params.Set("bug_id", strconv.FormatInt(*req.BugId, 10))
+	}
+
+	params.Set("base_git_hash", req.Base.Commit)
+	params.Set("end_git_hash", req.Experiment.Commit)
+
+	setIfNotEmpty(params, "base_patch", req.Base.Patch)
+	setIfNotEmpty(params, "experiment_patch", req.Experiment.Patch)
+
+	if baseExtra := getExtraArgsString(req.Base.ExtraArgs, req.Benchmark); baseExtra != "" {
+		params.Set("base_extra_args", baseExtra)
+	}
+	if expExtra := getExtraArgsString(req.Experiment.ExtraArgs, req.Benchmark); expExtra != "" {
+		params.Set("experiment_extra_args", expExtra)
+	}
+
+	params.Set("user", req.User)
+
+	if req.JobName != "" {
+		params.Set("name", req.JobName)
+	} else {
+		params.Set("name", fmt.Sprintf("Try job on %s/%s", req.Configuration, req.Benchmark))
+	}
+
+	params.Set("tags", "{\"origin\":\"New Pinpoint\"}")
+
+	return fmt.Sprintf("%s?%s", pinpointLegacyNewJobURL, params.Encode()), nil
+}
+
+func getExtraArgsString(extraArgs *pb.ExtraArgs, benchmark string) string {
+	if extraArgs == nil {
+		return ""
+	}
+
+	extraBrowserArgs := []string{extraArgs.ExtraBrowserArgs}
+	if extraArgs.JsFlags != "" {
+		extraBrowserArgs = append(
+			extraBrowserArgs,
+			fmt.Sprintf("--js-flags=%s", extraArgs.JsFlags),
+		)
+	}
+	if extraArgs.EnableFeatures != "" {
+		extraBrowserArgs = append(
+			extraBrowserArgs,
+			fmt.Sprintf("--enable-features=%s", extraArgs.EnableFeatures),
+		)
+	}
+	if extraArgs.DisableFeatures != "" {
+		extraBrowserArgs = append(
+			extraBrowserArgs,
+			fmt.Sprintf("--disable-features=%s", extraArgs.DisableFeatures),
+		)
+	}
+
+	return strings.TrimSpace(fmt.Sprintf(
+		"%s %s",
+		extraArgs.BenchmarkRunnerArgs,
+		combineExtraBrowserArgs(extraBrowserArgs, benchmark),
+	))
+}
+
+func combineExtraBrowserArgs(extraBrowserArgs []string, benchmark string) string {
+	args := strings.TrimSpace(strings.Join(extraBrowserArgs, " "))
+	if !strings.HasSuffix(benchmark, ".crossbench") && args != "" {
+		return fmt.Sprintf("--extra-browser-args=%q", args)
+	}
+	return args
 }
