@@ -64,6 +64,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
+    await element.updateComplete;
     const img = element.querySelector('.logo') as HTMLImageElement;
     assert.include(img.src, 'alpine_transparent.png');
   });
@@ -73,6 +74,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
+    await element.updateComplete;
     const img = element.querySelector('.logo') as HTMLImageElement;
     assert.equal(img.src, 'http://example.com/logo.png');
   });
@@ -82,6 +84,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
+    await element.updateComplete;
     const img = element.querySelector('.logo') as HTMLImageElement;
 
     // Simulate error
@@ -95,6 +98,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
+    await element.updateComplete;
     const img = element.querySelector('.logo') as HTMLImageElement;
     assert.include(img.src, 'alpine_transparent.png');
   });
@@ -104,6 +108,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
+    await element.updateComplete;
     const img = element.querySelector('.logo') as HTMLImageElement;
 
     // Simulate error
@@ -117,6 +122,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
+    await element.updateComplete;
     const title = element.querySelector('.name');
     assert.equal(title?.textContent, 'Test Instance');
   });
@@ -127,6 +133,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
+    await element.updateComplete;
     const title = element.querySelector('.name');
     assert.equal(title?.textContent, 'Foo');
   });
@@ -137,6 +144,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
+    await element.updateComplete;
     const title = element.querySelector('.name');
     assert.equal(title?.textContent, 'A'.repeat(64));
   });
@@ -146,6 +154,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
+    await element.updateComplete;
     const title = element.querySelector('.name');
     assert.equal(title?.textContent, 'Test Instance V2');
   });
@@ -156,6 +165,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
+    await element.updateComplete;
     const title = element.querySelector('.name');
     assert.equal(title?.textContent, 'Bar');
   });
@@ -165,6 +175,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
+    await element.updateComplete;
     const buildDate = element.querySelector('.build-date');
     assert.equal(buildDate?.textContent?.trim(), 'Build: 2026-03-18');
   });
@@ -181,25 +192,28 @@ describe('perf-scaffold-sk', () => {
 
   it('renders gemini-side-panel-sk in V2 UI', async () => {
     window.perf.enable_v2_ui = true;
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
+    await element.updateComplete;
     assert.isNotNull(element.querySelector('gemini-side-panel-sk'));
   });
 
   it('does not render gemini-side-panel-sk in Legacy UI', async () => {
     window.perf.enable_v2_ui = false;
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.removeItem('v2_ui');
     });
+    await element.updateComplete;
     assert.isNull(element.querySelector('gemini-side-panel-sk'));
   });
 
   it('toggles gemini-side-panel-sk when button is clicked', async () => {
     window.perf.enable_v2_ui = true;
-    const element = newInstance((_) => {
+    element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
+    await element.updateComplete;
 
     const button = element.querySelector('button[title="Ask Gemini"]') as HTMLButtonElement;
     const panel = element.querySelector('gemini-side-panel-sk') as any;
@@ -220,6 +234,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.clear();
     });
+    await element.updateComplete;
     assert.isNotNull(element.querySelector('.legacy-ui'));
     assert.isNull(element.querySelector('.v2-ui'));
   });
@@ -229,6 +244,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.clear();
     });
+    await element.updateComplete;
     assert.isNotNull(element.querySelector('.v2-ui'));
     assert.isNull(element.querySelector('.legacy-ui'));
   });
@@ -238,6 +254,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'false');
     });
+    await element.updateComplete;
     assert.isNotNull(element.querySelector('.legacy-ui'));
     assert.isNull(element.querySelector('.v2-ui'));
   });
@@ -247,6 +264,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.clear();
     });
+    await element.updateComplete;
     const toggle = element.querySelector('.try-v2-ui');
     assert.isNotNull(toggle);
   });
@@ -256,6 +274,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.clear();
     });
+    await element.updateComplete;
     // Stub _reload to prevent page reload during test
     (element as any)._reload = sinon.spy();
 
@@ -272,6 +291,7 @@ describe('perf-scaffold-sk', () => {
     element = newInstance((_) => {
       localStorage.setItem('v2_ui', 'true');
     });
+    await element.updateComplete;
     // Stub _reload to prevent page reload during test
     (element as any)._reload = sinon.spy();
 
