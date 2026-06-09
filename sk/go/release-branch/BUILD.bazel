@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/auth",
+        "//go/chrome_branch",
         "//go/common",
         "//go/exec",
         "//go/gerrit",
@@ -32,6 +33,7 @@ go_test(
     srcs = ["release-branch_test.go"],
     embed = [":release-branch"],
     deps = [
+        "//go/chrome_branch",
         "//go/exec",
         "//go/gerrit",
         "//go/gerrit/mocks",

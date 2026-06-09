@@ -1,7 +1,7 @@
 package chrome_branch
 
 /*
-        Package chrome_branch provides utilities for retrieving Chrome release
+	Package chrome_branch provides utilities for retrieving Chrome release
 	branches.
 */
 
@@ -26,6 +26,7 @@ const (
 	schedulePhaseDev       = "branch"
 	schedulePhaseStable    = "stable"
 	schedulePhaseStableCut = "stable_cut"
+	schedulePhaseExtended  = "extended"
 	jsonURL                = "https://chromiumdash.appspot.com/fetch_milestones"
 	os                     = "linux"
 	refTmplRelease         = "refs/branch-heads/%d"
@@ -92,19 +93,21 @@ func (b *Branch) Validate() error {
 // Branches describes the mapping from Chrome release channel name to branch
 // number.
 type Branches struct {
-	Main   *Branch `json:"main"`
-	Dev    *Branch `json:"dev"`
-	Beta   *Branch `json:"beta"`
-	Stable *Branch `json:"stable"`
+	Main     *Branch `json:"main"`
+	Dev      *Branch `json:"dev"`
+	Beta     *Branch `json:"beta"`
+	Stable   *Branch `json:"stable"`
+	Extended *Branch `json:"extended"`
 }
 
 // Copy the Branches.
 func (b *Branches) Copy() *Branches {
 	return &Branches{
-		Main:   b.Main.Copy(),
-		Dev:    b.Dev.Copy(),
-		Beta:   b.Beta.Copy(),
-		Stable: b.Stable.Copy(),
+		Main:     b.Main.Copy(),
+		Dev:      b.Dev.Copy(),
+		Beta:     b.Beta.Copy(),
+		Stable:   b.Stable.Copy(),
+		Extended: b.Extended.Copy(),
 	}
 }
 
@@ -187,6 +190,7 @@ func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
 	rv := &Branches{}
 	rv.Stable = byPhase[schedulePhaseStable]
 	rv.Dev = byPhase[schedulePhaseDev]
+	rv.Extended = byPhase[schedulePhaseExtended]
 	rv.Beta = byPhase[schedulePhaseBeta]
 	if rv.Beta == nil {
 		rv.Beta = byPhase[schedulePhaseStableCut]

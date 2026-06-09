@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
@@ -424,4 +425,32 @@ func TestUpdateJobsJSON(t *testing.T) {
 	newContents, err := updateJobsJSON(oldContents)
 	require.NoError(t, err)
 	require.Equal(t, string(expectNewContents), string(newContents))
+}
+
+func TestGetSupportedRefs(t *testing.T) {
+	// Case 1: active milestones are subset of last 4 milestones.
+	// current = 120, supported = 4, so last 4 are [120, 119, 118, 117].
+	// active milestones are [120, 119].
+	// Result should be exactly the last 4 milestones.
+	active1 := []*chrome_branch.Branch{
+		{Milestone: 120},
+		{Milestone: 119},
+	}
+	expected1 := []string{"refs/heads/chrome/m117", "refs/heads/chrome/m118", "refs/heads/chrome/m119", "refs/heads/chrome/m120"}
+	require.Equal(t, expected1, getSupportedRefs(120, 4, active1))
+
+	// Case 2: active milestones extend beyond last 4 milestones.
+	// current = 120, supported = 4, so last 4 are [120, 119, 118, 117].
+	// active milestones are [120, 119, 118, 117, 116, 115].
+	// Result should include last 4 plus active milestones.
+	active2 := []*chrome_branch.Branch{
+		{Milestone: 120},
+		{Milestone: 119},
+		{Milestone: 118},
+		{Milestone: 117},
+		{Milestone: 116},
+		{Milestone: 115},
+	}
+	expected2 := []string{"refs/heads/chrome/m115", "refs/heads/chrome/m116", "refs/heads/chrome/m117", "refs/heads/chrome/m118", "refs/heads/chrome/m119", "refs/heads/chrome/m120"}
+	require.Equal(t, expected2, getSupportedRefs(120, 4, active2))
 }
