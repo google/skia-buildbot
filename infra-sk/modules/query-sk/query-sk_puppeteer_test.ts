@@ -69,6 +69,21 @@ describe('query-sk', () => {
       console.log('"selects key and values and emits event" test passed');
     });
 
+    it('merges values for existing keys', async () => {
+      console.log('Running "merges values for existing keys" test');
+      // Set an initial query.
+      await querySk.evaluate((el) => {
+        (el as any).current_query = 'type=CPU';
+      });
+
+      // Now select another value for the same key via the UI.
+      await querySkPO.clickKey('type');
+      await querySkPO.clickValue('GPU');
+
+      const query = await querySk.evaluate((el) => (el as any).current_query);
+      expect(query).to.equal('type=CPU&type=GPU');
+    });
+
     it('emits query-change-delayed event', async () => {
       console.log('Running "emits query-change-delayed event" test');
       const eventPromise = testBed.page.evaluate(

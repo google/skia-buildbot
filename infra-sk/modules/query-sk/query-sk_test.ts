@@ -58,6 +58,19 @@ describe('query-sk', () => {
     assert.deepEqual(fromParamSet(query), querySk.current_query);
   });
 
+  it('merges values for existing keys', async () => {
+    // Set an initial query.
+    querySk.current_query = 'arch=arm';
+    assert.equal(querySk.current_query, 'arch=arm');
+
+    // Now select another value for the same key via the UI.
+    await querySkPO.clickKey('arch');
+    await querySkPO.clickValue('x86');
+
+    // The new value should be added to the existing ones.
+    assert.deepEqual(toParamSet(querySk.current_query), { arch: ['arm', 'x86'] });
+  });
+
   it('obeys key_order', async () => {
     assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], await querySkPO.getKeys());
 

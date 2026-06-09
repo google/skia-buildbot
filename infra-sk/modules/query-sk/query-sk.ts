@@ -203,7 +203,13 @@ export class QuerySk extends LitElement {
       });
       this._query[key] = [...currentQueryForKey];
     } else {
-      this._query[key] = e.detail.values;
+      if (e.detail.regex) {
+        this._query[key] = e.detail.values;
+      } else {
+        const merged = new Set(this._query[key] || []);
+        e.detail.values.forEach((v) => merged.add(v));
+        this._query[key] = [...merged];
+      }
     }
     this._queryChanged();
   }

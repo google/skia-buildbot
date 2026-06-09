@@ -77,8 +77,15 @@ describe('trace-filter-sk', () => {
       await traceFilterSkPO.setQueryDialogSkSelection(differentSelection);
       await traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
 
-      expect(traceFilterSk.selection).to.deep.equal(differentSelection);
-      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(differentSelection);
+      // Because query-sk now merges values, we need to manually construct the
+      // expected merged selection (crbug.com/496659575).
+      const expectedSelection = { ...selection };
+      for (const key in differentSelection) {
+        expectedSelection[key] = (expectedSelection[key] || []).concat(differentSelection[key]);
+      }
+
+      expect(traceFilterSk.selection).to.deep.equal(expectedSelection);
+      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(expectedSelection);
     });
 
     it('emits event "trace-filter-sk-change" with the new selection', async () => {
@@ -87,7 +94,15 @@ describe('trace-filter-sk', () => {
 
       const event = eventPromise<CustomEvent<ParamSet>>('trace-filter-sk-change');
       await traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
-      expect(((await event) as CustomEvent<ParamSet>).detail).to.deep.equal(differentSelection);
+
+      // Because query-sk now merges values, we need to manually construct the
+      // expected merged selection (crbug.com/496659575).
+      const expectedSelection = { ...selection };
+      for (const key in differentSelection) {
+        expectedSelection[key] = (expectedSelection[key] || []).concat(differentSelection[key]);
+      }
+
+      expect(((await event) as CustomEvent<ParamSet>).detail).to.deep.equal(expectedSelection);
     });
   });
 

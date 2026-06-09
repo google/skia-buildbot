@@ -91,7 +91,21 @@ describe('filter-dialog-sk', () => {
       await filterDialogSkPO.clickFilterBtn();
       const newFilters = (await editEvent).detail;
 
-      expect(newFilters).to.deep.equal(differentFilters);
+      // Because query-sk now merges values, we need to manually construct the
+      // expected merged diffConfig (crbug.com/496659575)
+      const expectedDiffConfig = { ...filters.diffConfig };
+      for (const key in differentFilters.diffConfig) {
+        expectedDiffConfig[key] = (expectedDiffConfig[key] || []).concat(
+          differentFilters.diffConfig[key]
+        );
+      }
+
+      const expectedFilters = {
+        ...differentFilters,
+        diffConfig: expectedDiffConfig,
+      };
+
+      expect(newFilters).to.deep.equal(expectedFilters);
     });
   });
 

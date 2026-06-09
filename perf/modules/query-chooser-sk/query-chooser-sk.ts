@@ -14,8 +14,9 @@
  */
 import { LitElement, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { ParamSet, toParamSet } from '../../../infra-sk/modules/query';
+import { fromParamSet, ParamSet, toParamSet } from '../../../infra-sk/modules/query';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
+import { ParamSetSkRemoveClickEventDetail } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 
 import '../../../infra-sk/modules/paramset-sk';
 import '../../../infra-sk/modules/query-sk';
@@ -47,7 +48,11 @@ export class QueryChooserSk extends LitElement {
     return html`
       <div class="row">
         <button @click=${this._editClick}>Edit</button>
-        <paramset-sk id="summary" .paramsets=${[toParamSet(this.current_query)]}></paramset-sk>
+        <paramset-sk
+          id="summary"
+          removable_values
+          @paramset-value-remove-click=${this.paramsetRemoveClick}
+          .paramsets=${[toParamSet(this.current_query)]}></paramset-sk>
       </div>
       <div id="dialog" class="${this._showDialog ? 'display' : ''}">
         <query-sk
@@ -77,5 +82,15 @@ export class QueryChooserSk extends LitElement {
   private _queryChange(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
     this.current_query = e.detail.q;
     this.dispatchEvent(new CustomEvent('query-change', { detail: e.detail, bubbles: true }));
+  }
+
+  private paramsetRemoveClick(e: CustomEvent<ParamSetSkRemoveClickEventDetail>) {
+    const paramset = toParamSet(this.current_query);
+    const values = paramset[e.detail.key] || [];
+    const index = values.indexOf(e.detail.value);
+    if (index > -1) {
+      values.splice(index, 1);
+    }
+    this.current_query = fromParamSet(paramset);
   }
 }
