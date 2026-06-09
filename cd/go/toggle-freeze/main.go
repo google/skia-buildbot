@@ -132,7 +132,7 @@ func run(ctx context.Context, action, freezeFile, email string, g gerrit.GerritI
 	if shouldExist {
 		actionStr = "on"
 	}
-	commitMsg := fmt.Sprintf("Toggle Perfserver Freeze - %s - %s\n\nNo-Try: true\n\n%s", actionStr, freezeFile, rubberstamper.RandomChangeID(ctx))
+	commitMsg := fmt.Sprintf("Toggle Perfserver Freeze - %s - %s\n\nNo-Try: true\n%s", actionStr, freezeFile, rubberstamper.RandomChangeID(ctx))
 	if _, err := exec.RunCwd(ctx, cwd, gitExec, "commit", "-m", commitMsg); err != nil {
 		return td.FailStep(ctx, skerr.Wrap(err))
 	}
