@@ -134,7 +134,7 @@ func TestRun_ActionFreeze_FileDoesNotExist_CreatesFileAndPushesCL(t *testing.T) 
 				// The commit message has a random Change-Id at the end, so we ignore it
 				// by checking its prefix and setting it to a fixed string.
 				t.Logf("Commit message: %q", cmd.Args[2])
-				require.True(t, strings.HasPrefix(cmd.Args[2], "Toggle Perfserver Freeze - on - perf/FREEZELOCK\n\nChange-Id: I"))
+				require.True(t, strings.HasPrefix(cmd.Args[2], "Toggle Perfserver Freeze - on - perf/FREEZELOCK\n\nNo-Try: true\n\nChange-Id: I"))
 				cmd.Args[2] = "Toggle Perfserver Freeze - on - perf/FREEZELOCK"
 			}
 		}
@@ -185,7 +185,7 @@ func TestRun_ActionUnfreeze_FileExists_DeletesFileAndPushesCL(t *testing.T) {
 		for _, cmd := range executedCommands {
 			if len(cmd.Args) >= 3 && cmd.Args[0] == "commit" {
 				t.Logf("Commit message: %q", cmd.Args[2])
-				require.True(t, strings.HasPrefix(cmd.Args[2], "Toggle Perfserver Freeze - off - perf/FREEZELOCK\n\nChange-Id: I"))
+				require.True(t, strings.HasPrefix(cmd.Args[2], "Toggle Perfserver Freeze - off - perf/FREEZELOCK\n\nNo-Try: true\n\nChange-Id: I"))
 				cmd.Args[2] = "Toggle Perfserver Freeze - off - perf/FREEZELOCK"
 			}
 		}
