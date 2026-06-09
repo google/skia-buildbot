@@ -12,10 +12,9 @@
  * @attr {string} count_url - The  URL to POST the query to, passed down to quuery-count-sk.
  *
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
+import { LitElement, html } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { ParamSet, toParamSet } from '../../../infra-sk/modules/query';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 
 import '../../../infra-sk/modules/paramset-sk';
@@ -23,110 +22,60 @@ import '../../../infra-sk/modules/query-sk';
 
 import '../query-count-sk';
 
-export class QueryChooserSk extends ElementSk {
-  private _dialog: HTMLDivElement | null;
+@customElement('query-chooser-sk')
+export class QueryChooserSk extends LitElement {
+  @property({ type: String, reflect: true })
+  current_query = '';
 
-  private _paramset: ParamSet;
+  @property({ type: Object })
+  paramset: ParamSet = {};
 
-  private _key_order: string[];
+  @property({ type: Array })
+  key_order: string[] = [];
 
-  constructor() {
-    super(QueryChooserSk.template);
-    this.current_query = '';
-    this._dialog = null;
-    this._paramset = {};
-    this._key_order = [];
+  @property({ type: String })
+  count_url = '';
+
+  @state()
+  private _showDialog = false;
+
+  protected createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: QueryChooserSk) => html`
-    <div class="row">
-      <button @click=${ele._editClick}>Edit</button>
-      <paramset-sk id="summary" .paramsets=${[toParamSet(ele.current_query)]}></paramset-sk>
-    </div>
-    <div id="dialog">
-      <query-sk
-        current_query=${ele.current_query}
-        .paramset=${ele.paramset}
-        .key_order=${ele.key_order}
-        @query-change=${ele._queryChange}></query-sk>
-      <div class="matches">
-        Matches:
-        <query-count-sk url=${ele.count_url} current_query=${ele.current_query}></query-count-sk>
+  render() {
+    return html`
+      <div class="row">
+        <button @click=${this._editClick}>Edit</button>
+        <paramset-sk id="summary" .paramsets=${[toParamSet(this.current_query)]}></paramset-sk>
       </div>
-      <button @click=${ele._closeClick}>Close</button>
-    </div>
-  `;
-
-  connectedCallback(): any {
-    super.connectedCallback();
-    this._upgradeProperty('paramset');
-    this._upgradeProperty('current_query');
-    this._upgradeProperty('key_order');
-    this._upgradeProperty('count_url');
-    this._render();
-    this._dialog = this.querySelector('#dialog');
-  }
-
-  attributeChangedCallback(): void {
-    this._render();
+      <div id="dialog" class="${this._showDialog ? 'display' : ''}">
+        <query-sk
+          current_query=${this.current_query}
+          .paramset=${this.paramset}
+          .key_order=${this.key_order}
+          @query-change=${this._queryChange}></query-sk>
+        <div class="matches">
+          Matches:
+          <query-count-sk
+            url=${this.count_url}
+            current_query=${this.current_query}></query-count-sk>
+        </div>
+        <button @click=${this._closeClick}>Close</button>
+      </div>
+    `;
   }
 
   private _editClick() {
-    this._dialog!.classList.add('display');
+    this._showDialog = true;
   }
 
   private _closeClick() {
-    this._dialog!.classList.remove('display');
+    this._showDialog = false;
   }
 
   private _queryChange(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
     this.current_query = e.detail.q;
-    this._render();
-  }
-
-  /** @prop The paramset to make selections from. */
-  get paramset(): ParamSet {
-    return this._paramset;
-  }
-
-  set paramset(val: ParamSet) {
-    this._paramset = val;
-    this._render();
-  }
-
-  /** @prop An array of strings, passed down to
-   * query-sk.key_order.
-   */
-  get key_order(): string[] {
-    return this._key_order;
-  }
-
-  set key_order(val: string[]) {
-    this._key_order = val;
-    this._render();
-  }
-
-  static get observedAttributes(): string[] {
-    return ['current_query', 'key_order'];
-  }
-
-  /** @prop Mirrors the current_query attribute.  */
-  get current_query(): string {
-    return this.getAttribute('current_query') || '';
-  }
-
-  set current_query(val: string) {
-    this.setAttribute('current_query', val);
-  }
-
-  /** @prop Mirrors the count_url attribute. */
-  get count_url(): string {
-    return this.getAttribute('count_url') || '';
-  }
-
-  set count_url(val: string) {
-    this.setAttribute('count_url', val);
+    this.dispatchEvent(new CustomEvent('query-change', { detail: e.detail, bubbles: true }));
   }
 }
-
-define('query-chooser-sk', QueryChooserSk);
