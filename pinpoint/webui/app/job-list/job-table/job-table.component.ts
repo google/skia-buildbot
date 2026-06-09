@@ -8,6 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { CdkDragDrop, CdkDrag, CdkDropList } from '@angular/cdk/drag-drop';
 import { JobTableColumnsService, JobTableColumn } from '../job-table-columns.service';
 import { JobSummary, JobType, JobStatus } from '../../gateway/gateway';
 import { JobsService } from '../jobs.service';
@@ -25,6 +26,8 @@ import { JobsService } from '../jobs.service';
     MatFormFieldModule,
     MatSortModule,
     DatePipe,
+    CdkDrag,
+    CdkDropList,
   ],
   templateUrl: './job-table.component.html',
   styleUrls: ['./job-table.component.css'],
@@ -46,6 +49,10 @@ export class JobTableComponent implements OnInit, AfterViewInit {
 
   get displayedColumns(): string[] {
     return this.columnsService.displayedColumns();
+  }
+
+  columnDrop(event: CdkDragDrop<string[]>) {
+    this.columnsService.reorderColumns(event.previousIndex, event.currentIndex);
   }
 
   getColumnLabel(columnId: JobTableColumn): string {

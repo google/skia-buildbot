@@ -41,18 +41,10 @@ describe('JobTableColumnsService', () => {
   it('should update column selection and preserve original order in displayedColumns', () => {
     const service = getService();
 
-    // Deselect Name and Benchmark
-    service.updateSelection(
-      new Set([
-        JobTableColumn.Configuration,
-        JobTableColumn.Story,
-        JobTableColumn.JobType,
-        JobTableColumn.Bug,
-        JobTableColumn.User,
-        JobTableColumn.Created,
-        JobTableColumn.JobStatus,
-      ])
-    );
+    const updated = new Set(service.selectedColumnIds());
+    updated.delete(JobTableColumn.Name);
+    updated.delete(JobTableColumn.Benchmark);
+    service.updateSelection(updated);
 
     assert.equal(service.selectedColumnIds().size, 7);
     assert.deepEqual(service.displayedColumns(), [
@@ -65,25 +57,82 @@ describe('JobTableColumnsService', () => {
       JobTableColumn.JobStatus,
     ]);
 
-    // Re-select Benchmark - must appear in original index position, not at the end!
-    service.updateSelection(
-      new Set([
-        JobTableColumn.Benchmark,
-        JobTableColumn.Configuration,
-        JobTableColumn.Story,
-        JobTableColumn.JobType,
-        JobTableColumn.Bug,
-        JobTableColumn.User,
-        JobTableColumn.Created,
-        JobTableColumn.JobStatus,
-      ])
-    );
+    // Re-select Benchmark - must appear in original index position.
+    const reselect = new Set(service.selectedColumnIds());
+    reselect.add(JobTableColumn.Benchmark);
+    service.updateSelection(reselect);
 
     assert.equal(service.selectedColumnIds().size, 8);
     assert.deepEqual(service.displayedColumns(), [
       JobTableColumn.Benchmark,
       JobTableColumn.Configuration,
       JobTableColumn.Story,
+      JobTableColumn.JobType,
+      JobTableColumn.Bug,
+      JobTableColumn.User,
+      JobTableColumn.Created,
+      JobTableColumn.JobStatus,
+    ]);
+  });
+
+  it('should support reordering columns', () => {
+    const service = getService();
+
+    service.reorderColumns(1, 3);
+
+    assert.deepEqual(service.displayedColumns(), [
+      JobTableColumn.Name,
+      JobTableColumn.Configuration,
+      JobTableColumn.Story,
+      JobTableColumn.Benchmark,
+      JobTableColumn.JobType,
+      JobTableColumn.Bug,
+      JobTableColumn.User,
+      JobTableColumn.Created,
+      JobTableColumn.JobStatus,
+    ]);
+  });
+
+  it('should maintain custom column order when columns are deselected', () => {
+    const service = getService();
+
+    service.reorderColumns(1, 3);
+
+    const updated = new Set(service.selectedColumnIds());
+    updated.delete(JobTableColumn.Benchmark);
+    service.updateSelection(updated);
+
+    assert.deepEqual(service.displayedColumns(), [
+      JobTableColumn.Name,
+      JobTableColumn.Configuration,
+      JobTableColumn.Story,
+      JobTableColumn.JobType,
+      JobTableColumn.Bug,
+      JobTableColumn.User,
+      JobTableColumn.Created,
+      JobTableColumn.JobStatus,
+    ]);
+  });
+
+  it('should restore column to its custom reordered position when re-selected', () => {
+    const service = getService();
+
+    service.reorderColumns(1, 3);
+
+    const deselect = new Set(service.selectedColumnIds());
+    deselect.delete(JobTableColumn.Benchmark);
+    service.updateSelection(deselect);
+
+    // Re-select Benchmark, it should reappear in its reordered position.
+    const select = new Set(service.selectedColumnIds());
+    select.add(JobTableColumn.Benchmark);
+    service.updateSelection(select);
+
+    assert.deepEqual(service.displayedColumns(), [
+      JobTableColumn.Name,
+      JobTableColumn.Configuration,
+      JobTableColumn.Story,
+      JobTableColumn.Benchmark,
       JobTableColumn.JobType,
       JobTableColumn.Bug,
       JobTableColumn.User,

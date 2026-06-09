@@ -114,6 +114,16 @@ describe('JobTableComponent', () => {
     assert.equal(component.displayedColumns.length, service.allColumns.length);
   });
 
+  it('should call reorderColumns on JobTableColumnsService when columnDrop is invoked', () => {
+    const component = createComponent();
+    const service = TestBed.inject(JobTableColumnsService);
+    const reorderSpy = sinon.spy(service, 'reorderColumns');
+
+    component.columnDrop({ previousIndex: 1, currentIndex: 3 } as any);
+
+    assert.isTrue(reorderSpy.calledOnceWithExactly(1, 3));
+  });
+
   it('should dynamically retrieve column labels from JobTableColumnsService', () => {
     const component = createComponent();
     assert.equal(component.getColumnLabel(JobTableColumn.Name), 'Job Name');

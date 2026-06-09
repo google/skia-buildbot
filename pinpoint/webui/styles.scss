@@ -30,3 +30,16 @@ body {
 .spacer {
   flex: 1 1 auto;
 }
+
+/* Angular CDK Drag and Drop smooth animations. */
+.cdk-drag-preview {
+  /* Ensure the dragged header preview has a solid background and padding */
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  display: flex;
+  align-items: center;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

@@ -107,3 +107,13 @@ td.mat-column-user {
 .loading-header-row.mat-mdc-header-row {
   height: auto;
 }
+
+/* Shows drag and drop cursor. */
+th.cdk-drag {
+  cursor: move;
+}
+
+/* During dragging, animate the other columns as they shift position. */
+.cdk-drop-list-dragging th:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

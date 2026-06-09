@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { JobTableColumnsService } from '../job-table-columns.service';
+import { JobTableColumnsService, ColumnInfo } from '../job-table-columns.service';
 
 @Component({
   selector: 'app-column-selector',
@@ -28,7 +28,9 @@ import { JobTableColumnsService } from '../job-table-columns.service';
 export class ColumnSelectorComponent {
   private columnsService = inject(JobTableColumnsService);
 
-  readonly allColumns = this.columnsService.allColumns;
+  readonly allColumns = [...this.columnsService.allColumns].sort((a, b) =>
+    a.label.localeCompare(b.label)
+  );
 
   columnSearchQuery = '';
 
@@ -36,7 +38,7 @@ export class ColumnSelectorComponent {
     return this.columnsService.selectedColumnIds();
   }
 
-  get filteredColumns() {
+  get filteredColumns(): ColumnInfo[] {
     const query = this.columnSearchQuery.toLowerCase().trim();
     if (!query) {
       return this.allColumns;

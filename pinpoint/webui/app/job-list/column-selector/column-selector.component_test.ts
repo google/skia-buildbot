@@ -40,6 +40,13 @@ describe('ColumnSelectorComponent', () => {
     assert.equal(component.filteredColumns[0].id, JobTableColumn.Configuration);
   });
 
+  it('should return columns ordered alphabetically by label', () => {
+    const { component } = createComponent();
+    const labels = component.filteredColumns.map((c) => c.label);
+    const expectedLabels = [...labels].sort((a, b) => a.localeCompare(b));
+    assert.deepEqual(labels, expectedLabels);
+  });
+
   it('should compute allSelected and someSelected correctly', () => {
     const { component, service } = createComponent();
     assert.isTrue(component.allSelected);
