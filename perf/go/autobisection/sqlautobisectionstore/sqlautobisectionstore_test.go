@@ -24,10 +24,9 @@ func TestSave_HappyPath(t *testing.T) {
 	ctx := context.Background()
 
 	bs := &schema.AutobisectionSchema{
-		JobID:            "job-123",
-		AnomalyGroupID:   "group-456",
-		AnomalyId:        "id-1",
-		IsRealRegression: true,
+		JobID:          "job-123",
+		AnomalyGroupID: "group-456",
+		AnomalyId:      "id-1",
 	}
 
 	err := store.Save(ctx, bs)
@@ -35,14 +34,13 @@ func TestSave_HappyPath(t *testing.T) {
 
 	// Verify the row was inserted
 	var loadedJobID string
-	var loadedIsRealRegression bool
 
-	err = db.QueryRow(ctx, "SELECT job_id, is_real_regression FROM Autobisections WHERE job_id = $1", "job-123").
-		Scan(&loadedJobID, &loadedIsRealRegression)
+	err = db.QueryRow(ctx, "SELECT job_id FROM Autobisections WHERE job_id = $1", "job-123").
+		Scan(&loadedJobID)
 	require.NoError(t, err)
 
 	assert.Equal(t, "job-123", loadedJobID)
-	assert.True(t, loadedIsRealRegression)
+	// TODO(mordeckimarcin) assert.True(t, loadedIsRealRegression)
 }
 
 func TestSave_Empty_ReturnsError(t *testing.T) {
@@ -73,6 +71,7 @@ func TestSave_Empty_ReturnsError(t *testing.T) {
 		JobID:          "j",
 		AnomalyGroupID: "a",
 		AnomalyId:      "",
+		// TODO(mordeckimarcin) implement tests after migration.
 	}
 
 	err = store.Save(ctx, bs)

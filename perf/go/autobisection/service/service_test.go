@@ -23,10 +23,9 @@ func TestSaveAutobisection(t *testing.T) {
 	}
 
 	expectedSchema := &schema.AutobisectionSchema{
-		JobID:            "job123",
-		AnomalyGroupID:   "ag123",
-		AnomalyId:        "a123",
-		IsRealRegression: true,
+		JobID:          "job123",
+		AnomalyGroupID: "ag123",
+		AnomalyId:      "a123",
 	}
 
 	mockStore.On("Save", ctx, expectedSchema).Return(nil)

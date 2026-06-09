@@ -32,9 +32,10 @@ CREATE TABLE IF NOT EXISTS AnomalyGroups (
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Autobisections (
   job_id TEXT PRIMARY KEY,
+  workflow_id TEXT,
   anomaly_group_id TEXT,
   anomaly_id TEXT,
-  is_real_regression BOOL,
+  regression_status TEXT,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Commits (
@@ -244,9 +245,10 @@ var AnomalyGroups = []string{
 
 var Autobisections = []string{
 	"job_id",
+	"workflow_id",
 	"anomaly_group_id",
 	"anomaly_id",
-	"is_real_regression",
+	"regression_status",
 }
 
 var Commits = []string{

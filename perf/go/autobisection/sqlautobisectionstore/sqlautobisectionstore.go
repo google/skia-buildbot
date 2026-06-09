@@ -20,9 +20,9 @@ const (
 var statements = map[statement]string{
 	insertAutobisection: `
 		INSERT INTO
-			Autobisections (job_id, anomaly_group_id, anomaly_id, is_real_regression)
+			Autobisections (job_id, workflow_id, anomaly_group_id, anomaly_id, regression_status)
 		VALUES
-			($1, $2, $3, $4)
+			($1, $2, $3, $4, $5)
 	`,
 }
 
@@ -53,9 +53,10 @@ func (s *AutobisectionStore) Save(ctx context.Context, b *schema.AutobisectionSc
 	statement := statements[insertAutobisection]
 	if _, err := s.db.Exec(ctx, statement,
 		b.JobID,
+		"fixme",
 		b.AnomalyGroupID,
 		b.AnomalyId,
-		b.IsRealRegression,
+		"fixme",
 	); err != nil {
 		return fmt.Errorf("error inserting autobisection result into Autobisections table: %w", err)
 	}
