@@ -169,7 +169,7 @@ export class AlertsPageSk extends LitElement {
       return item.alert;
     }
     const issueTracker = 'https://issuetracker.google.com/issues?q=status:open%20componentid:';
-    return html`<a href="${issueTracker}${item.issue_tracker_component}%26s=created_time:desc"
+    return html`<a href="${issueTracker}${item.issue_tracker_component}&amp;s=created_time:desc"
       >${item.issue_tracker_component}</a
     >`;
   }

@@ -129,6 +129,8 @@ describe('alerts-page-sk', () => {
       'table#alerts-table > tr, table#alerts-table > tbody > tr'
     );
     assert.include(rows[1].innerHTML, 'issuetracker.google.com');
+    assert.include(rows[1].innerHTML, '&amp;s=created_time:desc');
+    assert.notInclude(rows[1].innerHTML, '%26s=created_time:desc');
   });
 
   it('opens alert on load if id is in search', async () => {
