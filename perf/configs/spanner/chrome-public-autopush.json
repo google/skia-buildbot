@@ -1,12 +1,12 @@
 {
-    "URL": "https://chrome-perf-autopush.corp.goog",
+    "URL": "https://perf-autopush.luci.app",
     "landing_page_rel_path": "/m/",
     "header_image_url": "/dist/images/chrome-logo.svg",
     "ga_measurement_id": "G-PFC9BX9411",
     "allowed_hosts": [],
     "backend_host_url": "perf-be-chrome-non-public-autopush.perf.svc.cluster.local:8000",
     "contact": "browser-perf-engprod@google.com",
-    "instance_name": "chrome-internal (Autopush)",
+    "instance_name": "chrome-public-autopush (Autopush)",
     "trace_sample_proportion": 0.1,
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
@@ -57,11 +57,6 @@
         "branches": [],
         "file_ingestion_pubsub_topic_name": "perf-cluster-chrome-non-public-autopush"
     },
-    "maintenance_config": {
-        "gitiles_repo_url": "https://chrome-internal.googlesource.com/infra/infra_internal",
-        "sheriff_config_path": "infra/config/subprojects/skiaperf/chrome-internal-autopush.textpb",
-        "fallback_to_lucicfg": false
-    },
     "git_repo_config": {
         "provider": "gitiles",
         "url": "https://chromium.googlesource.com/chromium/src",
@@ -70,62 +65,6 @@
         "file_change_marker": "",
         "start_commit": "b7fa4587f55a066e97f79b4c97ed785dc217064b",
         "commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
-    },
-    "extra_links": {
-        "name": "CBB",
-        "title": "Comparative Browser Benchmarking (CBB)",
-        "links": [
-            {
-                "text": "Mac (go/cbb-mac)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=dd0dd339ebb06e5f01e64de82f3977d1&splitByKeys=benchmark",
-                "description": "CBB results on Mac"
-            },
-            {
-                "text": "Windows x64 (go/cbb-win)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=8e3d2605de2b3e17fa257ea47275ee0a&splitByKeys=benchmark",
-                "description": "CBB results on Windows (Intel CPU)"
-            },
-            {
-                "text": "Windows ARM64 (go/cbb-win-arm)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=1adc4014bca70f8245c3250c46ff2abc&splitByKeys=benchmark",
-                "description": "CBB results on Windows (ARM64 CPU)"
-            },
-            {
-                "text": "Pixel Tablet (go/cbb-tangor)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=35&shortcut=134f1b581613f1f4bbe63b66719ff588&splitByKeys=benchmark",
-                "description": "CBB results on Pixel Tablet (Tangor)"
-            },
-            {
-                "text": "Speedometer3 (go/cbb-sp3)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=7bd8bba5abb81582cffb5cb8578011b2&splitByKeys=bot",
-                "description": "CBB Speedometer3 results"
-            },
-            {
-                "text": "JetStream2 (go/cbb-js2)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=c68938c0463f91bfc8b1e9a8aca18499&splitByKeys=bot",
-                "description": "CBB JetStream2 results"
-            },
-            {
-                "text": "JetStream3 (go/cbb-js3)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=996f59da14c437bbef118c9514ea4724&splitByKeys=bot",
-                "description": "CBB JetStream3 results"
-            },
-            {
-                "text": "MotionMark (go/cbb-mm)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=598f56484c8e1602be056849b115e0b8&splitByKeys=bot",
-                "description": "CBB MotionMark results"
-            },
-            {
-                "text": "Loadline 2 (go/cbb-ll)",
-                "href": "https://chrome-perf.corp.goog/m/?begin=1752000000&end=1780000000&numCommits=20&shortcut=3d5e9ef84f6673ca273c3cabb4297113",
-                "description": "CBB Loadline 2 results (Android only)"
-            },
-            {
-                "text": "Overall results (go/cbb-all)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1780000000&numCommits=50&shortcut=81ad17a19b621a127443d95ffe7e28b3&splitByKeys=benchmark",
-                "description": "CBB results for all benchmarks and platforms"
-            }
-        ]
     },
     "query_config": {
         "include_params": [
@@ -185,6 +124,7 @@
     "show_hash_ranges_in_tooltip": false,
     "allow_multiple_regressions_per_alert_id": true,
     "visibility_config": {
+        "show_only_public_traces": true,
         "provider_name": "chrome",
         "sources": {
             "chrome_bot": {
