@@ -7,43 +7,13 @@
  *
  * @example
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { LitElement, html } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { ValuePercent } from '../json';
 
-export class WordCloudSk extends ElementSk {
-  private _items: ValuePercent[];
-
-  constructor() {
-    super(WordCloudSk.template);
-    this._items = [];
-  }
-
-  private static rows = (ele: WordCloudSk) =>
-    ele._items.map(
-      (item) =>
-        html` <tr>
-          <td class="value">${item.value}</td>
-          <td class="textpercent">${item.percent}%</td>
-          <td class="percent" title="${item.percent}%">
-            <div style="width: ${item.percent}px"></div>
-          </td>
-        </tr>`
-    );
-
-  private static template = (ele: WordCloudSk) => html`
-    <table>
-      ${WordCloudSk.rows(ele)}
-    </table>
-  `;
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._upgradeProperty('items');
-    this._render();
-  }
-
+@customElement('word-cloud-sk')
+export class WordCloudSk extends LitElement {
   /** A serialized slice of ValuePercent.
 
       For example:
@@ -55,17 +25,30 @@ export class WordCloudSk extends ElementSk {
         {value:"cpu_or_gpu=gpu", percent: 10},
       ]
   */
-  get items(): ValuePercent[] {
-    return this._items;
+  @property({ type: Array })
+  items: ValuePercent[] = [];
+
+  protected createRenderRoot() {
+    return this;
   }
 
-  set items(val: ValuePercent[]) {
-    if (!val) {
-      return;
-    }
-    this._items = val;
-    this._render();
+  render() {
+    return html`
+      <table>
+        ${repeat(
+          this.items,
+          (item) => item.value,
+          (item) => html`
+            <tr>
+              <td class="value">${item.value}</td>
+              <td class="textpercent">${item.percent}%</td>
+              <td class="percent" title="${item.percent}%">
+                <div style="width: ${item.percent}px"></div>
+              </td>
+            </tr>
+          `
+        )}
+      </table>
+    `;
   }
 }
-
-define('word-cloud-sk', WordCloudSk);
