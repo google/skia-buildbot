@@ -10,7 +10,12 @@ describe('JobTableColumnsService', () => {
     TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
   });
 
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   afterEach(() => {
+    localStorage.clear();
     TestBed.resetTestingModule();
   });
 
@@ -56,6 +61,15 @@ describe('JobTableColumnsService', () => {
       JobTableColumn.Created,
       JobTableColumn.JobStatus,
     ]);
+    assert.deepEqual(JSON.parse(localStorage.getItem('selected_columns') || '[]'), [
+      JobTableColumn.Configuration,
+      JobTableColumn.Story,
+      JobTableColumn.JobType,
+      JobTableColumn.Bug,
+      JobTableColumn.User,
+      JobTableColumn.Created,
+      JobTableColumn.JobStatus,
+    ]);
 
     // Re-select Benchmark - must appear in original index position.
     const reselect = new Set(service.selectedColumnIds());
@@ -80,7 +94,7 @@ describe('JobTableColumnsService', () => {
 
     service.reorderColumns(1, 3);
 
-    assert.deepEqual(service.displayedColumns(), [
+    const expectedOrder = [
       JobTableColumn.Name,
       JobTableColumn.Configuration,
       JobTableColumn.Story,
@@ -90,7 +104,9 @@ describe('JobTableColumnsService', () => {
       JobTableColumn.User,
       JobTableColumn.Created,
       JobTableColumn.JobStatus,
-    ]);
+    ];
+    assert.deepEqual(service.displayedColumns(), expectedOrder);
+    assert.deepEqual(JSON.parse(localStorage.getItem('ordered_columns') || '[]'), expectedOrder);
   });
 
   it('should maintain custom column order when columns are deselected', () => {
@@ -139,5 +155,29 @@ describe('JobTableColumnsService', () => {
       JobTableColumn.Created,
       JobTableColumn.JobStatus,
     ]);
+  });
+
+  it('should restore columns selection and order when resetToDefault is called', () => {
+    const service = getService();
+    const updated = new Set(service.selectedColumnIds());
+    updated.delete(JobTableColumn.Name);
+    service.updateSelection(updated);
+    service.reorderColumns(1, 3);
+
+    service.resetToDefault();
+
+    assert.equal(service.selectedColumnIds().size, service.allColumns.length);
+    assert.deepEqual(
+      service.displayedColumns(),
+      service.defaultColumnOrder.map((c) => c.id)
+    );
+    assert.deepEqual(
+      JSON.parse(localStorage.getItem('selected_columns') || '[]'),
+      service.defaultColumnOrder.map((c) => c.id)
+    );
+    assert.deepEqual(
+      JSON.parse(localStorage.getItem('ordered_columns') || '[]'),
+      service.defaultColumnOrder.map((c) => c.id)
+    );
   });
 });

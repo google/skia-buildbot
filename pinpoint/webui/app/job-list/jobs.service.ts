@@ -1,12 +1,15 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { GatewayService } from '../gateway/gateway.service';
 import { JobSummary, Pagination, JobType, GetUserInfoResponse } from '../gateway/gateway';
+import { SettingsService } from '../settings/settings.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class JobsService {
   private gatewayService = inject(GatewayService);
+
+  private settingsService = inject(SettingsService);
 
   private pageIndex = 0;
 
@@ -16,7 +19,7 @@ export class JobsService {
 
   readonly jobs = this._jobs.asReadonly();
 
-  private _showOnlyUserJobs = signal<boolean>(true);
+  private _showOnlyUserJobs = signal<boolean>(this.settingsService.getShowOnlyUserJobs(true));
 
   readonly showOnlyUserJobs = this._showOnlyUserJobs.asReadonly();
 
@@ -37,6 +40,7 @@ export class JobsService {
       return;
     }
     this._showOnlyUserJobs.set(showOnlyUserJobs);
+    this.settingsService.setShowOnlyUserJobs(showOnlyUserJobs);
     this._jobs.set([]);
     this.pagination = undefined;
     this.pageIndex = 0;

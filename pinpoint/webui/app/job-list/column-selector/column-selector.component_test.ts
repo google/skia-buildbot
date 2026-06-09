@@ -11,7 +11,12 @@ describe('ColumnSelectorComponent', () => {
     TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
   });
 
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   afterEach(() => {
+    localStorage.clear();
     TestBed.resetTestingModule();
   });
 
@@ -83,5 +88,19 @@ describe('ColumnSelectorComponent', () => {
     // Select all
     component.toggleAll(true);
     assert.equal(service.selectedColumnIds().size, component.allColumns.length);
+  });
+
+  it('should call resetToDefault on service when reset is called', () => {
+    const { component, service } = createComponent();
+    component.toggleColumn(JobTableColumn.Name, false);
+    service.reorderColumns(1, 3);
+
+    component.reset();
+
+    assert.equal(service.selectedColumnIds().size, component.allColumns.length);
+    assert.deepEqual(
+      service.displayedColumns(),
+      service.allColumns.map((c) => c.id)
+    );
   });
 });

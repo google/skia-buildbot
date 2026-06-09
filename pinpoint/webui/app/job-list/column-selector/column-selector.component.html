@@ -38,13 +38,16 @@
     <mat-divider></mat-divider>
 
     <!-- Show/Hide All -->
-    <div>
+    <div class="actions-row">
       <mat-checkbox
         [checked]="allSelected"
         [indeterminate]="someSelected"
         (change)="toggleAll($event.checked)">
         Show/Hide All
       </mat-checkbox>
+      <button mat-button color="warn" matTooltip="Resets the selected columns and the order" (click)="reset()">
+        Reset
+      </button>
     </div>
   </div>
 </mat-menu>

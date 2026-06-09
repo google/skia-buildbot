@@ -1,6 +1,7 @@
 import '@angular/compiler';
 import { Injector, runInInjectionContext } from '@angular/core';
 import { JobsService } from './jobs.service';
+import { SettingsService } from '../settings/settings.service';
 import { GatewayService } from '../gateway/gateway.service';
 import { JobType, JobStatus } from '../gateway/gateway';
 import { assert } from 'chai';
@@ -17,7 +18,10 @@ describe('JobsService', () => {
     stubConsoleError.restore();
   });
 
-  function createService(mockGateway?: Partial<GatewayService>): JobsService {
+  function createService(
+    mockGateway?: Partial<GatewayService>,
+    mockSettings?: Partial<SettingsService>
+  ): JobsService {
     const defaultGateway: Partial<GatewayService> = {
       QueryJobList: async () => ({
         jobs: [
@@ -40,8 +44,17 @@ describe('JobsService', () => {
       }),
     };
     const gateway = { ...defaultGateway, ...mockGateway };
+    const defaultSettings: Partial<SettingsService> = {
+      getShowOnlyUserJobs: (defaultValue: boolean) => defaultValue,
+      setShowOnlyUserJobs: () => {},
+    };
+    const settings = { ...defaultSettings, ...mockSettings };
     const injector = Injector.create({
-      providers: [{ provide: GatewayService, useValue: gateway }, JobsService],
+      providers: [
+        { provide: GatewayService, useValue: gateway },
+        { provide: SettingsService, useValue: settings },
+        JobsService,
+      ],
     });
     let service!: JobsService;
     runInInjectionContext(injector, () => {
@@ -227,6 +240,17 @@ describe('JobsService', () => {
       assert.isFalse(service.showOnlyUserJobs());
       // The jobs should be cleared and reloaded with no user filter
       assert.equal(queriedUser, '');
+    });
+
+    it('should save preference when showOnlyUserJobs filter changes', async () => {
+      const setShowOnlyUserJobsSpy = sinon.spy();
+      const service = createService(undefined, {
+        setShowOnlyUserJobs: setShowOnlyUserJobsSpy,
+      });
+
+      await service.setShowOnlyUserJobs(false);
+
+      assert.isTrue(setShowOnlyUserJobsSpy.calledOnceWithExactly(false));
     });
   });
 });

@@ -54,6 +54,7 @@ js_run_binary(
         "//pinpoint/webui/app/job-list/column-selector:srcs",
         "//pinpoint/webui/app/job-list/job-table:srcs",
         "//pinpoint/webui/app/new-job:srcs",
+        "//pinpoint/webui/app/settings:srcs",
         "//pinpoint/webui/app/theme:srcs",
     ],
     args = [

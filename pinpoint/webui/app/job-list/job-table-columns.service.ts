@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { SettingsService } from '../settings/settings.service';
 
 export enum JobTableColumn {
   Name = 'name',
@@ -33,15 +34,23 @@ export class JobTableColumnsService {
     { id: JobTableColumn.JobStatus, label: 'Status' },
   ];
 
+  private settingsService = inject(SettingsService);
+
+  readonly defaultColumnOrder: ColumnInfo[] = this.allColumns;
+
   // Tracks which columns are selected (visible), separate from ordering so
   // selection changes don't lose the custom order of columns (e.g. if a reordered
   // column is hidden and then shown again, it will reappear in its custom position).
-  private _selectedColumnIds = signal<Set<string>>(new Set(this.allColumns.map((c) => c.id)));
+  private _selectedColumnIds = signal<Set<string>>(
+    new Set(this.settingsService.getSelectedColumns(this.defaultColumnOrder.map((c) => c.id)))
+  );
 
   readonly selectedColumnIds = this._selectedColumnIds.asReadonly();
 
   // Tracks the custom horizontal layout order of all columns (both visible and hidden).
-  private _orderedColumnIds = signal<string[]>(this.allColumns.map((c) => c.id));
+  private _orderedColumnIds = signal<string[]>(
+    this.settingsService.getOrderedColumns(this.defaultColumnOrder.map((c) => c.id))
+  );
 
   readonly displayedColumns = computed(() =>
     this._orderedColumnIds().filter((id) => this._selectedColumnIds().has(id))
@@ -49,6 +58,7 @@ export class JobTableColumnsService {
 
   updateSelection(updated: Set<string>) {
     this._selectedColumnIds.set(updated);
+    this.settingsService.setSelectedColumns([...updated]);
   }
 
   reorderColumns(previousIndex: number, currentIndex: number) {
@@ -65,7 +75,16 @@ export class JobTableColumnsService {
       const newOrdered = [...currentOrdered];
       newOrdered.splice(fromIdx, 1);
       newOrdered.splice(toIdx, 0, movedColumn);
+      this.settingsService.setOrderedColumns(newOrdered);
       return newOrdered;
     });
+  }
+
+  resetToDefault() {
+    const defaultColumnIds = this.defaultColumnOrder.map((c) => c.id as string);
+    this._selectedColumnIds.set(new Set(defaultColumnIds));
+    this._orderedColumnIds.set(defaultColumnIds);
+    this.settingsService.setSelectedColumns(defaultColumnIds);
+    this.settingsService.setOrderedColumns(defaultColumnIds);
   }
 }

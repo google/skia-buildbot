@@ -20,6 +20,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:node_modules/@angular/core",
+        "//pinpoint/webui/app/settings:settings.service_ts_lib",
     ],
 )
 
@@ -32,6 +33,7 @@ ts_library(
         "//:node_modules/@angular/core",
         "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
         "//pinpoint/webui/app/gateway:gateway_ts_lib",
+        "//pinpoint/webui/app/settings:settings.service_ts_lib",
     ],
 )
 
@@ -49,6 +51,7 @@ karma_test(
         "//:node_modules/sinon",
         "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
         "//pinpoint/webui/app/gateway:gateway_ts_lib",
+        "//pinpoint/webui/app/settings:settings.service_ts_lib",
     ],
 )
 

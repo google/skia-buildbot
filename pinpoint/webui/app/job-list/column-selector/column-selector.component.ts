@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { JobTableColumnsService, ColumnInfo } from '../job-table-columns.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { JobTableColumnsService, ColumnInfo } from '../job-table-columns.service
     MatCheckboxModule,
     MatMenuModule,
     MatDividerModule,
+    MatTooltipModule,
     FormsModule,
   ],
   templateUrl: './column-selector.component.html',
@@ -67,5 +69,9 @@ export class ColumnSelectorComponent {
   toggleAll(checked: boolean) {
     const updated = checked ? new Set<string>(this.allColumns.map((c) => c.id)) : new Set<string>();
     this.columnsService.updateSelection(updated);
+  }
+
+  reset() {
+    this.columnsService.resetToDefault();
   }
 }
