@@ -193,3 +193,85 @@ func TestWasmApi_CommonParamsExtraction(t *testing.T) {
 	_, ok := meta.CommonParams["bot"]
 	require.False(t, ok) // bot should not be common!
 }
+
+func TestEncodeTraces(t *testing.T) {
+	// Case 1: All params in lookup
+	keys := []string{
+		",arch=arm,config=8888,status=failed,",
+		",arch=x86,config=8888,status=passed,",
+	}
+
+	lookup := map[string]map[string]uint16{
+		"arch": {
+			"arm": 1,
+			"x86": 2,
+		},
+		"config": {
+			"8888": 3,
+		},
+		"status": {
+			"failed": 4,
+			"passed": 5,
+		},
+	}
+
+	stride := 8 // typical stride is multiple of 8
+
+	binary, count := encodeTraces(keys, lookup, stride)
+	require.Equal(t, 2, count)
+	require.Equal(t, 2*stride*2, len(binary))
+
+	// Expected row 1: [1, 3, 4, 0, 0, 0, 0, 0]
+	// Expected row 2: [2, 3, 5, 0, 0, 0, 0, 0]
+	expected := make([]byte, 2*stride*2)
+	// Row 1
+	expected[0], expected[1] = 1, 0
+	expected[2], expected[3] = 3, 0
+	expected[4], expected[5] = 4, 0
+	// Row 2
+	offset := stride * 2
+	expected[offset+0], expected[offset+1] = 2, 0
+	expected[offset+2], expected[offset+3] = 3, 0
+	expected[offset+4], expected[offset+5] = 5, 0
+
+	require.Equal(t, expected, binary)
+}
+
+func TestEncodeTraces_WithMissingParamsInLookup(t *testing.T) {
+	// Case 2: Some params missing in lookup (e.g. common params)
+	keys := []string{
+		",arch=arm,config=8888,status=failed,",
+		",arch=x86,config=8888,status=passed,",
+	}
+
+	// config is missing from lookup
+	lookup := map[string]map[string]uint16{
+		"arch": {
+			"arm": 1,
+			"x86": 2,
+		},
+		"status": {
+			"failed": 3,
+			"passed": 4,
+		},
+	}
+
+	stride := 8
+
+	binary, count := encodeTraces(keys, lookup, stride)
+	require.Equal(t, 2, count)
+	require.Equal(t, 2*stride*2, len(binary))
+
+	// Expected row 1: [1, 3, 0, 0, 0, 0, 0, 0]  (config skipped, status becomes index 1 in row)
+	// Expected row 2: [2, 4, 0, 0, 0, 0, 0, 0]
+	expected := make([]byte, 2*stride*2)
+	// Row 1
+	expected[0], expected[1] = 1, 0
+	expected[2], expected[3] = 3, 0
+	// Row 2
+	offset := stride * 2
+	expected[offset+0], expected[offset+1] = 2, 0
+	expected[offset+2], expected[offset+3] = 4, 0
+
+	require.Equal(t, expected, binary)
+}

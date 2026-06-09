@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -174,51 +175,32 @@ func (api *wasmApi) ensureCache(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 
-	type traceCacheEntry struct {
-		Key    string
-		Params paramtools.Params
-	}
+	var keys []string
+	commonParams := map[string]string{}
+	isFirst := true
 
-	var entries []traceCacheEntry
 	for p := range outParams {
 		key, err := query.MakeKeyFast(p)
 		if err != nil {
 			continue
 		}
-		entries = append(entries, traceCacheEntry{
-			Key:    key,
-			Params: p,
-		})
-	}
+		keys = append(keys, key)
 
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].Key < entries[j].Key
-	})
-
-	allParams := make([]paramtools.Params, len(entries))
-	allKeys := make([]string, len(entries))
-	for i, entry := range entries {
-		allParams[i] = entry.Params
-		allKeys[i] = entry.Key
-	}
-
-	// Find common params
-	commonParams := map[string]string{}
-	if len(allParams) > 0 {
-		first := allParams[0]
-		for k, v := range first {
-			allMatch := true
-			for _, p := range allParams[1:] {
-				if p[k] != v {
-					allMatch = false
-					break
-				}
-			}
-			if allMatch {
+		if isFirst {
+			for k, v := range p {
 				commonParams[k] = v
+			}
+			isFirst = false
+		} else {
+			for k, v := range commonParams {
+				if pVal, ok := p[k]; !ok || pVal != v {
+					delete(commonParams, k)
+				}
 			}
 		}
 	}
+
+	sort.Strings(keys)
 
 	// Filter ParamSet to remove common keys
 	ps := api.psRefresher.GetAll()
@@ -231,7 +213,7 @@ func (api *wasmApi) ensureCache(ctx context.Context) error {
 
 	lookup, stride, params := api.buildLookup(filteredPs)
 
-	tracesBinary, traceCount := encodeTraces(allParams, allKeys, lookup, stride)
+	tracesBinary, traceCount := encodeTraces(keys, lookup, stride)
 
 	version := fmt.Sprintf("%d", time.Now().Unix())
 
@@ -347,24 +329,29 @@ func (api *wasmApi) buildLookup(ps paramtools.ParamSet) (map[string]map[string]u
 	return lookup, stride, params
 }
 
-func encodeTraces(allParams []paramtools.Params, allKeys []string, lookup map[string]map[string]uint16, stride int) ([]byte, int) {
-	var tracesBinary []byte
+func encodeTraces(keys []string, lookup map[string]map[string]uint16, stride int) ([]byte, int) {
+	tracesBinary := make([]byte, 0, len(keys)*stride*2)
 	traceCount := 0
-	for _, p := range allParams {
-
-		row := make([]uint16, stride)
-
-		// Extract and sort keys alphabetically to ensure deterministic column order
-		keys := make([]string, 0, len(p))
-		for k := range p {
-			keys = append(keys, k)
+	row := make([]uint16, stride)
+	for _, key := range keys {
+		if len(key) < 3 {
+			continue
 		}
-		sort.Strings(keys)
+		parts := strings.Split(key[1:len(key)-1], ",")
+
+		// Reset row
+		for i := range row {
+			row[i] = 0
+		}
 
 		i := 0
-		for _, key := range keys {
-			val := p[key]
-			if l, ok := lookup[key]; ok {
+		for _, part := range parts {
+			kv := strings.SplitN(part, "=", 2)
+			if len(kv) != 2 {
+				continue
+			}
+			k, val := kv[0], kv[1]
+			if l, ok := lookup[k]; ok {
 				if id, ok := l[val]; ok {
 					row[i] = id
 					i++
