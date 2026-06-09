@@ -5,9 +5,8 @@
  * Displays information regarding the anomalies that were detected around
  * a specific revision.
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { LitElement, html } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { RevisionInfo } from '../json';
 import '../../../elements-sk/modules/spinner-sk';
@@ -22,135 +21,85 @@ class State {
   revisionId: number = 0; // The revisionId.
 }
 
-export class RevisionInfoSk extends ElementSk {
-  constructor() {
-    super(RevisionInfoSk.template);
-  }
-
-  revisionId: HTMLInputElement | null = null;
-
+@customElement('revision-info-sk')
+export class RevisionInfoSk extends LitElement {
+  @property({ type: Array })
   revisionInfos: RevisionInfo[] | null = null;
 
-  private revisionInfoContainer: HTMLDivElement | null = null;
+  @state()
+  private showSpinner = false;
 
-  private showSpinner: boolean = false;
+  @state()
+  private selectAll = false;
 
-  private selectAll: boolean = false;
+  @state()
+  private enableMultiGraph = false;
 
-  private enableMultiGraph: boolean = false;
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private stateHasChanged = () => {};
-
+  @state()
   private state: State = {
     revisionId: 0,
   };
 
-  // toggleSelectAll checks/unchecks all revision ranges on the page
-  public async toggleSelectAll() {
-    this.selectAll = !this.selectAll;
-    this.querySelectorAll<CheckOrRadio>('#selectRevision').forEach((ele) => {
-      ele.checked = this.selectAll;
-    });
+  private stateHasChanged = () => {};
 
-    this.updateMultiGraphStatus();
-    this._render();
+  get revisionId() {
+    return this.querySelector<HTMLInputElement>('#revision_id');
   }
 
-  // viewMultiGraph redirects to multi graph view for the checked revision ranges
-  public async viewMultiGraph(): Promise<void> {
-    const selectedRevs: RevisionInfo[] = [];
+  protected createRenderRoot() {
+    return this;
+  }
 
-    this.querySelectorAll<HTMLInputElement>('#selectRevision').forEach((ele, i) => {
-      if (this.revisionInfos && this.revisionInfos[i] && ele.checked) {
-        selectedRevs.push(this.revisionInfos[i]);
+  connectedCallback() {
+    super.connectedCallback();
+    this.stateHasChanged = stateReflector(
+      /* getState */ () => this.state as unknown as HintableObject,
+      /* setState */ async (newState) => {
+        this.state = newState as unknown as State;
+        if (this.state.revisionId > 0) {
+          if (this.revisionId) {
+            this.revisionId.value = this.state.revisionId.toString();
+          }
+          await this.getRevisionInfo();
+        }
       }
-    });
-
-    const url = await this.getMultiGraphUrl(selectedRevs);
-
-    if (url === '') {
-      errorMessage(
-        `Failed to view graph. Please file a bug at ${(window as any).perf.feedback_url}`
-      );
-      return;
-    }
-
-    window.open(url, '_self');
+    );
   }
 
-  // getMultiGraphUrl generates the redirect url for the multigraph
-  // view of the checked revision ranges
-  async getMultiGraphUrl(revisions: RevisionInfo[]): Promise<string> {
-    const graphConfigs: GraphConfig[] = this.getGraphConfigs(revisions);
-
-    const newShortcut = await updateShortcut(graphConfigs);
-
-    if (newShortcut === '') {
-      return '';
-    }
-
-    const begin: number = revisions.map((rev) => rev.start_time).sort()[0];
-    const end: number = revisions
-      .map((rev) => rev.end_time)
-      .sort()
-      .reverse()[0];
-
-    const uniqueAnomalies: Set<string> = new Set();
-    let highlightAnomalies = '';
-    // Gather the unique anomaly ids from all revisioninfos.
-    revisions
-      .map((rev) => rev.anomaly_ids)
-      .forEach((anomalyArr) => {
-        anomalyArr!.forEach((anomalyId) => {
-          uniqueAnomalies.add(anomalyId);
-        });
-      });
-    uniqueAnomalies.forEach((anomalyId) => {
-      highlightAnomalies += `&highlight_anomalies=${anomalyId}`;
-    });
-
-    const url = `/m/?begin=${begin}&end=${end}&shortcut=${newShortcut}${highlightAnomalies}`;
-
-    return url;
-  }
-
-  // getGraphConfigs generates GraphConfig[] object from the checked revision ranges
-  // provided as func args.
-  getGraphConfigs(revisions: RevisionInfo[]): GraphConfig[] {
-    const graphConfigs: GraphConfig[] = [];
-
-    revisions.forEach((rev) => {
-      graphConfigs.push({
-        formulas: [],
-        queries: [rev.query],
-        keys: '',
-      });
-    });
-
-    return graphConfigs;
-  }
-
-  private static template = (ele: RevisionInfoSk) => html`
-    <h3>Revision Information</h3>
-    <input id=revision_id type=text alt="Revision Id"></input>
-    <button id="getRevisionInfo"  @click=${() =>
-      ele.getRevisionInfo()}>Get Revision Information</button>
-    <div>
-    <button
-      id="getRevisionInfo"
-      ?disabled=${!ele.enableMultiGraph}
-      @click=${() => ele.viewMultiGraph()}
-    >
-      View Selected Graph(s)
-    </button>
-    <div>
-      <spinner-sk ?active=${ele.showSpinner}></spinner-sk>
-    </div>
-    <div id="revision_info_container" hidden=true>
-      ${ele.getRevInfosTemplate()}
-    </div>
+  render() {
+    return html`
+      <h3>Revision Information</h3>
+      <input id="revision_id" type="text" alt="Revision Id" .value=${
+        this.state.revisionId.toString() || ''
+      }></input>
+      <button id="getRevisionInfo" @click=${
+        this._onGetRevisionInfo
+      }>Get Revision Information</button>
+      <div>
+        <button
+          id="viewMultiGraph"
+          ?disabled=${!this.enableMultiGraph}
+          @click=${this.viewMultiGraph}
+        >
+          View Selected Graph(s)
+        </button>
+      </div>
+      <div>
+        <spinner-sk ?active=${this.showSpinner}></spinner-sk>
+      </div>
+      <div id="revision_info_container" ?hidden=${!this.revisionInfos}>
+        ${this.getRevInfosTemplate()}
+      </div>
     `;
+  }
+
+  private async _onGetRevisionInfo() {
+    if (this.revisionId) {
+      this.state.revisionId = +this.revisionId.value;
+    }
+    this.stateHasChanged();
+    await this.getRevisionInfo();
+  }
 
   private getRevInfosTemplate() {
     if (this.revisionInfos === null) {
@@ -178,19 +127,6 @@ export class RevisionInfoSk extends ElementSk {
     `;
   }
 
-  private updateMultiGraphStatus = () => {
-    const hasCheckedRevs =
-      this.querySelectorAll<HTMLInputElement>('#selectRevision input:checked').length > 0;
-
-    if (!hasCheckedRevs) {
-      this.selectAll = false;
-    }
-
-    this.enableMultiGraph = hasCheckedRevs;
-    this._render();
-  };
-
-  // Return the template for an individual row.
   private revInfoRowTemplate = (revInfo: RevisionInfo) => html`
     <tr>
       <td>
@@ -211,44 +147,103 @@ export class RevisionInfoSk extends ElementSk {
     </tr>
   `;
 
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._render();
-    this.revisionId = this.querySelector('#revision_id');
-    this.revisionInfoContainer = this.querySelector('#revision_info_container');
+  public async toggleSelectAll() {
+    this.selectAll = !this.selectAll;
+    this.querySelectorAll<CheckOrRadio>('#selectRevision').forEach((ele) => {
+      ele.checked = this.selectAll;
+    });
 
-    // Set up the state reflector to update the revision id values
-    // in the url as well as the text box.
-    this.stateHasChanged = stateReflector(
-      /* getState */ () => this.state as unknown as HintableObject,
-      /* setState */ async (newState) => {
-        this.state = newState as unknown as State;
-        if (this.state.revisionId > 0) {
-          this.revisionId!.value = this.state.revisionId.toString();
-          if (this.state.revisionId > 0) {
-            await this.getRevisionInfo();
-          }
-        }
-      }
+    this.updateMultiGraphStatus();
+  }
+
+  private updateMultiGraphStatus = () => {
+    const hasCheckedRevs = Array.from(this.querySelectorAll<CheckOrRadio>('#selectRevision')).some(
+      (ele) => ele.checked
     );
+
+    if (!hasCheckedRevs) {
+      this.selectAll = false;
+    }
+
+    this.enableMultiGraph = hasCheckedRevs;
+  };
+
+  public async viewMultiGraph(): Promise<void> {
+    const selectedRevs: RevisionInfo[] = [];
+
+    this.querySelectorAll<CheckOrRadio>('#selectRevision').forEach((ele, i) => {
+      if (this.revisionInfos && this.revisionInfos[i] && ele.checked) {
+        selectedRevs.push(this.revisionInfos[i]);
+      }
+    });
+
+    const url = await this.getMultiGraphUrl(selectedRevs);
+
+    if (url === '') {
+      errorMessage(
+        `Failed to view graph. Please file a bug at ${(window as any).perf.feedback_url}`
+      );
+      return;
+    }
+
+    window.open(url, '_self');
+  }
+
+  async getMultiGraphUrl(revisions: RevisionInfo[]): Promise<string> {
+    const graphConfigs: GraphConfig[] = this.getGraphConfigs(revisions);
+
+    const newShortcut = await updateShortcut(graphConfigs);
+
+    if (newShortcut === '') {
+      return '';
+    }
+
+    const begin: number = revisions.map((rev) => rev.start_time).sort()[0];
+    const end: number = revisions
+      .map((rev) => rev.end_time)
+      .sort()
+      .reverse()[0];
+
+    const uniqueAnomalies: Set<string> = new Set();
+    let highlightAnomalies = '';
+    revisions
+      .map((rev) => rev.anomaly_ids)
+      .forEach((anomalyArr) => {
+        anomalyArr!.forEach((anomalyId) => {
+          uniqueAnomalies.add(anomalyId);
+        });
+      });
+    uniqueAnomalies.forEach((anomalyId) => {
+      highlightAnomalies += `&highlight_anomalies=${anomalyId}`;
+    });
+
+    const url = `/m/?begin=${begin}&end=${end}&shortcut=${newShortcut}${highlightAnomalies}`;
+
+    return url;
+  }
+
+  getGraphConfigs(revisions: RevisionInfo[]): GraphConfig[] {
+    const graphConfigs: GraphConfig[] = [];
+
+    revisions.forEach((rev) => {
+      graphConfigs.push({
+        formulas: [],
+        queries: [rev.query],
+        keys: '',
+      });
+    });
+
+    return graphConfigs;
   }
 
   async getRevisionInfo(): Promise<void> {
-    // Update the UI to reflect the specified revision id and display spinner
     this.showSpinner = true;
-    this.revisionInfoContainer!.hidden = true;
-    this.state.revisionId = +this.revisionId!.value;
-    this.stateHasChanged();
-    this._render();
-
-    // Send the request to get the revision info items to display
-    const response = await fetch(`/_/revision/?rev=${this.revisionId!.value}`);
+    if (this.revisionId && this.revisionId.value) {
+      this.state.revisionId = +this.revisionId.value;
+    }
+    const response = await fetch(`/_/revision/?rev=${this.state.revisionId}`);
     const json = await jsonOrThrow(response);
     this.revisionInfos = json;
-    this.revisionInfoContainer!.hidden = false;
     this.showSpinner = false;
-    this._render();
   }
 }
-
-define('revision-info-sk', RevisionInfoSk);

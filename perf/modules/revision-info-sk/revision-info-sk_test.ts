@@ -10,12 +10,9 @@ describe('revision-info-sk', () => {
   const newInstance = setUpElementUnderTest<RevisionInfoSk>('revision-info-sk');
 
   let element: RevisionInfoSk;
-  beforeEach(() => {
-    element = newInstance((_el: RevisionInfoSk) => {
-      // Place here any code that must run after the element is instantiated but
-      // before it is attached to the DOM (e.g. property setter calls,
-      // document-level event listeners, etc.).
-    });
+  beforeEach(async () => {
+    element = newInstance();
+    await element.updateComplete;
   });
 
   describe('Send Requests', () => {
