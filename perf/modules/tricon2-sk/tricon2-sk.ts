@@ -8,51 +8,29 @@
  *     "untriaged", "positive", or "negative".
  *
  */
-import { html } from 'lit/html.js';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { LitElement, html } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import '../../../elements-sk/modules/icons/check-circle-icon-sk';
 import '../../../elements-sk/modules/icons/cancel-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
 
-export class TriconSk extends ElementSk {
-  constructor() {
-    super(TriconSk.template);
+@customElement('tricon2-sk')
+export class TriconSk extends LitElement {
+  @property({ type: String, reflect: true })
+  value: string = '';
+
+  protected createRenderRoot() {
+    return this;
   }
 
-  private static template = (ele: TriconSk) => {
-    switch (ele.value) {
+  render() {
+    switch (this.value) {
       case 'positive':
-        return html` <check-circle-icon-sk></check-circle-icon-sk> `;
+        return html`<check-circle-icon-sk></check-circle-icon-sk>`;
       case 'negative':
-        return html` <cancel-icon-sk></cancel-icon-sk> `;
+        return html`<cancel-icon-sk></cancel-icon-sk>`;
       default:
-        return html` <help-icon-sk></help-icon-sk> `;
+        return html`<help-icon-sk></help-icon-sk>`;
     }
-  };
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._upgradeProperty('value');
-    this._render();
-  }
-
-  static get observedAttributes(): string[] {
-    return ['value'];
-  }
-
-  /** @prop value {string} Mirrors the 'value' attribute. */
-  get value(): string {
-    return this.getAttribute('value') || '';
-  }
-
-  set value(val: string) {
-    this.setAttribute('value', val);
-  }
-
-  attributeChangedCallback(): void {
-    this._render();
   }
 }
-
-define('tricon2-sk', TriconSk);
