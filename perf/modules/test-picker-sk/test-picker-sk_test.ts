@@ -19,10 +19,12 @@ describe('test-picker-sk', () => {
       const req = JSON.parse(request!.body as string) as NextParamListHandlerRequest;
       const params = toParamSet(req.q!);
       const paramset: any = {};
-      if (Object.keys(params).length === 0) {
-        paramset['benchmark'] = ['benchmark1', 'benchmark2'];
+      if (params.bot) {
+        // leaf
       } else if (params.benchmark) {
         paramset['bot'] = ['bot1', 'bot2'];
+      } else {
+        paramset['benchmark'] = ['benchmark1', 'benchmark2'];
       }
       const response: NextParamListHandlerResponse = {
         paramset: paramset,
@@ -112,10 +114,12 @@ describe('test-picker-sk conditional defaults', () => {
       const paramset: any = {};
 
       // Setup for: metric -> stat
-      if (Object.keys(params).length === 0) {
-        paramset['metric'] = ['timeNs', 'other'];
+      if (params.stat) {
+        // leaf
       } else if (params.metric) {
         paramset['stat'] = ['min', 'max', 'avg'];
+      } else {
+        paramset['metric'] = ['timeNs', 'other'];
       }
 
       const response: NextParamListHandlerResponse = {
@@ -376,7 +380,9 @@ describe('Complex Scenarios (Default, pgo, ref, subtests)', () => {
       const paramset: any = {};
 
       // Hierarchy: benchmark -> bot -> subtest_1 -> subtest_2
-      if (params.subtest_1) {
+      if (params.subtest_2) {
+        // leaf
+      } else if (params.subtest_1) {
         paramset['subtest_2'] = ['s2_x', 's2_y'];
       } else if (params.bot) {
         paramset['subtest_1'] = ['s1_a', 's1_b'];
@@ -505,10 +511,12 @@ describe('test-picker-sk graph interaction', () => {
       const params = toParamSet(req.q!);
       const paramset: any = {};
 
-      if (Object.keys(params).length === 0) {
-        paramset['benchmark'] = ['b1'];
+      if (params.subtest_4) {
+        // leaf
       } else if (params.benchmark) {
         paramset['subtest_4'] = ['pgo', 'ref', DEFAULT_OPTION_LABEL];
+      } else {
+        paramset['benchmark'] = ['b1'];
       }
 
       const response: NextParamListHandlerResponse = {
@@ -636,12 +644,14 @@ describe('Comprehensive Interaction Scenarios', () => {
       const paramset: any = {};
 
       // Basic hierarchy
-      if (Object.keys(params).length === 0) {
-        paramset['benchmark'] = ['b1'];
-      } else if (params.benchmark) {
-        paramset['config'] = ['8888', 'gms', DEFAULT_OPTION_LABEL];
+      if (params.test) {
+        // leaf
       } else if (params.config) {
         paramset['test'] = ['t1', 't2'];
+      } else if (params.benchmark) {
+        paramset['config'] = ['8888', 'gms', DEFAULT_OPTION_LABEL];
+      } else {
+        paramset['benchmark'] = ['b1'];
       }
 
       const response: NextParamListHandlerResponse = {
@@ -880,5 +890,74 @@ describe('Auto Add Trace Logic', () => {
       expect(fields[0].getAttribute('label')).to.equal('benchmark');
       expect(fields[1].getAttribute('label')).to.equal('bot');
     });
+  });
+});
+
+describe('Upstream modification cascading', () => {
+  const newInstance = setUpElementUnderTest<TestPickerSk>('test-picker-sk');
+  let element: TestPickerSk;
+  let fetchMock: any;
+
+  beforeEach(async () => {
+    fetchMock = async (_url: RequestInfo | URL, request: RequestInit | undefined) => {
+      const req = JSON.parse(request!.body as string) as NextParamListHandlerRequest;
+      const params = toParamSet(req.q!);
+      const paramset: any = {};
+
+      // Hierarchy: benchmark -> bot -> test
+      if (params.test) {
+        // leaf
+      } else if (params.bot) {
+        paramset['test'] = ['t1'];
+      } else if (params.benchmark) {
+        if (params.benchmark.includes('b1') && params.benchmark.includes('b2')) {
+          paramset['bot'] = ['bot1', 'bot2'];
+        } else if (params.benchmark.includes('b1')) {
+          paramset['bot'] = ['bot1'];
+        } else if (params.benchmark.includes('b2')) {
+          paramset['bot'] = ['bot2'];
+        } else {
+          paramset['bot'] = [];
+        }
+      } else {
+        paramset['benchmark'] = ['b1', 'b2'];
+      }
+
+      const response: NextParamListHandlerResponse = {
+        paramset: paramset,
+        count: 10,
+      };
+      return await Promise.resolve(new Response(JSON.stringify(response)));
+    };
+    window.fetch = fetchMock;
+
+    element = newInstance((_el: TestPickerSk) => {});
+    element.initializeTestPicker(['benchmark', 'bot', 'test'], {}, false);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+
+  it('filters downstream invalid values and removes further child fields', async () => {
+    // 1. Select benchmark=b1 and b2
+    const benchField = element.querySelector<PickerFieldSk>('picker-field-sk')!;
+    benchField.dispatchEvent(new CustomEvent('value-changed', { detail: { value: ['b1', 'b2'] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // 2. Select bot=bot2
+    const botField = element.querySelectorAll<PickerFieldSk>('picker-field-sk')[1];
+    botField.dispatchEvent(new CustomEvent('value-changed', { detail: { value: ['bot2'] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // 3. Test field should be present
+    let fields = element.querySelectorAll<PickerFieldSk>('picker-field-sk');
+    expect(fields.length).to.equal(3);
+
+    // 4. Change benchmark to only 'b1'. 'bot2' is no longer valid.
+    benchField.dispatchEvent(new CustomEvent('value-changed', { detail: { value: ['b1'] } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // 5. Bot field should remain, but its value should be empty. Test field should be removed.
+    fields = element.querySelectorAll<PickerFieldSk>('picker-field-sk');
+    expect(fields.length).to.equal(2);
+    expect(fields[1].selectedItems.length).to.equal(0);
   });
 });

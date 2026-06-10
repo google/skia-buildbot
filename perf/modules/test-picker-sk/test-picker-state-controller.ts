@@ -147,6 +147,9 @@ export class TestPickerStateController implements ReactiveController {
     if (Object.keys(paramSet).length === 0) {
       return '';
     }
+    if ((this.fieldData[0]?.value || []).length === 0) {
+      return '';
+    }
     for (const defaultParamKey in this.defaultParams) {
       if (!(defaultParamKey in paramSet)) {
         paramSet[defaultParamKey] = this.defaultParams[defaultParamKey]!;
@@ -211,7 +214,7 @@ export class TestPickerStateController implements ReactiveController {
       this.setReadOnly(true);
     }
 
-    const fieldDataQuery = this.createQueryFromFieldData();
+    const fieldDataQuery = this.createQueryFromIndex(index);
     const body: NextParamListHandlerRequest = { q: fieldDataQuery };
 
     try {
@@ -375,11 +378,23 @@ export class TestPickerStateController implements ReactiveController {
             fieldInfo.options = options;
             fieldInfo.index = i;
             let isNewField = false;
+            let valueChanged = false;
             if (fieldInfo.value === null) {
               isNewField = true;
               fieldInfo.value = [];
+            } else {
+              const validValues = fieldInfo.value.filter((v) => options.includes(v));
+              if (validValues.length !== fieldInfo.value.length) {
+                fieldInfo.value = validValues;
+                fieldInfo.selectedItems = validValues;
+                valueChanged = true;
+              }
             }
             this.fieldData = [...this.fieldData];
+
+            if (valueChanged && fieldInfo.value.length === 0) {
+              this.removeChildFields(i);
+            }
 
             this.host.setFieldPendingFocus(param);
             if (isNewField && i > 0) {
@@ -404,6 +419,8 @@ export class TestPickerStateController implements ReactiveController {
                   break;
                 }
               }
+            } else if (fieldInfo.value.length > 0) {
+              await this.fetchExtraOptions(i, hasGraphLoaded);
             }
 
             if (this.currentIndex <= i + 1) {
