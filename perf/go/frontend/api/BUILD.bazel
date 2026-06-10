@@ -72,7 +72,6 @@ go_library(
         "//perf/go/subscription/proto/v1",
         "//perf/go/tracecache",
         "//perf/go/tracestore",
-        "//perf/go/tracestore/sqltracestore",
         "//perf/go/types",
         "//perf/go/ui/frame",
         "//perf/go/urlprovider",

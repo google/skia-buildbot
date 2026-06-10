@@ -10,20 +10,15 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/tracestore"
-	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -161,87 +156,24 @@ func (api *wasmApi) ensureCache(ctx context.Context) error {
 
 	sklog.Infof("Generating Wasm memory cache for tile %d", tile)
 
-	// Fetch traces to build traces.bin.
-	q, err := query.New(nil)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	queryCtx, cancelQuery := context.WithTimeout(ctx, 60*time.Second)
-	defer cancelQuery()
-	queryCtx = context.WithValue(queryCtx, sqltracestore.UseInvertedIndex, true)
-	queryCtx = context.WithValue(queryCtx, sqltracestore.AllowEmptyQuery, true)
-	outParams, err := api.traceStore.QueryTracesIDOnly(queryCtx, tile, q)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-
-	var keys []string
-	commonParams := map[string]string{}
-	isFirst := true
-
-	for p := range outParams {
-		key, err := query.MakeKeyFast(p)
-		if err != nil {
-			continue
-		}
-		keys = append(keys, key)
-
-		if isFirst {
-			for k, v := range p {
-				commonParams[k] = v
-			}
-			isFirst = false
-		} else {
-			for k, v := range commonParams {
-				if pVal, ok := p[k]; !ok || pVal != v {
-					delete(commonParams, k)
-				}
-			}
-		}
-	}
-
-	sort.Strings(keys)
-
-	// Filter ParamSet to remove common keys
 	ps := api.psRefresher.GetAll()
-	filteredPs := paramtools.ParamSet{}
-	for k, v := range ps {
-		if _, ok := commonParams[k]; !ok {
-			filteredPs[k] = v
-		}
-	}
-
-	lookup, stride, params := api.buildLookup(filteredPs)
-
-	tracesBinary, traceCount := encodeTraces(keys, lookup, stride)
-
-	version := fmt.Sprintf("%d", time.Now().Unix())
-
-	meta := struct {
-		Stride       int               `json:"stride"`
-		Count        int               `json:"count"`
-		Version      string            `json:"version"`
-		CommonParams map[string]string `json:"commonParams"`
-	}{
-		Stride:       stride,
-		Count:        traceCount,
-		Version:      version,
-		CommonParams: commonParams,
-	}
-
-	metaBytes, err := json.Marshal(meta)
+	cacheData, err := api.traceStore.GetWasmCache(ctx, tile, ps)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
-	paramsBytes, err := json.Marshal(params)
-	if err != nil {
+	var metaParsed struct {
+		Version string `json:"version"`
+		Count   int    `json:"count"`
+		Stride  int    `json:"stride"`
+	}
+	if err := json.Unmarshal(cacheData.Meta, &metaParsed); err != nil {
 		return skerr.Wrap(err)
 	}
 
 	var buf bytes.Buffer
 	gw := gzip.NewWriter(&buf)
-	if _, err := gw.Write(tracesBinary); err != nil {
+	if _, err := gw.Write(cacheData.Traces); err != nil {
 		return skerr.Wrap(err)
 	}
 	if err := gw.Close(); err != nil {
@@ -251,23 +183,23 @@ func (api *wasmApi) ensureCache(ctx context.Context) error {
 
 	api.cache = &wasmCache{
 		tileNumber: tile,
-		version:    version,
-		meta:       metaBytes,
-		params:     paramsBytes,
-		traces:     tracesBinary,
+		version:    metaParsed.Version,
+		meta:       cacheData.Meta,
+		params:     cacheData.Params,
+		traces:     cacheData.Traces,
 		createdAt:  time.Now(),
 	}
 
-	sklog.Infof("Generated Wasm cache: traces=%d stride=%d", traceCount, stride)
+	sklog.Infof("Generated Wasm cache: traces=%d stride=%d", metaParsed.Count, metaParsed.Stride)
 
 	// Save to cache files
 	if err := os.WriteFile(tracesFile, compressedTraces, 0644); err != nil {
 		sklog.Errorf("Failed to save traces cache: %v", err)
 	}
-	if err := os.WriteFile(metaFile, metaBytes, 0644); err != nil {
+	if err := os.WriteFile(metaFile, cacheData.Meta, 0644); err != nil {
 		sklog.Errorf("Failed to save meta cache: %v", err)
 	}
-	if err := os.WriteFile(paramsFile, paramsBytes, 0644); err != nil {
+	if err := os.WriteFile(paramsFile, cacheData.Params, 0644); err != nil {
 		sklog.Errorf("Failed to save params cache: %v", err)
 	}
 
@@ -305,64 +237,4 @@ func (api *wasmApi) tracesHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(api.cache.traces); err != nil {
 		sklog.Errorf("Failed to write traces response: %v", err)
 	}
-}
-
-func (api *wasmApi) buildLookup(ps paramtools.ParamSet) (map[string]map[string]uint16, int, []Param) {
-	lookup := map[string]map[string]uint16{}
-	var idCounter uint16 = 1
-	var params []Param
-
-	for key, values := range ps {
-		lookup[key] = map[string]uint16{}
-		for _, val := range values {
-			id := idCounter
-			idCounter++
-			params = append(params, Param{Id: id, Key: key, Value: val})
-			lookup[key][val] = id
-		}
-	}
-
-	stride := len(ps)
-	if stride%8 != 0 {
-		stride = (stride/8 + 1) * 8
-	}
-	return lookup, stride, params
-}
-
-func encodeTraces(keys []string, lookup map[string]map[string]uint16, stride int) ([]byte, int) {
-	tracesBinary := make([]byte, 0, len(keys)*stride*2)
-	traceCount := 0
-	row := make([]uint16, stride)
-	for _, key := range keys {
-		if len(key) < 3 {
-			continue
-		}
-		parts := strings.Split(key[1:len(key)-1], ",")
-
-		// Reset row
-		for i := range row {
-			row[i] = 0
-		}
-
-		i := 0
-		for _, part := range parts {
-			kv := strings.SplitN(part, "=", 2)
-			if len(kv) != 2 {
-				continue
-			}
-			k, val := kv[0], kv[1]
-			if l, ok := lookup[k]; ok {
-				if id, ok := l[val]; ok {
-					row[i] = id
-					i++
-				}
-			}
-		}
-
-		for _, v := range row {
-			tracesBinary = append(tracesBinary, byte(v), byte(v>>8))
-		}
-		traceCount++
-	}
-	return tracesBinary, traceCount
 }

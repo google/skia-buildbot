@@ -2,12 +2,14 @@ package sqltracestore
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/perf/go/sql/sqltest"
+	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -692,4 +694,97 @@ func TestInMemoryTraceParams_GetParamSet_Success(t *testing.T) {
 		"c": []string{"d"},
 	}
 	assert.Equal(t, expected.Freeze(), ps)
+}
+
+func TestGetWasmCache_Success(t *testing.T) {
+	db := sqltest.NewSpannerDBForTests(t, "tracestore")
+	ctx := context.Background()
+
+	// Insert paramsets
+	insertIntoParamSets := `
+	INSERT INTO
+		ParamSets (tile_number, param_key, param_value)
+	VALUES
+			( 176, 'a', 'b' ),
+			( 176, 'a', 'notb' ),
+			( 176, 'c', 'd' ),
+			( 176, 'common', 'val' )
+	ON CONFLICT (tile_number, param_key, param_value)
+	DO NOTHING`
+	_, err := db.Exec(ctx, insertIntoParamSets)
+	assert.NoError(t, err)
+
+	traceStore := NewTraceParamStore(db)
+	traceParamMap := map[string]paramtools.Params{
+		string(types.TraceIDForSQLFromTraceName(",a=b,c=d,common=val,")): {
+			"a":      "b",
+			"c":      "d",
+			"common": "val",
+		},
+		string(types.TraceIDForSQLFromTraceName(",a=notb,common=val,")): {
+			"a":      "notb",
+			"common": "val",
+		},
+	}
+	err = traceStore.WriteTraceParams(ctx, traceParamMap)
+	assert.NoError(t, err)
+
+	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
+	assert.NoError(t, err)
+
+	ps := paramtools.ParamSet{
+		"a":      []string{"b", "notb"},
+		"c":      []string{"d"},
+		"common": []string{"val"},
+	}
+
+	cacheData, err := inMemoryTraceParams.GetWasmCache(ctx, ps.Freeze())
+	assert.NoError(t, err)
+	assert.NotNil(t, cacheData)
+
+	// Verify Meta
+	var meta struct {
+		Stride       int               `json:"stride"`
+		Count        int               `json:"count"`
+		Version      string            `json:"version"`
+		CommonParams map[string]string `json:"commonParams"`
+	}
+	err = json.Unmarshal(cacheData.Meta, &meta)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, meta.Count)
+	assert.Equal(t, "val", meta.CommonParams["common"])
+	_, ok := meta.CommonParams["a"]
+	assert.False(t, ok)
+	// Stride should be len(filteredPs) rounded to multiple of 8.
+	// filteredPs has "a" and "c". len is 2. Stride should be 8.
+	assert.Equal(t, 8, meta.Stride)
+
+	// Verify Params
+	var params []tracestore.WasmParam
+	err = json.Unmarshal(cacheData.Params, &params)
+	assert.NoError(t, err)
+	// Should contain "a" (b, notb) and "c" (d). "common" should be excluded.
+	assert.Equal(t, 3, len(params))
+
+	// Verify they are sorted/consistent
+	assert.Equal(t, "a", params[0].Key)
+	assert.Equal(t, "b", params[0].Value)
+	assert.Equal(t, "a", params[1].Key)
+	assert.Equal(t, "notb", params[1].Value)
+	assert.Equal(t, "c", params[2].Key)
+	assert.Equal(t, "d", params[2].Value)
+
+	assert.Equal(t, 32, len(cacheData.Traces))
+
+	// Expected content:
+	// Row 1: [1, 3, 0, 0, 0, 0, 0, 0]
+	// Row 2: [2, 0, 0, 0, 0, 0, 0, 0]
+	expectedTraces := make([]byte, 32)
+	// Row 1
+	expectedTraces[0], expectedTraces[1] = 1, 0
+	expectedTraces[2], expectedTraces[3] = 3, 0
+	// Row 2
+	expectedTraces[16], expectedTraces[17] = 2, 0
+
+	assert.Equal(t, expectedTraces, cacheData.Traces)
 }

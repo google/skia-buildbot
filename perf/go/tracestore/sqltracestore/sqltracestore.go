@@ -834,6 +834,22 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 	return outParams, nil
 }
 
+// GetWasmCache implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) GetWasmCache(ctx context.Context, tileNumber types.TileNumber, ps paramtools.ReadOnlyParamSet) (*tracestore.WasmCacheData, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetWasmCache")
+	defer span.End()
+
+	latestTile, err := s.GetLatestTile(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if tileNumber != latestTile {
+		return nil, skerr.Fmt("Wasm cache is only supported for the latest tile (%d), requested %d", latestTile, tileNumber)
+	}
+
+	return s.inMemoryTraceParams.GetWasmCache(ctx, ps)
+}
+
 // ReadTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumber, traceNames []string) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error) {
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTraces")

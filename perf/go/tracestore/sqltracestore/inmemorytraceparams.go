@@ -3,6 +3,7 @@ package sqltracestore
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"sync"
@@ -16,6 +17,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -759,4 +761,150 @@ func buildParamSet(traceparams [][]int32, paramCols map[string]int32, rEncoding 
 	}
 	ret.Normalize()
 	return ret
+}
+
+// GetWasmCache returns the Wasm cache data for the latest tile.
+func (tp *InMemoryTraceParams) GetWasmCache(ctx context.Context, ps paramtools.ReadOnlyParamSet) (*tracestore.WasmCacheData, error) {
+	tp.dataLock.RLock()
+	defer tp.dataLock.RUnlock()
+
+	if len(tp.traceparams) == 0 {
+		return nil, skerr.Fmt("No trace parameters in memory")
+	}
+
+	numTraces := len(tp.traceparams[0])
+	if numTraces == 0 {
+		return nil, skerr.Fmt("No traces in memory")
+	}
+
+	// 1. Compute commonParams
+	commonParams := map[string]string{}
+	for key, colIdx := range tp.paramCols {
+		column := tp.traceparams[colIdx]
+		if len(column) == 0 {
+			continue
+		}
+		firstVal := column[0]
+		if firstVal < 0 {
+			continue // Missing in first trace, so not common
+		}
+		isCommon := true
+		for i := 1; i < numTraces; i++ {
+			if column[i] != firstVal {
+				isCommon = false
+				break
+			}
+		}
+		if isCommon {
+			commonParams[key] = tp.rEncoding[firstVal]
+		}
+	}
+
+	// 2. Filter ParamSet to remove common keys
+	filteredPs := paramtools.ParamSet{}
+	for k, v := range ps {
+		if _, ok := commonParams[k]; !ok {
+			filteredPs[k] = v
+		}
+	}
+
+	// 3. Build lookup and params
+	var keys []string
+	for k := range filteredPs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	globalLookup := make([]uint16, len(tp.encoding))
+	var idCounter uint16 = 1
+	var wasmParams []tracestore.WasmParam
+
+	for _, key := range keys {
+		values := filteredPs[key]
+		// Sort values for stability
+		sortedValues := make([]string, len(values))
+		copy(sortedValues, values)
+		sort.Strings(sortedValues)
+
+		for _, val := range sortedValues {
+			id := idCounter
+			idCounter++
+			wasmParams = append(wasmParams, tracestore.WasmParam{Id: id, Key: key, Value: val})
+			if e, ok := tp.encoding[val]; ok {
+				globalLookup[e] = id
+			}
+		}
+	}
+
+	stride := len(filteredPs)
+	if stride%8 != 0 {
+		stride = (stride/8 + 1) * 8
+	}
+
+	// 4. Encode traces
+	tracesBinary := make([]byte, numTraces*stride*2)
+	row := make([]uint16, stride)
+
+	activeColIdxs := make([]int32, 0, len(keys))
+	for _, key := range keys {
+		if colIdx, ok := tp.paramCols[key]; ok {
+			activeColIdxs = append(activeColIdxs, colIdx)
+		}
+	}
+
+	for t := 0; t < numTraces; t++ {
+		// Reset row
+		for i := range row {
+			row[i] = 0
+		}
+
+		i := 0
+		for _, colIdx := range activeColIdxs {
+			valIdx := tp.traceparams[colIdx][t]
+			if valIdx >= 0 {
+				id := globalLookup[valIdx]
+				if id > 0 {
+					row[i] = id
+					i++
+				}
+			}
+		}
+
+		// Write row to tracesBinary
+		rowOffset := t * stride * 2
+		for rIdx, v := range row {
+			tracesBinary[rowOffset+rIdx*2] = byte(v)
+			tracesBinary[rowOffset+rIdx*2+1] = byte(v >> 8)
+		}
+	}
+
+	// 5. Marshal meta and params
+	version := fmt.Sprintf("%d", time.Now().Unix())
+	meta := struct {
+		Stride       int               `json:"stride"`
+		Count        int               `json:"count"`
+		Version      string            `json:"version"`
+		CommonParams map[string]string `json:"commonParams"`
+	}{
+		Stride:       stride,
+		Count:        numTraces,
+		Version:      version,
+		CommonParams: commonParams,
+	}
+
+	metaBytes, err := json.Marshal(meta)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	paramsBytes, err := json.Marshal(wasmParams)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return &tracestore.WasmCacheData{
+		Meta:   metaBytes,
+		Params: paramsBytes,
+		Traces: tracesBinary,
+	}, nil
 }

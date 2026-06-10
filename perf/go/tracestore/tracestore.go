@@ -20,6 +20,20 @@ type Source struct {
 	CommitNumber types.CommitNumber
 }
 
+// WasmParam is a parameter description for Wasm.
+type WasmParam struct {
+	Id    uint16 `json:"id"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// WasmCacheData holds the generated Wasm cache.
+type WasmCacheData struct {
+	Meta   []byte
+	Params []byte
+	Traces []byte
+}
+
 // TraceStore is the interface that all backends that store traces must
 // implement. It is used by dfbuilder to build DataFrames and by the perf-tool
 // to perform some common maintenance tasks.
@@ -56,6 +70,9 @@ type TraceStore interface {
 	// given query.
 	// TODO(jcgregorio) Change to just return count and ParamSet.
 	QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error)
+
+	// GetWasmCache returns the Wasm cache data for the given tile.
+	GetWasmCache(ctx context.Context, tileNumber types.TileNumber, ps paramtools.ReadOnlyParamSet) (*WasmCacheData, error)
 
 	// ReadTraces loads the traces for the given trace keys.
 	ReadTraces(ctx context.Context, tileNumber types.TileNumber, keys []string) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error)
