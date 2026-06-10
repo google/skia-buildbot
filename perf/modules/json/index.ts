@@ -505,6 +505,7 @@ export interface SkPerfConfig {
 	disable_shortcut_update?: boolean;
 	default_to_manual_plot_mode?: boolean;
 	sheriff_config_url?: string;
+	trace_transform?: boolean;
 }
 
 export interface TriageRequest {

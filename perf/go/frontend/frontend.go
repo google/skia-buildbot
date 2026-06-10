@@ -460,6 +460,7 @@ type SkPerfConfig struct {
 	DisableShortcutUpdate       bool               `json:"disable_shortcut_update,omitempty"`
 	DefaultToManualPlotMode     bool               `json:"default_to_manual_plot_mode,omitempty"`
 	SheriffConfigUrl            string             `json:"sheriff_config_url,omitempty"`
+	TraceTransform              bool               `json:"trace_transform,omitempty"` // True if custom trace transformations are enabled.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -516,6 +517,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		ExtraLinks:                  config.Config.ExtraLinks,
 		DisableShortcutUpdate:       f.flags.DisableShortcutUpdate,
 		DefaultToManualPlotMode:     config.Config.DefaultToManualPlotMode,
+		TraceTransform:              config.Config.Experiments.TraceTransform,
 	}
 
 	if config.Config.MaintenanceConfig.GitilesRepoUrl != "" && config.Config.MaintenanceConfig.SheriffConfigPath != "" {

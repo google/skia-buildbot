@@ -27,7 +27,8 @@
     "query_traces_chunk_size": 500
   },
   "experiments": {
-    "regressions_trace_id_field": true
+    "regressions_trace_id_field": true,
+    "trace_transform": true
   },
   "ingestion_config": {
     "source_config": {

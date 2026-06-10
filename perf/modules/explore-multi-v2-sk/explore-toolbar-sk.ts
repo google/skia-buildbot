@@ -1,5 +1,6 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import '../window/window';
 
 @customElement('explore-toolbar-sk')
 export class ExploreToolbarSk extends LitElement {
@@ -34,6 +35,8 @@ export class ExploreToolbarSk extends LitElement {
   @property({ type: Boolean }) dateMode = false;
 
   @property({ type: Boolean }) evenXAxisSpacing = false;
+
+  @property({ type: String }) transformPreset = 'none';
 
   @property({ type: String }) hoverMode = 'original';
 
@@ -269,6 +272,26 @@ export class ExploreToolbarSk extends LitElement {
             Even X-Axis Spacing
           </label>
 
+          ${window.perf?.trace_transform
+            ? html`
+                <div class="toolbar-group">
+                  <span class="label">Transform:</span>
+                  <select
+                    class="custom-select"
+                    .value=${this.transformPreset}
+                    @change=${this._handleTransformPresetChange}>
+                    <option value="none">None</option>
+                    <option value="delta">Delta (X[i] - X[i-1])</option>
+                    <option value="rel_delta">Relative Delta ((X[i] - X[i-1]) / X[i-1])</option>
+                    <option value="velocity">Velocity (Delta / Commit Delta)</option>
+                    <option value="avg3">Moving Average (3pt)</option>
+                    <option value="median3">Moving Median (3pt)</option>
+                    <option value="stddev10">Moving StdDev (10pt)</option>
+                  </select>
+                </div>
+              `
+            : ''}
+
           <details
             id="yaxis-splitter"
             class="custom-select yaxis-splitter-details"
@@ -457,5 +480,10 @@ export class ExploreToolbarSk extends LitElement {
         composed: true,
       })
     );
+  }
+
+  private _handleTransformPresetChange(e: any) {
+    const val = e.target.value;
+    this._emitChange('transformPreset', val);
   }
 }

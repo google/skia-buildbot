@@ -1032,6 +1032,8 @@ type Experiments struct {
 	RegressionsTraceIdField bool `json:"regressions_trace_id_field,omitempty"`
 	// Flag specifying whether to use the trace slicer for dfiter.
 	DfIterTraceSlicer bool `json:"df_iter_trace_slicer,omitempty"`
+	// Flag specifying whether to enable custom trace transformations.
+	TraceTransform bool `json:"trace_transform,omitempty"`
 }
 
 type CacheType string

@@ -42,7 +42,8 @@
         "enable_skia_bridge_aggregation": true,
         "df_iter_trace_slicer": true,
         "regressions_trace_id_field": true,
-        "override_bug_component": true
+        "override_bug_component": true,
+        "trace_transform": true
     },
     "ingestion_config": {
         "source_config": {

@@ -78,6 +78,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:node_modules/lit",
+        "//perf/modules/window:window_ts_lib",
     ],
 )
 
@@ -85,6 +86,10 @@ ts_library(
     name = "chart-logic_ts_lib",
     srcs = ["chart-logic.ts"],
     visibility = ["//visibility:public"],
+    deps = [
+        ":trace-types_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
+    ],
 )
 
 ts_library(

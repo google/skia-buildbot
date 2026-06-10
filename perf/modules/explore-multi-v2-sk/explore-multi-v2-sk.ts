@@ -7,6 +7,7 @@ import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import {
   computeTraceDiffs,
+  computeCustomTransforms,
   computeSplitGroups,
   calculateLoadedBounds,
   calculateSharedBounds,
@@ -219,6 +220,8 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _evenXAxisSpacing = false;
 
+  @state() private _transformPreset = 'none';
+
   @state() private _tooltipDiffs = false;
 
   @state() private _smooth = false;
@@ -287,6 +290,7 @@ export class ExploreMultiV2Sk extends LitElement {
           regressions: this._showRegressions,
           tooltipDiffs: this._tooltipDiffs,
           evenXAxisSpacing: this._evenXAxisSpacing,
+          transformPreset: this._transformPreset,
           dateMode: this.dateMode,
           page: this._tracePage,
           pageSize: this._pageSize,
@@ -372,6 +376,8 @@ export class ExploreMultiV2Sk extends LitElement {
         if (stateObj.tooltipDiffs !== undefined) this._tooltipDiffs = stateObj.tooltipDiffs;
         if (stateObj.evenXAxisSpacing !== undefined)
           this._evenXAxisSpacing = stateObj.evenXAxisSpacing;
+        if (stateObj.transformPreset !== undefined)
+          this._transformPreset = stateObj.transformPreset;
         if (stateObj.dateMode !== undefined) this.dateMode = stateObj.dateMode;
         if (stateObj.page !== undefined) this._tracePage = stateObj.page;
         if (stateObj.pageSize !== undefined) this._pageSize = stateObj.pageSize;
@@ -2277,9 +2283,13 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   render() {
-    const displaySeries = this._diffBase
+    let displaySeries = this._diffBase
       ? computeTraceDiffs(this._seriesData, this._diffBase)
       : this._seriesData;
+
+    if (this._transformPreset !== 'none') {
+      displaySeries = computeCustomTransforms(displaySeries, this._transformPreset);
+    }
 
     const totalMatchedPages = Math.max(
       1,
@@ -2295,7 +2305,16 @@ export class ExploreMultiV2Sk extends LitElement {
           this._matchingTraceIds.slice(startIdx, endIdx).map((id) => this._getPrimaryKey(id))
         );
 
-    const currentPageTraces = displaySeries.filter((s) => currentVisibleIds.has(s.id));
+    const currentPageTraces = displaySeries.filter((s) => {
+      // Note: We cannot simply use `(s as any).originalId || s.id`.
+      // For original series, `s.id` is the collapsed primary key (e.g. without `stat=min/max`),
+      // while `s.originalId` is the un-collapsed raw database key (containing `stat=`).
+      // Since `currentVisibleIds` only contains collapsed primary keys, using `originalId` on
+      // original traces would check for un-collapsed keys and discard all traces from the graph.
+      // Therefore, we only fallback to `originalId` if the series is a transformed series.
+      const primaryKey = s.id.includes('special=transform') ? (s as any).originalId : s.id;
+      return currentVisibleIds.has(primaryKey);
+    });
     const groups = computeSplitGroups(currentPageTraces, this.splitKeys);
 
     return html`
@@ -2434,6 +2453,7 @@ export class ExploreMultiV2Sk extends LitElement {
           .showDots=${this._showDots}
           .showSparklines=${this._showSparklines}
           .evenXAxisSpacing=${this._evenXAxisSpacing}
+          .transformPreset=${this._transformPreset}
           .showRegressions=${this._showRegressions}
           .tooltipDiffs=${this._tooltipDiffs}
           .dateMode=${this.dateMode}

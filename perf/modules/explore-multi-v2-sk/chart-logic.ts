@@ -1,3 +1,5 @@
+import { makeKey } from '../paramtools';
+import { TraceRow } from './trace-types';
 /**
  * Find start and end indices of rows that are visible within viewMin/Max,
  * including one point buffer on each side for continuous lines.
@@ -468,4 +470,110 @@ export function calculateSharedBounds(
   });
 
   return Object.keys(boundsBySource).length > 0 ? boundsBySource : null;
+}
+
+const MISSING_DATA_SENTINEL = 1e32;
+
+const avg = (arr: number[], i: number, windowSize: number): number => {
+  const start = i - windowSize + 1;
+  const end = i;
+  const slice = arr
+    .slice(Math.max(0, start), Math.min(arr.length, end + 1))
+    .filter((v) => v !== MISSING_DATA_SENTINEL);
+  if (slice.length === 0) return MISSING_DATA_SENTINEL;
+  return slice.reduce((a, b) => a + b, 0) / slice.length;
+};
+
+const median = (arr: number[], i: number, windowSize: number): number => {
+  const start = i - windowSize + 1;
+  const end = i;
+  const slice = arr
+    .slice(Math.max(0, start), Math.min(arr.length, end + 1))
+    .filter((v) => v !== MISSING_DATA_SENTINEL);
+  if (slice.length === 0) return MISSING_DATA_SENTINEL;
+  slice.sort((a, b) => a - b);
+  return slice[Math.floor(slice.length / 2)];
+};
+
+const stddev = (arr: number[], i: number, windowSize: number): number => {
+  const start = i - windowSize + 1;
+  const end = i;
+  const slice = arr
+    .slice(Math.max(0, start), Math.min(arr.length, end + 1))
+    .filter((v) => v !== MISSING_DATA_SENTINEL);
+  if (slice.length === 0) return MISSING_DATA_SENTINEL;
+  const avgVal = slice.reduce((a, b) => a + b, 0) / slice.length;
+  const sumSq = slice.reduce((sum, v) => sum + Math.pow(v - avgVal, 2), 0);
+  return Math.sqrt(sumSq / slice.length);
+};
+
+export interface TransformableSeries {
+  id: string;
+  originalId?: string;
+  rows: TraceRow[];
+  [key: string]: any;
+}
+
+export function computeCustomTransforms(
+  series: TransformableSeries[],
+  preset: string
+): TransformableSeries[] {
+  if (!preset || preset === 'none') return series;
+
+  const result: TransformableSeries[] = [];
+  series.forEach((s) => {
+    result.push(s);
+
+    const params = parseId(s.id);
+    params['special'] = 'transform';
+    const diffId = makeKey(params);
+
+    const rows = s.rows || [];
+    const X = rows.map((r: TraceRow) => r.val);
+    const commits = rows.map((r: TraceRow) => r.commit_number);
+
+    const diffRows: TraceRow[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      let val = MISSING_DATA_SENTINEL;
+
+      if (preset === 'delta') {
+        if (i > 0) {
+          val = X[i] - X[i - 1];
+        }
+      } else if (preset === 'rel_delta') {
+        if (i > 0 && X[i - 1] !== 0 && X[i - 1] !== MISSING_DATA_SENTINEL) {
+          val = (X[i] - X[i - 1]) / X[i - 1];
+        }
+      } else if (preset === 'velocity') {
+        if (i > 0 && commits[i] !== commits[i - 1]) {
+          val = (X[i] - X[i - 1]) / (commits[i] - commits[i - 1]);
+        }
+      } else if (preset === 'avg3') {
+        val = avg(X, i, 3);
+      } else if (preset === 'median3') {
+        val = median(X, i, 3);
+      } else if (preset === 'stddev10') {
+        val = stddev(X, i, 10);
+      }
+
+      if (val !== MISSING_DATA_SENTINEL && !isNaN(val)) {
+        diffRows.push({
+          ...row,
+          val: val,
+          smoothedVal: undefined,
+        });
+      }
+    }
+
+    if (diffRows.length > 0) {
+      result.push({
+        ...s,
+        id: diffId,
+        originalId: s.id,
+        rows: diffRows,
+      });
+    }
+  });
+  return result;
 }

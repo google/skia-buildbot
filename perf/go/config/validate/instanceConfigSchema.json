@@ -201,6 +201,9 @@
         },
         "df_iter_trace_slicer": {
           "type": "boolean"
+        },
+        "trace_transform": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

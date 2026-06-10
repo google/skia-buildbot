@@ -39,6 +39,7 @@
       "min_db_connections": 5
     },
     "experiments": {
+        "trace_transform": true
     },
     "ingestion_config": {
       "source_config": {
