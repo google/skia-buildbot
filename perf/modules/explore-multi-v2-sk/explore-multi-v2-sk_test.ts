@@ -1310,4 +1310,32 @@ describe('explore-multi-v2-sk', () => {
       expect(queryBars.length).to.equal(4);
     });
   });
+
+  describe('trace color assignment', () => {
+    it('assigns unique and stable colors based on position in _seriesData', async () => {
+      // Set seriesData using the helper method
+      (element as any)['_updateSeriesData']([
+        { id: 't1', rows: [], color: 'red' },
+        { id: 't2', rows: [], color: 'red' },
+      ]);
+
+      // They should have been reassigned unique colors
+      const c1 = element['_seriesData'][0].color;
+      const c2 = element['_seriesData'][1].color;
+      expect(c1).to.not.equal(c2);
+      expect(c1).to.equal('hsl(0, 70%, 50%)');
+      expect(c2).to.equal('hsl(137.5, 70%, 50%)');
+
+      // Now add a third series
+      (element as any)['_updateSeriesData']([
+        ...element['_seriesData'],
+        { id: 't3', rows: [], color: 'red' },
+      ]);
+
+      const c3 = element['_seriesData'][2].color;
+      expect(element['_seriesData'][0].color).to.equal(c1); // stable
+      expect(element['_seriesData'][1].color).to.equal(c2); // stable
+      expect(c3).to.equal('hsl(275, 70%, 50%)'); // unique
+    });
+  });
 });

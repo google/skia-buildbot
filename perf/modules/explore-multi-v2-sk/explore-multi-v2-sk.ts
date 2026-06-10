@@ -468,7 +468,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
     if (!hasFilters) {
       this._matchingTraceIds = [];
-      this._seriesData = [];
+      this._updateSeriesData([]);
       this._loadedBounds = {};
       this._globalBounds = {};
       this._regressions = {};
@@ -1259,7 +1259,7 @@ export class ExploreMultiV2Sk extends LitElement {
     this.begin = -1;
     this.end = -1;
     this._resolveTimeRange();
-    this._seriesData = [];
+    this._updateSeriesData([]);
     this._loadedBounds = {};
     this._globalBounds = {};
     this._regressions = {};
@@ -1633,7 +1633,7 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   private _handleRemoveTrace(id: string) {
-    this._seriesData = this._seriesData.filter((s) => s.id !== id);
+    this._updateSeriesData(this._seriesData.filter((s) => s.id !== id));
     this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
     delete this._globalBounds[id];
     this.requestUpdate();
@@ -1641,7 +1641,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _handleCloseChart(ids: string[]) {
     const idSet = new Set(ids);
-    this._seriesData = this._seriesData.filter((s) => !idSet.has(s.id));
+    this._updateSeriesData(this._seriesData.filter((s) => !idSet.has(s.id)));
     this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
     ids.forEach((id) => delete this._globalBounds[id]);
     this.requestUpdate();
@@ -1670,7 +1670,7 @@ export class ExploreMultiV2Sk extends LitElement {
       }
     });
 
-    this._seriesData = newSeries;
+    this._updateSeriesData(newSeries);
     this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
   }
 
@@ -1820,7 +1820,7 @@ export class ExploreMultiV2Sk extends LitElement {
    * viewport bounds if they are currently unset.
    */
   private _processNewSeries(newSeries: TraceSeries[], updateViewport = true) {
-    this._seriesData = this._mergeSeriesWithStats(this._seriesData, newSeries);
+    this._updateSeriesData(this._mergeSeriesWithStats(this._seriesData, newSeries));
     this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
     if (updateViewport && (this.viewportMinX === null || this.viewportMaxX === null)) {
       const sharedBounds = calculateSharedBounds(
@@ -1834,6 +1834,13 @@ export class ExploreMultiV2Sk extends LitElement {
         this.viewportMaxX = sharedBounds[source].max;
       }
     }
+  }
+
+  private _updateSeriesData(series: TraceSeries[]) {
+    this._seriesData = series.map((s, idx) => ({
+      ...s,
+      color: `hsl(${(idx * 137.5) % 360}, 70%, 50%)`,
+    }));
   }
 
   private _handleHoverChanged(e: CustomEvent<{ dataX: number | null }>) {
@@ -2229,7 +2236,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
       if (updatedCount > 0) {
         console.log(`Successfully fetched and attached metadata to ${updatedCount} trace rows.`);
-        this._seriesData = nextSeriesData;
+        this._updateSeriesData(nextSeriesData);
         this._updateAvailableSubrepos();
       }
 
