@@ -155,3 +155,7 @@ type LegacyQueryJobListResponse struct {
 	Prev       bool               `json:"prev"`
 	Next       bool               `json:"next"`
 }
+
+type BotConfigurationsResponse struct {
+	Configurations []string `json:"configurations"`
+}

@@ -187,6 +187,15 @@ export interface CreateJobResponse {
   jobId: string;
 }
 
+/** Request message to list all available bots. */
+export interface ListBotConfigurationsRequest {
+}
+
+/** Response message containing the list of available bots. */
+export interface ListBotConfigurationsResponse {
+  configurations: string[];
+}
+
 /** Service definition for Pinpoint Gateway API. */
 export interface PinpointGateway {
   /** Queries a list of jobs based on filters and pagination options. */
@@ -195,4 +204,6 @@ export interface PinpointGateway {
   GetUserInfo(request: GetUserInfoRequest): Promise<GetUserInfoResponse>;
   /** Creates a new Pinpoint try job. */
   CreateTryJob(request: CreateTryJobRequest): Promise<CreateJobResponse>;
+  /** Lists all available bots. */
+  ListBotConfigurations(request: ListBotConfigurationsRequest): Promise<ListBotConfigurationsResponse>;
 }

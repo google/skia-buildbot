@@ -39,8 +39,18 @@
         <div>
           <mat-form-field matTooltip="The swarming bot configuration on which the benchmark will be executed.">
             <mat-label>Bot</mat-label>
-            <input matInput formControlName="bot" placeholder="e.g. win-11-perf" required />
-            <mat-error>Bot is required</mat-error>
+            <input matInput formControlName="bot" placeholder="e.g. win-11-perf" required [matAutocomplete]="auto" />
+            <mat-autocomplete #auto="matAutocomplete">
+              @for (bot of filteredBots(); track bot) {
+                <mat-option [value]="bot">{{bot}}</mat-option>
+              }
+            </mat-autocomplete>
+            @if (jobForm.get('bot')?.hasError('required')) {
+              <mat-error>Bot is required</mat-error>
+            }
+            @if (jobForm.get('bot')?.hasError('invalidAutocomplete')) {
+              <mat-error>Please select a bot from the list of available configurations</mat-error>
+            }
           </mat-form-field>
         </div>
 

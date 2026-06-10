@@ -68,8 +68,9 @@ func TestNewGatewayJSONHandler_GetUserInfo(t *testing.T) {
 }
 
 type mockPinpointClient struct {
-	queryJobListFunc         func(ctx context.Context, req *pb.QueryJobListRequest) (*pb.QueryJobListResponse, error)
-	createPinpointTryJobFunc func(ctx context.Context, req *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error)
+	queryJobListFunc          func(ctx context.Context, req *pb.QueryJobListRequest) (*pb.QueryJobListResponse, error)
+	createPinpointTryJobFunc  func(ctx context.Context, req *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error)
+	listBotConfigurationsFunc func(ctx context.Context) ([]string, error)
 }
 
 func (m *mockPinpointClient) QueryJobList(
@@ -88,6 +89,13 @@ func (m *mockPinpointClient) CreatePinpointTryJob(
 ) (*pb.CreateJobResponse, error) {
 	if m.createPinpointTryJobFunc != nil {
 		return m.createPinpointTryJobFunc(ctx, req)
+	}
+	return nil, nil
+}
+
+func (m *mockPinpointClient) ListBotConfigurations(ctx context.Context) ([]string, error) {
+	if m.listBotConfigurationsFunc != nil {
+		return m.listBotConfigurationsFunc(ctx)
 	}
 	return nil, nil
 }
@@ -161,5 +169,35 @@ func TestCreateTryJob(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Equal(t, "legacy endpoint failed", err.Error())
+	})
+}
+
+func TestListBotConfigurations(t *testing.T) {
+	t.Run("successful list", func(t *testing.T) {
+		expectedBots := []string{"bot1", "bot2"}
+		client := &mockPinpointClient{
+			listBotConfigurationsFunc: func(ctx context.Context) ([]string, error) {
+				return expectedBots, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.ListBotConfigurations(context.Background(), &pb.ListBotConfigurationsRequest{})
+		require.NoError(t, err)
+		assert.Equal(t, expectedBots, resp.Configurations)
+	})
+
+	t.Run("client returns error", func(t *testing.T) {
+		client := &mockPinpointClient{
+			listBotConfigurationsFunc: func(ctx context.Context) ([]string, error) {
+				return nil, errors.New("failed to list bots")
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.ListBotConfigurations(context.Background(), &pb.ListBotConfigurationsRequest{})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "failed to list bots")
 	})
 }

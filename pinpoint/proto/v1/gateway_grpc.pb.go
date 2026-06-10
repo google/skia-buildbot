@@ -20,9 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PinpointGateway_QueryJobList_FullMethodName = "/pinpoint.v1.PinpointGateway/QueryJobList"
-	PinpointGateway_GetUserInfo_FullMethodName  = "/pinpoint.v1.PinpointGateway/GetUserInfo"
-	PinpointGateway_CreateTryJob_FullMethodName = "/pinpoint.v1.PinpointGateway/CreateTryJob"
+	PinpointGateway_QueryJobList_FullMethodName          = "/pinpoint.v1.PinpointGateway/QueryJobList"
+	PinpointGateway_GetUserInfo_FullMethodName           = "/pinpoint.v1.PinpointGateway/GetUserInfo"
+	PinpointGateway_CreateTryJob_FullMethodName          = "/pinpoint.v1.PinpointGateway/CreateTryJob"
+	PinpointGateway_ListBotConfigurations_FullMethodName = "/pinpoint.v1.PinpointGateway/ListBotConfigurations"
 )
 
 // PinpointGatewayClient is the client API for PinpointGateway service.
@@ -37,6 +38,8 @@ type PinpointGatewayClient interface {
 	GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
 	// Creates a new Pinpoint try job.
 	CreateTryJob(ctx context.Context, in *CreateTryJobRequest, opts ...grpc.CallOption) (*CreateJobResponse, error)
+	// Lists all available bots.
+	ListBotConfigurations(ctx context.Context, in *ListBotConfigurationsRequest, opts ...grpc.CallOption) (*ListBotConfigurationsResponse, error)
 }
 
 type pinpointGatewayClient struct {
@@ -77,6 +80,16 @@ func (c *pinpointGatewayClient) CreateTryJob(ctx context.Context, in *CreateTryJ
 	return out, nil
 }
 
+func (c *pinpointGatewayClient) ListBotConfigurations(ctx context.Context, in *ListBotConfigurationsRequest, opts ...grpc.CallOption) (*ListBotConfigurationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListBotConfigurationsResponse)
+	err := c.cc.Invoke(ctx, PinpointGateway_ListBotConfigurations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PinpointGatewayServer is the server API for PinpointGateway service.
 // All implementations must embed UnimplementedPinpointGatewayServer
 // for forward compatibility.
@@ -89,6 +102,8 @@ type PinpointGatewayServer interface {
 	GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error)
 	// Creates a new Pinpoint try job.
 	CreateTryJob(context.Context, *CreateTryJobRequest) (*CreateJobResponse, error)
+	// Lists all available bots.
+	ListBotConfigurations(context.Context, *ListBotConfigurationsRequest) (*ListBotConfigurationsResponse, error)
 	mustEmbedUnimplementedPinpointGatewayServer()
 }
 
@@ -107,6 +122,9 @@ func (UnimplementedPinpointGatewayServer) GetUserInfo(context.Context, *GetUserI
 }
 func (UnimplementedPinpointGatewayServer) CreateTryJob(context.Context, *CreateTryJobRequest) (*CreateJobResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateTryJob not implemented")
+}
+func (UnimplementedPinpointGatewayServer) ListBotConfigurations(context.Context, *ListBotConfigurationsRequest) (*ListBotConfigurationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListBotConfigurations not implemented")
 }
 func (UnimplementedPinpointGatewayServer) mustEmbedUnimplementedPinpointGatewayServer() {}
 func (UnimplementedPinpointGatewayServer) testEmbeddedByValue()                         {}
@@ -183,6 +201,24 @@ func _PinpointGateway_CreateTryJob_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PinpointGateway_ListBotConfigurations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBotConfigurationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointGatewayServer).ListBotConfigurations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PinpointGateway_ListBotConfigurations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointGatewayServer).ListBotConfigurations(ctx, req.(*ListBotConfigurationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PinpointGateway_ServiceDesc is the grpc.ServiceDesc for PinpointGateway service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -201,6 +237,10 @@ var PinpointGateway_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTryJob",
 			Handler:    _PinpointGateway_CreateTryJob_Handler,
+		},
+		{
+			MethodName: "ListBotConfigurations",
+			Handler:    _PinpointGateway_ListBotConfigurations_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -21,6 +21,7 @@ ts_library(
         "//:node_modules/@angular/core",
         "//:node_modules/@angular/forms",
         "//:node_modules/@angular/material",
+        "//:node_modules/rxjs",
         "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
         "//pinpoint/webui/app/gateway:gateway_ts_lib",
     ],

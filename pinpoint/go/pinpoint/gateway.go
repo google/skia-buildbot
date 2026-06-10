@@ -15,6 +15,7 @@ import (
 type pinpointClient interface {
 	QueryJobList(ctx context.Context, req *pb.QueryJobListRequest) (*pb.QueryJobListResponse, error)
 	CreatePinpointTryJob(ctx context.Context, req *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error)
+	ListBotConfigurations(ctx context.Context) ([]string, error)
 }
 
 type gatewayServer struct {
@@ -90,4 +91,18 @@ func (s *gatewayServer) CreateTryJob(
 		return nil, skerr.Unwrap(err)
 	}
 	return resp, nil
+}
+
+func (s *gatewayServer) ListBotConfigurations(
+	ctx context.Context,
+	req *pb.ListBotConfigurationsRequest,
+) (*pb.ListBotConfigurationsResponse, error) {
+	bots, err := s.client.ListBotConfigurations(ctx)
+	if err != nil {
+		// Unwrap the error because it may be displayed to the user.
+		return nil, skerr.Unwrap(err)
+	}
+	return &pb.ListBotConfigurationsResponse{
+		Configurations: bots,
+	}, nil
 }

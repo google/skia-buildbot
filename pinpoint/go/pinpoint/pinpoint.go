@@ -81,3 +81,12 @@ func (c *Client) CreatePinpointTryJob(
 	}
 	return resp, nil
 }
+
+// ListBotConfigurations retrieves the list of available bots.
+func (c *Client) ListBotConfigurations(ctx context.Context) ([]string, error) {
+	resp, err := c.legacyClient.ListBotConfigurations(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
+}

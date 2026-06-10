@@ -176,6 +176,8 @@ func setupTestMocks(t *testing.T, handler http.HandlerFunc) *LegacyClient {
 		queryJobListFailed:         metrics2.GetCounter("pinpoint_query_job_list_failed"),
 		createPinpointTryJobCalled: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_called"),
 		createPinpointTryJobFailed: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_failed"),
+		listBotsCalled:             metrics2.GetCounter("pinpoint_list_bots_called"),
+		listBotsFailed:             metrics2.GetCounter("pinpoint_list_bots_failed"),
 	}
 
 	return pc
@@ -1204,5 +1206,43 @@ func TestCreatePinpointTryJob(t *testing.T) {
 		assert.Contains(t, err.Error(), "Failed to parse pinpoint response body.")
 		assert.Equal(t, int64(1), pc.createPinpointTryJobCalled.Get())
 		assert.Equal(t, int64(1), pc.createPinpointTryJobFailed.Get())
+	})
+}
+
+func TestListBotConfigurations(t *testing.T) {
+	t.Run("Returns parsed response on success", func(t *testing.T) {
+		expectedResponse := []byte(`{"configurations": ["bot1", "bot2"]}`)
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodPost, r.Method)
+			assert.Equal(t, "/api/config", r.URL.Path)
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(expectedResponse)
+		})
+
+		pc.listBotsCalled.Reset()
+		pc.listBotsFailed.Reset()
+
+		resp, err := pc.ListBotConfigurations(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, []string{"bot1", "bot2"}, resp)
+		assert.Equal(t, int64(1), pc.listBotsCalled.Get())
+		assert.Equal(t, int64(0), pc.listBotsFailed.Get())
+	})
+
+	t.Run("Returns error if non-200 status code", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error": "Internal Server Error"}`))
+		})
+
+		pc.listBotsCalled.Reset()
+		pc.listBotsFailed.Reset()
+
+		resp, err := pc.ListBotConfigurations(context.Background())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Internal Server Error")
+		assert.Nil(t, resp)
+		assert.Equal(t, int64(1), pc.listBotsCalled.Get())
+		assert.Equal(t, int64(1), pc.listBotsFailed.Get())
 	})
 }

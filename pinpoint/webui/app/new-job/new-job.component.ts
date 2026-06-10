@@ -1,5 +1,15 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, signal, computed, OnInit, Signal } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+  ValidatorFn,
+} from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { startWith } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,6 +19,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { GatewayService } from '../gateway/gateway.service';
 import { CreateTryJobRequest, VariantConfig } from '../gateway/gateway';
 
@@ -35,11 +46,12 @@ const variantGroupConfig = (commitRequired = false) => ({
     MatTooltipModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatAutocompleteModule,
   ],
   templateUrl: './new-job.component.html',
   styleUrls: ['./new-job.component.css'],
 })
-export class NewJobComponent {
+export class NewJobComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
 
   private gatewayService = inject(GatewayService);
@@ -50,18 +62,39 @@ export class NewJobComponent {
 
   errorMessage = signal<string>('');
 
+  bots = signal<string[]>([]);
+
   jobForm: FormGroup = this.formBuilder.group({
     jobName: [''],
     // 150 is the maximum number of attempts the legacy backend allows.
     attempts: [30, [Validators.required, Validators.min(1), Validators.max(150)]],
     bugId: ['', Validators.min(1)],
-    bot: ['', Validators.required],
+    bot: ['', [Validators.required, this.autocompleteValidator(this.bots)]],
     benchmark: ['', Validators.required],
     story: [''],
     storyTags: [''],
     baseline: this.formBuilder.group(variantGroupConfig(true)),
     experiment: this.formBuilder.group(variantGroupConfig()),
   });
+
+  botQuery = this.inputFieldSignal('bot');
+
+  filteredBots = this.filterValuesByInput(this.botQuery, this.bots);
+
+  async ngOnInit() {
+    await this.loadBots();
+  }
+
+  private async loadBots() {
+    try {
+      const response = await this.gatewayService.ListBotConfigurations({});
+      const sortedBots = (response.configurations || []).slice().sort();
+      this.bots.set(sortedBots);
+      this.jobForm.get('bot')?.updateValueAndValidity();
+    } catch (error) {
+      console.error('Failed to fetch bots: ', error);
+    }
+  }
 
   private getVariantConfig(formGroup: any): VariantConfig {
     return {
@@ -124,5 +157,40 @@ export class NewJobComponent {
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  private filterValuesByInput(input: Signal<string>, values: Signal<string[]>): Signal<string[]> {
+    return computed(() => values().filter((v) => this.fuzzyMatch(input(), v)));
+  }
+
+  private fuzzyMatch(input: string, value: string): boolean {
+    input = input.trim().toLowerCase();
+    value = value.trim().toLowerCase();
+    let j = -1;
+    for (let i = 0; i < input.length; ++i) {
+      j = value.indexOf(input[i], j + 1);
+      if (j < 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private inputFieldSignal(name: string): Signal<string> {
+    const control = this.jobForm.get(name);
+    if (!control) {
+      throw new Error(`Input filed "${name}" not found.`);
+    }
+    return toSignal(control.valueChanges.pipe(startWith('')), { initialValue: '' });
+  }
+
+  private autocompleteValidator(validOptions: Signal<string[]>): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (!value) {
+        return null;
+      }
+      return validOptions().includes(value) ? null : { invalidAutocomplete: true };
+    };
   }
 }

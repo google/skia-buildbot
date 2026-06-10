@@ -28,6 +28,7 @@ const (
 	pinpointLegacyNewJobURL   = pinpointLegacyBaseURL + "/api/new"
 	pinpointLegacyJobsURL     = pinpointLegacyBaseURL + "/api/jobs"
 	pinpointLegacyJobStateURL = pinpointLegacyBaseURL + "/api/job"
+	pinpointLegacyConfigURL   = pinpointLegacyBaseURL + "/api/config"
 	contentType               = "application/json"
 	tryJobComparisonMode      = "try"
 	chromeperfLegacyBisectURL = "https://chromeperf.appspot.com/pinpoint/new/bisect"
@@ -46,6 +47,8 @@ type LegacyClient struct {
 	queryJobListFailed         metrics2.Counter
 	createPinpointTryJobCalled metrics2.Counter
 	createPinpointTryJobFailed metrics2.Counter
+	listBotsCalled             metrics2.Counter
+	listBotsFailed             metrics2.Counter
 }
 
 // New returns a new LegacyClient instance.
@@ -71,6 +74,8 @@ func NewLegacyClient(ctx context.Context) (*LegacyClient, error) {
 		queryJobListFailed:         metrics2.GetCounter("pinpoint_query_job_list_failed"),
 		createPinpointTryJobCalled: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_called"),
 		createPinpointTryJobFailed: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_failed"),
+		listBotsCalled:             metrics2.GetCounter("pinpoint_list_bots_called"),
+		listBotsFailed:             metrics2.GetCounter("pinpoint_list_bots_failed"),
 	}, nil
 }
 
@@ -605,4 +610,26 @@ func combineExtraBrowserArgs(extraBrowserArgs []string, benchmark string) string
 		return fmt.Sprintf("--extra-browser-args=%q", args)
 	}
 	return args
+}
+
+// ListBotConfigurations queries the legacy Pinpoint API to retrieve available bots.
+func (pc *LegacyClient) ListBotConfigurations(ctx context.Context) (resp []string, err error) {
+	pc.listBotsCalled.Inc(1)
+	defer func() { trackError(pc.listBotsFailed, err) }()
+
+	httpResp, err := pc.doPostRequest(ctx, pinpointLegacyConfigURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	body, err := pc.readResponseBody(httpResp)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	var legacyResp BotConfigurationsResponse
+	if err = json.Unmarshal(body, &legacyResp); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse pinpoint response body.")
+	}
+	return legacyResp.Configurations, nil
 }

@@ -22,6 +22,7 @@ describe('NewJobComponent', () => {
   function createComponent(mockGateway?: Partial<GatewayService>): NewJobComponent {
     const defaultGateway: Partial<GatewayService> = {
       CreateTryJob: async () => ({ jobId: '12345' }),
+      ListBotConfigurations: async () => ({ configurations: [] }),
     };
     const gateway = { ...defaultGateway, ...mockGateway };
     TestBed.configureTestingModule({
@@ -32,6 +33,7 @@ describe('NewJobComponent', () => {
 
   function createValidComponent(mockGateway?: Partial<GatewayService>): NewJobComponent {
     const component = createComponent(mockGateway);
+    component.bots.set(['linux-perf']);
     component.jobForm.get('bot')?.setValue('linux-perf');
     component.jobForm.get('benchmark')?.setValue('speedometer');
     component.jobForm.get('story')?.setValue('Speedometer3');
@@ -57,6 +59,17 @@ describe('NewJobComponent', () => {
     const form = createValidComponent().jobForm;
     form.get('bot')?.setValue('');
     assert.isFalse(form.valid);
+  });
+
+  it('should validate bot autocomplete values', () => {
+    const component = createComponent();
+    component.bots.set(['linux-perf', 'win-perf']);
+
+    component.jobForm.get('bot')?.setValue('linux-perf');
+    assert.isTrue(component.jobForm.get('bot')?.valid);
+
+    component.jobForm.get('bot')?.setValue('unknown-bot');
+    assert.isTrue(component.jobForm.get('bot')?.hasError('invalidAutocomplete'));
   });
 
   it('should validate attempts count', () => {
@@ -153,4 +166,62 @@ describe('NewJobComponent', () => {
     assert.equal(component.errorMessage(), 'Invalid bot configuration');
     assert.isTrue(gateway.CreateTryJob.calledOnce);
   }));
+
+  it('should fetch bots on initialization', fakeAsync(() => {
+    const gateway = {
+      ListBotConfigurations: sinon.stub().resolves({ configurations: ['bot1', 'bot2'] }),
+    };
+    const component = createComponent(gateway);
+
+    component.ngOnInit();
+    tick();
+
+    assert.deepEqual(component.bots(), ['bot1', 'bot2']);
+    assert.deepEqual(component.filteredBots(), ['bot1', 'bot2']);
+  }));
+
+  it('should filter bots based on input', fakeAsync(() => {
+    const gateway = {
+      ListBotConfigurations: sinon
+        .stub()
+        .resolves({ configurations: ['chrome-bot', 'android-bot', 'win-bot'] }),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    component.jobForm.get('bot')?.setValue('bot');
+    assert.deepEqual(component.filteredBots(), ['android-bot', 'chrome-bot', 'win-bot']);
+
+    component.jobForm.get('bot')?.setValue('android');
+    assert.deepEqual(component.filteredBots(), ['android-bot']);
+  }));
+
+  it('should return all bots when query is empty', () => {
+    const component = createComponent();
+    component.bots.set(['Chrome-Bot', 'Android-Bot', 'Win-Bot']);
+    component.jobForm.patchValue({ bot: '' });
+    assert.deepEqual(component.filteredBots(), ['Chrome-Bot', 'Android-Bot', 'Win-Bot']);
+  });
+
+  it('should match multiple bots when query matches them', () => {
+    const component = createComponent();
+    component.bots.set(['Chrome-Bot', 'Android-Bot']);
+    component.jobForm.patchValue({ bot: 'bot' });
+    assert.deepEqual(component.filteredBots(), ['Chrome-Bot', 'Android-Bot']);
+  });
+
+  it('should trim spaces and ignore case when filtering bots', () => {
+    const component = createComponent();
+    component.bots.set(['Chrome-Bot', 'Android-Bot', 'Win-Bot', 'macOS-Device']);
+    component.jobForm.patchValue({ bot: '  wbt  ' });
+    assert.deepEqual(component.filteredBots(), ['Win-Bot']);
+  });
+
+  it('should match to a single bot when input equal bot name', () => {
+    const component = createComponent();
+    component.bots.set(['Chrome-Bot', 'Android-Bot', 'Win-Bot', 'macOS-Device']);
+    component.jobForm.patchValue({ bot: 'Android-Bot' });
+    assert.deepEqual(component.filteredBots(), ['Android-Bot']);
+  });
 });

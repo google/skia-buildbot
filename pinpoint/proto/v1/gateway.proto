@@ -176,6 +176,14 @@ message CreateJobResponse {
   string job_id = 1;
 }
 
+// Request message to list all available bots.
+message ListBotConfigurationsRequest {}
+
+// Response message containing the list of available bots.
+message ListBotConfigurationsResponse {
+  repeated string configurations = 1;
+}
+
 // Service definition for Pinpoint Gateway API.
 service PinpointGateway {
   // Queries a list of jobs based on filters and pagination options.
@@ -197,6 +205,13 @@ service PinpointGateway {
     option (google.api.http) = {
       post: "/pinpoint/v1/new"
       body: "*"
+    };
+  }
+
+  // Lists all available bots.
+  rpc ListBotConfigurations(ListBotConfigurationsRequest) returns (ListBotConfigurationsResponse) {
+    option (google.api.http) = {
+      get: "/pinpoint/v1/bot-configurations"
     };
   }
 }
