@@ -73,6 +73,9 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   @property({ type: Boolean })
   showTriaged: boolean = false;
 
+  @property({ type: Boolean, attribute: 'is-dry-run' })
+  isDryRun: boolean = false;
+
   @state()
   showPopup: boolean = false;
 
@@ -556,7 +559,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     this.loadingGraphForAnomaly.set(anomaly.id, true);
     this.requestUpdate();
 
-    await this.reportNavigationController.openMultiGraphUrl(anomaly, newTab);
+    await this.reportNavigationController.openMultiGraphUrl(anomaly, newTab, this.isDryRun);
 
     this.loadingGraphForAnomaly.set(anomaly.id, false);
     this.requestUpdate();
@@ -1083,8 +1086,12 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     this.requestUpdate();
   }
 
-  public async openMultiGraphUrl(anomaly: Anomaly, newTab: Window | null) {
-    await this.reportNavigationController.openMultiGraphUrl(anomaly, newTab);
+  public async openMultiGraphUrl(anomaly: Anomaly, newTab: Window | null, isDryRun = false) {
+    await this.reportNavigationController.openMultiGraphUrl(
+      anomaly,
+      newTab,
+      isDryRun || this.isDryRun
+    );
   }
 
   getCheckedAnomalies(): Anomaly[] {

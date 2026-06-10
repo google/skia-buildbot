@@ -147,5 +147,34 @@ describe('ReportNavigationController', () => {
 
       assert.isTrue((newTab.close as sinon.SinonSpy).calledOnce);
     });
+
+    it('falls back to shift API if timerange is missing from group_report', async () => {
+      const anomaly = dummyAnomaly('123', 0, 100, 200, 'test/path');
+      const newTab = {
+        location: { href: '' },
+        close: sinon.spy(),
+      } as unknown as Window;
+
+      fetchMock.post('begin:/_/anomalies/group_report', {
+        sid: 'sid',
+        timerange_map: {}, // Empty, e.g. for dry-run anomaly
+      } as unknown as GetGroupReportResponse);
+
+      fetchMock.post('/_/shift', {
+        begin: 1000,
+        end: 2000,
+      });
+
+      fetchMock.post('begin:/_/shortcut/update', { id: 'shortcut_id' });
+
+      await controller.openMultiGraphUrl(anomaly, newTab, true);
+
+      assert.isFalse(
+        (newTab.close as sinon.SinonSpy).called,
+        'newTab.close() should not be called'
+      );
+      assert.include(newTab.location.href, 'shortcut=shortcut_id');
+      assert.include(newTab.location.href, '/m/?begin=-603800&end=693200');
+    });
   });
 });

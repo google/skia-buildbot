@@ -1,5 +1,11 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
-import { Anomaly, CalculateRegrShortcutResponse, GetGroupReportResponse, Timerange } from '../json';
+import {
+  Anomaly,
+  CalculateRegrShortcutResponse,
+  GetGroupReportResponse,
+  Timerange,
+  ShiftResponse,
+} from '../json';
 import { errorMessage } from '../errorMessage';
 import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
@@ -7,6 +13,7 @@ import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter'
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 const weekInSeconds = 7 * 24 * 60 * 60;
+const SECONDS_IN_DAY = 24 * 60 * 60;
 
 export class ReportNavigationController implements ReactiveController {
   host: ReactiveControllerHost;
@@ -62,16 +69,30 @@ export class ReportNavigationController implements ReactiveController {
     return !!newTab;
   }
 
-  // openMultiGraphLink generates a multi-graph url for the given parameters
-  public async openMultiGraphUrl(anomaly: Anomaly, newTab: Window | null) {
+  public async openMultiGraphUrl(anomaly: Anomaly, newTab: Window | null, isDryRun = false) {
     const response = await this.fetchGroupReportApi(String(anomaly.id));
-    if (!response || !response.timerange_map) {
-      console.warn('ReportNavigationController: response or timerange_map missing', response);
+    let timerangeMap = response?.timerange_map || {};
+
+    if (!timerangeMap[anomaly.id] && isDryRun) {
+      const shiftResp = await this.fetchShiftApi(anomaly.start_revision, anomaly.end_revision);
+      if (shiftResp) {
+        timerangeMap = {
+          ...timerangeMap,
+          [anomaly.id]: {
+            begin: shiftResp.begin,
+            end: shiftResp.end + SECONDS_IN_DAY, // Shift end time by a day to match backend getTimerangeMap
+          },
+        };
+      }
+    }
+
+    if (!timerangeMap[anomaly.id]) {
+      console.warn('ReportNavigationController: timerange missing for anomaly', anomaly.id);
       if (newTab) newTab.close();
       return;
     }
 
-    const urlList = await this.generateMultiGraphUrl([anomaly], response.timerange_map);
+    const urlList = await this.generateMultiGraphUrl([anomaly], timerangeMap);
 
     this.openAnomalyUrl(urlList[0], newTab);
   }
@@ -121,6 +142,25 @@ export class ReportNavigationController implements ReactiveController {
       return jsonOrThrow(response);
     } catch (msg) {
       errorMessage(msg as string);
+      return null;
+    }
+  }
+
+  private async fetchShiftApi(begin: number, end: number): Promise<ShiftResponse | null> {
+    try {
+      const response = await fetch('/_/shift', {
+        method: 'POST',
+        body: JSON.stringify({
+          begin: begin,
+          end: end,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return jsonOrThrow(response);
+    } catch (msg) {
+      errorMessage('Failed to fetch shift data: ' + msg);
       return null;
     }
   }

@@ -223,7 +223,9 @@ ${ele.runningStatus}</pre
       : html`
           <div style="margin-top: 2em;" ?hidden=${!!ele.requestId || !ele.detectedAnomalies.length}>
             <h3>Anomalies found: ${ele.detectedAnomalies.length}</h3>
-            <anomalies-table-sk .anomalyList=${ele.detectedAnomalies}></anomalies-table-sk>
+            <anomalies-table-sk
+              .anomalyList=${ele.detectedAnomalies}
+              .isDryRun=${true}></anomalies-table-sk>
           </div>
         `}
   `;
