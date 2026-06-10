@@ -483,6 +483,37 @@ describe('anomalies-table-sk', () => {
     });
   });
 
+  describe('header filtering', () => {
+    beforeEach(async () => {
+      await testBed.page.click('#populate-tables');
+    });
+
+    it('filters table by bot and clears filter', async () => {
+      const initialRowCount = await anomaliesTableSkPO.getRowCount();
+      expect(initialRowCount).to.be.greaterThan(1);
+
+      // Click filter icon on Bot column
+      await anomaliesTableSkPO.clickFilterIcon('bot');
+      const input = await anomaliesTableSkPO.getFilterPopupInput();
+      await input.applyFnToDOMNode((el) => {
+        (el as HTMLInputElement).value = 'bot-does-not-exist';
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      await testBed.page.keyboard.press('Enter');
+
+      // Expect only header row to remain (count = 1)
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(1);
+
+      // Re-open filter popup and clear
+      await anomaliesTableSkPO.clickFilterIcon('bot');
+      const clearBtn = await anomaliesTableSkPO.getFilterPopupClearBtn();
+      await clearBtn.click();
+
+      // Expect table rows to return
+      expect(await anomaliesTableSkPO.getRowCount()).to.equal(initialRowCount);
+    });
+  });
+
   async function navigateTo(
     page: Page,
     base: string,

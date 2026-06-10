@@ -41,8 +41,25 @@ anomalies-table-sk {
       white-space: nowrap;
     }
 
-    td.tooltip-cell {
+    tr.headers,
+    tr td.tooltip-cell,
+    tr th {
       overflow: visible;
+      position: relative;
+      opacity: 1;
+    }
+
+    // Content tier (0 <= z-index < 100).
+    // Use higher z-index to elevate tooltip cells above standard table
+    // cells (z-index: 0) so child tooltips (bug-tooltip-sk) render cleanly
+    // without being clipped by subsequent rows.
+    td.tooltip-cell {
+      z-index: 1;
+    }
+
+    // Popups tier (z-index >= 100).
+    th.has-active-popup {
+      z-index: 100;
     }
 
     a,
@@ -52,7 +69,8 @@ anomalies-table-sk {
       font-weight: bold;
     }
 
-    th > button {
+    th > button,
+    th .sort-button {
       background: none;
       border: none;
       font: inherit;
@@ -68,6 +86,11 @@ anomalies-table-sk {
         outline: 2px solid var(--primary);
         outline-offset: 2px;
       }
+    }
+
+    th .sort-button {
+      width: auto;
+      flex-grow: 1;
     }
 
     .improvement {
@@ -186,6 +209,7 @@ anomalies-table-sk {
     padding: 20px;
     border: var(--on-background);
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    // Popups tier (z-index >= 100).
     z-index: 100;
   }
 
@@ -221,6 +245,124 @@ anomalies-table-sk {
   .other-group:hover {
     opacity: 1;
   }
+
+  .header-cell-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    position: relative;
+  }
+
+  .header-filter-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .filter-toggle-btn {
+      background: none;
+      border: none;
+      padding: 2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--outline);
+      border-radius: 4px;
+      position: relative;
+      transition:
+        color 0.15s ease-in-out,
+        background-color 0.15s ease-in-out;
+
+      &:hover {
+        color: var(--primary);
+        background-color: var(--surface-1dp);
+      }
+
+      &.active {
+        color: var(--primary);
+
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0px;
+          right: 0px;
+          width: 6px;
+          height: 6px;
+          background-color: var(--error-container);
+          border-radius: 50%;
+        }
+      }
+
+      filter-list-icon-sk {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    // Use high specificity to ensure background-color and opacity override external rules without !important.
+    div.header-filter-popup {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      background-color: var(--surface);
+      opacity: 1;
+      border: 1px solid var(--surface-1dp);
+      box-shadow: 0 4px 16px var(--transparent-overlay);
+      border-radius: 4px;
+      padding: 8px;
+      display: flex;
+      gap: 8px;
+      // Popups tier (z-index >= 100).
+      z-index: 100;
+      align-items: center;
+      font-weight: normal;
+
+      input[type='text'] {
+        padding: 4px 8px;
+        border: 1px solid var(--surface-1dp);
+        border-radius: 4px;
+        background-color: var(--surface);
+        color: var(--on-surface);
+        font-size: 12px;
+        min-width: 150px;
+        outline: none;
+
+        &:focus {
+          border-color: var(--primary);
+        }
+      }
+
+      .clear-filter-btn {
+        padding: 4px;
+        background: none;
+        border: none;
+        border-radius: 50%;
+        color: var(--on-surface-variant);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background-color: var(--surface-1dp);
+          color: var(--primary);
+        }
+
+        close-icon-sk {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  .empty-filter-msg {
+    padding: 20px;
+    text-align: center;
+    font-style: italic;
+    color: var(--on-surface-variant);
+  }
 }
 
 details.grouping-settings {
@@ -251,7 +393,8 @@ details.grouping-settings summary {
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  z-index: 100; /* Match popup z-index */
+  // Popups tier (z-index >= 100).
+  z-index: 100;
   background-color: var(--background);
   color: var(--on-background);
   border: 1px solid var(--surface-1dp, #ccc);

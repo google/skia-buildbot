@@ -1727,4 +1727,109 @@ describe('anomalies-table-sk', () => {
       assert.equal(args.length, 2);
     });
   });
+
+  describe('filtering logic', () => {
+    let anomalies: Anomaly[];
+    beforeEach(async () => {
+      anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot1/suite1/test1'),
+        dummyAnomaly('2', 12345, 150, 250, 'master/bot2/suite1/test2'),
+        dummyAnomaly('3', 0, 300, 400, 'master/bot1/suite2/test3'),
+      ];
+      fetchMock.post('/_/shortcut/update', { id: 'test_shortcut' });
+      await element.populateTable(anomalies);
+      await element.updateComplete;
+    });
+
+    it('filters anomalies by bot', async () => {
+      (element as any).filterBot = 'bot1';
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 2);
+      assert.isTrue(element.filteredAnomalies.every((a) => a.test_path.includes('bot1')));
+    });
+
+    it('filters anomalies by benchmark', async () => {
+      (element as any).filterBenchmark = 'suite2';
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 1);
+      assert.equal(element.filteredAnomalies[0].id, '3');
+    });
+
+    it('filters anomalies by test', async () => {
+      (element as any).filterTest = 'test2';
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 1);
+      assert.equal(element.filteredAnomalies[0].id, '2');
+    });
+
+    it('filters anomalies by revision number within range', async () => {
+      (element as any).filterRevision = '120';
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 1);
+      assert.equal(element.filteredAnomalies[0].id, '1');
+    });
+
+    it('filters anomalies by partial revision string match', async () => {
+      (element as any).filterRevision = '30'; // matches start_revision 300
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 1);
+      assert.equal(element.filteredAnomalies[0].id, '3');
+    });
+
+    it('clears selection of anomalies that are filtered out', async () => {
+      // Select all anomalies first
+      element.toggleAllCheckboxes();
+      await element.updateComplete;
+      assert.equal((element as any).selectionController.size, 3);
+
+      // Apply filter that excludes anomaly 3
+      (element as any).filterBot = 'bot1';
+      await element.updateComplete;
+
+      assert.equal((element as any).selectionController.size, 2);
+      assert.isFalse((element as any).selectionController.has(anomalies[1]));
+    });
+
+    it('opens and closes filter popup correctly', async () => {
+      const filterToggleBtn = element.querySelector(
+        '.header-filter-container .filter-toggle-btn'
+      ) as HTMLButtonElement;
+      assert.isDefined(filterToggleBtn);
+      filterToggleBtn.click();
+      await element.updateComplete;
+      assert.isNotNull((element as any).activeFilterPopup);
+
+      const clearBtn = element.querySelector(
+        '.header-filter-popup .clear-filter-btn'
+      ) as HTMLButtonElement;
+      assert.isDefined(clearBtn);
+      clearBtn.click();
+      await element.updateComplete;
+      assert.isNull((element as any).activeFilterPopup);
+    });
+
+    it('filters anomalies by regex quantifier match', async () => {
+      (element as any).filterBot = 'bot.*';
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 3);
+
+      (element as any).filterBot = 'bot.';
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 3);
+
+      (element as any).filterBot = 'bot1.*';
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 2);
+    });
+
+    it('filters anomalies by regex match', async () => {
+      (element as any).filterBot = '^bot1$';
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 2);
+
+      (element as any).filterBot = 'bot[12]';
+      await element.updateComplete;
+      assert.equal(element.filteredAnomalies.length, 3);
+    });
+  });
 });

@@ -232,4 +232,18 @@ export class AnomaliesTableSkPO extends PageObject {
       return (await cell.innerText).includes(status);
     }, `Bug ID column should contain "${status}"`);
   }
+
+  async clickFilterIcon(column: string): Promise<void> {
+    const th = this.bySelector(`th[id^="${column}-"]`);
+    const btn = await th.bySelector('.filter-toggle-btn');
+    await btn.click();
+  }
+
+  async getFilterPopupInput(): Promise<PageObjectElement> {
+    return this.bySelector('.header-filter-popup input');
+  }
+
+  async getFilterPopupClearBtn(): Promise<PageObjectElement> {
+    return this.bySelector('.header-filter-popup .clear-filter-btn');
+  }
 }

@@ -26,6 +26,7 @@ sk_element(
         "//elements-sk/modules/icons/arrow-drop-up-icon-sk",
         "//elements-sk/modules/icons/expand-less-icon-sk",
         "//elements-sk/modules/icons/expand-more-icon-sk",
+        "//elements-sk/modules/icons/filter-list-icon-sk",
     ],
     ts_deps = [
         "//perf/modules/common:anomaly_ts_lib",

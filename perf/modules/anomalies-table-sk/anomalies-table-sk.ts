@@ -30,6 +30,7 @@ import '@material/web/button/outlined-button.js';
 
 import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/icons/arrow-drop-down-icon-sk';
+import '../../../elements-sk/modules/icons/filter-list-icon-sk';
 import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
 import '../../../elements-sk/modules/icons/expand-less-icon-sk';
 import '../../../elements-sk/modules/icons/expand-more-icon-sk';
@@ -44,6 +45,20 @@ import { AnomalyGroupingController } from './anomaly-grouping-controller';
 import { AnomalyTransformer } from './anomaly-transformer';
 import './anomalies-grouping-settings-sk';
 import '../bug-tooltip-sk/bug-tooltip-sk';
+
+function matchesFilter(value: string, filterString: string): boolean {
+  const trimmed = filterString?.trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  try {
+    return new RegExp(trimmed, 'i').test(value);
+  } catch (_e) {
+    // Fallback to simple substring matching if the regular expression is invalid
+    return value.toLowerCase().includes(trimmed.toLowerCase());
+  }
+}
 
 @customElement('anomalies-table-sk')
 export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHandler {
@@ -60,6 +75,52 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   @state()
   showPopup: boolean = false;
+
+  @state()
+  private filterBot: string = '';
+
+  @state()
+  private filterBenchmark: string = '';
+
+  @state()
+  private filterTest: string = '';
+
+  @state()
+  private filterRevision: string = '';
+
+  @state()
+  private activeFilterPopup: string | null = null;
+
+  // TODO(ansid): Consider computing `this.filteredAnomalies` once in `willUpdate`
+  // and storing it in a private `@state` property to speed up filtering for large anomaly lists (e.g. 5k+ anomalies).
+  get filteredAnomalies(): Anomaly[] {
+    return this.anomalyList.filter((anomaly) => {
+      const processed = AnomalyTransformer.getProcessedAnomaly(anomaly);
+      if (this.filterBot && !matchesFilter(processed.bot, this.filterBot)) {
+        return false;
+      }
+      if (this.filterBenchmark && !matchesFilter(processed.testsuite, this.filterBenchmark)) {
+        return false;
+      }
+      if (this.filterTest && !matchesFilter(processed.test, this.filterTest)) {
+        return false;
+      }
+      if (this.filterRevision) {
+        const revVal = this.filterRevision.trim();
+        const revNum = Number(revVal);
+        const matchesRange =
+          !isNaN(revNum) && anomaly.start_revision <= revNum && anomaly.end_revision >= revNum;
+        const matchesString =
+          (anomaly.start_revision !== null &&
+            matchesFilter(String(anomaly.start_revision), revVal)) ||
+          (anomaly.end_revision !== null && matchesFilter(String(anomaly.end_revision), revVal));
+        if (!matchesRange && !matchesString) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }
 
   @state()
   private sortKey: string = 'revisions';
@@ -103,6 +164,18 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     return this;
   }
 
+  private onWindowClick = (e: Event) => {
+    if (this.activeFilterPopup) {
+      const composedPath = e.composedPath();
+      const isInsideFilter = composedPath.some(
+        (node: any) => node?.classList?.contains('header-filter-container')
+      );
+      if (!isInsideFilter) {
+        this.activeFilterPopup = null;
+      }
+    }
+  };
+
   connectedCallback() {
     super.connectedCallback();
 
@@ -118,6 +191,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       this.showPopup = false;
     });
     window.addEventListener('keydown', this.keyDown);
+    window.addEventListener('click', this.onWindowClick);
   }
 
   protected firstUpdated() {
@@ -133,20 +207,34 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener('keydown', this.keyDown);
+    window.removeEventListener('click', this.onWindowClick);
   }
 
   protected willUpdate(changedProperties: Map<string, any>): void {
-    if (changedProperties.has('anomalyList') || changedProperties.has('showTriaged')) {
-      if (changedProperties.has('anomalyList')) {
+    const anomalyListChanged = changedProperties.has('anomalyList');
+    const showTriagedChanged = changedProperties.has('showTriaged');
+    const filtersChanged = ['filterBot', 'filterBenchmark', 'filterTest', 'filterRevision'].some(
+      (prop) => changedProperties.has(prop)
+    );
+
+    if (anomalyListChanged || showTriagedChanged || filtersChanged) {
+      const filtered = this.filteredAnomalies;
+      if (anomalyListChanged) {
         this.initiallyRequestedAnomalyIDs.clear();
         this.selectionController.clear();
-        if (this.anomalyList.length > 0) {
-          this.groupingController.setAnomalies(this.anomalyList);
-        }
+      } else if (filtersChanged) {
+        const filteredSet = new Set(filtered);
+        this.selectionController.items.forEach((item) => {
+          if (!filteredSet.has(item)) {
+            this.selectionController.deselect(item);
+          }
+        });
       }
+      this.groupingController.setAnomalies(filtered);
+
       // ShowTriaged button should change default sort order if sortKey is 'revisions'.
       // Otherwise, we continue sorting by whatever user selected.
-      if (changedProperties.has('showTriaged') && this.sortKey === 'revisions') {
+      if (showTriagedChanged && this.sortKey === 'revisions') {
         this.sortDirection = this.showTriaged ? 'down' : 'up';
       }
     }
@@ -280,19 +368,88 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     `;
   }
 
-  private renderSortableHeader(sortKey: string, label: string): TemplateResult {
+  private async toggleFilterPopup(e: Event, column: string) {
+    e.stopPropagation();
+    this.activeFilterPopup = this.activeFilterPopup === column ? null : column;
+    if (this.activeFilterPopup) {
+      await this.updateComplete;
+      const input = this.querySelector<HTMLInputElement>(`.header-filter-popup input`);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+  }
+
+  private renderSortableHeader(
+    sortKey: string,
+    label: string,
+    filterProp?: string,
+    filterPlaceholder?: string
+  ): TemplateResult {
     const idPrefix = sortKey;
+    const hasFilter = filterProp !== undefined;
+    const filterValue = hasFilter ? (this as any)[filterProp] : '';
+    const isFilterActive = filterValue.trim() !== '';
+    const isPopupOpen = this.activeFilterPopup === sortKey;
+
     return html`
-      <th id="${idPrefix}-${this.uniqueId}" aria-sort="${this.getAriaSort(sortKey)}">
-        <button @click=${() => this.handleSort(sortKey)}>
-          ${label} ${this.getSortIcon(sortKey)}
-        </button>
+      <th
+        id="${idPrefix}-${this.uniqueId}"
+        class="${isPopupOpen ? 'has-active-popup' : ''}"
+        aria-sort="${this.getAriaSort(sortKey)}">
+        <div class="header-cell-container">
+          <button class="sort-button" @click=${() => this.handleSort(sortKey)}>
+            ${label} ${this.getSortIcon(sortKey)}
+          </button>
+          ${hasFilter
+            ? html`
+                <div class="header-filter-container" @click=${(e: Event) => e.stopPropagation()}>
+                  <button
+                    class="filter-toggle-btn ${isFilterActive ? 'active' : ''}"
+                    title="Filter ${label}"
+                    @click=${(e: Event) => this.toggleFilterPopup(e, sortKey)}>
+                    <filter-list-icon-sk></filter-list-icon-sk>
+                  </button>
+                  ${isPopupOpen
+                    ? html`
+                        <div class="header-filter-popup">
+                          <input
+                            type="text"
+                            placeholder="${filterPlaceholder || 'Filter...'}"
+                            .value="${filterValue}"
+                            @input=${(e: Event) => {
+                              (this as any)[filterProp] = (e.target as HTMLInputElement).value;
+                            }}
+                            @keydown=${(e: KeyboardEvent) => {
+                              if (e.key === 'Escape' || e.key === 'Enter') {
+                                this.activeFilterPopup = null;
+                              }
+                            }}
+                            autofocus />
+                          <button
+                            class="clear-filter-btn"
+                            title="Clear filter and close"
+                            @click=${() => {
+                              (this as any)[filterProp] = '';
+                              this.activeFilterPopup = null;
+                            }}>
+                            <close-icon-sk></close-icon-sk>
+                          </button>
+                        </div>
+                      `
+                    : ''}
+                </div>
+              `
+            : ''}
+        </div>
       </th>
     `;
   }
 
   render() {
-    const totalCount = this.anomalyList.length;
+    const filtered = this.filteredAnomalies;
+    const totalCount = filtered.length;
     const selectedCount = this.selectionController.size;
 
     // Checked only if ALL are selected
@@ -350,16 +507,24 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
           </th>
           <th id="graph_header-${this.uniqueId}">Chart</th>
           ${this.renderSortableHeader('bugid', 'Bug ID')}
-          ${this.renderSortableHeader('revisions', 'Revisions')}
-          ${this.renderSortableHeader('bot', 'Bot')}
-          ${this.renderSortableHeader('testsuite', 'Benchmark')}
-          ${this.renderSortableHeader('test', 'Test')}
+          ${this.renderSortableHeader('revisions', 'Revisions', 'filterRevision', 'Filter rev...')}
+          ${this.renderSortableHeader('bot', 'Bot', 'filterBot', 'Filter bot...')}
+          ${this.renderSortableHeader(
+            'testsuite',
+            'Benchmark',
+            'filterBenchmark',
+            'Filter bench...'
+          )}
+          ${this.renderSortableHeader('test', 'Test', 'filterTest', 'Filter test...')}
           ${this.renderSortableHeader('delta', 'Delta %')}
         </tr>
         <tbody id="rows-${this.uniqueId}">
           ${this.generateGroups()}
         </tbody>
       </table>
+      <div class="empty-filter-msg" ?hidden=${this.anomalyList.length === 0 || filtered.length > 0}>
+        No anomalies match the selected filters.
+      </div>
       <keyboard-shortcuts-help-sk .handler=${this}></keyboard-shortcuts-help-sk>
       <h1 id="clear-msg-${this.uniqueId}" ?hidden=${this.anomalyList.length > 0 || this.loading}>
         All anomalies are triaged!
@@ -880,30 +1045,35 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
    * the header checkbox. This provides a convenient way to select or deselect all
    * anomalies at once.
    */
-  toggleAllCheckboxes() {
-    // Header checkbox state is not automatically available if we use .checked=${...} property binding
-    // without also reading 'changed' event target.
-    // But inside the event handler in render(), we call this.
-    // We should look at headerCheckbox element or just toggle based on current state.
-
-    // Better: check the element state.
+  toggleAllCheckboxes(forceChecked?: boolean) {
     const headerCheckbox = this.querySelector(
       `#header-checkbox-${this.uniqueId}`
     ) as HTMLInputElement;
-    const checked = headerCheckbox.checked;
 
-    // Actually, if we use @change, the element.checked is already updated by browser.
+    const filtered = this.filteredAnomalies;
+    const totalCount = filtered.length;
+    const selectedCount = this.selectionController.size;
+    const isAllSelected = totalCount > 0 && selectedCount === totalCount;
+
+    let checked = false;
+    if (forceChecked !== undefined) {
+      checked = forceChecked;
+    } else if (headerCheckbox && headerCheckbox.checked !== isAllSelected) {
+      checked = headerCheckbox.checked;
+    } else {
+      checked = !isAllSelected;
+    }
 
     if (checked) {
-      this.anomalyList.forEach((a) => this.selectionController.select(a));
+      filtered.forEach((a) => this.selectionController.select(a));
     } else {
-      this.selectionController.clear();
+      filtered.forEach((a) => this.selectionController.deselect(a));
     }
 
     this.dispatchEvent(
       new CustomEvent('anomalies_checked', {
         detail: {
-          anomalies: this.anomalyList,
+          anomalies: filtered,
           checked: checked,
         },
         bubbles: true,
