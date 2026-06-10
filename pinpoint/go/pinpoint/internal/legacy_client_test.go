@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"testing"
 	"time"
 
@@ -178,6 +179,8 @@ func setupTestMocks(t *testing.T, handler http.HandlerFunc) *LegacyClient {
 		createPinpointTryJobFailed: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_failed"),
 		listBotsCalled:             metrics2.GetCounter("pinpoint_list_bots_called"),
 		listBotsFailed:             metrics2.GetCounter("pinpoint_list_bots_failed"),
+		listBenchmarksCalled:       metrics2.GetCounter("pinpoint_list_benchmarks_called"),
+		listBenchmarksFailed:       metrics2.GetCounter("pinpoint_list_benchmarks_failed"),
 	}
 
 	return pc
@@ -1244,5 +1247,47 @@ func TestListBotConfigurations(t *testing.T) {
 		assert.Nil(t, resp)
 		assert.Equal(t, int64(1), pc.listBotsCalled.Get())
 		assert.Equal(t, int64(1), pc.listBotsFailed.Get())
+	})
+}
+
+func TestListBenchmarks(t *testing.T) {
+	t.Run("Returns parsed response on success and deduplicates", func(t *testing.T) {
+		expectedResponse := []byte(`["benchmark1", "benchmark2", "blink-ai.crossbench"]`)
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodPost, r.Method)
+			assert.Equal(t, "/api/test_suites", r.URL.Path)
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(expectedResponse)
+		})
+
+		pc.listBenchmarksCalled.Reset()
+		pc.listBenchmarksFailed.Reset()
+
+		resp, err := pc.ListBenchmarks(context.Background())
+		require.NoError(t, err)
+
+		expected := append([]string{"benchmark1", "benchmark2", "blink-ai.crossbench"}, missingBenchmarks...)
+		slices.Sort(expected)
+		expected = slices.Compact(expected)
+		assert.Equal(t, expected, resp)
+		assert.Equal(t, int64(1), pc.listBenchmarksCalled.Get())
+		assert.Equal(t, int64(0), pc.listBenchmarksFailed.Get())
+	})
+
+	t.Run("Returns error if non-200 status code", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error": "Internal Server Error"}`))
+		})
+
+		pc.listBenchmarksCalled.Reset()
+		pc.listBenchmarksFailed.Reset()
+
+		resp, err := pc.ListBenchmarks(context.Background())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Internal Server Error")
+		assert.Nil(t, resp)
+		assert.Equal(t, int64(1), pc.listBenchmarksCalled.Get())
+		assert.Equal(t, int64(1), pc.listBenchmarksFailed.Get())
 	})
 }

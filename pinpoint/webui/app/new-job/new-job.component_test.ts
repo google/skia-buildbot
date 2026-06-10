@@ -23,6 +23,7 @@ describe('NewJobComponent', () => {
     const defaultGateway: Partial<GatewayService> = {
       CreateTryJob: async () => ({ jobId: '12345' }),
       ListBotConfigurations: async () => ({ configurations: [] }),
+      ListBenchmarks: async () => ({ benchmarks: [] }),
     };
     const gateway = { ...defaultGateway, ...mockGateway };
     TestBed.configureTestingModule({
@@ -35,6 +36,7 @@ describe('NewJobComponent', () => {
     const component = createComponent(mockGateway);
     component.bots.set(['linux-perf']);
     component.jobForm.get('bot')?.setValue('linux-perf');
+    component.benchmarks.set(['speedometer']);
     component.jobForm.get('benchmark')?.setValue('speedometer');
     component.jobForm.get('story')?.setValue('Speedometer3');
     component.jobForm.get('baseline.commit')?.setValue('abcd1234');
@@ -70,6 +72,17 @@ describe('NewJobComponent', () => {
 
     component.jobForm.get('bot')?.setValue('unknown-bot');
     assert.isTrue(component.jobForm.get('bot')?.hasError('invalidAutocomplete'));
+  });
+
+  it('should validate benchmark autocomplete values', () => {
+    const component = createComponent();
+    component.benchmarks.set(['speedometer3', 'jetstream2']);
+
+    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    assert.isTrue(component.jobForm.get('benchmark')?.valid);
+
+    component.jobForm.get('benchmark')?.setValue('unknown-benchmark');
+    assert.isTrue(component.jobForm.get('benchmark')?.hasError('invalidAutocomplete'));
   });
 
   it('should validate attempts count', () => {
@@ -224,4 +237,60 @@ describe('NewJobComponent', () => {
     component.jobForm.patchValue({ bot: 'Android-Bot' });
     assert.deepEqual(component.filteredBots(), ['Android-Bot']);
   });
+
+  it('should fetch benchmarks on initialization', fakeAsync(() => {
+    const gateway = {
+      ListBenchmarks: sinon.stub().resolves({ benchmarks: ['bench1', 'bench2'] }),
+    };
+    const component = createComponent(gateway);
+
+    component.ngOnInit();
+    tick();
+
+    assert.deepEqual(component.benchmarks(), ['bench1', 'bench2']);
+    assert.deepEqual(component.filteredBenchmarks(), ['bench1', 'bench2']);
+  }));
+
+  it('should filter benchmarks based on input', fakeAsync(() => {
+    const gateway = {
+      ListBenchmarks: sinon
+        .stub()
+        .resolves({ benchmarks: ['speedometer3', 'jetstream2', 'rendering'] }),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    component.jobForm.get('benchmark')?.setValue('meter');
+    assert.deepEqual(component.filteredBenchmarks(), ['speedometer3']);
+
+    component.jobForm.get('benchmark')?.setValue('rendering');
+    assert.deepEqual(component.filteredBenchmarks(), ['rendering']);
+  }));
+
+  it('should re-validate bot when bots list is loaded', fakeAsync(() => {
+    const component = createComponent({
+      ListBotConfigurations: async () => ({ configurations: ['linux-perf'] }),
+    });
+    component.jobForm.get('bot')?.setValue('linux-perf');
+    assert.isTrue(component.jobForm.get('bot')?.hasError('invalidAutocomplete'));
+
+    component.ngOnInit();
+    tick();
+
+    assert.isFalse(component.jobForm.get('bot')?.hasError('invalidAutocomplete'));
+  }));
+
+  it('should re-validate benchmark when benchmarks list is loaded', fakeAsync(() => {
+    const component = createComponent({
+      ListBenchmarks: async () => ({ benchmarks: ['speedometer3'] }),
+    });
+    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    assert.isTrue(component.jobForm.get('benchmark')?.hasError('invalidAutocomplete'));
+
+    component.ngOnInit();
+    tick();
+
+    assert.isFalse(component.jobForm.get('benchmark')?.hasError('invalidAutocomplete'));
+  }));
 });

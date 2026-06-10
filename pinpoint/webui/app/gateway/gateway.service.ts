@@ -11,6 +11,8 @@ import {
   CreateJobResponse,
   ListBotConfigurationsRequest,
   ListBotConfigurationsResponse,
+  ListBenchmarksRequest,
+  ListBenchmarksResponse,
 } from './gateway';
 
 @Injectable({
@@ -44,5 +46,9 @@ export class GatewayService implements PinpointGateway {
     return firstValueFrom(
       this.http.get<ListBotConfigurationsResponse>('/pinpoint/v1/bot-configurations')
     );
+  }
+
+  ListBenchmarks(_request: ListBenchmarksRequest): Promise<ListBenchmarksResponse> {
+    return firstValueFrom(this.http.get<ListBenchmarksResponse>('/pinpoint/v1/benchmarks'));
   }
 }

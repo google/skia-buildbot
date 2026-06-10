@@ -90,3 +90,12 @@ func (c *Client) ListBotConfigurations(ctx context.Context) ([]string, error) {
 	}
 	return resp, nil
 }
+
+// ListBenchmarks retrieves the list of available benchmarks.
+func (c *Client) ListBenchmarks(ctx context.Context) ([]string, error) {
+	resp, err := c.legacyClient.ListBenchmarks(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
+}

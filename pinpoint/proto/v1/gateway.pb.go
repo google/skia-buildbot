@@ -960,6 +960,88 @@ func (x *ListBotConfigurationsResponse) GetConfigurations() []string {
 	return nil
 }
 
+// Request message to list all available benchmarks.
+type ListBenchmarksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBenchmarksRequest) Reset() {
+	*x = ListBenchmarksRequest{}
+	mi := &file_gateway_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBenchmarksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBenchmarksRequest) ProtoMessage() {}
+
+func (x *ListBenchmarksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBenchmarksRequest.ProtoReflect.Descriptor instead.
+func (*ListBenchmarksRequest) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{12}
+}
+
+// Response message containing the list of available benchmarks.
+type ListBenchmarksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Benchmarks    []string               `protobuf:"bytes,1,rep,name=benchmarks,proto3" json:"benchmarks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBenchmarksResponse) Reset() {
+	*x = ListBenchmarksResponse{}
+	mi := &file_gateway_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBenchmarksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBenchmarksResponse) ProtoMessage() {}
+
+func (x *ListBenchmarksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBenchmarksResponse.ProtoReflect.Descriptor instead.
+func (*ListBenchmarksResponse) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListBenchmarksResponse) GetBenchmarks() []string {
+	if x != nil {
+		return x.Benchmarks
+	}
+	return nil
+}
+
 var File_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_proto_rawDesc = "" +
@@ -1038,7 +1120,12 @@ const file_gateway_proto_rawDesc = "" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\"\x1e\n" +
 	"\x1cListBotConfigurationsRequest\"G\n" +
 	"\x1dListBotConfigurationsResponse\x12&\n" +
-	"\x0econfigurations\x18\x01 \x03(\tR\x0econfigurations*J\n" +
+	"\x0econfigurations\x18\x01 \x03(\tR\x0econfigurations\"\x17\n" +
+	"\x15ListBenchmarksRequest\"8\n" +
+	"\x16ListBenchmarksResponse\x12\x1e\n" +
+	"\n" +
+	"benchmarks\x18\x01 \x03(\tR\n" +
+	"benchmarks*J\n" +
 	"\aJobType\x12\x18\n" +
 	"\x14JOB_TYPE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fJOB_TYPE_TRY\x10\x01\x12\x13\n" +
@@ -1049,12 +1136,13 @@ const file_gateway_proto_rawDesc = "" +
 	"\x12JOB_STATUS_RUNNING\x10\x02\x12\x18\n" +
 	"\x14JOB_STATUS_COMPLETED\x10\x03\x12\x15\n" +
 	"\x11JOB_STATUS_FAILED\x10\x04\x12\x18\n" +
-	"\x14JOB_STATUS_CANCELLED\x10\x052\xf7\x03\n" +
+	"\x14JOB_STATUS_CANCELLED\x10\x052\xf3\x04\n" +
 	"\x0fPinpointGateway\x12n\n" +
 	"\fQueryJobList\x12 .pinpoint.v1.QueryJobListRequest\x1a!.pinpoint.v1.QueryJobListResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/jobs\x12k\n" +
 	"\vGetUserInfo\x12\x1f.pinpoint.v1.GetUserInfoRequest\x1a .pinpoint.v1.GetUserInfoResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/user\x12m\n" +
 	"\fCreateTryJob\x12 .pinpoint.v1.CreateTryJobRequest\x1a\x1e.pinpoint.v1.CreateJobResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/pinpoint/v1/new\x12\x97\x01\n" +
-	"\x15ListBotConfigurations\x12).pinpoint.v1.ListBotConfigurationsRequest\x1a*.pinpoint.v1.ListBotConfigurationsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/pinpoint/v1/bot-configurationsB0Z.go.skia.org/infra/pinpoint/proto/v1;pinpointpbb\x06proto3"
+	"\x15ListBotConfigurations\x12).pinpoint.v1.ListBotConfigurationsRequest\x1a*.pinpoint.v1.ListBotConfigurationsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/pinpoint/v1/bot-configurations\x12z\n" +
+	"\x0eListBenchmarks\x12\".pinpoint.v1.ListBenchmarksRequest\x1a#.pinpoint.v1.ListBenchmarksResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/pinpoint/v1/benchmarksB0Z.go.skia.org/infra/pinpoint/proto/v1;pinpointpbb\x06proto3"
 
 var (
 	file_gateway_proto_rawDescOnce sync.Once
@@ -1069,7 +1157,7 @@ func file_gateway_proto_rawDescGZIP() []byte {
 }
 
 var file_gateway_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_gateway_proto_goTypes = []any{
 	(JobType)(0),                          // 0: pinpoint.v1.JobType
 	(JobStatus)(0),                        // 1: pinpoint.v1.JobStatus
@@ -1085,7 +1173,9 @@ var file_gateway_proto_goTypes = []any{
 	(*CreateJobResponse)(nil),             // 11: pinpoint.v1.CreateJobResponse
 	(*ListBotConfigurationsRequest)(nil),  // 12: pinpoint.v1.ListBotConfigurationsRequest
 	(*ListBotConfigurationsResponse)(nil), // 13: pinpoint.v1.ListBotConfigurationsResponse
-	(*timestamppb.Timestamp)(nil),         // 14: google.protobuf.Timestamp
+	(*ListBenchmarksRequest)(nil),         // 14: pinpoint.v1.ListBenchmarksRequest
+	(*ListBenchmarksResponse)(nil),        // 15: pinpoint.v1.ListBenchmarksResponse
+	(*timestamppb.Timestamp)(nil),         // 16: google.protobuf.Timestamp
 }
 var file_gateway_proto_depIdxs = []int32{
 	0,  // 0: pinpoint.v1.QueryJobListRequest.job_type:type_name -> pinpoint.v1.JobType
@@ -1093,7 +1183,7 @@ var file_gateway_proto_depIdxs = []int32{
 	5,  // 2: pinpoint.v1.QueryJobListResponse.jobs:type_name -> pinpoint.v1.JobSummary
 	2,  // 3: pinpoint.v1.QueryJobListResponse.pagination:type_name -> pinpoint.v1.Pagination
 	0,  // 4: pinpoint.v1.JobSummary.job_type:type_name -> pinpoint.v1.JobType
-	14, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
+	16, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
 	1,  // 6: pinpoint.v1.JobSummary.job_status:type_name -> pinpoint.v1.JobStatus
 	8,  // 7: pinpoint.v1.VariantConfig.extra_args:type_name -> pinpoint.v1.ExtraArgs
 	9,  // 8: pinpoint.v1.CreateTryJobRequest.base:type_name -> pinpoint.v1.VariantConfig
@@ -1102,12 +1192,14 @@ var file_gateway_proto_depIdxs = []int32{
 	6,  // 11: pinpoint.v1.PinpointGateway.GetUserInfo:input_type -> pinpoint.v1.GetUserInfoRequest
 	10, // 12: pinpoint.v1.PinpointGateway.CreateTryJob:input_type -> pinpoint.v1.CreateTryJobRequest
 	12, // 13: pinpoint.v1.PinpointGateway.ListBotConfigurations:input_type -> pinpoint.v1.ListBotConfigurationsRequest
-	4,  // 14: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
-	7,  // 15: pinpoint.v1.PinpointGateway.GetUserInfo:output_type -> pinpoint.v1.GetUserInfoResponse
-	11, // 16: pinpoint.v1.PinpointGateway.CreateTryJob:output_type -> pinpoint.v1.CreateJobResponse
-	13, // 17: pinpoint.v1.PinpointGateway.ListBotConfigurations:output_type -> pinpoint.v1.ListBotConfigurationsResponse
-	14, // [14:18] is the sub-list for method output_type
-	10, // [10:14] is the sub-list for method input_type
+	14, // 14: pinpoint.v1.PinpointGateway.ListBenchmarks:input_type -> pinpoint.v1.ListBenchmarksRequest
+	4,  // 15: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
+	7,  // 16: pinpoint.v1.PinpointGateway.GetUserInfo:output_type -> pinpoint.v1.GetUserInfoResponse
+	11, // 17: pinpoint.v1.PinpointGateway.CreateTryJob:output_type -> pinpoint.v1.CreateJobResponse
+	13, // 18: pinpoint.v1.PinpointGateway.ListBotConfigurations:output_type -> pinpoint.v1.ListBotConfigurationsResponse
+	15, // 19: pinpoint.v1.PinpointGateway.ListBenchmarks:output_type -> pinpoint.v1.ListBenchmarksResponse
+	15, // [15:20] is the sub-list for method output_type
+	10, // [10:15] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
 	10, // [10:10] is the sub-list for extension extendee
 	0,  // [0:10] is the sub-list for field type_name
@@ -1127,7 +1219,7 @@ func file_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_proto_rawDesc), len(file_gateway_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

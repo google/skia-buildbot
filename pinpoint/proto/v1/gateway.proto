@@ -184,6 +184,14 @@ message ListBotConfigurationsResponse {
   repeated string configurations = 1;
 }
 
+// Request message to list all available benchmarks.
+message ListBenchmarksRequest {}
+
+// Response message containing the list of available benchmarks.
+message ListBenchmarksResponse {
+  repeated string benchmarks = 1;
+}
+
 // Service definition for Pinpoint Gateway API.
 service PinpointGateway {
   // Queries a list of jobs based on filters and pagination options.
@@ -212,6 +220,13 @@ service PinpointGateway {
   rpc ListBotConfigurations(ListBotConfigurationsRequest) returns (ListBotConfigurationsResponse) {
     option (google.api.http) = {
       get: "/pinpoint/v1/bot-configurations"
+    };
+  }
+
+  // Lists all available benchmarks.
+  rpc ListBenchmarks(ListBenchmarksRequest) returns (ListBenchmarksResponse) {
+    option (google.api.http) = {
+      get: "/pinpoint/v1/benchmarks"
     };
   }
 }

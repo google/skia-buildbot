@@ -71,6 +71,7 @@ type mockPinpointClient struct {
 	queryJobListFunc          func(ctx context.Context, req *pb.QueryJobListRequest) (*pb.QueryJobListResponse, error)
 	createPinpointTryJobFunc  func(ctx context.Context, req *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error)
 	listBotConfigurationsFunc func(ctx context.Context) ([]string, error)
+	listBenchmarksFunc        func(ctx context.Context) ([]string, error)
 }
 
 func (m *mockPinpointClient) QueryJobList(
@@ -96,6 +97,13 @@ func (m *mockPinpointClient) CreatePinpointTryJob(
 func (m *mockPinpointClient) ListBotConfigurations(ctx context.Context) ([]string, error) {
 	if m.listBotConfigurationsFunc != nil {
 		return m.listBotConfigurationsFunc(ctx)
+	}
+	return nil, nil
+}
+
+func (m *mockPinpointClient) ListBenchmarks(ctx context.Context) ([]string, error) {
+	if m.listBenchmarksFunc != nil {
+		return m.listBenchmarksFunc(ctx)
 	}
 	return nil, nil
 }
@@ -199,5 +207,35 @@ func TestListBotConfigurations(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Contains(t, err.Error(), "failed to list bots")
+	})
+}
+
+func TestListBenchmarks(t *testing.T) {
+	t.Run("successful list", func(t *testing.T) {
+		expectedBenchmarks := []string{"bench1", "bench2"}
+		client := &mockPinpointClient{
+			listBenchmarksFunc: func(ctx context.Context) ([]string, error) {
+				return expectedBenchmarks, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.ListBenchmarks(context.Background(), &pb.ListBenchmarksRequest{})
+		require.NoError(t, err)
+		assert.Equal(t, expectedBenchmarks, resp.Benchmarks)
+	})
+
+	t.Run("client returns error", func(t *testing.T) {
+		client := &mockPinpointClient{
+			listBenchmarksFunc: func(ctx context.Context) ([]string, error) {
+				return nil, errors.New("failed to list benchmarks")
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.ListBenchmarks(context.Background(), &pb.ListBenchmarksRequest{})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "failed to list benchmarks")
 	})
 }

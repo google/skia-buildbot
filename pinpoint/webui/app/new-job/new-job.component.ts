@@ -64,13 +64,15 @@ export class NewJobComponent implements OnInit {
 
   bots = signal<string[]>([]);
 
+  benchmarks = signal<string[]>([]);
+
   jobForm: FormGroup = this.formBuilder.group({
     jobName: [''],
     // 150 is the maximum number of attempts the legacy backend allows.
     attempts: [30, [Validators.required, Validators.min(1), Validators.max(150)]],
     bugId: ['', Validators.min(1)],
     bot: ['', [Validators.required, this.autocompleteValidator(this.bots)]],
-    benchmark: ['', Validators.required],
+    benchmark: ['', [Validators.required, this.autocompleteValidator(this.benchmarks)]],
     story: [''],
     storyTags: [''],
     baseline: this.formBuilder.group(variantGroupConfig(true)),
@@ -81,18 +83,32 @@ export class NewJobComponent implements OnInit {
 
   filteredBots = this.filterValuesByInput(this.botQuery, this.bots);
 
-  async ngOnInit() {
-    await this.loadBots();
+  benchmarkQuery = this.inputFieldSignal('benchmark');
+
+  filteredBenchmarks = this.filterValuesByInput(this.benchmarkQuery, this.benchmarks);
+
+  ngOnInit() {
+    this.loadBots();
+    this.loadBenchmarks();
   }
 
   private async loadBots() {
     try {
       const response = await this.gatewayService.ListBotConfigurations({});
-      const sortedBots = (response.configurations || []).slice().sort();
-      this.bots.set(sortedBots);
+      this.bots.set(response.configurations.sort());
       this.jobForm.get('bot')?.updateValueAndValidity();
     } catch (error) {
       console.error('Failed to fetch bots: ', error);
+    }
+  }
+
+  private async loadBenchmarks() {
+    try {
+      const response = await this.gatewayService.ListBenchmarks({});
+      this.benchmarks.set(response.benchmarks.sort());
+      this.jobForm.get('benchmark')?.updateValueAndValidity();
+    } catch (error) {
+      console.error('Failed to fetch benchmarks: ', error);
     }
   }
 

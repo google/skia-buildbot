@@ -196,6 +196,15 @@ export interface ListBotConfigurationsResponse {
   configurations: string[];
 }
 
+/** Request message to list all available benchmarks. */
+export interface ListBenchmarksRequest {
+}
+
+/** Response message containing the list of available benchmarks. */
+export interface ListBenchmarksResponse {
+  benchmarks: string[];
+}
+
 /** Service definition for Pinpoint Gateway API. */
 export interface PinpointGateway {
   /** Queries a list of jobs based on filters and pagination options. */
@@ -206,4 +215,6 @@ export interface PinpointGateway {
   CreateTryJob(request: CreateTryJobRequest): Promise<CreateJobResponse>;
   /** Lists all available bots. */
   ListBotConfigurations(request: ListBotConfigurationsRequest): Promise<ListBotConfigurationsResponse>;
+  /** Lists all available benchmarks. */
+  ListBenchmarks(request: ListBenchmarksRequest): Promise<ListBenchmarksResponse>;
 }

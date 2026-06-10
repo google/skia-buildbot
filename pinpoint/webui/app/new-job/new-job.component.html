@@ -57,8 +57,18 @@
         <div>
           <mat-form-field matTooltip="The performance benchmark suite to execute (e.g. speedometer3, jetstream2).">
             <mat-label>Benchmark</mat-label>
-            <input matInput formControlName="benchmark" placeholder="e.g. speedometer3.1.crossbench" required />
-            <mat-error>Benchmark is required</mat-error>
+            <input matInput formControlName="benchmark" placeholder="e.g. speedometer3.1.crossbench" required [matAutocomplete]="autoBenchmark" />
+            <mat-autocomplete #autoBenchmark="matAutocomplete">
+              @for (benchmark of filteredBenchmarks(); track benchmark) {
+                <mat-option [value]="benchmark">{{benchmark}}</mat-option>
+              }
+            </mat-autocomplete>
+            @if (jobForm.get('benchmark')?.hasError('required')) {
+              <mat-error>Benchmark is required</mat-error>
+            }
+            @if (jobForm.get('benchmark')?.hasError('invalidAutocomplete')) {
+              <mat-error>Please select a benchmark from the list of available suites</mat-error>
+            }
           </mat-form-field>
         </div>
 

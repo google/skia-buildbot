@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -24,16 +25,39 @@ import (
 )
 
 const (
-	pinpointLegacyBaseURL     = "https://pinpoint-dot-chromeperf.appspot.com"
-	pinpointLegacyNewJobURL   = pinpointLegacyBaseURL + "/api/new"
-	pinpointLegacyJobsURL     = pinpointLegacyBaseURL + "/api/jobs"
-	pinpointLegacyJobStateURL = pinpointLegacyBaseURL + "/api/job"
-	pinpointLegacyConfigURL   = pinpointLegacyBaseURL + "/api/config"
-	contentType               = "application/json"
-	tryJobComparisonMode      = "try"
-	chromeperfLegacyBisectURL = "https://chromeperf.appspot.com/pinpoint/new/bisect"
-	legacyCreatedTimeLayout   = "2006-01-02T15:04:05.999999" // Layout used to parse legacy Pinpoint job creation time.
+	pinpointLegacyBaseURL         = "https://pinpoint-dot-chromeperf.appspot.com"
+	pinpointLegacyNewJobURL       = pinpointLegacyBaseURL + "/api/new"
+	pinpointLegacyJobsURL         = pinpointLegacyBaseURL + "/api/jobs"
+	pinpointLegacyJobStateURL     = pinpointLegacyBaseURL + "/api/job"
+	pinpointLegacyConfigURL       = pinpointLegacyBaseURL + "/api/config"
+	contentType                   = "application/json"
+	tryJobComparisonMode          = "try"
+	chromeperfLegacyBaseURL       = "https://chromeperf.appspot.com"
+	chromeperfLegacyBisectURL     = chromeperfLegacyBaseURL + "/pinpoint/new/bisect"
+	chromeperfLegacyTestSuitesURL = chromeperfLegacyBaseURL + "/api/test_suites"
+	legacyCreatedTimeLayout       = "2006-01-02T15:04:05.999999" // Layout used to parse legacy Pinpoint job creation time.
 )
+
+// Some benchmarks are not returned by the legacy Pinpoint because they are hardcoded in the Web UI.
+// Hardcode these benchmarks here for now until we switch to the new backend.
+var missingBenchmarks = []string{
+	"blink-ai.crossbench",
+	"devtools_frontend.crossbench",
+	"gma.embedder.crossbench",
+	"jetstream-main.crossbench",
+	"jetstream2.0.crossbench",
+	"jetstream2.1.crossbench",
+	"jetstream2.2.crossbench",
+	"jetstream3.0.crossbench",
+	"jetstream3.crossbench",
+	"loadline2_tablet.crossbench",
+	"motionmark1.0.crossbench",
+	"motionmark1.1.crossbench",
+	"motionmark1.2.crossbench",
+	"motionmark1.3.1.crossbench",
+	"speedometer-main.crossbench",
+	"webai.crossbench",
+}
 
 type LegacyClient struct {
 	httpClient                 *http.Client
@@ -49,6 +73,8 @@ type LegacyClient struct {
 	createPinpointTryJobFailed metrics2.Counter
 	listBotsCalled             metrics2.Counter
 	listBotsFailed             metrics2.Counter
+	listBenchmarksCalled       metrics2.Counter
+	listBenchmarksFailed       metrics2.Counter
 }
 
 // New returns a new LegacyClient instance.
@@ -76,6 +102,8 @@ func NewLegacyClient(ctx context.Context) (*LegacyClient, error) {
 		createPinpointTryJobFailed: metrics2.GetCounter("pinpoint_create_pinpoint_try_job_failed"),
 		listBotsCalled:             metrics2.GetCounter("pinpoint_list_bots_called"),
 		listBotsFailed:             metrics2.GetCounter("pinpoint_list_bots_failed"),
+		listBenchmarksCalled:       metrics2.GetCounter("pinpoint_list_benchmarks_called"),
+		listBenchmarksFailed:       metrics2.GetCounter("pinpoint_list_benchmarks_failed"),
 	}, nil
 }
 
@@ -632,4 +660,29 @@ func (pc *LegacyClient) ListBotConfigurations(ctx context.Context) (resp []strin
 		return nil, skerr.Wrapf(err, "Failed to parse pinpoint response body.")
 	}
 	return legacyResp.Configurations, nil
+}
+
+// ListBenchmarks queries the legacy Pinpoint/Chromeperf API to retrieve available benchmarks.
+func (pc *LegacyClient) ListBenchmarks(ctx context.Context) (resp []string, err error) {
+	pc.listBenchmarksCalled.Inc(1)
+	defer func() { trackError(pc.listBenchmarksFailed, err) }()
+
+	httpResp, err := pc.doPostRequest(ctx, chromeperfLegacyTestSuitesURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	body, err := pc.readResponseBody(httpResp)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	var benchmarks []string
+	if err = json.Unmarshal(body, &benchmarks); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse benchmarks response body.")
+	}
+
+	benchmarks = append(benchmarks, missingBenchmarks...)
+	slices.Sort(benchmarks)
+	return slices.Compact(benchmarks), nil
 }
