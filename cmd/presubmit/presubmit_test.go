@@ -1089,3 +1089,86 @@ func TestRunWorkflowCheck(t *testing.T) {
 		assert.Contains(t, logs.String(), "not-json-output")
 	})
 }
+
+func TestRunStylelint(t *testing.T) {
+	t.Run("No scss files - skips execution", func(t *testing.T) {
+		ctx, _ := captureLogs()
+		files := []fileWithChanges{
+			{fileName: "perf/go/main.go"},
+			{fileName: "pinpoint/README.md"},
+			{fileName: "app/test.ts"},
+		}
+
+		ok := runStylelint(ctx, files, "/path/to/repo", "HEAD~1")
+		assert.True(t, ok)
+	})
+
+	t.Run("SCSS files - success", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		script := "#!/bin/sh\necho \"$@\" > \"$(dirname \"$0\")/args.txt\"\nexit 0\n"
+		err := os.WriteFile(mockBazelisk, []byte(script), 0755)
+		assert.NoError(t, err)
+
+		mockGit := filepath.Join(tempDir, "git")
+		const gitScript = `#!/bin/sh
+if [ "$1" = "citc" ]; then
+  cat << 'EOF'
+--- a/app/styles.scss
++++ b/app/styles.scss
+--- a/perf/go/main.go
++++ b/perf/go/main.go
+EOF
+else
+  cat << 'EOF'
+diff --git a/app/styles.scss b/app/styles.scss
+diff --git a/perf/go/main.go b/perf/go/main.go
+EOF
+fi
+exit 0
+`
+		err = os.WriteFile(mockGit, []byte(gitScript), 0755)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, _ := captureLogs()
+		files := []fileWithChanges{
+			{fileName: "app/styles.scss"},
+			{fileName: "perf/go/main.go"}, // Should be ignored
+		}
+
+		ok := runStylelint(ctx, files, "/path/to/repo", "HEAD~1")
+		assert.True(t, ok)
+
+		// Verify arguments, ensuring perf/go/main.go was filtered out
+		argsFile := filepath.Join(tempDir, "args.txt")
+		argsData, err := os.ReadFile(argsFile)
+		assert.NoError(t, err)
+		expectedArgs := "run --config=mayberemote //:npx -- stylelint --quiet --fix app/styles.scss\n"
+		assert.Equal(t, expectedArgs, string(argsData))
+	})
+
+	t.Run("Command fails", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		err := os.WriteFile(
+			mockBazelisk,
+			[]byte("#!/bin/sh\necho 'stylelint error'\nexit 1\n"),
+			0755,
+		)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, logs := captureLogs()
+		files := []fileWithChanges{{fileName: "app/styles.scss"}}
+
+		ok := runStylelint(ctx, files, "/path/to/repo", "HEAD~1")
+		assert.False(t, ok)
+		assert.Contains(t, logs.String(), "stylelint error")
+		assert.Contains(t, logs.String(), "stylelint failed!")
+	})
+}

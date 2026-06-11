@@ -129,6 +129,8 @@ func main() {
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	runCheck("ESLint", func() bool { return runESLint(ctx, changedFiles, *repoDir, branchBaseCommit) })
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	runCheck("Stylelint", func() bool { return runStylelint(ctx, changedFiles, *repoDir, branchBaseCommit) })
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	runCheck("Gazelle", func() bool { return runGazelle(ctx, changedFiles, deletedFiles, branchBaseCommit) })
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	runCheck("TODOHasOwner", func() bool { return checkTODOHasOwner(ctx, changedFiles) })
@@ -1047,6 +1049,40 @@ func runESLint(ctx context.Context, files []fileWithChanges, workspaceRoot, bran
 	if err != nil {
 		log(ctx, string(output))
 		log(ctx, "eslint failed!\n")
+		return false
+	}
+
+	return true
+}
+
+// runStylelint runs stylelint on any changed SCSS or CSS files. It returns
+// false if stylelint returns a non-zero error code.
+func runStylelint(ctx context.Context, files []fileWithChanges, workspaceRoot, branchBaseCommit string) bool {
+	args := []string{"run", "--config=mayberemote", "//:npx", "--", "stylelint", "--quiet", "--fix"}
+	numFiles := 0
+	for _, f := range files {
+		ext := filepath.Ext(f.fileName)
+		if ext == ".scss" || ext == ".css" {
+			args = append(args, f.fileName)
+			numFiles++
+		}
+	}
+	if numFiles == 0 {
+		return true
+	}
+
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log(ctx, string(output))
+		log(ctx, "stylelint failed!\n")
+		return false
+	}
+
+	// Recalculate diffs and fail if stylelint modified anything
+	changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit)
+	if !deepequal.DeepEqual(files, changedFiles) {
+		logf(ctx, "Stylelint caused additional changes. %+v \n", changedFiles)
 		return false
 	}
 

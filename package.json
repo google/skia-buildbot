@@ -159,6 +159,8 @@
     "semantic-ui-react": "^2.1.5",
     "shellcheck": "^4.1.0",
     "sinon": "^7.5.0",
+    "stylelint": "^17.13.0",
+    "stylelint-config-standard-scss": "^17.0.0",
     "ts-node": "^10.9.2",
     "ts-proto": "^2.6.3",
     "type-coverage": "^2.29.7",
