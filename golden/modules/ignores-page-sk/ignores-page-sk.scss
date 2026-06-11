@@ -1,6 +1,6 @@
-@import '../../../elements-sk/modules/styles/buttons';
-@import '../../../elements-sk/modules/colors';
-@import '../colors';
+@use '../../../elements-sk/modules/styles/buttons';
+@use '../../../elements-sk/modules/colors';
+@use '../colors' as colors2;
 
 ignores-page-sk {
   .controls {

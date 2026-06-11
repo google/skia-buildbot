@@ -5,7 +5,7 @@
 
     @import '../colors';
 */
-@import '../../infra-sk/themes';
+@use '../../infra-sk/themes';
 
 :root {
   --color-canceled: rgb(117 112 179);

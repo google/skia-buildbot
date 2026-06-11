@@ -1,5 +1,5 @@
-@import '../../../elements-sk/modules/colors';
-@import '../colors';
+@use '../../../elements-sk/modules/colors';
+@use '../colors' as colors2;
 
 gold-scaffold-sk {
   font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;

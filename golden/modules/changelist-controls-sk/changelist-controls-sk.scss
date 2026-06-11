@@ -1,5 +1,5 @@
-@import '../../../elements-sk/modules/styles/select';
-@import '../../../infra-sk/themes';
+@use '../../../elements-sk/modules/styles/select';
+@use '../../../infra-sk/themes';
 
 changelist-controls-sk {
   font-family: sans-serif;

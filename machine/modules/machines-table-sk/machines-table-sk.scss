@@ -1,6 +1,6 @@
-@import '../../../elements-sk/modules/styles/select';
-@import '../../../elements-sk/modules/styles/buttons';
-@import '../theme/theme';
+@use '../../../elements-sk/modules/styles/select';
+@use '../../../elements-sk/modules/styles/buttons';
+@use '../theme/theme';
 
 machines-table-sk {
   .clickable {

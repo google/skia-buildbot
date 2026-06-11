@@ -5,7 +5,7 @@
     @import '../colors';
 */
 
-@import '../../infra-sk/themes';
+@use '../../infra-sk/themes';
 
 app-sk {
   --closed: var(--failure-alpha);

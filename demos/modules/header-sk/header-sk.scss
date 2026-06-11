@@ -1,5 +1,5 @@
-@import '../../../elements-sk/modules/colors';
-@import '../colors';
+@use '../../../elements-sk/modules/colors';
+@use '../colors' as colors2;
 
 body {
   margin: 0;

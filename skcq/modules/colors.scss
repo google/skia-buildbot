@@ -5,7 +5,7 @@
     @import '../colors';
 */
 
-@import '../../infra-sk/themes';
+@use '../../infra-sk/themes';
 
 .body-sk {
   --attempt-background: #4f4f4f;

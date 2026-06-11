@@ -1,7 +1,7 @@
-@import '../../../elements-sk/modules/styles/buttons';
-@import '../../../elements-sk/modules/colors';
-@import '../colors';
-@import '../../../infra-sk/themes';
+@use '../../../elements-sk/modules/styles/buttons';
+@use '../../../elements-sk/modules/colors';
+@use '../colors' as colors2;
+@use '../../../infra-sk/themes';
 
 .body-sk bulk-triage-sk,
 bulk-triage-sk {

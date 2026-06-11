@@ -1,6 +1,6 @@
-@import '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
-@import '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
-@import '../../themes';
+@use '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
+@use '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
+@use '../../themes';
 
 query-values-sk {
   .regex ~ .values,

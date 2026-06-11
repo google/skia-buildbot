@@ -1,6 +1,6 @@
-@import '../../../elements-sk/modules/styles/table';
-@import '../../../infra-sk/modules/results';
-@import '../colors';
+@use '../../../elements-sk/modules/styles/table';
+@use '../../../infra-sk/modules/results';
+@use '../colors';
 
 arb-roll-history-sk {
   :host {
