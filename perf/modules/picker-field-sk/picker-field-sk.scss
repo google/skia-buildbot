@@ -1,4 +1,5 @@
-@use '../themes/themes.scss';
+@use '../themes/themes';
+
 // Style reference for vaadin elements:
 // https://vaadin.com/docs/latest/components/combo-box/styling
 .body-sk picker-field-sk {
@@ -8,6 +9,7 @@
     align-items: flex-start;
     flex-direction: column;
     position: relative;
+
     .header-row {
       display: flex;
       justify-content: space-between;
@@ -23,14 +25,17 @@
         padding-bottom: 2px;
       }
     }
+
     #split-by-container {
       display: flex;
     }
   }
+
   vaadin-multi-select-combo-box {
     --vaadin-input-field-icon-color: var(--lumo-secondary-text-color);
     --lumo-text-field-size: var(--lumo-size-xs);
-    padding-top: 0px;
+
+    padding-top: 0;
     min-width: 220px;
     max-width: 400px;
   }
@@ -61,6 +66,7 @@
 
   checkbox-sk {
     margin: 0;
+
     label {
       display: flex;
       flex-flow: row-reverse;
@@ -76,38 +82,47 @@
     transition: color 0.3s ease;
     color: var(--on-disabled);
   }
+
   *[id^='picker-field-']:hover .header-row label {
     transition: color 0.3s ease;
     color: var(--on-surface);
   }
+
   *[id^='picker-field-']:focus-within .header-row label {
     transition: color 0.3s ease;
     color: var(--primary);
   }
+
   vaadin-multi-select-combo-box::part(label) {
     transition: color 0.3s ease;
     color: var(--on-disabled);
   }
+
   vaadin-multi-select-combo-box::part(helper-text) {
     transition: color 0.3s ease;
     color: var(--on-disabled);
   }
+
   vaadin-multi-select-combo-box:hover::part(label) {
     transition: color 0.3s ease;
     color: var(--on-surface);
   }
+
   vaadin-multi-select-combo-box:focus-within::part(label) {
     transition: color 0.3s ease;
     color: var(--primary);
   }
+
   vaadin-multi-select-combo-box::part(input-field) {
     transition: background-color 0.3s ease;
     background-color: var(--on-disabled);
   }
+
   vaadin-multi-select-combo-box:hover::part(input-field) {
     transition: background-color 0.3s ease;
     background-color: var(--on-surface);
   }
+
   vaadin-multi-select-combo-box:focus-within::part(input-field) {
     transition: background-color 0.3s ease;
     background-color: var(--on-surface);

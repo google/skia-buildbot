@@ -1,4 +1,4 @@
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 explore-multi-sk {
   #menu {
@@ -39,9 +39,11 @@ explore-multi-sk {
     background: var(--surface-1dp);
     width: 64px;
   }
+
   #test-picker.hidden {
     display: none;
   }
+
   .progress-container {
     align-items: center;
     display: flex;

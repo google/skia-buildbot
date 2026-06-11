@@ -1,5 +1,5 @@
 @use '../../../elements-sk/modules/colors';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 commit-detail-sk {
   .linkish {
@@ -9,6 +9,7 @@ commit-detail-sk {
 
     md-outlined-button {
       --md-outlined-button-container-shape: 4px;
+
       margin-right: 8px;
     }
   }
@@ -27,7 +28,6 @@ commit-detail-sk {
     display: flex;
   }
 }
-
 
 .body-sk commit-detail-sk {
   .linkish {

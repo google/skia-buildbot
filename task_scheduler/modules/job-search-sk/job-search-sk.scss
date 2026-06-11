@@ -9,7 +9,7 @@ job-search-sk {
 
   tr.searchTerms {
     background: inherit;
-    border: 0px;
+    border: 0;
   }
 
   button {
@@ -18,13 +18,13 @@ job-search-sk {
   }
 
   button.delete {
-    margin: 0px;
-    padding: 0px;
-    border: 0px;
+    margin: 0;
+    padding: 0;
+    border: 0;
   }
 
   button.search {
-    margin: 0px;
+    margin: 0;
   }
 
   div.container {

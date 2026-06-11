@@ -1,4 +1,4 @@
-@import '../../../infra-sk/themes.scss';
+@import '../../../infra-sk/themes';
 
 .body-sk.font-sk {
   tools-sk {
@@ -87,7 +87,7 @@
       .instructions {
         font-weight: 200;
         font-style: italic;
-        opacity: 80%;
+        opacity: 0.8;
         font-size: 12px;
       }
 
@@ -147,6 +147,7 @@
       font-size: 28px;
       color: var(--primary);
     }
+
     h3 {
       font-size: 24px;
       color: var(--primary);

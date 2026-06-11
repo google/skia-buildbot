@@ -1,5 +1,5 @@
 @use '../../../elements-sk/modules/styles/buttons';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 alert-config-sk {
   algo-select-sk {
@@ -12,7 +12,7 @@ alert-config-sk {
 }
 
 alert-config-sk > h3 {
-  margin: 1em 0 0.2em 0;
+  margin: 1em 0 0.2em;
 }
 
 alert-config-sk > h4 {

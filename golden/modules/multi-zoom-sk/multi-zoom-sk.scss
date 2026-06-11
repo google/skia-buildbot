@@ -26,6 +26,7 @@ multi-zoom-sk {
   .preview {
     position: relative;
     margin: 0;
+
     img.thumbnail {
       border: solid 2px lightgray;
       margin: 0;
@@ -35,6 +36,7 @@ multi-zoom-sk {
       object-fit: scale-down;
       object-position: top left;
     }
+
     // position this exactly over the thumbnail.
     canvas.crosshair {
       position: absolute;
@@ -49,9 +51,11 @@ multi-zoom-sk {
       checkbox-sk {
         margin: 3px 0;
       }
+
       .displayed {
         font-weight: bold;
       }
+
       .for_spacing {
         // See https://stackoverflow.com/a/20249560 Basically, we have a copy of
         // the checkbox with label that is hidden and bolded so the width doesn't
@@ -81,9 +85,11 @@ multi-zoom-sk {
     td.label {
       font-weight: bold;
     }
+
     td.value {
       font-family: monospace;
     }
+
     th {
       text-align: left;
     }

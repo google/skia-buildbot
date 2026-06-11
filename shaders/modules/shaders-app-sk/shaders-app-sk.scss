@@ -3,8 +3,7 @@
 @use 'shaders/modules/shaders-app-sk/codemirror_base16-light.css';
 @import '../../../elements-sk/modules/styles/select';
 @import '../../../elements-sk/modules/styles/buttons';
-
-@import '../themes/themes.scss';
+@import '../themes/themes';
 
 .body-sk shaders-app-sk {
   overflow: hidden;
@@ -15,7 +14,6 @@
 
   --sidebar-width: 0;
   --header-horiz-padding: 16px;
-
   --secondary: #4caf50;
 
   header {
@@ -25,8 +23,7 @@
   main {
     padding: 16px;
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-flow: row wrap;
 
     textarea {
       display: block;
@@ -58,7 +55,6 @@
       justify-content: space-between;
       margin: 0;
       padding-right: 8px;
-
       color: var(--primary);
       fill: var(--primary);
 
@@ -178,7 +174,6 @@
 
     summary {
       list-style: none;
-
       margin-top: 0;
 
       edit-icon-sk {
@@ -269,7 +264,6 @@
           width: 110px;
 
           &:hover {
-            -webkit-transition: 0.3s ease-in-out;
             opacity: 0.5;
             transition: 0.3s ease-in-out;
           }

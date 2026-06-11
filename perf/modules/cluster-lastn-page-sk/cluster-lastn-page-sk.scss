@@ -1,5 +1,5 @@
 @use '../../../elements-sk/modules/styles/buttons';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 cluster-lastn-page-sk {
   display: block;
@@ -59,6 +59,6 @@ cluster-lastn-page-sk {
   }
 
   p {
-    margin: 8px 0 0 0;
+    margin: 8px 0 0;
   }
 }

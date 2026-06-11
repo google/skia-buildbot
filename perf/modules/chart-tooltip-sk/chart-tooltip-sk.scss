@@ -1,4 +1,4 @@
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 chart-tooltip-sk {
   display: block;
@@ -6,7 +6,7 @@ chart-tooltip-sk {
 
   > div.container {
     display: none;
-    opacity: 90%;
+    opacity: 0.9;
     font-size: 12px;
     font-family: var(--font-family);
     position: absolute;
@@ -15,9 +15,10 @@ chart-tooltip-sk {
     max-width: 360px;
     margin: 20px;
     padding: 4px;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
     background: var(--surface-2dp);
-    box-shadow: 5px 5px 10px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 5px 5px 10px 2px rgb(0 0 0 / 30%);
+
     md-elevation {
       transition-duration: 0.3s;
     }
@@ -39,7 +40,7 @@ chart-tooltip-sk {
     h3 {
       margin-bottom: 4px;
       padding-right: 20px;
-      text-shadow: 0px 1px var(--md-sys-color-background);
+      text-shadow: 0 1px var(--md-sys-color-background);
     }
 
     h4 {
@@ -47,25 +48,31 @@ chart-tooltip-sk {
       margin-bottom: 0 !important;
       text-decoration: underline;
     }
+
     ul.table {
       display: table;
       list-style: none;
       padding: 0;
       margin: 0;
       border-collapse: collapse;
+
       li {
         display: table-row;
+
         .regression {
           color: #e36041;
         }
+
         .improvement {
           color: #3fab46;
         }
       }
+
       a {
         color: var(--primary);
       }
     }
+
     ul.table[hidden] {
       display: none !important;
     }
@@ -74,8 +81,7 @@ chart-tooltip-sk {
       display: flex;
       width: 100%;
       align-items: center;
-      flex-direction: row;
-      flex-wrap: nowrap;
+      flex-flow: row nowrap;
       justify-content: center;
       gap: 4px;
       margin-top: 8px;
@@ -125,8 +131,9 @@ chart-tooltip-sk {
       padding-top: 0.5em;
       min-width: 90px;
       max-width: 100px;
-      text-shadow: 0px 1px var(--md-sys-color-background);
+      text-shadow: 0 1px var(--md-sys-color-background);
     }
+
     #tooltip-text {
       display: table-cell;
       text-align: left;

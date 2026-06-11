@@ -1,6 +1,6 @@
 @use '../../../elements-sk/modules/styles/buttons';
 @use '../../../elements-sk/modules/colors';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 // Legacy color scheme.
 triage2-sk {
@@ -34,7 +34,6 @@ triage2-sk {
     padding: 0;
   }
 }
-
 
 // Theme based color scheme.
 .body-sk triage2-sk {

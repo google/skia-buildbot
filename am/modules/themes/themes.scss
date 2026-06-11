@@ -1,15 +1,13 @@
-@import '../../../infra-sk/themes.scss';
+@import '../../../infra-sk/themes';
 
 .body-sk.darkmode {
   --dark-grayish-blue: #8899a6;
   --dark-desaturated-blue: #192734;
-
   --active: #e57373;
   --inactive: var(--dark-grayish-blue);
   --silenced: #81c784;
   --assigned: #ffb74d;
   --selected: var(--dark-desaturated-blue);
-
   --minimized: var(--dark-desaturated-blue);
   --comments: var(--dark-desaturated-blue);
   --icons: #81c784;
@@ -19,14 +17,12 @@
 
 .body-sk {
   --very-dark-gray: #4f4f4f;
-
   --active: var(--red);
   --inactive: var(--very-dark-gray);
   --silenced: var(--green);
   --assigned: var(--orange);
   --assigned-person: var(--light-orange);
   --selected: var(--dark-white);
-
   --minimized: var(--dark-white);
   --comments: var(--dark-white);
   --icons: var(--green);

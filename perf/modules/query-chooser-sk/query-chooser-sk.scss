@@ -1,6 +1,6 @@
 @use '../../../elements-sk/modules/styles/buttons';
 @use '../../../elements-sk/modules/colors';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 query-chooser-sk {
   query-count-sk {
@@ -43,7 +43,6 @@ query-chooser-sk {
     height: auto;
   }
 }
-
 
 .body-sk query-chooser-sk {
   #dialog {

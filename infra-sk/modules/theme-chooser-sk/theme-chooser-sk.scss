@@ -1,5 +1,5 @@
 @import '../../../elements-sk/modules/icons/icon-sk';
-@import '../../../infra-sk/themes.scss';
+@import '../../../infra-sk/themes';
 
 /*
   This color pallette is taken directly from material theming
@@ -18,7 +18,7 @@
   --md-sys-color-surface: #faf9fd;
   --md-sys-color-surface-dim: #dad9de;
   --md-sys-color-surface-bright: #faf9fd;
-  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-lowest: #fff;
   --md-sys-color-surface-container-low: #f4f3f8;
   --md-sys-color-surface-container: #eeedf2;
   --md-sys-color-surface-container-high: #e8e7ec;
@@ -30,27 +30,27 @@
   --md-sys-color-inverse-on-surface: #f1f0f5;
   --md-sys-color-outline: #747780;
   --md-sys-color-outline-variant: #c4c6d0;
-  --md-sys-color-shadow: #000000;
-  --md-sys-color-scrim: #000000;
+  --md-sys-color-shadow: #000;
+  --md-sys-color-scrim: #000;
   --md-sys-color-surface-tint: #405f90;
   --md-sys-color-primary: #405f90;
-  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-on-primary: #fff;
   --md-sys-color-primary-container: #b5ceff;
   --md-sys-color-on-primary-container: #193b6a;
   --md-sys-color-inverse-primary: #a9c7ff;
   --md-sys-color-secondary: #545f74;
-  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-on-secondary: #fff;
   --md-sys-color-secondary-container: #d9e4fd;
   --md-sys-color-on-secondary-container: #3e495d;
   --md-sys-color-tertiary: #7c4e7f;
-  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-on-tertiary: #fff;
   --md-sys-color-tertiary-container: #f3bbf4;
   --md-sys-color-on-tertiary-container: #542b59;
   --md-sys-color-error: #ba1a1a;
-  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-on-error: #fff;
   --md-sys-color-error-container: #ffdad6;
   --md-sys-color-on-error-container: #410002;
-  --plot-gridline-color: #cccccc;
+  --plot-gridline-color: #ccc;
   --plot-axes-title-color: #191c20;
 
   &.darkmode,
@@ -72,8 +72,8 @@
     --md-sys-color-inverse-on-surface: #2f3034;
     --md-sys-color-outline: #8e909a;
     --md-sys-color-outline-variant: #43474f;
-    --md-sys-color-shadow: #000000;
-    --md-sys-color-scrim: #000000;
+    --md-sys-color-shadow: #000;
+    --md-sys-color-scrim: #000;
     --md-sys-color-surface-tint: #a9c7ff;
     --md-sys-color-primary: #a9c7ff;
     --md-sys-color-on-primary: #0a305f;
@@ -93,6 +93,6 @@
     --md-sys-color-error-container: #93000a;
     --md-sys-color-on-error-container: #ffdad6;
     --plot-gridline-color: #636363;
-    --plot-axes-title-color: #cccccc;
+    --plot-axes-title-color: #ccc;
   }
 }

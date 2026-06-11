@@ -20,7 +20,7 @@ timeline-sk {
 
   div.outer {
     margin: 4px;
-    padding: 0px;
+    padding: 0;
     flex-grow: 1;
   }
 
@@ -62,8 +62,8 @@ timeline-sk {
     background-color: #aaa;
     height: 14px;
     width: 100%;
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
     border: 1px solid #445;
     border-top: none;
   }

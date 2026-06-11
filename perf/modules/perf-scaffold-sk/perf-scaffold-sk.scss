@@ -1,4 +1,4 @@
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 perf-scaffold-sk {
   display: block;
@@ -27,6 +27,7 @@ perf-scaffold-sk app-sk {
 // =========================================
 perf-scaffold-sk app-sk.legacy-ui {
   --sidebar-width: 160px;
+
   height: 100%;
   overflow: hidden;
 
@@ -75,7 +76,7 @@ perf-scaffold-sk app-sk.legacy-ui {
   aside#sidebar {
     display: flex;
     flex-direction: column;
-    padding: 16px 8px 0 8px;
+    padding: 16px 8px 0;
     gap: 16px;
     overflow-y: auto;
     min-height: 0;
@@ -111,7 +112,6 @@ perf-scaffold-sk app-sk.legacy-ui {
       display: flex;
       align-items: center;
       gap: 8px;
-
       fill: var(--secondary);
       color: var(--secondary);
     }
@@ -181,13 +181,13 @@ perf-scaffold-sk app-sk.v2-ui {
       .name {
         margin: 0;
         font-weight: 400;
-        font-family: 'Google Sans', 'Roboto', sans-serif;
+        font-family: 'Google Sans', Roboto, sans-serif;
         color: var(--on-surface);
         font-size: 22px;
         white-space: nowrap;
       }
 
-      @media only screen and (max-width: 1300px) {
+      @media only screen and (width <= 1300px) {
         .name {
           display: none;
         }
@@ -209,7 +209,7 @@ perf-scaffold-sk app-sk.v2-ui {
         color: var(--on-surface-variant);
         fill: var(--on-surface-variant);
         text-decoration: none;
-        font-family: 'Google Sans', 'Roboto', sans-serif;
+        font-family: 'Google Sans', Roboto, sans-serif;
         font-size: 14px;
         font-weight: 500;
         border-bottom: 3px solid transparent;
@@ -262,7 +262,7 @@ perf-scaffold-sk app-sk.v2-ui {
         padding: 4px 16px;
         line-height: 1.2;
         font-size: 12px;
-        border-radius: 0px !important;
+        border-radius: 0 !important;
 
         &[hidden] {
           display: none !important;
@@ -370,6 +370,7 @@ perf-scaffold-sk app-sk.v2-ui {
     from {
       transform: rotate(0deg);
     }
+
     to {
       transform: rotate(360deg);
     }

@@ -1,5 +1,5 @@
 @use '../../../elements-sk/modules/styles/buttons';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 bisect-dialog-sk {
   #bisect-dialog {
@@ -9,6 +9,7 @@ bisect-dialog-sk {
     border: solid var(--on-background) 1px;
     color: var(--on-background);
     background: var(--background);
+
     textarea {
       width: 100%;
       box-sizing: border-box;
@@ -18,6 +19,7 @@ bisect-dialog-sk {
       padding: 4px;
       margin-bottom: 8px;
     }
+
     #bisectCloseIcon {
       position: absolute;
       right: 0;
@@ -29,6 +31,7 @@ bisect-dialog-sk {
       padding: 5px;
       cursor: pointer;
     }
+
     .footer {
       display: flex;
       justify-content: left;

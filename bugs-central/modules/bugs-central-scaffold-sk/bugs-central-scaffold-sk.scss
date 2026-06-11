@@ -1,5 +1,5 @@
 @import '../../../elements-sk/modules/colors';
-@import '../style.scss';
+@import '../style';
 
 bugs-central-scaffold-sk {
   nav {
@@ -7,7 +7,7 @@ bugs-central-scaffold-sk {
     flex-direction: column;
 
     a {
-      padding: 16px 0px;
+      padding: 16px 0;
       text-decoration: none;
     }
 
@@ -23,6 +23,7 @@ bugs-central-scaffold-sk {
     aside {
       border-right: 1px solid var(--on-background);
     }
+
     --content-horiz-padding: 32px;
   }
 }

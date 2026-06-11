@@ -6,8 +6,8 @@ gold-scaffold-sk {
 
   app-sk {
     --header-background-color: var(--gold);
-    --header-font-color: var(--on-primary, #ffffff);
-    --background: #ffffff;
+    --header-font-color: var(--on-primary, #fff);
+    --background: #fff;
 
     main {
       // Prevent the app-sk from stretching horizontally indefinitely (for example, dots-sk can
@@ -35,7 +35,7 @@ gold-scaffold-sk {
     }
 
     last-commit-sk {
-      color: #ffffff;
+      color: #fff;
       margin-right: 5px;
     }
 
@@ -43,19 +43,21 @@ gold-scaffold-sk {
       margin-left: auto;
       margin-right: 1em;
       display: block;
-      color: #ffffff;
+      color: #fff;
     }
   }
 
   nav {
     display: flex;
     flex-direction: column;
+
     a {
       padding: 0.5em 0.75em;
-      color: #000000;
-      fill: #000000;
+      color: #000;
+      fill: #000;
       text-decoration: none;
     }
+
     span {
       padding: 0 0.5em;
       vertical-align: middle;

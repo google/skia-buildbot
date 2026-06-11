@@ -7,6 +7,7 @@
 .table-boundary {
   display: flex;
   flex-direction: column;
+
   /* Fills the remaining screen height below the header and the button row. */
   height: calc(100vh - 148px);
 }

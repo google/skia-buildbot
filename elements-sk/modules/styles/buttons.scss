@@ -50,7 +50,7 @@ button.action {
   color: var(--on-primary);
   fill: var(--on-primary);
   background: var(--primary);
-  border: solid rgba(0, 0, 0, 0) 1px;
+  border: solid rgb(0 0 0 / 0%) 1px;
 }
 
 button.action:disabled {
@@ -68,7 +68,7 @@ button.fab {
   padding: 10px;
   width: 48px;
   height: 48px;
-  min-width: 0px;
+  min-width: 0;
   font-weight: bold;
   font-size: 22px;
 }

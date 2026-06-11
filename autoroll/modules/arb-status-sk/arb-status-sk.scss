@@ -8,47 +8,59 @@ arb-status-sk {
   :host {
     font-family: sans-serif;
   }
+
   #loadstatus {
     font-size: 0.8em;
-    padding: 0px 15px;
+    padding: 0 15px;
   }
+
   #tabsContainer {
     width: 400px;
   }
+
   #pleaseLoginMsg {
     color: var(--error);
     padding: 10px;
   }
+
   #modeSelect {
-    margin: 0px;
+    margin: 0;
   }
+
   #modeChangeMsgInput {
-    margin: 0px;
+    margin: 0;
     padding: 8px;
   }
+
   #strategySelect {
-    margin: 0px;
+    margin: 0;
   }
+
   #strategyChangeMsgInput {
-    margin: 0px;
+    margin: 0;
     padding: 8px;
   }
 
   .big {
     font-size: 1.3em;
   }
+
   .small {
     font-size: 0.8em;
   }
+
   .hidden {
     display: none;
   }
+
   .nowrap {
     white-space: nowrap;
   }
+
   .rollCandidate {
     height: 80px;
   }
+
   .trybot {
     margin: 5px;
   }

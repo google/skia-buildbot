@@ -1,6 +1,6 @@
 @import '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 @import '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
-@import '../../themes.scss';
+@import '../../themes';
 
 query-values-sk {
   .regex ~ .values,
@@ -18,8 +18,7 @@ query-values-sk {
   multi-select-sk {
     max-height: 20em;
     max-width: 40em;
-    overflow-x: auto;
-    overflow-y: auto;
+    overflow: auto;
   }
 
   .filtering {

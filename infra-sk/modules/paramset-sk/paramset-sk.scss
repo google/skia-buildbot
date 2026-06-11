@@ -1,4 +1,4 @@
-@import '../../../infra-sk/themes.scss';
+@import '../../../infra-sk/themes';
 
 paramset-sk {
   td,
@@ -11,7 +11,6 @@ paramset-sk {
   }
 
   div {
-    display: inline-block;
     padding: 0.2em;
     display: inline-flex;
     flex-direction: row;
@@ -65,8 +64,9 @@ paramset-sk {
 
   @keyframes flash {
     from {
-      background-color: var(--surface, #ffffff);
+      background-color: var(--surface, #fff);
     }
+
     to {
       background-color: var(--surface-1dp, var(--orange));
     }

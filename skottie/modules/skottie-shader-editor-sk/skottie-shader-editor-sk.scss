@@ -1,4 +1,4 @@
-@import '../../../infra-sk/themes.scss';
+@import '../../../infra-sk/themes';
 
 skottie-shader-editor-sk {
   .editor-header {
@@ -55,7 +55,7 @@ skottie-shader-editor-sk {
       background: var(--surface);
       border-radius: 4px;
       font-size: 14px;
-      padding: 4px 2px 2px 2px;
+      padding: 4px 2px 2px;
       width: 500px;
     }
 

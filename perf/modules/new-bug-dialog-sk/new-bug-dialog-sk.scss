@@ -1,5 +1,5 @@
 @use '../../../elements-sk/modules/styles/buttons';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 new-bug-dialog-sk {
   #new-bug-dialog {
@@ -9,6 +9,7 @@ new-bug-dialog-sk {
     border: solid var(--on-background) 1px;
     color: var(--on-background);
     background: var(--background);
+
     textarea {
       background: var(--background);
       color: var(--on-surface);
@@ -26,13 +27,16 @@ new-bug-dialog-sk {
       padding: 5px;
       cursor: pointer;
     }
+
     #title {
       width: 95%;
     }
+
     #description {
       width: 95%;
     }
   }
+
   #loading-popup {
     border-radius: 8px;
     padding: 20px;

@@ -24,6 +24,7 @@ checkbox-sk .icons {
   .checked {
     display: none;
   }
+
   .unchecked {
     display: inline-block;
   }
@@ -39,6 +40,7 @@ checkbox-sk input:checked + .icons {
   .checked {
     display: inline-block;
   }
+
   .unchecked {
     display: none;
   }
@@ -46,7 +48,7 @@ checkbox-sk input:checked + .icons {
 
 checkbox-sk input:focus + .icons {
   outline: dashed 1px var(--outline);
-  outline-offset: 0px;
+  outline-offset: 0;
 }
 
 checkbox-sk:hover label {

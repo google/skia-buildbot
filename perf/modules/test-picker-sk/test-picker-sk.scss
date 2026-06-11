@@ -1,4 +1,4 @@
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 .body-sk test-picker-sk {
   spinner-sk {
@@ -35,12 +35,14 @@
       flex-direction: row;
       align-self: center;
       min-width: 75px;
+
       spinner-sk {
         margin: 0;
         margin-left: 8px;
         margin-top: 2px;
       }
     }
+
     button {
       z-index: 1;
       margin-bottom: 0;

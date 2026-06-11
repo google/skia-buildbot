@@ -1,4 +1,4 @@
-@import '../../themes.scss';
+@import '../../themes';
 
 autogrow-textarea-sk {
   textarea {
@@ -7,9 +7,11 @@ autogrow-textarea-sk {
     color: var(--on-surface);
     width: 100%;
   }
+
   textarea:focus {
     outline-color: var(--primary);
   }
+
   textarea::placeholder {
     color: var(--transparent-overlay);
   }

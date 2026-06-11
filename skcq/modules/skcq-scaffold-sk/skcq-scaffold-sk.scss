@@ -1,6 +1,6 @@
 @import '../colors';
-@import '../style.scss';
-@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
+@import '../style';
+@import 'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons';
 
 skcq-scaffold-sk {
   * {
@@ -35,8 +35,8 @@ skcq-scaffold-sk {
     flex-direction: column;
 
     a {
-      padding: 16px 0px;
-      color: var(--on-surface); /* Override User Agent SS*/
+      padding: 16px 0;
+      color: var(--on-surface); /* Override User Agent SS */
       text-decoration: none;
     }
 
@@ -56,6 +56,7 @@ skcq-scaffold-sk {
     aside {
       border-right: 1px solid var(--on-background);
     }
+
     --content-horiz-padding: 32px;
   }
 

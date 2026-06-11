@@ -9,13 +9,12 @@
 
 .body-sk {
   --attempt-background: #4f4f4f;
-
   --failed: var(--failure-alpha);
   --waiting: var(--warning-alpha);
   --success: var(--success-alpha);
 
   .darkmode {
-    --on-primary: #ffffff;
+    --on-primary: #fff;
     --attempt-background: var(--dark-white);
   }
 }

@@ -4,6 +4,7 @@ sort-toggle-sk {
       visibility: visible;
       display: inline-block;
     }
+
     arrow-drop-down-icon-sk {
       display: none;
     }
@@ -14,6 +15,7 @@ sort-toggle-sk {
       visibility: hidden;
       display: none;
     }
+
     arrow-drop-down-icon-sk {
       display: inline-block;
     }
@@ -22,6 +24,7 @@ sort-toggle-sk {
   arrow-drop-down-icon-sk {
     display: none;
   }
+
   arrow-drop-up-icon-sk {
     /* This pre-allocates the space for the arrows to go so the header doesn't have to re-layout
        (i.e. shift around) when things are toggled. */

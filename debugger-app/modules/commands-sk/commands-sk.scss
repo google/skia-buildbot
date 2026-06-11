@@ -1,4 +1,4 @@
-@import '../../../infra-sk/themes.scss';
+@import '../../../infra-sk/themes';
 
 commands-sk {
   hr {
@@ -16,8 +16,7 @@ commands-sk {
 
   .horizontal-flex {
     display: flex;
-    justify-items: stretch;
-    align-items: center;
+    place-items: center stretch;
 
     checkbox-sk {
       flex-grow: 1;
@@ -42,7 +41,7 @@ commands-sk {
   }
 
   details:hover {
-    background-color: #eeffee;
+    background-color: #efe;
   }
 
   summary {

@@ -1,17 +1,20 @@
-@import '../styles.scss';
+@import '../styles';
 
 capacity-sk {
   font-size: 16px;
+
   table {
     width: 100%;
     border-collapse: collapse;
     margin: 5px;
   }
+
   td,
   th {
     border: 1px solid #ddd;
     padding: 5px;
   }
+
   th {
     position: relative;
   }
@@ -20,10 +23,12 @@ capacity-sk {
     // alogin-sk has a very specific color set, override it.
     color: var(--header-font-color) !important;
   }
+
   a {
     color: inherit;
     fill: inherit;
   }
+
   .inputs {
     min-height: 60px;
     padding-top: 10px;
@@ -32,6 +37,7 @@ capacity-sk {
   .inputs > * {
     margin: 5px;
   }
+
   .horizontal {
     display: flex;
   }

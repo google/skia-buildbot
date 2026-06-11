@@ -5,15 +5,15 @@
 
     @import '../colors';
 */
-@import '../../infra-sk/themes.scss';
+@import '../../infra-sk/themes';
 
 :root {
-  --color-canceled: rgb(117, 112, 179);
-  --color-failure: rgb(217, 95, 2);
-  --color-in-progress: rgb(248, 230, 180);
-  --color-mishap: rgb(117, 112, 179);
-  --color-requested: rgb(127, 127, 127);
-  --color-success: rgb(209, 228, 188);
+  --color-canceled: rgb(117 112 179);
+  --color-failure: rgb(217 95 2);
+  --color-in-progress: rgb(248 230 180);
+  --color-mishap: rgb(117 112 179);
+  --color-requested: rgb(127 127 127);
+  --color-success: rgb(209 228 188);
 }
 
 a,
@@ -35,24 +35,30 @@ a.visited {
   background-color: var(--color-canceled);
   fill: var(--color-canceled);
 }
+
 .bg-failure {
   background-color: var(--color-failure);
   fill: var(--color-failure);
 }
+
 .bg-in-progress {
   background-color: var(--color-in-progress);
   fill: var(--color-in-progress);
+
   /* It's hard to see white on yellow, so invert the color. */
   color: black;
 }
+
 .bg-mishap {
   background-color: var(--color-mishap);
   fill: var(--color-mishap);
 }
+
 .bg-requested {
   background-color: var(--color-requested);
   fill: var(--color-requested);
 }
+
 .bg-success {
   background-color: var(--color-success);
   fill: var(--color-success);
@@ -62,22 +68,27 @@ a.visited {
   color: var(--color-canceled);
   fill: var(--color-canceled);
 }
+
 .fg-failure {
   color: var(--color-failure);
   fill: var(--color-failure);
 }
+
 .fg-in-progress {
   color: var(--color-in-progress);
   fill: var(--color-in-progress);
 }
+
 .fg-mishap {
   color: var(--color-mishap);
   fill: var(--color-mishap);
 }
+
 .fg-requested {
   color: var(--color-requested);
   fill: var(--color-requested);
 }
+
 .fg-success {
   color: var(--color-success);
   fill: var(--color-success);

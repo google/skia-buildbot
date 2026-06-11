@@ -25,7 +25,7 @@ skottie-player-sk {
   }
 
   .player-loading > div {
-    padding: 20px 0 0 0;
+    padding: 20px 0 0;
     border: none;
     font-size: 120%;
     font-weight: bold;
@@ -51,7 +51,7 @@ skottie-player-sk {
     width: 50%;
     left: 50%;
     transform: translateX(-50%);
-    padding: 0px;
+    padding: 0;
     background: var(--light-gray);
     transition: bottom 0.25s ease-in;
   }
@@ -77,8 +77,8 @@ skottie-player-sk {
 
 .skottie-player-settings-container {
   position: absolute;
-  right: 0px;
-  bottom: 0px;
+  right: 0;
+  bottom: 0;
   width: 200px;
   background-color: var(--gray);
   z-index: 3;
@@ -95,15 +95,15 @@ skottie-player-sk {
 }
 
 .skottie-player-settings-divider {
-  margin: 5px 0 0 0;
+  margin: 5px 0 0;
 }
 
 .skottie-player-settings-label {
   text-align: left;
   font-family: sans-serif;
-  color: #ffffff;
+  color: #fff;
   margin: 0;
-  padding: 0 0 5px 0;
+  padding: 0 0 5px;
   border: 0;
 }
 

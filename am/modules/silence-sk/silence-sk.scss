@@ -97,7 +97,6 @@ silence-sk {
 
   h2 {
     align-items: center;
-    color: var(--active);
     margin: 0;
     padding: 0.2em 1em;
     font-size: 14px;
@@ -134,6 +133,7 @@ silence-sk[collapsable] {
   margin: 1em;
   background: var(--minimized);
   border-radius: 0.5em;
+
   p,
   input,
   textarea {

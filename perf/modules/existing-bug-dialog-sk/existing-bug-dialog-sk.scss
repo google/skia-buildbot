@@ -1,5 +1,5 @@
 @use '../../../elements-sk/modules/styles/buttons';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 existing-bug-dialog-sk {
   #existing-bug-dialog {
@@ -9,11 +9,13 @@ existing-bug-dialog-sk {
     border: solid var(--on-background) 1px;
     color: var(--on-background);
     background: var(--background);
+
     textarea {
       background: var(--background);
       color: var(--on-surface);
       border: solid 1px var(--on-surface);
     }
+
     #closeIcon {
       position: absolute;
       right: 0;
@@ -25,6 +27,7 @@ existing-bug-dialog-sk {
       padding: 5px;
       cursor: pointer;
     }
+
     .footer {
       display: flex;
       justify-content: right;
@@ -45,8 +48,7 @@ existing-bug-dialog-sk {
     ul.scrollable-list {
       max-height: 25px;
       max-width: 20%;
-      overflow-y: auto;
-      overflow-x: auto;
+      overflow: auto;
       cursor: pointer;
     }
 
@@ -56,6 +58,7 @@ existing-bug-dialog-sk {
       overflow-y: scroll;
       cursor: pointer;
     }
+
     .loading-spinner {
       display: flex;
       justify-content: right;

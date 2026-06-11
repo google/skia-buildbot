@@ -23,6 +23,7 @@ radio-sk .icons {
   .checked {
     display: none;
   }
+
   .unchecked {
     display: inline-block;
   }
@@ -38,6 +39,7 @@ radio-sk input:checked + .icons {
   .checked {
     display: inline-block;
   }
+
   .unchecked {
     display: none;
   }
@@ -45,7 +47,7 @@ radio-sk input:checked + .icons {
 
 radio-sk input:focus + .icons {
   outline: dashed 1px var(--outline);
-  outline-offset: 0px;
+  outline-offset: 0;
 }
 
 radio-sk:hover label {

@@ -1,9 +1,9 @@
 @use '../../../elements-sk/modules/styles/buttons';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 commit-detail-picker-sk {
   dialog button {
-    margin: 0 0 16px 0;
+    margin: 0 0 16px;
   }
 
   dialog {
@@ -16,7 +16,7 @@ commit-detail-picker-sk {
     }
 
     .tiny {
-      margin: 0 0 8px 0;
+      margin: 0 0 8px;
       font-size: 12px;
     }
   }

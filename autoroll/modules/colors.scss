@@ -8,24 +8,24 @@
 
 :root {
   --primary: #546e7a;
-  --on-primary: #ffffff;
-  --primary-variant: rgb(204, 204, 255);
-  --on-primary-variant: #000000;
-  --link-color: hsl(199, 70%, 40%);
+  --on-primary: #fff;
+  --primary-variant: rgb(204 204 255);
+  --on-primary-variant: #000;
+  --link-color: hsl(199deg 70% 40%);
 }
+
 .darkmode {
   --grey-850: #303030;
-
   --primary: #546e7a;
-  --on-primary: #ffffff;
-  --primary-variant: rgb(204, 204, 255);
-  --on-primary-variant: #000000;
+  --on-primary: #fff;
+  --primary-variant: rgb(204 204 255);
+  --on-primary-variant: #000;
   --background: #212121;
   --on-background: #e0e0e0;
   --surface: var(--grey-850);
   --on-surface: #eee;
   --error: #ff6f00;
-  --link-color: hsl(199, 70%, 60%);
+  --link-color: hsl(199deg 70% 60%);
 }
 
 a,
@@ -46,12 +46,15 @@ a.visited {
 .fg-running {
   color: #{'rgba(var(--result-color-lightgreen), 0.7)'};
 }
+
 .fg-dry-run {
   color: var(--result-color-lightorange);
 }
+
 .fg-stopped {
   color: var(--result-color-redorange);
 }
+
 .fg-offline {
   color: var(--result-color-purple);
 }

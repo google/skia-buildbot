@@ -17,7 +17,7 @@ toast-sk {
 toast-sk[shown] {
   visibility: visible;
   opacity: 1;
-  bottom: 0px;
+  bottom: 0;
   color: var(--on-background);
   background: var(--background);
   fill: var(--background);

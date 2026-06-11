@@ -1,8 +1,7 @@
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 favorites-dialog-sk {
   dialog {
-    padding: 16px;
     border: solid var(--on-background) 1px;
     color: var(--on-background);
     background: var(--background);
@@ -44,11 +43,13 @@ favorites-dialog-sk {
 
     .include-time-container {
       margin-bottom: 20px;
+
       label {
         font-size: 1.2em !important;
         margin-left: 8px;
         vertical-align: middle;
       }
+
       input {
         vertical-align: middle;
         transform: scale(1.5);
@@ -58,6 +59,7 @@ favorites-dialog-sk {
 
     .buttons {
       float: right;
+
       button {
         font-size: 1.2em !important;
       }

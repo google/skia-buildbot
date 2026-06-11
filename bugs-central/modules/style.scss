@@ -8,10 +8,12 @@
 
 /* Universal table style */
 table {
-  border-spacing: 0px;
+  border-spacing: 0;
+
   .nowrap {
     white-space: nowrap;
   }
+
   th {
     text-align: center;
   }

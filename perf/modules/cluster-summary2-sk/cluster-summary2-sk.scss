@@ -1,5 +1,5 @@
 @use '../../../elements-sk/modules/styles/buttons';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 cluster-summary2-sk {
   #status button {
@@ -40,7 +40,7 @@ cluster-summary2-sk {
     color: var(--on-success);
   }
 
-  @media (max-width: 600px) {
+  @media (width <= 600px) {
     plot-google-chart-sk {
       display: none;
     }

@@ -6,6 +6,7 @@ ignores-page-sk {
   .controls {
     display: flex;
     padding: 4px 0;
+
     *,
     checkbox-sk .box {
       margin: auto 5px;
@@ -45,13 +46,16 @@ ignores-page-sk {
         cursor: pointer;
       }
     }
+
     &.query {
       vertical-align: middle;
       text-align: left;
+
       a {
         white-space: pre;
       }
     }
+
     &.expired {
       font-weight: bolder;
     }

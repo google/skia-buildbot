@@ -17,15 +17,19 @@
 .bg-success {
   background-color: #{'rgba(var(--result-color-lightgreen), 0.3)'};
 }
+
 .bg-failure {
   background-color: var(--result-color-redorange);
 }
+
 .bg-exception {
   background-color: var(--result-color-purple);
 }
+
 .bg-inprogress {
   background-color: #{'rgba(var(--result-color-gray), 0.0)'}; /* Transparent background */
 }
+
 .bg-unknown {
   background-color: #{'rgba(var(--result-color-gray), 0.55)'};
 }
@@ -34,18 +38,23 @@
 .fg-success {
   color: #{'rgb(var(--result-color-lightgreen))'};
 }
+
 .fg-failure {
   color: var(--result-color-redorange);
 }
+
 .fg-exception {
   color: var(--result-color-purple);
 }
+
 .fg-inprogress {
   color: var(--result-color-lightorange);
 }
+
 .fg-exception {
   color: var(--result-color-purple);
 }
+
 .fg-unknown {
   color: #{'rgb(var(--result-color-gray))'};
 }

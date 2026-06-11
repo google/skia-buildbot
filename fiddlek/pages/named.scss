@@ -1,8 +1,9 @@
-@import '../../infra-sk/themes.scss';
+@import '../../infra-sk/themes';
 
 .body-sk {
   padding: 0;
   margin: 0;
+
   --sidebar-width: 0;
   --header-horiz-padding: 16px;
 

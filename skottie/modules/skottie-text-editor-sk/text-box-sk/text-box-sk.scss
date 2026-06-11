@@ -1,4 +1,4 @@
-@import '../../../../infra-sk/themes.scss';
+@import '../../../../infra-sk/themes';
 
 skottie-text-editor-box-sk {
   .wrapper {
@@ -17,7 +17,7 @@ skottie-text-editor-box-sk {
   .text-element {
     display: block;
     width: 100%;
-    padding: 6px 0px 6px 0px;
+    padding: 6px 0;
 
     &-item {
       margin-bottom: 8px;
@@ -35,7 +35,7 @@ skottie-text-editor-box-sk {
       background: var(--surface);
       border-radius: 4px;
       font-size: 14px;
-      padding: 4px 2px 2px 2px;
+      padding: 4px 2px 2px;
       width: 100%;
       min-height: 70px;
     }
@@ -48,7 +48,7 @@ skottie-text-editor-box-sk {
       .text-element-section--title {
         color: var(--on-surface);
         font-size: 14px;
-        padding: 16px 0 8px 0;
+        padding: 16px 0 8px;
       }
     }
   }

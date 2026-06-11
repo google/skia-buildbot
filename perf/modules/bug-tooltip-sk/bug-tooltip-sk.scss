@@ -1,4 +1,4 @@
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 bug-tooltip-sk {
   .bug-count-container {
@@ -26,11 +26,10 @@ bug-tooltip-sk {
     transition: opacity 0.7s;
     min-width: 220px; /* Increased width */
     max-height: 80px; /* Limit height to avoid overflow
-    outside the perf content div.*/
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: auto; /* Enable horizontal scrolling */
+    outside the perf content div. */
+    overflow: auto; /* Enable vertical scrolling */ /* Enable horizontal scrolling */
     white-space: normal; /* Allow text to wrap */
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 10px rgb(0 0 0 / 20%);
   }
 
   .bug-tooltip ul {
@@ -43,6 +42,7 @@ bug-tooltip-sk {
   .bug-tooltip ul li {
     white-space: nowrap;
   }
+
   .bug-tooltip a {
     color: #fff;
     text-decoration: underline;

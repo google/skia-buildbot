@@ -6,12 +6,10 @@
 */
 
 html {
-  --gold: rgb(217, 95, 2);
-  --bright-orange: rgb(255, 127, 0);
-
-  --light-error-red: rgb(255, 230, 230);
-  --transparent-white: rgba(255, 255, 255, 0);
-
+  --gold: rgb(217 95 2);
+  --bright-orange: rgb(255 127 0);
+  --light-error-red: rgb(255 230 230);
+  --transparent-white: rgb(255 255 255 / 0%);
   --triaged-positive: #1b9e77;
   --triaged-negative: #e7298a;
   --untriaged: #a6761d;

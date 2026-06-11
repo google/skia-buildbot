@@ -6,6 +6,7 @@ div.container {
 
     .export-form {
       width: 100%;
+
       &__filename {
         padding: 8px;
         border-radius: 4px;
@@ -73,7 +74,7 @@ div.container {
     .navigation {
       display: flex;
       justify-content: end;
-      margin: 16px 0 0 0;
+      margin: 16px 0 0;
 
       &__button {
         margin-left: 8px;
@@ -84,6 +85,7 @@ div.container {
       &__message {
         font-size: 18px;
       }
+
       &__details {
         font-size: 14px;
       }

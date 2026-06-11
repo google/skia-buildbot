@@ -1,4 +1,4 @@
-@import '../../../infra-sk/themes.scss';
+@import '../../../infra-sk/themes';
 
 .body-sk status-sk {
   app-sk {
@@ -26,6 +26,7 @@
       background-color: var(--background);
       border: none;
       z-index: 2;
+
       > * {
         background-color: var(--background);
         border: 1px solid var(--surface-1dp);
@@ -84,6 +85,7 @@ status-sk[state='caution'] app-sk header {
   background-color: var(--warning-alpha);
   color: var(--on-warning);
   fill: var(--on-warning);
+
   a {
     color: var(--on-warning);
   }
@@ -93,6 +95,7 @@ status-sk[state='closed'] app-sk header {
   background-color: var(--failure-alpha);
   color: var(--on-failure);
   fill: var(--on-failure);
+
   a {
     color: var(--on-failure);
   }

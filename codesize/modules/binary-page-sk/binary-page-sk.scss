@@ -31,7 +31,6 @@ binary-page-sk {
     position: absolute;
     z-index: 1;
     top: 20px;
-
     background-color: var(--surface);
     border: 2px solid var(--on-surface);
     color: var(--on-surface);
@@ -41,6 +40,7 @@ binary-page-sk {
     li.selected {
       background-color: var(--primary-highlight);
     }
+
     li:hover {
       background-color: var(--primary-highlight);
       cursor: pointer;
@@ -56,6 +56,7 @@ binary-page-sk {
     font-size: 1rem;
   }
 }
+
 .cell-tooltip {
   border-radius: 8px;
   padding: 10px;

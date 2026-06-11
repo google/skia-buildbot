@@ -1,5 +1,5 @@
 @use '../../../elements-sk/modules/styles/buttons';
-@use '../themes/themes.scss';
+@use '../themes/themes';
 
 alerts-page-sk {
   display: block;
@@ -26,9 +26,11 @@ alerts-page-sk {
       cursor: pointer;
       fill: var(--primary);
     }
+
     border-spacing: 0;
     font-size: small;
     width: 100%;
+
     th,
     td {
       text-align: left;
@@ -40,12 +42,14 @@ alerts-page-sk {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
     a,
     th {
       // Make the header look clicky on hover.
       cursor: pointer;
       font-weight: bold;
     }
+
     td > create-icon-sk:hover,
     td > delete-icon-sk:hover {
       background: var(--surface-1dp);
