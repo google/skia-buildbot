@@ -94,9 +94,9 @@
             "enabled": true
         },
         "redis_config": {
-            "project": "skia-infra-corp",
+            "project": "skia-infra-public",
             "zone": "us-central1",
-            "instance": "chrome-internal",
+            "instance": "chrome-public-autopush",
             "cache_expiration_minutes": 300
         }
     },
