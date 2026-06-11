@@ -53,7 +53,7 @@ func validatePattern(pattern string, singleField bool) error {
 // Does the following checks at Anomaly Config level:
 // - At least 1 matching pattern exists.
 // - Cannot specify both 'detection_rule' and legacy 'step'/'threshold' fields.
-func validateAnomalyConfig(ac *sheriff_configpb.AnomalyConfig) error {
+func ValidateAnomalyConfig(ac *sheriff_configpb.AnomalyConfig) error {
 	if ac.DetectionRule != nil {
 		// 'Step' is a non-nullable enum in proto3 that defaults to ORIGINAL_STEP (0).
 		// We check if it was explicitly set to any other algorithm.
@@ -85,7 +85,6 @@ func validateAnomalyConfig(ac *sheriff_configpb.AnomalyConfig) error {
 		if err != nil {
 			return skerr.Fmt("Error for Exclude Pattern at index %d: %s.", i, err)
 		}
-
 	}
 
 	return nil
@@ -117,7 +116,7 @@ func validateSubscription(sub *sheriff_configpb.Subscription) error {
 	}
 
 	for i, anomalyConfig := range sub.AnomalyConfigs {
-		err := validateAnomalyConfig(anomalyConfig)
+		err := ValidateAnomalyConfig(anomalyConfig)
 		if err != nil {
 			return skerr.Fmt("Error for Anomaly Config at index %d: %s.", i, err)
 		}

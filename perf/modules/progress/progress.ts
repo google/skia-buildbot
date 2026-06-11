@@ -49,9 +49,10 @@ export const startRequest = (
     // the functionality into a single function.
     const processFetch = (fetchPromise: Promise<Response>) => {
       fetchPromise
-        .then((resp: Response) => {
+        .then(async (resp: Response) => {
           if (!resp.ok) {
-            reject(new Error(`Bad network response: ${resp.statusText}`));
+            const errText = await resp.text();
+            throw new Error(errText || `Bad network response: ${resp.statusText}`);
           }
           return resp.json();
         })

@@ -16,6 +16,7 @@ sk_element(
     ts_deps = [
         "//:node_modules/lit",
         "//:node_modules/@material/web",
+        "//perf/modules/errorMessage:index_ts_lib",
     ],
     ts_srcs = [
         "sheriff-configs-dry-run-sk.ts",

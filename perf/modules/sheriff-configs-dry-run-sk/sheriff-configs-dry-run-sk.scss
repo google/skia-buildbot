@@ -161,4 +161,56 @@ sheriff-configs-dry-run-sk {
     height: 400px;
     font-family: monospace;
   }
+
+  .compound-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    md-outlined-select {
+      margin: 0;
+      width: 100%;
+    }
+
+    button.action-button {
+      margin-left: 0;
+    }
+  }
+
+  .subrules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .subrule-item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--md-sys-color-outline-variant, #ccc);
+    border-radius: 8px;
+    background-color: var(--md-sys-color-surface-container-lowest, #fff);
+
+    md-outlined-select {
+      width: 100%;
+      margin: 0;
+    }
+
+    .slider-container {
+      width: 100%;
+      margin: 0;
+
+      label {
+        margin-left: 0;
+        padding: 0;
+      }
+    }
+
+    button.action-button {
+      margin: 0;
+      align-self: flex-end;
+    }
+  }
 }

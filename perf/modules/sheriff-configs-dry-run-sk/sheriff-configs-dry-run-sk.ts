@@ -13,14 +13,16 @@ import '@material/web/select/outlined-select.js';
 import '@material/web/select/select-option.js';
 import '@material/web/textfield/outlined-text-field.js';
 import '@material/web/checkbox/checkbox.js';
+import { errorMessage } from '../errorMessage';
 
 export interface AnomalyConfig {
-  threshold: number;
-  step: number;
+  threshold?: number;
+  step?: number;
   radius: number;
   sparse: boolean;
   rules?: { match?: string[]; exclude?: string[] };
   action: number;
+  detection_rule?: any;
 }
 
 export interface SheriffConfig {
@@ -40,9 +42,18 @@ export class SheriffConfigsDryRunSk extends LitElement {
 
   @state() private bugComponent: string = '';
 
+  @state() private ruleType: 'simple' | 'compound' = 'simple';
+
   @state() private threshold: number = 2.5;
 
   @state() private step: string = 'COHEN_STEP';
+
+  @state() private compoundOp: 'AND' | 'OR' = 'OR';
+
+  @state() private compoundRules: Array<{ step: string; threshold: number }> = [
+    { step: 'COHEN_STEP', threshold: 2.5 },
+    { step: 'ABSOLUTE_STEP', threshold: 5.0 },
+  ];
 
   @state() private radius: number = 8;
 
@@ -59,6 +70,8 @@ export class SheriffConfigsDryRunSk extends LitElement {
   @state() private viewMode: 'builder' | 'proto' = 'builder';
 
   @state() private protoText: string = '';
+
+  private lastImportError: string = '';
 
   createRenderRoot() {
     return this;
@@ -95,18 +108,162 @@ export class SheriffConfigsDryRunSk extends LitElement {
                 <div class="card">
                   <h4 class="card-title">Anomaly Configs</h4>
 
-                  <div class="slider-container">
-                    <label for="threshold" class="slider-label">Threshold: ${this.threshold}</label>
-                    <md-slider
-                      id="threshold"
-                      min="0"
-                      max="10"
-                      step="0.1"
-                      .value=${this.threshold}
-                      @input=${(e: Event) => {
-                        this.threshold = Number((e.target as HTMLInputElement).value);
-                      }}></md-slider>
+                  <div class="rule-type-selector" style="margin-bottom: 16px;">
+                    <label class="view-mode-label">
+                      <md-radio
+                        name="ruleType"
+                        value="simple"
+                        ?checked=${this.ruleType === 'simple'}
+                        @change=${() => {
+                          this.ruleType = 'simple';
+                        }}></md-radio>
+                      <span class="view-mode-text">Simple</span>
+                    </label>
+                    <label class="view-mode-label">
+                      <md-radio
+                        name="ruleType"
+                        value="compound"
+                        ?checked=${this.ruleType === 'compound'}
+                        @change=${() => {
+                          this.ruleType = 'compound';
+                        }}></md-radio>
+                      <span class="view-mode-text">Compound</span>
+                    </label>
                   </div>
+
+                  ${this.ruleType === 'simple'
+                    ? html`
+                        <div class="slider-container">
+                          <label for="threshold" class="slider-label"
+                            >Threshold: ${this.threshold}</label
+                          >
+                          <md-slider
+                            id="threshold"
+                            min="0"
+                            max="10"
+                            step="0.1"
+                            .value=${this.threshold}
+                            @input=${(e: Event) => {
+                              this.threshold = Number((e.target as HTMLInputElement).value);
+                            }}></md-slider>
+                        </div>
+
+                        <md-outlined-select
+                          label="Step"
+                          id="step"
+                          .value=${this.step}
+                          @change=${(e: Event) => {
+                            this.step = (e.target as HTMLSelectElement).value;
+                          }}>
+                          <md-select-option value="COHEN_STEP"
+                            ><div slot="headline">COHEN_STEP</div></md-select-option
+                          >
+                          <md-select-option value="PERCENT_STEP"
+                            ><div slot="headline">PERCENT_STEP</div></md-select-option
+                          >
+                          <md-select-option value="CONST_STEP"
+                            ><div slot="headline">CONST_STEP</div></md-select-option
+                          >
+                          <md-select-option value="ABSOLUTE_STEP"
+                            ><div slot="headline">ABSOLUTE_STEP</div></md-select-option
+                          >
+                          <md-select-option value="MANN_WHITNEY_U"
+                            ><div slot="headline">MANN_WHITNEY_U</div></md-select-option
+                          >
+                          <md-select-option value="STEPINESS"
+                            ><div slot="headline">STEPINESS</div></md-select-option
+                          >
+                        </md-outlined-select>
+                      `
+                    : html`
+                        <div class="compound-container">
+                          <md-outlined-select
+                            label="Operator"
+                            .value=${this.compoundOp}
+                            @change=${(e: Event) => {
+                              this.compoundOp = (e.target as HTMLSelectElement).value as
+                                | 'AND'
+                                | 'OR';
+                            }}>
+                            <md-select-option value="OR"
+                              ><div slot="headline">OR</div></md-select-option
+                            >
+                            <md-select-option value="AND"
+                              ><div slot="headline">AND</div></md-select-option
+                            >
+                          </md-outlined-select>
+
+                          <div class="subrules-list">
+                            <label class="slider-label">Sub-rules:</label>
+                            ${this.compoundRules.map(
+                              (rule, index) => html`
+                                <div class="subrule-item">
+                                  <md-outlined-select
+                                    label="Step"
+                                    .value=${rule.step}
+                                    @change=${(e: Event) => {
+                                      this.compoundRules[index].step = (
+                                        e.target as HTMLSelectElement
+                                      ).value;
+                                      this.compoundRules = [...this.compoundRules];
+                                    }}>
+                                    <md-select-option value="COHEN_STEP"
+                                      ><div slot="headline">COHEN_STEP</div></md-select-option
+                                    >
+                                    <md-select-option value="PERCENT_STEP"
+                                      ><div slot="headline">PERCENT_STEP</div></md-select-option
+                                    >
+                                    <md-select-option value="CONST_STEP"
+                                      ><div slot="headline">CONST_STEP</div></md-select-option
+                                    >
+                                    <md-select-option value="ABSOLUTE_STEP"
+                                      ><div slot="headline">ABSOLUTE_STEP</div></md-select-option
+                                    >
+                                    <md-select-option value="MANN_WHITNEY_U"
+                                      ><div slot="headline">MANN_WHITNEY_U</div></md-select-option
+                                    >
+                                    <md-select-option value="STEPINESS"
+                                      ><div slot="headline">STEPINESS</div></md-select-option
+                                    >
+                                  </md-outlined-select>
+
+                                  <div class="slider-container">
+                                    <label class="slider-label">Threshold: ${rule.threshold}</label>
+                                    <md-slider
+                                      min="0"
+                                      max="10"
+                                      step="0.1"
+                                      .value=${rule.threshold}
+                                      @input=${(e: Event) => {
+                                        this.compoundRules[index].threshold = Number(
+                                          (e.target as HTMLInputElement).value
+                                        );
+                                        this.compoundRules = [...this.compoundRules];
+                                      }}></md-slider>
+                                  </div>
+
+                                  <button
+                                    class="action-button"
+                                    @click=${() => {
+                                      this.compoundRules.splice(index, 1);
+                                      this.compoundRules = [...this.compoundRules];
+                                    }}>
+                                    Remove
+                                  </button>
+                                </div>
+                              `
+                            )}
+                          </div>
+                          <button
+                            class="action-button"
+                            @click=${() => {
+                              this.compoundRules.push({ step: 'COHEN_STEP', threshold: 2.5 });
+                              this.compoundRules = [...this.compoundRules];
+                            }}>
+                            Add Rule
+                          </button>
+                        </div>
+                      `}
 
                   <div class="slider-container">
                     <label for="radius" class="slider-label">Radius: ${this.radius}</label>
@@ -120,33 +277,6 @@ export class SheriffConfigsDryRunSk extends LitElement {
                         this.radius = Number((e.target as HTMLInputElement).value);
                       }}></md-slider>
                   </div>
-
-                  <md-outlined-select
-                    label="Step"
-                    id="step"
-                    .value=${this.step}
-                    @change=${(e: Event) => {
-                      this.step = (e.target as HTMLSelectElement).value;
-                    }}>
-                    <md-select-option value="COHEN_STEP"
-                      ><div slot="headline">COHEN_STEP</div></md-select-option
-                    >
-                    <md-select-option value="PERCENT_STEP"
-                      ><div slot="headline">PERCENT_STEP</div></md-select-option
-                    >
-                    <md-select-option value="CONST_STEP"
-                      ><div slot="headline">CONST_STEP</div></md-select-option
-                    >
-                    <md-select-option value="ABSOLUTE_STEP"
-                      ><div slot="headline">ABSOLUTE_STEP</div></md-select-option
-                    >
-                    <md-select-option value="MANNWHITNEYU_STEP"
-                      ><div slot="headline">MANNWHITNEYU_STEP</div></md-select-option
-                    >
-                    <md-select-option value="STEPINESS"
-                      ><div slot="headline">STEPINESS</div></md-select-option
-                    >
-                  </md-outlined-select>
 
                   <label class="checkbox-label">
                     <md-checkbox
@@ -247,71 +377,74 @@ export class SheriffConfigsDryRunSk extends LitElement {
     const newMode = (e.target as HTMLInputElement).value as 'builder' | 'proto';
     if (newMode === 'proto') {
       this.protoText = this.getProto();
+      this.viewMode = newMode;
     } else if (newMode === 'builder') {
       const tf = this.querySelector('#proto-text') as HTMLInputElement | null;
       if (tf) {
         this.protoText = tf.value;
       }
-      this.importProto(this.protoText);
+      const success = this.importProto(this.protoText);
+      if (!success) {
+        errorMessage(`Malformed protobuf text: ${this.lastImportError}`);
+        const protoRadio = this.querySelector<HTMLInputElement>('md-radio[value="proto"]');
+        if (protoRadio) protoRadio.checked = true;
+        return;
+      }
+      this.viewMode = newMode;
     }
-    this.viewMode = newMode;
   }
 
-  public getConfig(): SheriffConfig {
-    const matches = this.rulesMatch
-      .split('\n')
-      .map((s: string) => s.trim())
-      .filter((s: string) => s !== '');
-    const excludes = this.rulesExclude
-      .split('\n')
-      .map((s: string) => s.trim())
-      .filter((s: string) => s !== '');
+  public getConfig(): string | null {
+    if (this.viewMode === 'proto') {
+      const tf = this.querySelector('#proto-text') as HTMLInputElement | null;
+      if (tf) {
+        this.protoText = tf.value;
+      }
+    }
 
-    const rules: any = {};
-    if (matches.length > 0) rules.match = matches;
-    if (excludes.length > 0) rules.exclude = excludes;
-
-    const stepMap: Record<string, number> = {
-      ORIGINAL_STEP: 0,
-      ABSOLUTE_STEP: 1,
-      CONST_STEP: 2,
-      PERCENT_STEP: 3,
-      COHEN_STEP: 4,
-      MANN_WHITNEY_U: 5,
-      STEPINESS: 6,
-    };
-
-    const actionMap: Record<string, number> = {
-      NOACTION: 0,
-      TRIAGE: 1,
-      BISECT: 2,
-    };
-
-    return {
-      subscriptions: [
-        {
-          name: this.configName,
-          contact_email: this.contactEmail,
-          bug_component: this.bugComponent,
-          anomaly_configs: [
-            {
-              threshold: this.threshold,
-              step: stepMap[this.step] !== undefined ? stepMap[this.step] : 0,
-              radius: this.radius,
-              sparse: this.sparse,
-              rules: matches.length > 0 || excludes.length > 0 ? rules : undefined,
-              action: actionMap[this.action] !== undefined ? actionMap[this.action] : 0,
-            },
-          ],
-        },
-      ],
-    };
+    return this.getProto();
   }
 
   public getProto(): string {
     if (this.viewMode === 'proto') {
       return this.protoText;
     }
+
+    const lines: string[] = ['subscriptions {'];
+    if (this.configName) {
+      lines.push(`  name: "${this.configName}"`);
+    }
+    if (this.contactEmail) {
+      lines.push(`  contact_email: "${this.contactEmail}"`);
+    }
+    if (this.bugComponent) {
+      lines.push(`  bug_component: "${this.bugComponent}"`);
+    }
+    lines.push('  anomaly_configs {');
+
+    if (this.ruleType === 'simple') {
+      lines.push(`    threshold: ${this.threshold}`);
+      lines.push(`    step: ${this.step}`);
+      lines.push(`    radius: ${this.radius}`);
+      lines.push(`    sparse: ${this.sparse ? 'True' : 'False'}`);
+    } else {
+      lines.push(`    radius: ${this.radius}`);
+      lines.push(`    sparse: ${this.sparse ? 'True' : 'False'}`);
+      lines.push(`    detection_rule {`);
+      lines.push(`      complex_rule {`);
+      lines.push(`        op: ${this.compoundOp}`);
+      for (const r of this.compoundRules) {
+        lines.push(`        rules {`);
+        lines.push(`          simple_rule {`);
+        lines.push(`            step: ${r.step}`);
+        lines.push(`            threshold: ${r.threshold}`);
+        lines.push(`          }`);
+        lines.push(`        }`);
+      }
+      lines.push(`      }`);
+      lines.push(`    }`);
+    }
+
     const matches = this.rulesMatch
       .split('\n')
       .map((s: string) => s.trim())
@@ -321,31 +454,49 @@ export class SheriffConfigsDryRunSk extends LitElement {
       .map((s: string) => s.trim())
       .filter((s: string) => s !== '');
 
-    const formatArray = (name: string, arr: string[]) =>
-      arr.length > 0
-        ? `      ${name}: [\n${arr.map((m) => `        "${m}"`).join(',\n')}\n      ]`
-        : '';
+    if (matches.length > 0 || excludes.length > 0) {
+      lines.push('    rules: {');
+      if (matches.length > 0) {
+        lines.push('      match: [');
+        matches.forEach((m, i) => lines.push(`        "${m}"${i < matches.length - 1 ? ',' : ''}`));
+        lines.push('      ]');
+      }
+      if (excludes.length > 0) {
+        lines.push('      exclude: [');
+        excludes.forEach((e, i) =>
+          lines.push(`        "${e}"${i < excludes.length - 1 ? ',' : ''}`)
+        );
+        lines.push('      ]');
+      }
+      lines.push('    }');
+    }
 
-    const rulesBlock =
-      matches.length > 0 || excludes.length > 0
-        ? `    rules: {\n${[formatArray('match', matches), formatArray('exclude', excludes)]
-            .filter((s) => s !== '')
-            .join('\n')}\n    }`
-        : '';
+    if (this.action) {
+      lines.push(`    action: ${this.action}`);
+    }
 
-    return `subscriptions {
-${this.configName ? `  name: "${this.configName}"\n` : ''}${
-      this.contactEmail ? `  contact_email: "${this.contactEmail}"\n` : ''
-    }${this.bugComponent ? `  bug_component: "${this.bugComponent}"\n` : ''}  anomaly_configs {
-    threshold: ${this.threshold}
-    step: ${this.step}
-    radius: ${this.radius}
-    sparse: ${this.sparse ? 'True' : 'False'}
-${rulesBlock ? `${rulesBlock}\n` : ''}${this.action ? `    action: ${this.action}\n` : ''}  }
-}`.trim();
+    lines.push('  }');
+    lines.push('}');
+
+    return lines.join('\n');
   }
 
-  public importProto(proto: string) {
+  public importProto(proto: string): boolean {
+    this.lastImportError = '';
+    if (!proto.includes('subscriptions') || !proto.includes('anomaly_configs')) {
+      this.lastImportError = 'Missing required "subscriptions" or "anomaly_configs" blocks.';
+      return false;
+    }
+
+    const ruleWords = proto.match(/\b[a-zA-Z0-9_]+_rul[a-z]*\b/g) || [];
+    if (ruleWords.some((w) => !['detection_rule', 'complex_rule', 'simple_rule'].includes(w))) {
+      const badWord = ruleWords.find(
+        (w) => !['detection_rule', 'complex_rule', 'simple_rule'].includes(w)
+      );
+      this.lastImportError = `Invalid rule identifier "${badWord}". Expected detection_rule, complex_rule, or simple_rule.`;
+      return false;
+    }
+
     const extractString = (key: string) => {
       const regex = new RegExp(`\\b${key}:\\s*"([^"]+)"`);
       const match = proto.match(regex);
@@ -359,13 +510,13 @@ ${rulesBlock ? `${rulesBlock}\n` : ''}${this.action ? `    action: ${this.action
     };
 
     const extractEnum = (key: string, def: string) => {
-      const regex = new RegExp(`\\b${key}:\\s*([A-Z_]+)`);
+      const regex = new RegExp(`\\b${key}:\\s*([a-zA-Z0-9_]+)`);
       const match = proto.match(regex);
       return match ? match[1] : def;
     };
 
     const extractBoolean = (key: string, def: boolean) => {
-      const regex = new RegExp(`\\b${key}:\\s*(True|False)`);
+      const regex = new RegExp(`\\b${key}:\\s*([a-zA-Z0-9_]+)`);
       const match = proto.match(regex);
       if (match) return match[1] === 'True';
       return def;
@@ -394,12 +545,77 @@ ${rulesBlock ? `${rulesBlock}\n` : ''}${this.action ? `    action: ${this.action
     this.configName = extractString('name');
     this.contactEmail = extractString('contact_email');
     this.bugComponent = extractString('bug_component');
-    this.threshold = extractNumber('threshold', 2.5);
-    this.step = extractEnum('step', 'COHEN_STEP');
     this.radius = extractNumber('radius', 8);
     this.sparse = extractBoolean('sparse', true);
     this.rulesMatch = extractArray('match');
     this.rulesExclude = extractArray('exclude');
-    this.action = extractEnum('action', '');
+
+    const act = extractEnum('action', '');
+    if (act !== '' && !['NOACTION', 'TRIAGE', 'BISECT', 'REPORT'].includes(act)) {
+      this.lastImportError = `Invalid action "${act}". Expected NOACTION, TRIAGE, BISECT, or REPORT.`;
+      return false;
+    }
+    this.action = act;
+
+    const validSteps = [
+      'ORIGINAL_STEP',
+      'ABSOLUTE_STEP',
+      'CONST_STEP',
+      'PERCENT_STEP',
+      'COHEN_STEP',
+      'MANN_WHITNEY_U',
+      'STEPINESS',
+      'PERCENT_MEDIAN_STEP',
+    ];
+
+    if (proto.includes('detection_rule')) {
+      this.ruleType = 'compound';
+      const opMatch = proto.match(/\bop:\s*([a-zA-Z0-9_]+)/);
+      if (opMatch) {
+        if (!['AND', 'OR'].includes(opMatch[1])) {
+          this.lastImportError = `Invalid operator "${opMatch[1]}". Expected AND or OR.`;
+          return false;
+        }
+        this.compoundOp = opMatch[1] as 'AND' | 'OR';
+      } else {
+        this.compoundOp = 'OR';
+      }
+
+      const simpleRuleBlockRegex = /simple_rule\s*\{([^}]+)\}/g;
+      const rules = [];
+      let match;
+      while ((match = simpleRuleBlockRegex.exec(proto)) !== null) {
+        const block = match[1];
+        const stepMatch = block.match(/\bstep:\s*([a-zA-Z0-9_]+)/);
+        const threshMatch = block.match(/\bthreshold:\s*([0-9.]+)/);
+        if (stepMatch && threshMatch) {
+          const st = stepMatch[1];
+          if (!validSteps.includes(st)) {
+            this.lastImportError = `Invalid step "${st}". Expected one of: ${validSteps.join(', ')}.`;
+            return false;
+          }
+          rules.push({ step: st, threshold: parseFloat(threshMatch[1]) });
+        } else {
+          this.lastImportError =
+            'A simple_rule block is missing required "step" or "threshold" fields.';
+          return false;
+        }
+      }
+      if (rules.length === 0) {
+        this.lastImportError = 'A complex_rule requires at least one simple_rule block.';
+        return false;
+      }
+      this.compoundRules = rules;
+    } else {
+      this.ruleType = 'simple';
+      this.threshold = extractNumber('threshold', 2.5);
+      const st = extractEnum('step', 'COHEN_STEP');
+      if (!validSteps.includes(st)) {
+        this.lastImportError = `Invalid step "${st}". Expected one of: ${validSteps.join(', ')}.`;
+        return false;
+      }
+      this.step = st;
+    }
+    return true;
   }
 }

@@ -18,14 +18,14 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
-	pb "go.skia.org/infra/perf/go/sheriffconfig/proto/v1"
 	"go.skia.org/infra/perf/go/sheriffconfig/service"
+	"go.skia.org/infra/perf/go/sheriffconfig/validate"
 	"go.skia.org/infra/perf/go/types"
 )
 
 type SheriffConfigDryRunRequest struct {
-	Config *pb.SheriffConfig `json:"config"`
-	Domain types.Domain      `json:"domain"`
+	Config string       `json:"config"`
+	Domain types.Domain `json:"domain"`
 }
 
 // StartSheriffConfigHandler starts a dryrun from a Sheriff Config Protobuf text.
@@ -38,20 +38,45 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
-	auditlog.LogWithUser(r, "", "dryrun-sheriff-config", parsedReq.Config)
+
+	sheriffConfig, err := validate.DeserializeProto(parsedReq.Config)
+	if err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Could not decode sheriff config: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	auditlog.LogWithUser(r, "", "dryrun-sheriff-config", sheriffConfig)
 
 	// Create a dummy Request just to get a fresh progress tracker ID and return it to the client.
 	req := regression.NewRegressionDetectionRequest()
 	req.Domain = parsedReq.Domain
 	d.tracker.Add(req.Progress)
 
-	sheriffConfig := parsedReq.Config
-	if sheriffConfig == nil || len(sheriffConfig.Subscriptions) == 0 {
+	if len(sheriffConfig.Subscriptions) == 0 {
 		req.Progress.Error("No subscriptions found in the config.")
 		if err := req.Progress.JSON(w); err != nil {
 			sklog.Errorf("Failed to encode paramset: %s", err)
 		}
 		return
+	}
+
+	for subIdx, sub := range sheriffConfig.Subscriptions {
+		if len(sub.AnomalyConfigs) == 0 {
+			req.Progress.Error(fmt.Sprintf("Subscription at index %d must have at least one Anomaly Config.", subIdx))
+			if err := req.Progress.JSON(w); err != nil {
+				sklog.Errorf("Failed to encode paramset: %s", err)
+			}
+			return
+		}
+		for acIdx, ac := range sub.AnomalyConfigs {
+			if err := validate.ValidateAnomalyConfig(ac); err != nil {
+				req.Progress.Error(fmt.Sprintf("Config validation failed for Subscription %d, Anomaly Config %d: %s", subIdx, acIdx, err))
+				if err := req.Progress.JSON(w); err != nil {
+					sklog.Errorf("Failed to encode paramset: %s", err)
+				}
+				return
+			}
+		}
 	}
 
 	go func() {
