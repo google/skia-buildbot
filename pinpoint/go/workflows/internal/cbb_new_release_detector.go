@@ -213,13 +213,18 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 		wg.Wait(ctx)
 	}
 
-	// Check for new Safari Technology Preview and download it. This is
-	// intentionally done at the end of the workflow, to avoid new Safari TP
-	// being installed on test devices while we're running CBB benchmarks.
-	var stpVersion string
-	if err := workflow.ExecuteActivity(ctx, DownloadSafariTPActivity, isDev).Get(ctx, &stpVersion); err != nil {
-		return nil, skerr.Wrap(err)
-	}
+	// TODO(b/522979184): We require Safari Technology Preview for MacOS 15,
+	// which apparently is no longer available. Temporarily skipping
+	// DownloadSafariTPActivity while we figure out the solution.
+	/*
+		// Check for new Safari Technology Preview and download it. This is
+		// intentionally done at the end of the workflow, to avoid new Safari TP
+		// being installed on test devices while we're running CBB benchmarks.
+		var stpVersion string
+		if err := workflow.ExecuteActivity(ctx, DownloadSafariTPActivity, isDev).Get(ctx, &stpVersion); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	*/
 
 	return &commitInfo, nil
 }
