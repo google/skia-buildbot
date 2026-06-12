@@ -113,7 +113,7 @@
     "ua-parser-js": "^0.7.34",
     "utf-8-validate": "^5.0.10",
     "vanilla-jsoneditor": "^0.23.2",
-    "verdaccio": "^5.7.0",
+    "verdaccio": "^5.31.0",
     "zod": "^3.25.55",
     "zone.js": "~0.16.0"
   },

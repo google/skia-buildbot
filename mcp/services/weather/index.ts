@@ -79,13 +79,15 @@ interface ForecastResponse {
 }
 
 // Register weather tools
-server.tool(
+server.registerTool(
   'get-alerts',
-  'Get weather alerts for a state',
   {
-    state: z.string().length(2).describe('Two-letter state code (e.g. CA, NY)'),
+    description: 'Get weather alerts for a state',
+    inputSchema: {
+      state: z.string().length(2).describe('Two-letter state code (e.g. CA, NY)'),
+    } as any,
   },
-  async ({ state }) => {
+  async ({ state }: any) => {
     const stateCode = state.toUpperCase();
     const alertsUrl = `${NWS_API_BASE}/alerts?area=${stateCode}`;
     const alertsData = await makeNWSRequest<AlertsResponse>(alertsUrl);
@@ -94,7 +96,7 @@ server.tool(
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: 'Failed to retrieve alerts data',
           },
         ],
@@ -106,7 +108,7 @@ server.tool(
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: `No active alerts for ${stateCode}`,
           },
         ],
@@ -119,7 +121,7 @@ server.tool(
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: alertsText,
         },
       ],
@@ -127,14 +129,16 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   'get-forecast',
-  'Get weather forecast for a location',
   {
-    latitude: z.number().min(-90).max(90).describe('Latitude of the location'),
-    longitude: z.number().min(-180).max(180).describe('Longitude of the location'),
+    description: 'Get weather forecast for a location',
+    inputSchema: {
+      latitude: z.number().min(-90).max(90).describe('Latitude of the location'),
+      longitude: z.number().min(-180).max(180).describe('Longitude of the location'),
+    } as any,
   },
-  async ({ latitude, longitude }) => {
+  async ({ latitude, longitude }: any) => {
     // Get grid point data
     const pointsUrl = `${NWS_API_BASE}/points/${latitude.toFixed(4)},${longitude.toFixed(4)}`;
     const pointsData = await makeNWSRequest<PointsResponse>(pointsUrl);
@@ -143,7 +147,7 @@ server.tool(
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: `Failed to retrieve grid point data for coordinates: ${latitude}, ${longitude}.
 This location may not be supported by the NWS API (only US locations are supported).`,
           },
@@ -156,7 +160,7 @@ This location may not be supported by the NWS API (only US locations are support
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: 'Failed to get forecast URL from grid point data',
           },
         ],
@@ -169,7 +173,7 @@ This location may not be supported by the NWS API (only US locations are support
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: 'Failed to retrieve forecast data',
           },
         ],
@@ -181,7 +185,7 @@ This location may not be supported by the NWS API (only US locations are support
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: 'No forecast periods available',
           },
         ],
@@ -206,7 +210,7 @@ This location may not be supported by the NWS API (only US locations are support
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: forecastText,
         },
       ],

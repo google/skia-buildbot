@@ -33,11 +33,13 @@ def esbuild_dev_bundle(
       visibility: Visibility of the rule.
       **kwargs: Any other arguments to be passed to the esbuild rule.
     """
+    external = kwargs.pop("external", []) + ["util"]
     esbuild(
         name = name,
         tsconfig = "//:ts_config",
         entry_point = entry_point,
         define = _BROWSER_DEFINES,
+        external = external,
         deps = deps,
         sourcemap = "inline",
         sources_content = True,
@@ -68,11 +70,13 @@ def esbuild_prod_bundle(
       visibility: Visibility of the rule.
       **kwargs: Any other arguments to be passed to the esbuild rule.
     """
+    external = kwargs.pop("external", []) + ["util"]
     esbuild(
         name = name,
         tsconfig = "//:ts_config",
         entry_point = entry_point,
         define = _BROWSER_DEFINES,
+        external = external,
         deps = deps,
         minify = True,
         output = output,

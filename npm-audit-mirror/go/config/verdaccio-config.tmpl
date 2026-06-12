@@ -59,3 +59,9 @@ middlewares:
     strict_ssl: false
 
 logs: { type: stdout, level: trace, format: pretty-timestamped }
+
+# Temporarily enable auto-migration of storage token secret.
+# TODO(borenet): Delete this after the pod starts up successfully.
+security:
+  api:
+    migrateToSecureLegacySignature: true

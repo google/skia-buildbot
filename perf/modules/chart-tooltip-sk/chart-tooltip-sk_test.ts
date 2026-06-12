@@ -224,13 +224,9 @@ describe('chart-tooltip-sk', () => {
       );
       await element.updateComplete;
 
-      const tooltipKeys = element.querySelectorAll('#tooltip-key');
-      let pinpointKey: HTMLElement | null = null;
-      tooltipKeys.forEach((el) => {
-        if (el.textContent === 'Pinpoint') {
-          pinpointKey = el as HTMLElement;
-        }
-      });
+      const pinpointKey = Array.from(element.querySelectorAll('#tooltip-key')).find(
+        (el) => el.textContent === 'Pinpoint'
+      ) as HTMLElement | null;
       assert.isNotNull(pinpointKey);
       assert.isTrue(pinpointKey!.parentElement!.parentElement!.hidden);
     });
@@ -256,13 +252,9 @@ describe('chart-tooltip-sk', () => {
       );
       await element.updateComplete;
 
-      const tooltipKeys = element.querySelectorAll('#tooltip-key');
-      let userIssuesKey: HTMLElement | null = null;
-      tooltipKeys.forEach((el) => {
-        if (el.textContent === 'User Issues') {
-          userIssuesKey = el as HTMLElement;
-        }
-      });
+      const userIssuesKey = Array.from(element.querySelectorAll('#tooltip-key')).find(
+        (el) => el.textContent === 'User Issues'
+      ) as HTMLElement | null;
       assert.isNotNull(userIssuesKey);
       assert.isTrue(userIssuesKey!.parentElement!.parentElement!.hidden);
     });

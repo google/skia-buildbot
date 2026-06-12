@@ -1497,8 +1497,9 @@ describe('Domain Picker Interaction', () => {
       await (explore as any).OnSelectionRange({ type: 'selection-changed', detail });
 
       assert.isNotNull(capturedDetail);
-      assert.strictEqual(capturedDetail!.value.begin, 1000);
-      assert.strictEqual(capturedDetail!.value.end, 2001);
+      const actual = capturedDetail as unknown as PlotSelectionEventDetails;
+      assert.strictEqual(actual.value.begin, 1000);
+      assert.strictEqual(actual.value.end, 2001);
     });
 
     it('rounds sub-pixel panning ranges and extracts indices in commit domain', async () => {
@@ -1516,10 +1517,11 @@ describe('Domain Picker Interaction', () => {
       await (explore as any).OnSelectionRange({ type: 'selection-changed', detail });
 
       assert.isNotNull(capturedDetail);
-      assert.strictEqual(capturedDetail!.value.begin, 0);
-      assert.strictEqual(capturedDetail!.value.end, 2);
-      assert.strictEqual(capturedDetail!.start, 0);
-      assert.strictEqual(capturedDetail!.end, 2);
+      const actual = capturedDetail as unknown as PlotSelectionEventDetails;
+      assert.strictEqual(actual.value.begin, 0);
+      assert.strictEqual(actual.value.end, 2);
+      assert.strictEqual(actual.start, 0);
+      assert.strictEqual(actual.end, 2);
     });
 
     it('handles negative sub-pixel ranges cleanly', async () => {
@@ -1537,8 +1539,9 @@ describe('Domain Picker Interaction', () => {
       await (explore as any).OnSelectionRange({ type: 'selection-changed', detail });
 
       assert.isNotNull(capturedDetail);
-      assert.strictEqual(capturedDetail!.value.begin, -11);
-      assert.strictEqual(capturedDetail!.value.end, -5);
+      const actual = capturedDetail as unknown as PlotSelectionEventDetails;
+      assert.strictEqual(actual.value.begin, -11);
+      assert.strictEqual(actual.value.end, -5);
     });
   });
 });
