@@ -80,8 +80,12 @@ export class TraceDatabase {
   }
 }
 
-export async function hashRequest(req: any): Promise<string> {
-  const msgBuffer = new TextEncoder().encode(JSON.stringify(req));
+export async function hashRequest(req: any, fetchFromSql?: boolean): Promise<string> {
+  const hashedObject = {
+    request: req,
+    fetch_anomalies_from_sql: fetchFromSql,
+  };
+  const msgBuffer = new TextEncoder().encode(JSON.stringify(hashedObject));
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');

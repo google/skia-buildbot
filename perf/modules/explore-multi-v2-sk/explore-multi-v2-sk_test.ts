@@ -534,8 +534,8 @@ describe('explore-multi-v2-sk', () => {
     await element.updateComplete;
 
     const toolbar = element.shadowRoot!.querySelector('explore-toolbar-sk');
-    const showAllBtn = Array.from(toolbar!.shadowRoot!.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim().includes('Show All')
+    const showAllBtn = Array.from(toolbar!.shadowRoot!.querySelectorAll('button')).find((b) =>
+      b.textContent?.trim().includes('Show All')
     );
     expect(showAllBtn).to.not.be.undefined;
 
@@ -1078,8 +1078,8 @@ describe('explore-multi-v2-sk', () => {
     element['splitKeys'] = new Set(['bot']);
     await element.updateComplete;
 
-    const splitPill = Array.from(element.shadowRoot!.querySelectorAll('.config-pill')).find(
-      (p) => p.textContent?.includes('Split by:')
+    const splitPill = Array.from(element.shadowRoot!.querySelectorAll('.config-pill')).find((p) =>
+      p.textContent?.includes('Split by:')
     );
     expect(splitPill).to.not.be.undefined;
 

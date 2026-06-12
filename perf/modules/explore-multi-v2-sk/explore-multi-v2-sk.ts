@@ -392,6 +392,7 @@ export class ExploreMultiV2Sk extends LitElement {
     );
 
     this._initWorker();
+    window.addEventListener('anomalies-source-changed', this._onAnomaliesSourceChanged);
   }
 
   disconnectedCallback() {
@@ -401,8 +402,17 @@ export class ExploreMultiV2Sk extends LitElement {
     if (this._workerController) {
       this._workerController.terminate();
     }
+    window.removeEventListener('anomalies-source-changed', this._onAnomaliesSourceChanged);
     super.disconnectedCallback();
   }
+
+  private _onAnomaliesSourceChanged = () => {
+    this._seriesData = [];
+    this._loadedBounds = {};
+    this._globalBounds = {};
+    this._regressions = {};
+    void this._fetchData();
+  };
 
   private _initWorker() {
     this._workerController = new ExploreWorkerController(
@@ -1050,7 +1060,7 @@ export class ExploreMultiV2Sk extends LitElement {
         tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
 
-      const cacheKey = await hashRequest(req);
+      const cacheKey = await hashRequest(req, (window as any).perf?.fetch_anomalies_from_sql);
       const db = new TraceDatabase();
       const cached = await db.get(cacheKey);
       if (cached) {
@@ -1209,7 +1219,7 @@ export class ExploreMultiV2Sk extends LitElement {
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
 
-    const cacheKey = await hashRequest(req);
+    const cacheKey = await hashRequest(req, (window as any).perf?.fetch_anomalies_from_sql);
     const db = new TraceDatabase();
 
     this._summaryLoading = true;
@@ -1502,7 +1512,10 @@ export class ExploreMultiV2Sk extends LitElement {
         }
 
         fetchReq.ids.sort();
-        const cacheKey = await hashRequest(fetchReq);
+        const cacheKey = await hashRequest(
+          fetchReq,
+          (window as any).perf?.fetch_anomalies_from_sql
+        );
         const db = new TraceDatabase();
         const cached = await db.get(cacheKey);
 

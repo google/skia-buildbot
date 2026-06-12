@@ -37,7 +37,7 @@ func TestTraceValuesHandler_Success(t *testing.T) {
 	dfBuilder := dataframeMocks.NewDataFrameBuilder(t)
 	perfGit := gitMocks.NewGit(t)
 
-	api := NewTraceValuesApi(dfBuilder, perfGit, nil)
+	api := NewTraceValuesApi(dfBuilder, perfGit, nil, nil)
 
 	// Mock Git calls
 	perfGit.On("CommitNumberFromTime", mock.Anything, time.Time{}).Return(types.CommitNumber(200), nil)
@@ -92,7 +92,7 @@ func TestTraceValuesHandler_WithTimestamps(t *testing.T) {
 	dfBuilder := dataframeMocks.NewDataFrameBuilder(t)
 	perfGit := gitMocks.NewGit(t)
 
-	api := NewTraceValuesApi(dfBuilder, perfGit, nil)
+	api := NewTraceValuesApi(dfBuilder, perfGit, nil, nil)
 
 	fakeDf := &dataframe.DataFrame{
 		Header: []*dataframe.ColumnHeader{
@@ -118,7 +118,9 @@ func TestTraceValuesHandler_WithTimestamps(t *testing.T) {
 }
 
 func TestTraceValuesHandler_WithAnomalies(t *testing.T) {
-	config.Config = &config.InstanceConfig{}
+	config.Config = &config.InstanceConfig{
+		FetchAnomaliesFromSql: true,
+	}
 	w := httptest.NewRecorder()
 	req := TraceValuesRequest{
 		Ids:   []string{"trace1"},
@@ -132,7 +134,7 @@ func TestTraceValuesHandler_WithAnomalies(t *testing.T) {
 	perfGit := gitMocks.NewGit(t)
 	anomalyStore := &anomalyMocks.Store{}
 
-	api := NewTraceValuesApi(dfBuilder, perfGit, anomalyStore)
+	api := NewTraceValuesApi(dfBuilder, perfGit, anomalyStore, nil)
 
 	fakeDf := &dataframe.DataFrame{
 		Header: []*dataframe.ColumnHeader{
@@ -179,7 +181,7 @@ func TestTraceValuesHandler_CappedMaxCommit(t *testing.T) {
 	dfBuilder := dataframeMocks.NewDataFrameBuilder(t)
 	perfGit := gitMocks.NewGit(t)
 
-	api := NewTraceValuesApi(dfBuilder, perfGit, nil)
+	api := NewTraceValuesApi(dfBuilder, perfGit, nil, nil)
 
 	// Mock Git calls
 	perfGit.On("CommitFromCommitNumber", mock.Anything, types.CommitNumber(100)).Return(provider.Commit{Timestamp: 1000}, nil)
@@ -213,4 +215,55 @@ func TestTraceValuesHandler_CappedMaxCommit(t *testing.T) {
 	require.Len(t, resp.Results, 1)
 	require.Len(t, resp.Results["trace1"], 2)
 	require.Equal(t, int64(150), resp.Results["trace1"][1].CommitNumber)
+}
+
+func TestTraceValuesHandler_WithLegacyAnomalies(t *testing.T) {
+	config.Config = &config.InstanceConfig{
+		FetchAnomaliesFromSql:    false,
+		FetchChromePerfAnomalies: true,
+	}
+	w := httptest.NewRecorder()
+	req := TraceValuesRequest{
+		Ids:   []string{"trace1"},
+		Begin: 1000,
+		End:   2000,
+	}
+	body, _ := json.Marshal(req)
+	r := httptest.NewRequest("POST", "/_/trace_values", bytes.NewReader(body))
+
+	dfBuilder := dataframeMocks.NewDataFrameBuilder(t)
+	perfGit := gitMocks.NewGit(t)
+	legacyAnomalyStore := &anomalyMocks.Store{}
+
+	api := NewTraceValuesApi(dfBuilder, perfGit, nil, legacyAnomalyStore)
+
+	fakeDf := &dataframe.DataFrame{
+		Header: []*dataframe.ColumnHeader{
+			{Offset: 100, Timestamp: 1000},
+			{Offset: 200, Timestamp: 2000},
+		},
+		TraceSet: types.TraceSet{
+			"trace1": []float32{1.0, 2.0},
+		},
+	}
+	dfBuilder.On("NewFromKeysAndRange", mock.Anything, []string{"trace1"}, time.Unix(1000, 0), time.Unix(2000, 0), mock.Anything).Return(fakeDf, nil)
+
+	fakeAnomalyMap := chromeperf.AnomalyMap{
+		"trace1": {
+			types.CommitNumber(100): {Id: "legacy_anomaly1", State: "untriaged"},
+		},
+	}
+	legacyAnomalyStore.On("GetAnomaliesInTimeRange", mock.Anything, []string{"trace1"}, time.Unix(1000, 0), time.Unix(2000, 0)).Return(fakeAnomalyMap, nil)
+
+	api.traceValuesHandler(w, r)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	var resp TraceValuesResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+
+	require.Len(t, resp.Results, 1)
+	require.NotNil(t, resp.AnomalyMap)
+	require.Equal(t, "legacy_anomaly1", resp.AnomalyMap["trace1"][100].Id)
 }

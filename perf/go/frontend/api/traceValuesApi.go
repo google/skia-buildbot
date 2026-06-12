@@ -20,17 +20,19 @@ import (
 
 // TraceValuesApi handles requests for specific trace values.
 type TraceValuesApi struct {
-	dfBuilder    dataframe.DataFrameBuilder
-	perfGit      perfgit.Git
-	anomalyStore anomalies.Store
+	dfBuilder              dataframe.DataFrameBuilder
+	perfGit                perfgit.Git
+	anomalyStore           anomalies.Store
+	chromeperfAnomalyStore anomalies.Store
 }
 
 // NewTraceValuesApi returns a new TraceValuesApi.
-func NewTraceValuesApi(dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, anomalyStore anomalies.Store) *TraceValuesApi {
+func NewTraceValuesApi(dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, anomalyStore anomalies.Store, chromeperfAnomalyStore anomalies.Store) *TraceValuesApi {
 	return &TraceValuesApi{
-		dfBuilder:    dfBuilder,
-		perfGit:      perfGit,
-		anomalyStore: anomalyStore,
+		dfBuilder:              dfBuilder,
+		perfGit:                perfGit,
+		anomalyStore:           anomalyStore,
+		chromeperfAnomalyStore: chromeperfAnomalyStore,
 	}
 }
 
@@ -137,12 +139,16 @@ func (api *TraceValuesApi) traceValuesHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	// Fetch anomalies if store is available
-	if api.anomalyStore != nil {
+	storeToUse := api.anomalyStore
+	if preferLegacy(r) {
+		storeToUse = api.chromeperfAnomalyStore
+	}
+	if storeToUse != nil {
 		traceNames := []string{}
 		for id := range df.TraceSet {
 			traceNames = append(traceNames, id)
 		}
-		anomalyMap, err := api.anomalyStore.GetAnomaliesInTimeRange(ctx, traceNames, beginTime, endTime)
+		anomalyMap, err := storeToUse.GetAnomaliesInTimeRange(ctx, traceNames, beginTime, endTime)
 		if err != nil {
 			sklog.Errorf("Failed to fetch anomalies: %v", err)
 		} else {
