@@ -585,3 +585,81 @@ func TestFilterTraceSet_InvalidKey_LogAndRemove(t *testing.T) {
 	assert.NotContains(t, df.TraceSet, invalidKey, "Invalid key should be removed")
 	assert.Contains(t, df.TraceSet, validKey, "Valid key should be kept")
 }
+
+func TestProcessFrameRequest_WithTraceIDs_SetsCorrectLimitAndNoTruncate(t *testing.T) {
+	config.Config = &config.InstanceConfig{}
+	dfbMock := &mocks.DataFrameBuilder{}
+
+	// Create 400 trace IDs (more than maxTracesInResponse = 350)
+	traceIDs := []string{}
+	for i := 0; i < 400; i++ {
+		traceIDs = append(traceIDs, fmt.Sprintf(",arch=x86,config=%d,", i))
+	}
+
+	fr := &FrameRequest{
+		TraceIDs:    traceIDs,
+		Progress:    progress.New(),
+		RequestType: REQUEST_TIME_RANGE,
+	}
+
+	df := dataframe.NewEmpty()
+	for _, id := range traceIDs {
+		df.TraceSet[id] = types.Trace{1}
+	}
+	df.Header = []*dataframe.ColumnHeader{
+		{Offset: 1, Timestamp: 100},
+	}
+	df.BuildParamSet()
+
+	dfbMock.On("NewFromKeysAndRange", mock.Anything, traceIDs, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		ctx := args.Get(0).(context.Context)
+		limit := ctx.Value(types.LimitContextKey).(int)
+		assert.Equal(t, len(traceIDs), limit)
+	}).Return(df, nil)
+
+	err := ProcessFrameRequest(context.Background(), fr, nil, dfbMock, nil, nil, nil, nil, false)
+	require.NoError(t, err)
+
+	res := fr.Progress.State().Results.(*FrameResponse)
+	assert.Len(t, res.DataFrame.TraceSet, 400)
+}
+
+func TestProcessFrameRequest_WithManyTraceIDs_CapsLimit(t *testing.T) {
+	config.Config = &config.InstanceConfig{}
+	dfbMock := &mocks.DataFrameBuilder{}
+
+	// Create more trace IDs than the cap.
+	numTraceIDs := maxTracesForTraceIDReq + 500
+	traceIDs := []string{}
+	for i := 0; i < numTraceIDs; i++ {
+		traceIDs = append(traceIDs, fmt.Sprintf(",arch=x86,config=%d,", i))
+	}
+
+	fr := &FrameRequest{
+		TraceIDs:    traceIDs,
+		Progress:    progress.New(),
+		RequestType: REQUEST_TIME_RANGE,
+	}
+
+	// Mock builder returns only maxTracesForTraceIDReq traces because of DB limit (simulated)
+	df := dataframe.NewEmpty()
+	for i := 0; i < maxTracesForTraceIDReq; i++ {
+		df.TraceSet[traceIDs[i]] = types.Trace{1}
+	}
+	df.Header = []*dataframe.ColumnHeader{
+		{Offset: 1, Timestamp: 100},
+	}
+	df.BuildParamSet()
+
+	dfbMock.On("NewFromKeysAndRange", mock.Anything, traceIDs, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		ctx := args.Get(0).(context.Context)
+		limit := ctx.Value(types.LimitContextKey).(int)
+		assert.Equal(t, maxTracesForTraceIDReq, limit)
+	}).Return(df, nil)
+
+	err := ProcessFrameRequest(context.Background(), fr, nil, dfbMock, nil, nil, nil, nil, false)
+	require.NoError(t, err)
+
+	res := fr.Progress.State().Results.(*FrameResponse)
+	assert.Len(t, res.DataFrame.TraceSet, maxTracesForTraceIDReq)
+}

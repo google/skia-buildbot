@@ -45,7 +45,8 @@ const (
 var AllRequestType = []RequestType{REQUEST_TIME_RANGE, REQUEST_COMPACT}
 
 const (
-	maxTracesInResponse = 350
+	maxTracesInResponse    = 350
+	maxTracesForTraceIDReq = 2000 // Limit for requests specifying individual TraceIDs.
 )
 
 // ResponseDisplayMode are the different modes of the explore-sk page.
@@ -136,9 +137,17 @@ type frameRequestProcess struct {
 //
 // The finished results are stored in the FrameRequestProcess.Progress.Results.
 func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit.Git, dfBuilder dataframe.DataFrameBuilder, traceStore tracestore.TraceStore, metadataStore tracestore.MetadataStore, shortcutStore shortcut.Store, anomalyStore anomalies.Store, searchAnomaliesTimeBased bool) error {
+	hasValidPivot := req.Pivot != nil && req.Pivot.Valid() == nil
 	limit := maxTracesInResponse
-	if req.Pivot != nil && req.Pivot.Valid() == nil {
+	if hasValidPivot {
 		limit = 5000
+	} else if len(req.TraceIDs) > 0 {
+		if len(req.TraceIDs) > maxTracesForTraceIDReq {
+			sklog.Warningf("Request contained %d TraceIDs, truncating to %d.", len(req.TraceIDs), maxTracesForTraceIDReq)
+			limit = maxTracesForTraceIDReq
+		} else {
+			limit = len(req.TraceIDs)
+		}
 	} else {
 		limit = maxTracesInResponse
 	}
@@ -160,8 +169,8 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit
 		return skerr.Wrap(err)
 	}
 
-	// Do not truncate pivot requests.
-	truncate := req.Pivot == nil || req.Pivot.Valid() != nil
+	// Do not truncate pivot requests or requests for specific trace IDs.
+	truncate := !hasValidPivot && len(req.TraceIDs) == 0
 	resp, err := ResponseFromDataFrame(ctx, req.Pivot, df, ret.perfGit, truncate, ret.request.Progress)
 	if err != nil {
 		return ret.reportError(err, "Failed to get skps.")
