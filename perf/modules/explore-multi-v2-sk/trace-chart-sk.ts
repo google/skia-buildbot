@@ -674,11 +674,11 @@ export class TraceChartSk extends LitElement {
 
       const minIdx =
         this.evenXAxisSpacing && this._sortedXValues.length > 0
-          ? this._xValueToIndex.get(minX) ?? 0
+          ? (this._xValueToIndex.get(minX) ?? 0)
           : 0;
       const maxIdx =
         this.evenXAxisSpacing && this._sortedXValues.length > 0
-          ? this._xValueToIndex.get(maxX) ?? this._sortedXValues.length - 1
+          ? (this._xValueToIndex.get(maxX) ?? this._sortedXValues.length - 1)
           : 0;
 
       for (let i = 0; i < numTicks; i++) {
@@ -1772,11 +1772,11 @@ export class TraceChartSk extends LitElement {
   }
 
   private _handlePointerLeave() {
-    if (this._isMouseOverTooltip) {
+    this._mousePos = null;
+    if (this._isMouseOverTooltip || this.globalPinnedX !== null) {
       return;
     }
     this._hoveredPoint = null;
-    this._mousePos = null;
   }
 
   private _handleWheel(e: WheelEvent) {

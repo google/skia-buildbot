@@ -552,4 +552,34 @@ describe('trace-chart-sk', () => {
       ctx.arc = oldArc;
     }
   });
+
+  it('keeps hovered point on pointer leave if pinned', async () => {
+    const hoveredPoint = {
+      series: { id: 'test', color: '#fff', rows: [] },
+      row: { commit_number: 100, val: 10.0, createdat: 1000 },
+      x: 100,
+      y: 100,
+    };
+    (element as any)['_hoveredPoint'] = hoveredPoint;
+    element.globalPinnedX = 100;
+    (element as any)['_mousePos'] = { x: 100, y: 100 };
+    await element.updateComplete;
+
+    (element as any)['_handlePointerLeave']();
+    await element.updateComplete;
+
+    expect((element as any)['_hoveredPoint']).to.not.be.null;
+    expect((element as any)['_hoveredPoint']).to.equal(hoveredPoint);
+    expect((element as any)['_mousePos']).to.be.null;
+
+    element.globalPinnedX = null;
+    (element as any)['_mousePos'] = { x: 100, y: 100 };
+    await element.updateComplete;
+
+    (element as any)['_handlePointerLeave']();
+    await element.updateComplete;
+
+    expect((element as any)['_hoveredPoint']).to.be.null;
+    expect((element as any)['_mousePos']).to.be.null;
+  });
 });
