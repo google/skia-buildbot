@@ -17,6 +17,7 @@ package expectedschema
 import (
 	"bytes"
 	"context"
+	"io/fs"
 	"path"
 	"slices"
 	"sort"
@@ -33,19 +34,27 @@ import (
 	"go.skia.org/infra/perf/go/sql"
 )
 
-type migration struct {
-	version int
-	name    string
-	sql     string
+type migrationFS interface {
+	fs.ReadDirFS
+	fs.ReadFileFS
 }
 
-func getMigrations() ([]migration, error) {
-	entries, err := MigrationsFS.ReadDir("migrations")
+var DefaultMigrationsFS migrationFS = MigrationsFS
+
+type Migration struct {
+	Version int
+	Name    string
+	SQL     string
+}
+
+func GetMigrations() ([]Migration, error) {
+	entries, err := DefaultMigrationsFS.ReadDir("migrations")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to read migrations directory")
 	}
 
-	var migrations []migration
+	var migrations []Migration
+	seenVersions := map[int]string{}
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
 			continue
@@ -60,26 +69,31 @@ func getMigrations() ([]migration, error) {
 		if err != nil {
 			return nil, skerr.Wrapf(err, "failed to parse version from filename: %s", entry.Name())
 		}
-		content, err := MigrationsFS.ReadFile(path.Join("migrations", entry.Name()))
+		if previousFile, exists := seenVersions[version]; exists {
+			return nil, skerr.Fmt("duplicate migration version %d found: %s and %s", version, previousFile, entry.Name())
+		}
+		seenVersions[version] = entry.Name()
+
+		content, err := DefaultMigrationsFS.ReadFile(path.Join("migrations", entry.Name()))
 		if err != nil {
 			return nil, skerr.Wrapf(err, "failed to read migration file: %s", entry.Name())
 		}
-		migrations = append(migrations, migration{
-			version: version,
-			name:    entry.Name(),
-			sql:     string(content),
+		migrations = append(migrations, Migration{
+			Version: version,
+			Name:    entry.Name(),
+			SQL:     string(content),
 		})
 	}
 
 	// Sort migrations by version
 	sort.Slice(migrations, func(i, j int) bool {
-		return migrations[i].version < migrations[j].version
+		return migrations[i].Version < migrations[j].Version
 	})
 
 	// Validate sequentiality starting from 1
 	for i, m := range migrations {
-		if m.version != i+1 {
-			return nil, skerr.Fmt("migrations are not sequential: expected version %d, got %d", i+1, m.version)
+		if m.Version != i+1 {
+			return nil, skerr.Fmt("migrations are not sequential: expected version %d, got %d", i+1, m.Version)
 		}
 	}
 
@@ -179,7 +193,7 @@ func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool) error {
 		}
 
 		// 3. Load, parse, sort, and validate all migration files from embed.FS.
-		migrations, err := getMigrations()
+		migrations, err := GetMigrations()
 		if err != nil {
 			return skerr.Wrapf(err, "failed to load migrations")
 		}
@@ -188,18 +202,18 @@ func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool) error {
 		// 4. Run the pending migrations step-by-step.
 		appliedAny := false
 		for _, m := range migrations {
-			if m.version > currentVersion {
-				sklog.Infof("Applying pending database migration script: Version=%d, File=%s", m.version, m.name)
-				sklog.Infof("Executing SQL DDL content for migration %s:\n%s", m.name, m.sql)
-				_, err = conn.Exec(ctx, m.sql)
+			if m.Version > currentVersion {
+				sklog.Infof("Applying pending database migration script: Version=%d, File=%s", m.Version, m.Name)
+				sklog.Infof("Executing SQL DDL content for migration %s:\n%s", m.Name, m.SQL)
+				_, err = conn.Exec(ctx, m.SQL)
 				if err != nil {
-					return skerr.Wrapf(err, "failed to apply migration version %d (%s)", m.version, m.name)
+					return skerr.Wrapf(err, "failed to apply migration version %d (%s)", m.Version, m.Name)
 				}
-				_, err = conn.Exec(ctx, `INSERT INTO schema_migrations (version) VALUES ($1)`, m.version)
+				_, err = conn.Exec(ctx, `INSERT INTO schema_migrations (version) VALUES ($1)`, m.Version)
 				if err != nil {
-					return skerr.Wrapf(err, "failed to record migration version %d as applied", m.version)
+					return skerr.Wrapf(err, "failed to record migration version %d as applied", m.Version)
 				}
-				currentVersion = m.version
+				currentVersion = m.Version
 				sklog.Infof("Successfully upgraded database schema to version %d.", currentVersion)
 				appliedAny = true
 			}
@@ -322,14 +336,14 @@ func UpdateTraceParamsSchema(ctx context.Context, db pool.Pool, datastoreType co
 // VerifySchemaVersion checks if the database schema version matches the expected version.
 func VerifySchemaVersion(ctx context.Context, db pool.Pool) error {
 	// 1. Get maximum embedded version from migrations directory.
-	migrations, err := getMigrations()
+	migrations, err := GetMigrations()
 	if err != nil {
 		return skerr.Wrapf(err, "failed to load migrations")
 	}
 	if len(migrations) == 0 {
 		return skerr.Fmt("no embedded migration files found")
 	}
-	expectedVersion := migrations[len(migrations)-1].version
+	expectedVersion := migrations[len(migrations)-1].Version
 
 	// 2. Retrieve the currently applied version from the DB.
 	var currentVersion int

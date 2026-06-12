@@ -21,6 +21,22 @@ Add a new sequence-numbered SQL file inside `perf/go/sql/expectedschema/migratio
 - Sequence numbers must be strictly sequential (no gaps or duplicate versions).
 - Cloud Spanner has strict schema modification constraints (e.g., you cannot change a column's type to `ARRAY` or to incompatible types directly; add a new column instead).
 
+> [!IMPORTANT] > **Write Idempotent DDL Queries**
+> In Spanner, DDL queries are non-transactional. This means DDL statements (like `CREATE TABLE` or `ALTER TABLE`) and updating the `schema_migrations` tracking table are not atomic. If the program crashes or is interrupted after the DDL completes but before the version is recorded, the maintenance runner will try to rerun the DDL on the next execution, resulting in errors (e.g., "Duplicate name in schema").
+>
+> Always write DDL queries in an idempotent way so they are safe to rerun:
+>
+> ```sql
+> -- Example: Create Table
+> CREATE TABLE IF NOT EXISTS dummytable (
+>   id TEXT PRIMARY KEY,
+>   dummy_value TEXT
+> );
+>
+> -- Example: Add Column
+> ALTER TABLE dummytable ADD COLUMN IF NOT EXISTS extra_value TEXT;
+> ```
+
 ### 2. Update Table Structs
 
 Modify the Go structs representing the table layouts in [tables.go](../../../perf/go/sql/tables.go) to match the new schema layout.

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -269,4 +270,25 @@ func Test_VerifySchemaVersion(t *testing.T) {
 
 	err = expectedschema.VerifySchemaVersion(ctx, db)
 	require.NoError(t, err)
+}
+
+func TestMigrations_NoDuplicateVersions(t *testing.T) {
+	// 1. Verify that the production checked-in migrations don't have duplicates.
+	migrations, err := expectedschema.GetMigrations()
+	require.NoError(t, err)
+	require.NotEmpty(t, migrations)
+
+	// 2. Verify that mock migrations with duplicate versions return a duplicate migration error.
+	oldFS := expectedschema.DefaultMigrationsFS
+	defer func() { expectedschema.DefaultMigrationsFS = oldFS }()
+
+	expectedschema.DefaultMigrationsFS = fstest.MapFS{
+		"migrations/0001_init.sql": &fstest.MapFile{Data: []byte("SELECT 1;")},
+		"migrations/0002_test.sql": &fstest.MapFile{Data: []byte("SELECT 2;")},
+		"migrations/0002_dup.sql":  &fstest.MapFile{Data: []byte("SELECT 2 dup;")},
+	}
+
+	_, err = expectedschema.GetMigrations()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "duplicate migration version 2 found")
 }
