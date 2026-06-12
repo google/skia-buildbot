@@ -393,6 +393,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
     this._initWorker();
     window.addEventListener('anomalies-source-changed', this._onAnomaliesSourceChanged);
+    this.addEventListener('anomaly-changed', this._onAnomalyChanged);
   }
 
   disconnectedCallback() {
@@ -403,6 +404,7 @@ export class ExploreMultiV2Sk extends LitElement {
       this._workerController.terminate();
     }
     window.removeEventListener('anomalies-source-changed', this._onAnomaliesSourceChanged);
+    this.removeEventListener('anomaly-changed', this._onAnomalyChanged);
     super.disconnectedCallback();
   }
 
@@ -946,6 +948,19 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   }
 
+  private _mapAnomalyFields(anomaly: any): Regression {
+    return {
+      ...anomaly,
+      is_improvement: anomaly.is_improvement,
+      bug_id: anomaly.bug_id,
+      recovered: anomaly.recovered,
+      status: anomaly.state,
+      median_before: anomaly.median_before_anomaly,
+      median_after: anomaly.median_after_anomaly,
+      test_path: anomaly.test_path || (anomaly as any).TestPath,
+    } as Regression;
+  }
+
   /**
    * Resolves and calculates the final begin and end Unix timestamps for data fetching.
    *
@@ -1077,16 +1092,7 @@ export class ExploreMultiV2Sk extends LitElement {
               nextRegressions[primaryKey] = {};
             }
             for (const [commit, anomaly] of Object.entries(commitMap)) {
-              nextRegressions[primaryKey][Number(commit)] = {
-                ...anomaly,
-                is_improvement: anomaly.is_improvement,
-                bug_id: anomaly.bug_id,
-                recovered: anomaly.recovered,
-                status: anomaly.state,
-                median_before: anomaly.median_before_anomaly,
-                median_after: anomaly.median_after_anomaly,
-                test_path: anomaly.test_path || (anomaly as any).TestPath,
-              } as any;
+              nextRegressions[primaryKey][Number(commit)] = this._mapAnomalyFields(anomaly);
             }
           }
           this._regressions = nextRegressions;
@@ -1116,16 +1122,7 @@ export class ExploreMultiV2Sk extends LitElement {
             nextRegressions[primaryKey] = {};
           }
           for (const [commit, anomaly] of Object.entries(commitMap)) {
-            nextRegressions[primaryKey][Number(commit)] = {
-              ...anomaly,
-              is_improvement: anomaly.is_improvement,
-              bug_id: anomaly.bug_id,
-              recovered: anomaly.recovered,
-              status: anomaly.state,
-              median_before: anomaly.median_before_anomaly,
-              median_after: anomaly.median_after_anomaly,
-              test_path: anomaly.test_path || (anomaly as any).TestPath,
-            } as any;
+            nextRegressions[primaryKey][Number(commit)] = this._mapAnomalyFields(anomaly);
           }
         }
         this._regressions = nextRegressions;
@@ -1540,16 +1537,7 @@ export class ExploreMultiV2Sk extends LitElement {
               nextRegressions[primaryKey] = {};
             }
             for (const [commit, anomaly] of Object.entries(commitMap)) {
-              nextRegressions[primaryKey][Number(commit)] = {
-                ...anomaly,
-                is_improvement: anomaly.is_improvement,
-                bug_id: anomaly.bug_id,
-                recovered: anomaly.recovered,
-                status: anomaly.state,
-                median_before: anomaly.median_before_anomaly,
-                median_after: anomaly.median_after_anomaly,
-                test_path: anomaly.test_path || (anomaly as any).TestPath,
-              } as any;
+              nextRegressions[primaryKey][Number(commit)] = this._mapAnomalyFields(anomaly);
             }
           }
           this._regressions = nextRegressions;
@@ -1862,6 +1850,46 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _handlePinPoint(e: CustomEvent<{ dataX: number | null }>) {
     this._globalPinnedX = e.detail.dataX;
+  }
+
+  private _onAnomalyChanged = (e: Event): void => {
+    const detail = (e as CustomEvent).detail;
+    if (detail?.anomalies?.length && detail?.traceNames?.length) {
+      this._updateRegressionsState(detail.anomalies as Regression[], detail.traceNames);
+    }
+  };
+
+  private _updateRegressionsState(regressions: Regression[], traceNames: string[]): void {
+    const nextRegressions = { ...this._regressions };
+
+    regressions.forEach((reg, index) => {
+      if (!reg?.id) return;
+
+      // Use traceNames[0] as fallback when a single trace name is passed for multiple anomalies.
+      const traceName = traceNames[index] || traceNames[0];
+      if (!traceName) return;
+
+      const commitMap = { ...(nextRegressions[traceName] || {}) };
+      this._removeExistingAnomaly(commitMap, reg.id);
+
+      const newCommit = reg.display_commit_number || (reg as any).end_revision;
+      if (newCommit) {
+        commitMap[newCommit] = this._mapAnomalyFields(reg);
+      }
+
+      nextRegressions[traceName] = commitMap;
+    });
+
+    this._regressions = nextRegressions;
+  }
+
+  private _removeExistingAnomaly(commitMap: Record<number, Regression>, anomalyId: string): void {
+    for (const [commitStr, existing] of Object.entries(commitMap)) {
+      if (existing && String(existing.id) === String(anomalyId)) {
+        delete commitMap[Number(commitStr)];
+        break;
+      }
+    }
   }
 
   private _onStartTour() {

@@ -863,4 +863,32 @@ describe('explore-multi-v2-sk', () => {
 
     expect(tourTitle).to.equal('Dynamic Setup');
   });
+
+  it('should update anomaly position when nudging without refresh', async () => {
+    const page = testBed.page;
+
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      explore._regressions = {
+        'trace-a': { 100: { id: 'test-anomaly-id', commit_number: 100 } },
+      };
+
+      explore.dispatchEvent(
+        new CustomEvent('anomaly-changed', {
+          detail: {
+            traceNames: ['trace-a'],
+            anomalies: [{ id: 'test-anomaly-id', display_commit_number: 101 }],
+          },
+        })
+      );
+    });
+
+    const regressions = await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      return explore._regressions['trace-a'] || {};
+    });
+
+    expect(regressions[101]).to.not.be.undefined;
+    expect(regressions[100]).to.be.undefined;
+  });
 });
