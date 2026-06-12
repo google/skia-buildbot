@@ -4,12 +4,26 @@ export enum SettingKey {
   ShowOnlyUserJobs = 'show_only_user_jobs',
   OrderedColumns = 'ordered_columns',
   SelectedColumns = 'selected_columns',
+  Theme = 'theme',
+}
+
+export enum Theme {
+  Dark = 'dark',
+  Light = 'light',
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class SettingsService {
+  getTheme(defaultValue = Theme.Light): Theme {
+    return this.read(SettingKey.Theme, defaultValue);
+  }
+
+  setTheme(value: Theme): void {
+    this.write(SettingKey.Theme, value);
+  }
+
   getShowOnlyUserJobs(defaultValue: boolean): boolean {
     return this.read(SettingKey.ShowOnlyUserJobs, defaultValue);
   }

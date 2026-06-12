@@ -1,9 +1,12 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { SettingsService, Theme } from '../settings/settings.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
+  private settingsService = inject(SettingsService);
+
   isDarkMode = signal<boolean>(false);
 
   constructor() {
@@ -11,7 +14,7 @@ export class ThemeService {
   }
 
   private initializeTheme() {
-    const isDark = localStorage.getItem('theme') === 'dark';
+    const isDark = this.settingsService.getTheme() === Theme.Dark;
     this.isDarkMode.set(isDark);
     this.applyTheme(isDark);
   }
@@ -19,7 +22,7 @@ export class ThemeService {
   toggleTheme() {
     const newIsDark = !this.isDarkMode();
     this.isDarkMode.set(newIsDark);
-    localStorage.setItem('theme', newIsDark ? 'dark' : 'light');
+    this.settingsService.setTheme(newIsDark ? Theme.Dark : Theme.Light);
     this.applyTheme(newIsDark);
   }
 

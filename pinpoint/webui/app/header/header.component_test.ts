@@ -1,5 +1,5 @@
 import '@angular/compiler';
-import { Injector, runInInjectionContext } from '@angular/core';
+import { Injector, runInInjectionContext, signal, WritableSignal } from '@angular/core';
 import { HeaderComponent, DOCUMENTATION_URL, BUG_REPORT_URL } from './header.component';
 import { GatewayService } from '../gateway/gateway.service';
 import { ThemeService } from '../theme/theme.service';
@@ -9,10 +9,14 @@ import * as sinon from 'sinon';
 describe('HeaderComponent', () => {
   let stubConsoleError: sinon.SinonStub;
   let openStub: sinon.SinonStub;
+  let mockIsDarkMode: WritableSignal<boolean>;
+  let toggleThemeSpy: sinon.SinonSpy;
 
   beforeEach(() => {
     stubConsoleError = sinon.stub(console, 'error');
     openStub = sinon.stub(window, 'open');
+    mockIsDarkMode = signal<boolean>(false);
+    toggleThemeSpy = sinon.spy();
   });
 
   afterEach(() => {
@@ -24,8 +28,15 @@ describe('HeaderComponent', () => {
     const gateway = mockGateway || {
       GetUserInfo: async () => ({ email: 'somebody@google.com' }),
     };
+    const mockThemeService: Partial<ThemeService> = {
+      isDarkMode: mockIsDarkMode,
+      toggleTheme: toggleThemeSpy,
+    };
     const injector = Injector.create({
-      providers: [{ provide: GatewayService, useValue: gateway }, ThemeService],
+      providers: [
+        { provide: GatewayService, useValue: gateway },
+        { provide: ThemeService, useValue: mockThemeService },
+      ],
     });
     let component!: HeaderComponent;
     runInInjectionContext(injector, () => {
@@ -83,59 +94,17 @@ describe('HeaderComponent', () => {
   });
 
   describe('theme toggle', () => {
-    let localStorageGetStub: sinon.SinonStub;
-    let localStorageSetStub: sinon.SinonStub;
-    let initialClasses: string[];
-
-    beforeEach(() => {
-      localStorageGetStub = sinon.stub(localStorage, 'getItem');
-      localStorageSetStub = sinon.stub(localStorage, 'setItem');
-      initialClasses = Array.from(document.documentElement.classList);
-      document.documentElement.className = '';
-    });
-
-    afterEach(() => {
-      localStorageGetStub.restore();
-      localStorageSetStub.restore();
-      document.documentElement.className = initialClasses.join(' ');
-    });
-
-    it('should initialize to light theme by default when no saved theme', async () => {
-      localStorageGetStub.returns(null);
-
+    it('should toggle theme when toggleTheme is called', () => {
       const component = createHeaderComponent();
-      await component.ngOnInit();
-
-      assert.isFalse(component.isDarkMode());
-      assert.isFalse(document.documentElement.classList.contains('dark-theme'));
-    });
-
-    it('should initialize to dark theme when saved theme is dark', async () => {
-      localStorageGetStub.withArgs('theme').returns('dark');
-
-      const component = createHeaderComponent();
-      await component.ngOnInit();
-
-      assert.isTrue(component.isDarkMode());
-      assert.isTrue(document.documentElement.classList.contains('dark-theme'));
-    });
-
-    it('should toggle theme and save to localStorage', async () => {
-      localStorageGetStub.returns(null);
-
-      const component = createHeaderComponent();
-      await component.ngOnInit(); // isDarkMode = false
-      assert.isFalse(document.documentElement.classList.contains('dark-theme'));
-
       component.toggleTheme();
-      assert.isTrue(component.isDarkMode());
-      assert.isTrue(localStorageSetStub.calledWith('theme', 'dark'));
-      assert.isTrue(document.documentElement.classList.contains('dark-theme'));
+      assert.isTrue(toggleThemeSpy.calledOnce);
+    });
 
-      component.toggleTheme();
+    it('should expose isDarkMode signal from ThemeService', () => {
+      const component = createHeaderComponent();
       assert.isFalse(component.isDarkMode());
-      assert.isTrue(localStorageSetStub.calledWith('theme', 'light'));
-      assert.isFalse(document.documentElement.classList.contains('dark-theme'));
+      mockIsDarkMode.set(true);
+      assert.isTrue(component.isDarkMode());
     });
   });
 });

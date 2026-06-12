@@ -14,7 +14,10 @@ ts_library(
     srcs = ["theme.service.ts"],
     tsconfig = "//pinpoint/webui:ts_config_lib",
     visibility = ["//visibility:public"],
-    deps = ["//:node_modules/@angular/core"],
+    deps = [
+        "//:node_modules/@angular/core",
+        "//pinpoint/webui/app/settings:settings.service_ts_lib",
+    ],
 )
 
 karma_test(
@@ -24,9 +27,11 @@ karma_test(
     deps = [
         ":theme.service_ts_lib",
         "//:node_modules/@angular/compiler",
+        "//:node_modules/@angular/core",
         "//:node_modules/@types/chai",
         "//:node_modules/@types/sinon",
         "//:node_modules/chai",
         "//:node_modules/sinon",
+        "//pinpoint/webui/app/settings:settings.service_ts_lib",
     ],
 )

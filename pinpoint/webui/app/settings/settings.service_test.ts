@@ -1,7 +1,7 @@
 import '@angular/compiler';
 import { TestBed } from '@angular/core/testing';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
-import { SettingsService, SettingKey } from './settings.service';
+import { SettingsService, SettingKey, Theme } from './settings.service';
 import { assert } from 'chai';
 
 describe('SettingsService', () => {
@@ -76,5 +76,22 @@ describe('SettingsService', () => {
     localStorage.setItem(SettingKey.OrderedColumns, '{bad json}');
     const defaults = ['col1'];
     assert.deepEqual(service.getOrderedColumns(defaults), defaults);
+  });
+
+  it('should return default value when theme is not set', () => {
+    const service = getService();
+    assert.equal(service.getTheme(), Theme.Light);
+    assert.equal(service.getTheme(Theme.Dark), Theme.Dark);
+  });
+
+  it('should set and get theme correctly', () => {
+    const service = getService();
+    service.setTheme(Theme.Dark);
+    assert.equal(service.getTheme(), Theme.Dark);
+    assert.equal(localStorage.getItem(SettingKey.Theme), JSON.stringify(Theme.Dark));
+
+    service.setTheme(Theme.Light);
+    assert.equal(service.getTheme(Theme.Dark), Theme.Light);
+    assert.equal(localStorage.getItem(SettingKey.Theme), JSON.stringify(Theme.Light));
   });
 });

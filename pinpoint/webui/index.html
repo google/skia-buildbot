@@ -10,18 +10,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script>
-      // Synchronously check localStorage and apply the dark-theme class to the <html> tag
-      // before the browser starts rendering the body. This prevents a visual flash/flicker
-      // on page loads when dark mode is selected.
-      try {
-        if (localStorage.getItem('theme') === 'dark') {
-          document.documentElement.classList.add('dark-theme');
-        }
-      } catch (e) {
-        console.error('Failed to pre-load saved theme from localStorage:', e);
-      }
-    </script>
   </head>
   <body>
     <app-root></app-root>
