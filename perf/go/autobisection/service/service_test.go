@@ -17,15 +17,18 @@ func TestSaveAutobisection(t *testing.T) {
 
 	req := &pb.SaveAutobisectionRequest{
 		JobId:            "job123",
+		WorkflowId:       "wf123",
 		AnomalyGroupId:   "ag123",
 		AnomalyId:        "a123",
-		IsRealRegression: true,
+		RegressionStatus: pb.RegressionStatus_NO_CULPRIT_FOUND,
 	}
 
 	expectedSchema := &schema.AutobisectionSchema{
-		JobID:          "job123",
-		AnomalyGroupID: "ag123",
-		AnomalyId:      "a123",
+		JobID:            "job123",
+		WorkflowID:       "wf123",
+		AnomalyGroupID:   "ag123",
+		AnomalyId:        "a123",
+		RegressionStatus: pb.RegressionStatus_NO_CULPRIT_FOUND.String(),
 	}
 
 	mockStore.On("Save", ctx, expectedSchema).Return(nil)

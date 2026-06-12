@@ -9,12 +9,21 @@ service AutobisectionService {
   rpc SaveAutobisection(SaveAutobisectionRequest) returns (SaveAutobisectionResponse) {}
 }
 
+enum RegressionStatus {
+  UNSPECIFIED = 0;
+  INSIGNIFICANT = 1;
+  NO_CULPRIT_FOUND = 2;
+  FOUND_CULPRITS = 3;
+}
+
 // Request object for SaveAutobisection rpc.
 message SaveAutobisectionRequest {
   string job_id = 1;
   string anomaly_group_id = 2;
   string anomaly_id = 3;
-  bool is_real_regression = 4;
+  reserved 4;
+  string workflow_id = 5;
+  RegressionStatus regression_status = 6;
 }
 
 // Response object for SaveAutobisection rpc.

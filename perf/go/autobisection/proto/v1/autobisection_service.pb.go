@@ -22,13 +22,66 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type RegressionStatus int32
+
+const (
+	RegressionStatus_UNSPECIFIED      RegressionStatus = 0
+	RegressionStatus_INSIGNIFICANT    RegressionStatus = 1
+	RegressionStatus_NO_CULPRIT_FOUND RegressionStatus = 2
+	RegressionStatus_FOUND_CULPRITS   RegressionStatus = 3
+)
+
+// Enum value maps for RegressionStatus.
+var (
+	RegressionStatus_name = map[int32]string{
+		0: "UNSPECIFIED",
+		1: "INSIGNIFICANT",
+		2: "NO_CULPRIT_FOUND",
+		3: "FOUND_CULPRITS",
+	}
+	RegressionStatus_value = map[string]int32{
+		"UNSPECIFIED":      0,
+		"INSIGNIFICANT":    1,
+		"NO_CULPRIT_FOUND": 2,
+		"FOUND_CULPRITS":   3,
+	}
+)
+
+func (x RegressionStatus) Enum() *RegressionStatus {
+	p := new(RegressionStatus)
+	*p = x
+	return p
+}
+
+func (x RegressionStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (RegressionStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_autobisection_service_proto_enumTypes[0].Descriptor()
+}
+
+func (RegressionStatus) Type() protoreflect.EnumType {
+	return &file_autobisection_service_proto_enumTypes[0]
+}
+
+func (x RegressionStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RegressionStatus.Descriptor instead.
+func (RegressionStatus) EnumDescriptor() ([]byte, []int) {
+	return file_autobisection_service_proto_rawDescGZIP(), []int{0}
+}
+
 // Request object for SaveAutobisection rpc.
 type SaveAutobisectionRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	JobId            string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
 	AnomalyGroupId   string                 `protobuf:"bytes,2,opt,name=anomaly_group_id,json=anomalyGroupId,proto3" json:"anomaly_group_id,omitempty"`
 	AnomalyId        string                 `protobuf:"bytes,3,opt,name=anomaly_id,json=anomalyId,proto3" json:"anomaly_id,omitempty"`
-	IsRealRegression bool                   `protobuf:"varint,4,opt,name=is_real_regression,json=isRealRegression,proto3" json:"is_real_regression,omitempty"`
+	WorkflowId       string                 `protobuf:"bytes,5,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	RegressionStatus RegressionStatus       `protobuf:"varint,6,opt,name=regression_status,json=regressionStatus,proto3,enum=autobisection.v1.RegressionStatus" json:"regression_status,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -84,11 +137,18 @@ func (x *SaveAutobisectionRequest) GetAnomalyId() string {
 	return ""
 }
 
-func (x *SaveAutobisectionRequest) GetIsRealRegression() bool {
+func (x *SaveAutobisectionRequest) GetWorkflowId() string {
 	if x != nil {
-		return x.IsRealRegression
+		return x.WorkflowId
 	}
-	return false
+	return ""
+}
+
+func (x *SaveAutobisectionRequest) GetRegressionStatus() RegressionStatus {
+	if x != nil {
+		return x.RegressionStatus
+	}
+	return RegressionStatus_UNSPECIFIED
 }
 
 // Response object for SaveAutobisection rpc.
@@ -132,14 +192,21 @@ var File_autobisection_service_proto protoreflect.FileDescriptor
 
 const file_autobisection_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1bautobisection_service.proto\x12\x10autobisection.v1\"\xa8\x01\n" +
+	"\x1bautobisection_service.proto\x12\x10autobisection.v1\"\xf2\x01\n" +
 	"\x18SaveAutobisectionRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12(\n" +
 	"\x10anomaly_group_id\x18\x02 \x01(\tR\x0eanomalyGroupId\x12\x1d\n" +
 	"\n" +
-	"anomaly_id\x18\x03 \x01(\tR\tanomalyId\x12,\n" +
-	"\x12is_real_regression\x18\x04 \x01(\bR\x10isRealRegression\"\x1b\n" +
-	"\x19SaveAutobisectionResponse2\x86\x01\n" +
+	"anomaly_id\x18\x03 \x01(\tR\tanomalyId\x12\x1f\n" +
+	"\vworkflow_id\x18\x05 \x01(\tR\n" +
+	"workflowId\x12O\n" +
+	"\x11regression_status\x18\x06 \x01(\x0e2\".autobisection.v1.RegressionStatusR\x10regressionStatusJ\x04\b\x04\x10\x05\"\x1b\n" +
+	"\x19SaveAutobisectionResponse*`\n" +
+	"\x10RegressionStatus\x12\x0f\n" +
+	"\vUNSPECIFIED\x10\x00\x12\x11\n" +
+	"\rINSIGNIFICANT\x10\x01\x12\x14\n" +
+	"\x10NO_CULPRIT_FOUND\x10\x02\x12\x12\n" +
+	"\x0eFOUND_CULPRITS\x10\x032\x86\x01\n" +
 	"\x14AutobisectionService\x12n\n" +
 	"\x11SaveAutobisection\x12*.autobisection.v1.SaveAutobisectionRequest\x1a+.autobisection.v1.SaveAutobisectionResponse\"\x00B2Z0go.skia.org/infra/perf/go/autobisection/proto/v1b\x06proto3"
 
@@ -155,19 +222,22 @@ func file_autobisection_service_proto_rawDescGZIP() []byte {
 	return file_autobisection_service_proto_rawDescData
 }
 
+var file_autobisection_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_autobisection_service_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_autobisection_service_proto_goTypes = []any{
-	(*SaveAutobisectionRequest)(nil),  // 0: autobisection.v1.SaveAutobisectionRequest
-	(*SaveAutobisectionResponse)(nil), // 1: autobisection.v1.SaveAutobisectionResponse
+	(RegressionStatus)(0),             // 0: autobisection.v1.RegressionStatus
+	(*SaveAutobisectionRequest)(nil),  // 1: autobisection.v1.SaveAutobisectionRequest
+	(*SaveAutobisectionResponse)(nil), // 2: autobisection.v1.SaveAutobisectionResponse
 }
 var file_autobisection_service_proto_depIdxs = []int32{
-	0, // 0: autobisection.v1.AutobisectionService.SaveAutobisection:input_type -> autobisection.v1.SaveAutobisectionRequest
-	1, // 1: autobisection.v1.AutobisectionService.SaveAutobisection:output_type -> autobisection.v1.SaveAutobisectionResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: autobisection.v1.SaveAutobisectionRequest.regression_status:type_name -> autobisection.v1.RegressionStatus
+	1, // 1: autobisection.v1.AutobisectionService.SaveAutobisection:input_type -> autobisection.v1.SaveAutobisectionRequest
+	2, // 2: autobisection.v1.AutobisectionService.SaveAutobisection:output_type -> autobisection.v1.SaveAutobisectionResponse
+	2, // [2:3] is the sub-list for method output_type
+	1, // [1:2] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_autobisection_service_proto_init() }
@@ -180,13 +250,14 @@ func file_autobisection_service_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_autobisection_service_proto_rawDesc), len(file_autobisection_service_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_autobisection_service_proto_goTypes,
 		DependencyIndexes: file_autobisection_service_proto_depIdxs,
+		EnumInfos:         file_autobisection_service_proto_enumTypes,
 		MessageInfos:      file_autobisection_service_proto_msgTypes,
 	}.Build()
 	File_autobisection_service_proto = out.File

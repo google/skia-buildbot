@@ -10,6 +10,7 @@ go_library(
         "//go/skerr",
         "//go/sql/pool",
         "//perf/go/autobisection",
+        "//perf/go/autobisection/proto/v1:proto",
         "//perf/go/autobisection/sqlautobisectionstore/schema",
     ],
 )
@@ -21,6 +22,7 @@ go_test(
     deps = [
         "//go/sql/pool",
         "//perf/go/autobisection",
+        "//perf/go/autobisection/proto/v1:proto",
         "//perf/go/autobisection/sqlautobisectionstore/schema",
         "//perf/go/sql/sqltest",
         "@com_github_stretchr_testify//assert",

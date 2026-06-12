@@ -510,9 +510,10 @@ func processBisectJobResults(
 
 	autobisectionReq := &b_pb.SaveAutobisectionRequest{
 		JobId:            jobState.JobID,
+		WorkflowId:       workflow.GetInfo(ctx).WorkflowExecution.ID,
 		AnomalyGroupId:   anomalyGroupId,
 		AnomalyId:        anomaly.Id,
-		IsRealRegression: isRealRegression(jobState),
+		RegressionStatus: extractRegressionStatus(jobState),
 	}
 
 	workflow.GetLogger(ctx).Info(
@@ -525,8 +526,12 @@ func processBisectJobResults(
 		jobState.Status,
 		"Culprits",
 		culprits,
-		"Real regression",
-		autobisectionReq.IsRealRegression,
+		"AnomalyId",
+		anomaly.Id,
+		"Anomaly group id",
+		anomalyGroupId,
+		"Regression status",
+		autobisectionReq.RegressionStatus,
 	)
 
 	// Save the autobisection results to the database.
@@ -553,7 +558,7 @@ func extractCulprits(jobState *pinpoint.FetchJobStateResponse) (culprits []strin
 	return culprits, nil
 }
 
-func isRealRegression(jobState *pinpoint.FetchJobStateResponse) bool {
+func extractRegressionStatus(jobState *pinpoint.FetchJobStateResponse) b_pb.RegressionStatus {
 	// If the initial sandwich verification run shows no statistical significant
 	// difference, no further bisection is done. In this case, the job has only 2
 	// start commit and end commit states. If the initial sandwich verification
@@ -562,5 +567,11 @@ func isRealRegression(jobState *pinpoint.FetchJobStateResponse) bool {
 	// If there are more than 2 states but no culprit found, that means the
 	// regression is real but pinpoint failed to find the culprit commit.
 	hasCulprit := jobState.DifferenceCount != nil && *jobState.DifferenceCount > 0
-	return hasCulprit || len(jobState.State) > 2
+	if hasCulprit {
+		return b_pb.RegressionStatus_FOUND_CULPRITS
+	}
+	if len(jobState.State) > 2 {
+		return b_pb.RegressionStatus_NO_CULPRIT_FOUND
+	}
+	return b_pb.RegressionStatus_INSIGNIFICANT
 }

@@ -44,9 +44,11 @@ func (s *autobisectionService) GetServiceDescriptor() grpc.ServiceDesc {
 // SaveAutobisection saves the result of a autobisection into the store.
 func (s *autobisectionService) SaveAutobisection(ctx context.Context, req *pb.SaveAutobisectionRequest) (*pb.SaveAutobisectionResponse, error) {
 	autobisectionResult := &schema.AutobisectionSchema{
-		JobID:          req.JobId,
-		AnomalyGroupID: req.AnomalyGroupId,
-		AnomalyId:      req.AnomalyId,
+		JobID:            req.JobId,
+		WorkflowID:       req.WorkflowId,
+		AnomalyGroupID:   req.AnomalyGroupId,
+		AnomalyId:        req.AnomalyId,
+		RegressionStatus: req.RegressionStatus.String(),
 	}
 
 	if err := s.store.Save(ctx, autobisectionResult); err != nil {
