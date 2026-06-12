@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/npm-audit-mirror/go/types"
 )
 
@@ -130,7 +131,15 @@ func (m *VerdaccioMirror) startVerdaccioMirror(ctx context.Context, port int, lo
 		"DEBUG=express:*")
 	sklog.Info(verdaccioCmd.String())
 	if err := verdaccioCmd.Run(); err != nil {
-		sklog.Fatalf("Could not start verdaccio in %s: %s", m.workDir, err)
+		util.Close(logFile)
+		output, err := os.ReadFile(logFile.Name())
+		var errMsg string
+		if err == nil {
+			errMsg = string(output)
+		} else {
+			errMsg = fmt.Sprintf("failed to read log file: %s", err)
+		}
+		sklog.Fatalf("Could not start verdaccio in %s: %s", m.workDir, errMsg)
 	}
 }
 

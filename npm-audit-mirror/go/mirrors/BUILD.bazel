@@ -10,6 +10,7 @@ go_library(
         "//go/executil",
         "//go/skerr",
         "//go/sklog",
+        "//go/util",
         "//npm-audit-mirror/go/types",
     ],
 )
