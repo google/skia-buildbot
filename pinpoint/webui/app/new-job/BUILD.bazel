@@ -43,5 +43,6 @@ karma_test(
         "//:node_modules/sinon",
         "//:node_modules/zone.js",
         "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
+        "//pinpoint/webui/app/gateway:gateway_ts_lib",
     ],
 )

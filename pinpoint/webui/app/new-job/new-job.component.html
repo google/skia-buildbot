@@ -107,7 +107,15 @@
         <div>
           <mat-form-field matTooltip="The git commit hash, revision, or HEAD to use as the baseline.">
             <mat-label>Commit</mat-label>
-            <input matInput [formControlName]="Field.Commit" placeholder="e.g. abcd1234 or HEAD" required />
+            <input matInput [formControlName]="Field.Commit" placeholder="e.g. abcd1234 or HEAD" required [matAutocomplete]="autoBaselineCommit" />
+            <mat-autocomplete #autoBaselineCommit="matAutocomplete">
+              @for (commit of filteredBaselineCommits(); track commit.gitHash) {
+                <mat-option [value]="commit.gitHash">
+                  <div>{{ commit.gitHash }}</div>
+                  <div>Build {{ commit.number }}, {{ commit.created | date:'MMM d, y, h:mm a' }}</div>
+                </mat-option>
+              }
+            </mat-autocomplete>
             <mat-error>Commit is required</mat-error>
           </mat-form-field>
         </div>
@@ -193,7 +201,15 @@
             <mat-form-field matTooltip="The git commit hash, revision, or HEAD to use as the experiment base.
             If left blank, it defaults to the baseline commit.">
               <mat-label>Commit (optional)</mat-label>
-              <input matInput [formControlName]="Field.Commit" placeholder="e.g. abcd1234 or HEAD" />
+              <input matInput [formControlName]="Field.Commit" placeholder="e.g. abcd1234 or HEAD" [matAutocomplete]="autoExperimentCommit" />
+              <mat-autocomplete #autoExperimentCommit="matAutocomplete">
+                @for (commit of filteredExperimentCommits(); track commit.gitHash) {
+                  <mat-option [value]="commit.gitHash">
+                    <div>{{ commit.gitHash }}</div>
+                    <div>Build {{ commit.number }} {{ commit.created | date:'MMM d, y, h:mm a' }}</div>
+                  </mat-option>
+                }
+              </mat-autocomplete>
             </mat-form-field>
           </div>
 

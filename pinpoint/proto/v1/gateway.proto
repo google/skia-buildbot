@@ -204,6 +204,23 @@ message GetBenchmarkInfoResponse {
   repeated string story_tags = 3;
 }
 
+// Request message to list recent builds for a bot configuration.
+message ListRecentBuildsRequest {
+  string configuration = 1 [(validate.rules).string = {min_len: 1}];
+}
+
+// Information about a Chrome build.
+message BuildInfo {
+  string git_hash = 1;
+  int64 build_number = 2;
+  google.protobuf.Timestamp created = 3;
+}
+
+// Response message containing the list of recent builds.
+message ListRecentBuildsResponse {
+  repeated BuildInfo builds = 1;
+}
+
 // Service definition for Pinpoint Gateway API.
 service PinpointGateway {
   // Queries a list of jobs based on filters and pagination options.
@@ -246,6 +263,13 @@ service PinpointGateway {
   rpc GetBenchmark(GetBenchmarkInfoRequest) returns (GetBenchmarkInfoResponse) {
     option (google.api.http) = {
       get: "/pinpoint/v1/benchmark-info/{benchmark}"
+    };
+  }
+
+  // Lists recent builds for a given bot configuration.
+  rpc ListRecentBuilds(ListRecentBuildsRequest) returns (ListRecentBuildsResponse) {
+    option (google.api.http) = {
+      get: "/pinpoint/v1/recent-builds/{configuration}"
     };
   }
 }

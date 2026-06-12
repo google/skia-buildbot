@@ -31,6 +31,7 @@ const (
 	pinpointLegacyJobsURL         = pinpointLegacyBaseURL + "/api/jobs"
 	pinpointLegacyJobStateURL     = pinpointLegacyBaseURL + "/api/job"
 	pinpointLegacyConfigURL       = pinpointLegacyBaseURL + "/api/config"
+	pinpointLegacyBuildsURL       = pinpointLegacyBaseURL + "/api/builds"
 	contentType                   = "application/json"
 	tryJobComparisonMode          = "try"
 	chromeperfLegacyBaseURL       = "https://chromeperf.appspot.com"
@@ -79,6 +80,8 @@ type LegacyClient struct {
 	listBenchmarksFailed       metrics2.Counter
 	getBenchmarkCalled         metrics2.Counter
 	getBenchmarkFailed         metrics2.Counter
+	listRecentBuildsCalled     metrics2.Counter
+	listRecentBuildsFailed     metrics2.Counter
 }
 
 // New returns a new LegacyClient instance.
@@ -110,6 +113,8 @@ func NewLegacyClient(ctx context.Context) (*LegacyClient, error) {
 		listBenchmarksFailed:       metrics2.GetCounter("pinpoint_list_benchmarks_failed"),
 		getBenchmarkCalled:         metrics2.GetCounter("pinpoint_get_benchmark_called"),
 		getBenchmarkFailed:         metrics2.GetCounter("pinpoint_get_benchmark_failed"),
+		listRecentBuildsCalled:     metrics2.GetCounter("pinpoint_list_recent_builds_called"),
+		listRecentBuildsFailed:     metrics2.GetCounter("pinpoint_list_recent_builds_failed"),
 	}, nil
 }
 
@@ -699,7 +704,10 @@ type legacyDescribeResponse struct {
 }
 
 // GetBenchmarkInfo queries the legacy Chromeperf API to retrieve available stories and story tags.
-func (pc *LegacyClient) GetBenchmarkInfo(ctx context.Context, benchmark string) (info *BenchmarkInfo, err error) {
+func (pc *LegacyClient) GetBenchmarkInfo(
+	ctx context.Context,
+	benchmark string,
+) (info *BenchmarkInfo, err error) {
 	pc.getBenchmarkCalled.Inc(1)
 	defer func() { trackError(pc.getBenchmarkFailed, err) }()
 
@@ -732,4 +740,50 @@ func (pc *LegacyClient) GetBenchmarkInfo(ctx context.Context, benchmark string) 
 		Stories:   describeResp.Cases,
 		StoryTags: storyTags,
 	}, nil
+}
+
+// ListRecentBuilds queries the legacy Pinpoint API to retrieve recent builds.
+func (pc *LegacyClient) ListRecentBuilds(
+	ctx context.Context,
+	configuration string,
+) (resp []*pb.BuildInfo, err error) {
+	pc.listRecentBuildsCalled.Inc(1)
+	defer func() { trackError(pc.listRecentBuildsFailed, err) }()
+
+	requestURL := fmt.Sprintf("%s/%s", pinpointLegacyBuildsURL, url.PathEscape(configuration))
+	httpResp, err := pc.doGetRequest(ctx, requestURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	body, err := pc.readResponseBody(httpResp)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	var legacyResp BuildsResponse
+	if err = json.Unmarshal(body, &legacyResp); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse pinpoint builds response body.")
+	}
+
+	commits := make([]*pb.BuildInfo, 0, len(legacyResp.Builds))
+	for _, build := range legacyResp.Builds {
+		if strings.EqualFold(build.Status, "success") && build.Input.GitilesCommit.ID != "" {
+			var createdTime *timestamppb.Timestamp
+			if build.CreateTime != "" {
+				if t, err := time.Parse(time.RFC3339, build.CreateTime); err == nil {
+					createdTime = timestamppb.New(t)
+				} else {
+					sklog.Warningf("Failed to parse build createTime %q: %s", build.CreateTime, err)
+				}
+			}
+			commits = append(commits, &pb.BuildInfo{
+				GitHash:     build.Input.GitilesCommit.ID,
+				BuildNumber: int64(build.Number),
+				Created:     createdTime,
+			})
+		}
+	}
+
+	return commits, nil
 }

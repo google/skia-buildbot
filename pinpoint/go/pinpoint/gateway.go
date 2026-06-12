@@ -18,6 +18,7 @@ type pinpointClient interface {
 	ListBotConfigurations(ctx context.Context) ([]string, error)
 	ListBenchmarks(ctx context.Context) ([]string, error)
 	GetBenchmarkInfo(ctx context.Context, benchmark string) (*BenchmarkInfo, error)
+	ListRecentBuilds(ctx context.Context, configuration string) ([]*pb.BuildInfo, error)
 }
 
 type gatewayServer struct {
@@ -136,5 +137,19 @@ func (s *gatewayServer) GetBenchmark(
 		Benchmark: info.Benchmark,
 		Stories:   info.Stories,
 		StoryTags: info.StoryTags,
+	}, nil
+}
+
+func (s *gatewayServer) ListRecentBuilds(
+	ctx context.Context,
+	req *pb.ListRecentBuildsRequest,
+) (*pb.ListRecentBuildsResponse, error) {
+	builds, err := s.client.ListRecentBuilds(ctx, req.Configuration)
+	if err != nil {
+		// Unwrap the error because it may be displayed to the user.
+		return nil, skerr.Unwrap(err)
+	}
+	return &pb.ListRecentBuildsResponse{
+		Builds: builds,
 	}, nil
 }

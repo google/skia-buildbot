@@ -165,3 +165,26 @@ type BenchmarkInfo struct {
 	Stories   []string `json:"stories"`
 	StoryTags []string `json:"story_tags"`
 }
+
+type BuildbucketCommit struct {
+	Host    string `json:"host"`
+	Project string `json:"project"`
+	ID      string `json:"id"`
+	Ref     string `json:"ref"`
+}
+
+type BuildbucketInput struct {
+	GitilesCommit BuildbucketCommit `json:"gitilesCommit"`
+}
+
+type Build struct {
+	Input      BuildbucketInput `json:"input"`
+	ID         string           `json:"id"`
+	Status     string           `json:"status"`
+	CreateTime string           `json:"createTime"`
+	Number     int              `json:"number"`
+}
+
+type BuildsResponse struct {
+	Builds []Build `json:"builds"`
+}

@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed, OnInit, Signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import {
   FormBuilder,
   FormGroup,
@@ -21,7 +22,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { GatewayService } from '../gateway/gateway.service';
-import { CreateTryJobRequest, VariantConfig } from '../gateway/gateway';
+import { CreateTryJobRequest, VariantConfig, BuildInfo } from '../gateway/gateway';
 
 export enum Field {
   JobName = 'jobName',
@@ -56,6 +57,7 @@ const variantGroupConfig = (commitRequired = false) => ({
   selector: 'app-new-job',
   standalone: true,
   imports: [
+    DatePipe,
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -91,6 +93,8 @@ export class NewJobComponent implements OnInit {
 
   storyTags = signal<string[]>([]);
 
+  recentBuilds = signal<BuildInfo[]>([]);
+
   jobForm: FormGroup = this.formBuilder.group({
     [Field.JobName]: [''],
     // 150 is the maximum number of attempts the legacy backend allows.
@@ -120,10 +124,22 @@ export class NewJobComponent implements OnInit {
 
   filteredStoryTags = this.filterValuesByInput(this.storyTagsQuery, this.storyTags);
 
+  baselineCommitQuery = this.inputFieldSignal([Field.Baseline, Field.Commit]);
+
+  filteredBaselineCommits = this.filterBuildsByInput(this.baselineCommitQuery, this.recentBuilds);
+
+  experimentCommitQuery = this.inputFieldSignal([Field.Experiment, Field.Commit]);
+
+  filteredExperimentCommits = this.filterBuildsByInput(
+    this.experimentCommitQuery,
+    this.recentBuilds
+  );
+
   ngOnInit() {
     this.loadBots();
     this.loadBenchmarks();
     this.setupBenchmarkChangeListener();
+    this.setupBotChangeListener();
   }
 
   private async loadBots() {
@@ -157,6 +173,26 @@ export class NewJobComponent implements OnInit {
         this.jobForm.get(Field.StoryTags)?.setValue('');
       }
     });
+  }
+
+  private setupBotChangeListener() {
+    this.jobForm.get(Field.Bot)?.valueChanges.subscribe((bot) => {
+      this.recentBuilds.set([]);
+      this.jobForm.get([Field.Baseline, Field.Commit])?.setValue('');
+      this.jobForm.get([Field.Experiment, Field.Commit])?.setValue('');
+      if (this.bots().includes(bot)) {
+        this.loadRecentBuilds(bot);
+      }
+    });
+  }
+
+  private async loadRecentBuilds(bot: string) {
+    try {
+      const response = await this.gatewayService.ListRecentBuilds({ configuration: bot });
+      this.recentBuilds.set(response.builds.sort((a, b) => b.buildNumber - a.buildNumber));
+    } catch (error) {
+      console.error('Failed to fetch recent builds: ', error);
+    }
   }
 
   private async loadBenchmarkDetails(benchmark: string) {
@@ -259,12 +295,24 @@ export class NewJobComponent implements OnInit {
     return true;
   }
 
-  private inputFieldSignal(name: string): Signal<string> {
+  private inputFieldSignal(name: string | string[]): Signal<string> {
     const control = this.jobForm.get(name);
     if (!control) {
       throw new Error(`Input filed "${name}" not found.`);
     }
     return toSignal(control.valueChanges.pipe(startWith('')), { initialValue: '' });
+  }
+
+  private filterBuildsByInput(
+    input: Signal<string>,
+    builds: Signal<BuildInfo[]>
+  ): Signal<BuildInfo[]> {
+    return computed(() => {
+      const query = input().trim().toLowerCase();
+      return builds().filter(
+        (c) => c.gitHash.startsWith(query) || c.buildNumber.toString().startsWith(query)
+      );
+    });
   }
 
   private autocompleteValidator(validOptions: Signal<string[]>): ValidatorFn {

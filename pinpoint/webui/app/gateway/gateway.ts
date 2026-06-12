@@ -217,6 +217,23 @@ export interface GetBenchmarkInfoResponse {
   storyTags: string[];
 }
 
+/** Request message to list recent builds for a bot configuration. */
+export interface ListRecentBuildsRequest {
+  configuration: string;
+}
+
+/** Information about a Chrome build. */
+export interface BuildInfo {
+  gitHash: string;
+  buildNumber: number;
+  created: string | undefined;
+}
+
+/** Response message containing the list of recent builds. */
+export interface ListRecentBuildsResponse {
+  builds: BuildInfo[];
+}
+
 /** Service definition for Pinpoint Gateway API. */
 export interface PinpointGateway {
   /** Queries a list of jobs based on filters and pagination options. */
@@ -231,4 +248,6 @@ export interface PinpointGateway {
   ListBenchmarks(request: ListBenchmarksRequest): Promise<ListBenchmarksResponse>;
   /** Retrieves details (stories and story tags) of a benchmark. */
   GetBenchmark(request: GetBenchmarkInfoRequest): Promise<GetBenchmarkInfoResponse>;
+  /** Lists recent builds for a given bot configuration. */
+  ListRecentBuilds(request: ListRecentBuildsRequest): Promise<ListRecentBuildsResponse>;
 }

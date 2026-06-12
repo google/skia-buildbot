@@ -6,6 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { NewJobComponent, Field } from './new-job.component';
 import { GatewayService } from '../gateway/gateway.service';
+import { BuildInfo } from '../gateway/gateway';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 
@@ -29,6 +30,7 @@ describe('NewJobComponent', () => {
         storyTags: [],
         benchmark: req?.benchmark || '',
       }),
+      ListRecentBuilds: async () => ({ builds: [] }),
     };
     const gateway = { ...defaultGateway, ...mockGateway };
     TestBed.configureTestingModule({
@@ -428,5 +430,97 @@ describe('NewJobComponent', () => {
 
     component.jobForm.get(Field.StoryTags)?.setValue('tag');
     assert.deepEqual(component.filteredStoryTags(), ['tag1', 'another-tag']);
+  }));
+
+  it('should filter baseline and experiment commits based on input query', fakeAsync(() => {
+    const component = createComponent();
+    const builds: BuildInfo[] = [
+      { gitHash: 'abc123commit', buildNumber: 10, created: '' },
+      { gitHash: 'def456commit', buildNumber: 20, created: '' },
+      { gitHash: 'abc789commit', buildNumber: 30, created: '' },
+    ];
+    component.recentBuilds.set(builds);
+
+    // Test baseline commit filtering by git hash
+    component.jobForm.get([Field.Baseline, Field.Commit])?.setValue('abc');
+    assert.deepEqual(component.filteredBaselineCommits(), [
+      { gitHash: 'abc123commit', buildNumber: 10, created: '' },
+      { gitHash: 'abc789commit', buildNumber: 30, created: '' },
+    ]);
+
+    // Test baseline commit filtering by build number
+    component.jobForm.get([Field.Baseline, Field.Commit])?.setValue('2');
+    assert.deepEqual(component.filteredBaselineCommits(), [
+      { gitHash: 'def456commit', buildNumber: 20, created: '' },
+    ]);
+
+    // Test case insensitivity and trimming
+    component.jobForm.get([Field.Baseline, Field.Commit])?.setValue('  ABC  ');
+    assert.deepEqual(component.filteredBaselineCommits(), [
+      { gitHash: 'abc123commit', buildNumber: 10, created: '' },
+      { gitHash: 'abc789commit', buildNumber: 30, created: '' },
+    ]);
+
+    // Test experiment commit filtering
+    component.jobForm.get([Field.Experiment, Field.Commit])?.setValue('def');
+    assert.deepEqual(component.filteredExperimentCommits(), [
+      { gitHash: 'def456commit', buildNumber: 20, created: '' },
+    ]);
+  }));
+
+  it('should fetch recent commits when bot selection changes to a valid value', fakeAsync(() => {
+    const rawCommits: BuildInfo[] = [
+      { gitHash: 'commit1', buildNumber: 1, created: '2026-06-11T14:28:34Z' },
+      { gitHash: 'commit2', buildNumber: 2, created: '2026-06-11T14:23:10Z' },
+    ];
+    const expectedCommits: BuildInfo[] = [
+      { gitHash: 'commit2', buildNumber: 2, created: '2026-06-11T14:23:10Z' },
+      { gitHash: 'commit1', buildNumber: 1, created: '2026-06-11T14:28:34Z' },
+    ];
+    const gateway = {
+      ListBotConfigurations: sinon.stub().resolves({ configurations: ['linux-perf'] }),
+      ListRecentBuilds: sinon.stub().resolves({
+        builds: rawCommits,
+      }),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    component.jobForm.get(Field.Bot)?.setValue('linux-perf');
+    tick();
+
+    assert.isTrue(gateway.ListRecentBuilds.calledWith({ configuration: 'linux-perf' }));
+    assert.deepEqual(component.recentBuilds(), expectedCommits);
+  }));
+
+  it('should reset recent commits and form fields when bot changes', fakeAsync(() => {
+    const rawCommits: BuildInfo[] = [
+      { gitHash: 'commit1', buildNumber: 1, created: '2026-06-11T14:28:34Z' },
+      { gitHash: 'commit2', buildNumber: 2, created: '2026-06-11T14:23:10Z' },
+    ];
+    const expectedCommits: BuildInfo[] = [
+      { gitHash: 'commit2', buildNumber: 2, created: '2026-06-11T14:23:10Z' },
+      { gitHash: 'commit1', buildNumber: 1, created: '2026-06-11T14:28:34Z' },
+    ];
+    const gateway = {
+      ListBotConfigurations: sinon.stub().resolves({ configurations: ['linux-perf'] }),
+      ListRecentBuilds: sinon.stub().resolves({
+        builds: rawCommits,
+      }),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    component.jobForm.get(Field.Bot)?.setValue('linux-perf');
+    tick();
+    assert.deepEqual(component.recentBuilds(), expectedCommits);
+
+    component.jobForm.get(Field.Bot)?.setValue('');
+    tick();
+    assert.deepEqual(component.recentBuilds(), []);
+    assert.equal(component.jobForm.get([Field.Baseline, Field.Commit])?.value, '');
+    assert.equal(component.jobForm.get([Field.Experiment, Field.Commit])?.value, '');
   }));
 });

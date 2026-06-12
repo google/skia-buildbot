@@ -26,6 +26,7 @@ const (
 	PinpointGateway_ListBotConfigurations_FullMethodName = "/pinpoint.v1.PinpointGateway/ListBotConfigurations"
 	PinpointGateway_ListBenchmarks_FullMethodName        = "/pinpoint.v1.PinpointGateway/ListBenchmarks"
 	PinpointGateway_GetBenchmark_FullMethodName          = "/pinpoint.v1.PinpointGateway/GetBenchmark"
+	PinpointGateway_ListRecentBuilds_FullMethodName      = "/pinpoint.v1.PinpointGateway/ListRecentBuilds"
 )
 
 // PinpointGatewayClient is the client API for PinpointGateway service.
@@ -46,6 +47,8 @@ type PinpointGatewayClient interface {
 	ListBenchmarks(ctx context.Context, in *ListBenchmarksRequest, opts ...grpc.CallOption) (*ListBenchmarksResponse, error)
 	// Retrieves details (stories and story tags) of a benchmark.
 	GetBenchmark(ctx context.Context, in *GetBenchmarkInfoRequest, opts ...grpc.CallOption) (*GetBenchmarkInfoResponse, error)
+	// Lists recent builds for a given bot configuration.
+	ListRecentBuilds(ctx context.Context, in *ListRecentBuildsRequest, opts ...grpc.CallOption) (*ListRecentBuildsResponse, error)
 }
 
 type pinpointGatewayClient struct {
@@ -116,6 +119,16 @@ func (c *pinpointGatewayClient) GetBenchmark(ctx context.Context, in *GetBenchma
 	return out, nil
 }
 
+func (c *pinpointGatewayClient) ListRecentBuilds(ctx context.Context, in *ListRecentBuildsRequest, opts ...grpc.CallOption) (*ListRecentBuildsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRecentBuildsResponse)
+	err := c.cc.Invoke(ctx, PinpointGateway_ListRecentBuilds_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PinpointGatewayServer is the server API for PinpointGateway service.
 // All implementations must embed UnimplementedPinpointGatewayServer
 // for forward compatibility.
@@ -134,6 +147,8 @@ type PinpointGatewayServer interface {
 	ListBenchmarks(context.Context, *ListBenchmarksRequest) (*ListBenchmarksResponse, error)
 	// Retrieves details (stories and story tags) of a benchmark.
 	GetBenchmark(context.Context, *GetBenchmarkInfoRequest) (*GetBenchmarkInfoResponse, error)
+	// Lists recent builds for a given bot configuration.
+	ListRecentBuilds(context.Context, *ListRecentBuildsRequest) (*ListRecentBuildsResponse, error)
 	mustEmbedUnimplementedPinpointGatewayServer()
 }
 
@@ -161,6 +176,9 @@ func (UnimplementedPinpointGatewayServer) ListBenchmarks(context.Context, *ListB
 }
 func (UnimplementedPinpointGatewayServer) GetBenchmark(context.Context, *GetBenchmarkInfoRequest) (*GetBenchmarkInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBenchmark not implemented")
+}
+func (UnimplementedPinpointGatewayServer) ListRecentBuilds(context.Context, *ListRecentBuildsRequest) (*ListRecentBuildsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRecentBuilds not implemented")
 }
 func (UnimplementedPinpointGatewayServer) mustEmbedUnimplementedPinpointGatewayServer() {}
 func (UnimplementedPinpointGatewayServer) testEmbeddedByValue()                         {}
@@ -291,6 +309,24 @@ func _PinpointGateway_GetBenchmark_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PinpointGateway_ListRecentBuilds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRecentBuildsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointGatewayServer).ListRecentBuilds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PinpointGateway_ListRecentBuilds_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointGatewayServer).ListRecentBuilds(ctx, req.(*ListRecentBuildsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PinpointGateway_ServiceDesc is the grpc.ServiceDesc for PinpointGateway service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -321,6 +357,10 @@ var PinpointGateway_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBenchmark",
 			Handler:    _PinpointGateway_GetBenchmark_Handler,
+		},
+		{
+			MethodName: "ListRecentBuilds",
+			Handler:    _PinpointGateway_ListRecentBuilds_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

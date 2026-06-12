@@ -108,3 +108,12 @@ func (c *Client) GetBenchmarkInfo(ctx context.Context, benchmark string) (*Bench
 	}
 	return info, nil
 }
+
+// ListRecentBuilds retrieves the recent builds for a given configuration/bot.
+func (c *Client) ListRecentBuilds(ctx context.Context, configuration string) ([]*pb.BuildInfo, error) {
+	builds, err := c.legacyClient.ListRecentBuilds(ctx, configuration)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return builds, nil
+}

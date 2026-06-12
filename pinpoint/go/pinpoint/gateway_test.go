@@ -73,6 +73,7 @@ type mockPinpointClient struct {
 	listBotConfigurationsFunc func(ctx context.Context) ([]string, error)
 	listBenchmarksFunc        func(ctx context.Context) ([]string, error)
 	getBenchmarkInfoFunc      func(ctx context.Context, benchmark string) (*BenchmarkInfo, error)
+	listRecentBuildsFunc      func(ctx context.Context, configuration string) ([]*pb.BuildInfo, error)
 }
 
 func (m *mockPinpointClient) QueryJobList(
@@ -112,6 +113,13 @@ func (m *mockPinpointClient) ListBenchmarks(ctx context.Context) ([]string, erro
 func (m *mockPinpointClient) GetBenchmarkInfo(ctx context.Context, benchmark string) (*BenchmarkInfo, error) {
 	if m.getBenchmarkInfoFunc != nil {
 		return m.getBenchmarkInfoFunc(ctx, benchmark)
+	}
+	return nil, nil
+}
+
+func (m *mockPinpointClient) ListRecentBuilds(ctx context.Context, configuration string) ([]*pb.BuildInfo, error) {
+	if m.listRecentBuildsFunc != nil {
+		return m.listRecentBuildsFunc(ctx, configuration)
 	}
 	return nil, nil
 }
@@ -283,5 +291,39 @@ func TestGetBenchmarkEndpoint(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Contains(t, err.Error(), "failed to get benchmark")
+	})
+}
+
+func TestListRecentCommits(t *testing.T) {
+	t.Run("successful list", func(t *testing.T) {
+		expectedCommits := []*pb.BuildInfo{
+			{GitHash: "commit1", BuildNumber: 1},
+			{GitHash: "commit2", BuildNumber: 2},
+		}
+		client := &mockPinpointClient{
+			listRecentBuildsFunc: func(ctx context.Context, configuration string) ([]*pb.BuildInfo, error) {
+				assert.Equal(t, "win-11-perf", configuration)
+				return expectedCommits, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.ListRecentBuilds(context.Background(), &pb.ListRecentBuildsRequest{Configuration: "win-11-perf"})
+		require.NoError(t, err)
+		assert.Equal(t, expectedCommits, resp.Builds)
+	})
+
+	t.Run("client returns error", func(t *testing.T) {
+		client := &mockPinpointClient{
+			listRecentBuildsFunc: func(ctx context.Context, configuration string) ([]*pb.BuildInfo, error) {
+				return nil, errors.New("failed to list recent builds")
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.ListRecentBuilds(context.Background(), &pb.ListRecentBuildsRequest{Configuration: "win-11-perf"})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "failed to list recent builds")
 	})
 }
