@@ -455,6 +455,7 @@ type SkPerfConfig struct {
 	BuildDate                   string             `json:"build_date,omitempty"`                  // The date the build was created.
 	SchemaVersion               int                `json:"schema_version,omitempty"`              // The current SQL database schema version.
 	EnableV2UI                  bool               `json:"enable_v2_ui"`                          // True if V2 UI can be toggled.
+	DefaultToExploreV2          bool               `json:"default_to_explore_v2,omitempty"`       // True if V2 is default for explore-multi and report-page.
 	DevMode                     bool               `json:"dev_mode"`
 	ExtraLinks                  *config.ExtraLinks `json:"extra_links"` // Extra links to be display on a dedicated page.
 	DisableShortcutUpdate       bool               `json:"disable_shortcut_update,omitempty"`
@@ -513,6 +514,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		BuildDate:                   f.buildDate,
 		SchemaVersion:               int(atomic.LoadInt32(&f.schemaVersion)),
 		EnableV2UI:                  config.Config.EnableV2UI,
+		DefaultToExploreV2:          config.Config.DefaultToExploreV2,
 		DevMode:                     f.flags.DevMode,
 		ExtraLinks:                  config.Config.ExtraLinks,
 		DisableShortcutUpdate:       f.flags.DisableShortcutUpdate,

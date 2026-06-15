@@ -303,17 +303,52 @@ describe('perf-scaffold-sk', () => {
     assert.isTrue((element as any)._reload.called);
   });
 
-  describe('multigraphUrl', () => {
-    it('returns /m when default_to_manual_plot_mode is false', async () => {
+  describe('multigraphUrl and V2 support', () => {
+    beforeEach(() => {
+      localStorage.removeItem('perf:use-explore-v2');
+      window.perf.default_to_explore_v2 = false;
       window.perf.default_to_manual_plot_mode = false;
+    });
+
+    afterEach(() => {
+      localStorage.removeItem('perf:use-explore-v2');
+    });
+
+    it('returns /m by default', () => {
       element = newInstance();
       assert.equal((element as any).multigraphUrl, '/m');
     });
 
-    it('returns /m?manual_plot_mode=true when default_to_manual_plot_mode is true', async () => {
+    it('returns /m?manual_plot_mode=true when default_to_manual_plot_mode is true', () => {
       window.perf.default_to_manual_plot_mode = true;
       element = newInstance();
       assert.equal((element as any).multigraphUrl, '/m?manual_plot_mode=true');
+    });
+
+    it('returns /e2 when V2 is enabled via localStorage', () => {
+      localStorage.setItem('perf:use-explore-v2', 'true');
+      element = newInstance();
+      assert.equal((element as any).multigraphUrl, '/e2');
+    });
+
+    it('returns /m when V2 is disabled via localStorage even if default config is true', () => {
+      localStorage.setItem('perf:use-explore-v2', 'false');
+      window.perf.default_to_explore_v2 = true;
+      element = newInstance();
+      assert.equal((element as any).multigraphUrl, '/m');
+    });
+
+    it('returns /e2 when V2 is enabled via default config', () => {
+      window.perf.default_to_explore_v2 = true;
+      element = newInstance();
+      assert.equal((element as any).multigraphUrl, '/e2');
+    });
+
+    it('ignores manual_plot_mode when V2 is enabled', () => {
+      window.perf.default_to_explore_v2 = true;
+      window.perf.default_to_manual_plot_mode = true;
+      element = newInstance();
+      assert.equal((element as any).multigraphUrl, '/e2');
     });
   });
 

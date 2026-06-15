@@ -2035,4 +2035,25 @@ describe('ExploreMultiSk', () => {
       );
     });
   });
+
+  describe('V2 Toggle', () => {
+    beforeEach(() => {
+      localStorage.removeItem('perf:use-explore-v2');
+    });
+
+    afterEach(() => {
+      localStorage.removeItem('perf:use-explore-v2');
+    });
+
+    it('toggleV2Mode should save preference and redirect to /e2', async () => {
+      await setupElement();
+      const redirectStub = sinon.stub(element, 'redirect');
+
+      await element.toggleV2Mode();
+
+      assert.strictEqual(localStorage.getItem('perf:use-explore-v2'), 'true');
+      assert.isTrue(redirectStub.calledOnce);
+      assert.include(redirectStub.firstCall.args[0], '/e2');
+    });
+  });
 });

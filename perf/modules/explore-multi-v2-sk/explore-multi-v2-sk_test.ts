@@ -1,6 +1,7 @@
 import './explore-multi-v2-sk';
 import { ExploreMultiV2Sk } from './explore-multi-v2-sk';
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { DataService } from '../data-service';
 import { TraceDatabase } from './db';
 
@@ -1308,6 +1309,26 @@ describe('explore-multi-v2-sk', () => {
       expect((element as any)._queriesExpanded).to.be.true;
       const queryBars = element.shadowRoot!.querySelectorAll('query-bar-sk');
       expect(queryBars.length).to.equal(4);
+    });
+  });
+
+  describe('V2 Toggle', () => {
+    beforeEach(() => {
+      localStorage.removeItem('perf:use-explore-v2');
+    });
+
+    afterEach(() => {
+      localStorage.removeItem('perf:use-explore-v2');
+    });
+
+    it('_toggleV2Mode should save preference and redirect to /m', async () => {
+      const redirectStub = sinon.stub(element, 'redirect');
+
+      await element['_toggleV2Mode']();
+
+      expect(localStorage.getItem('perf:use-explore-v2')).to.equal('false');
+      expect(redirectStub.calledOnce).to.be.true;
+      expect(redirectStub.firstCall.args[0]).to.include('/m');
     });
   });
 

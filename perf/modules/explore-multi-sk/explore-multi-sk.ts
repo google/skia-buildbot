@@ -973,7 +973,13 @@ export class ExploreMultiSk extends ElementSk {
     }
 
     const nextSearch = urlParams.toString();
-    window.location.href = `/e2${nextSearch ? `?${nextSearch}` : ''}`;
+    localStorage.setItem('perf:use-explore-v2', 'true');
+    this.redirect(`/e2${nextSearch ? `?${nextSearch}` : ''}`);
+  }
+
+  // Visible for testing
+  public redirect(url: string) {
+    window.location.href = url;
   }
 
   private static template = (ele: ExploreMultiSk) => html`
@@ -1815,7 +1821,7 @@ export class ExploreMultiSk extends ElementSk {
     // We need to convert these to timestamps (e.g. 1687875573, 1687875574) because the state.begin
     // and state.end (and thus the URL) always expect timestamps for request_type=0.
     if (e.detail.domain === 'commit') {
-      const graphIndex = this.state.manual_plot_mode ? e.detail.graphNumber ?? 0 : 0;
+      const graphIndex = this.state.manual_plot_mode ? (e.detail.graphNumber ?? 0) : 0;
       const header = this.exploreElements[graphIndex].getHeader();
       if (header) {
         if (e.detail.start !== undefined && header[e.detail.start]) {

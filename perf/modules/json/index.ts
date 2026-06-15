@@ -500,6 +500,7 @@ export interface SkPerfConfig {
 	build_date?: string;
 	schema_version?: number;
 	enable_v2_ui: boolean;
+	default_to_explore_v2?: boolean;
 	dev_mode: boolean;
 	extra_links: ExtraLinks | null;
 	disable_shortcut_update?: boolean;

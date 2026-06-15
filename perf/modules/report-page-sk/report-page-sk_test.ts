@@ -83,12 +83,25 @@ describe('ReportPageSk', () => {
     sinon.stub(table, 'checkSelectedAnomalies');
     sinon.stub(table, 'initialCheckAllCheckbox');
 
-    await (element.querySelector('graph-list-sk') as any).updateComplete;
-    const graphContainer = element.querySelector<HTMLDivElement>('#graph-container')!;
-    sinon
-      .stub(graphContainer, 'querySelectorAll')
-      .withArgs('explore-simple-sk')
-      .callsFake(() => mockExploreInstances as unknown as NodeListOf<Element>);
+    const v2Enabled = element['isV2Enabled'];
+    if (v2Enabled) {
+      const multiExplore = element.querySelector('#multi-explore');
+      if (multiExplore) {
+        await (multiExplore as any).updateComplete;
+      }
+    } else {
+      const graphList = element.querySelector('graph-list-sk');
+      if (graphList) {
+        await (graphList as any).updateComplete;
+      }
+      const graphContainer = element.querySelector<HTMLDivElement>('#graph-container');
+      if (graphContainer) {
+        sinon
+          .stub(graphContainer, 'querySelectorAll')
+          .withArgs('explore-simple-sk')
+          .callsFake(() => mockExploreInstances as unknown as NodeListOf<Element>);
+      }
+    }
   };
 
   beforeEach(async () => {
@@ -655,6 +668,108 @@ describe('ReportPageSk', () => {
         assert.strictEqual(element['_beginV2'], 1500 - 7 * 24 * 60 * 60);
         assert.strictEqual(element['_endV2'], 3500 + 7 * 24 * 60 * 60);
       });
+    });
+  });
+
+  describe('V2 Enablement and Toggling', () => {
+    let originalSearch: string;
+
+    beforeEach(() => {
+      originalSearch = window.location.search;
+      localStorage.removeItem('perf:use-explore-v2');
+      window.perf.default_to_explore_v2 = false;
+    });
+
+    afterEach(() => {
+      window.history.replaceState({}, '', originalSearch);
+      localStorage.removeItem('perf:use-explore-v2');
+    });
+
+    it('should be disabled by default if no url params, no local storage, and default config is false', async () => {
+      await initializeElement();
+      assert.isFalse(element['isV2Enabled']);
+    });
+
+    it('should be enabled if v2=true is in URL', async () => {
+      window.history.replaceState({}, '', '?v2=true');
+      await initializeElement();
+      assert.isTrue(element['isV2Enabled']);
+    });
+
+    it('should be disabled if v2=false is in URL even if default is true', async () => {
+      window.history.replaceState({}, '', '?v2=false');
+      window.perf.default_to_explore_v2 = true;
+      await initializeElement();
+      assert.isFalse(element['isV2Enabled']);
+    });
+
+    it('should be enabled if explore=v2 is in URL', async () => {
+      window.history.replaceState({}, '', '?explore=v2');
+      await initializeElement();
+      assert.isTrue(element['isV2Enabled']);
+    });
+
+    it('should respect localStorage preference', async () => {
+      localStorage.setItem('perf:use-explore-v2', 'true');
+      await initializeElement();
+      assert.isTrue(element['isV2Enabled']);
+
+      localStorage.setItem('perf:use-explore-v2', 'false');
+      assert.isFalse(element['isV2Enabled']);
+    });
+
+    it('should respect default_to_explore_v2 config if no URL or local storage preference', async () => {
+      window.perf.default_to_explore_v2 = true;
+      await initializeElement();
+      assert.isTrue(element['isV2Enabled']);
+    });
+
+    it('URL parameter should override localStorage and default config', async () => {
+      window.history.replaceState({}, '', '?v2=false');
+      localStorage.setItem('perf:use-explore-v2', 'true');
+      window.perf.default_to_explore_v2 = true;
+      await initializeElement();
+      assert.isFalse(element['isV2Enabled']);
+    });
+
+    it('toggleV2Mode should save preference to localStorage and redirect', async () => {
+      await initializeElement();
+      const redirectStub = sinon.stub(element, 'redirect');
+
+      // Start with V2 disabled
+      assert.isFalse(element['isV2Enabled']);
+
+      // Toggle to V2
+      element.toggleV2Mode();
+      assert.strictEqual(localStorage.getItem('perf:use-explore-v2'), 'true');
+      assert.isTrue(redirectStub.calledOnce);
+      assert.include(redirectStub.firstCall.args[0], 'v2=true');
+
+      // Reset mock and stub
+      redirectStub.reset();
+      // Now isV2Enabled should be true (since localStorage is true)
+      assert.isTrue(element['isV2Enabled']);
+
+      // Toggle back to V1
+      element.toggleV2Mode();
+      assert.strictEqual(localStorage.getItem('perf:use-explore-v2'), 'false');
+      assert.isTrue(redirectStub.calledOnce);
+      assert.notInclude(redirectStub.firstCall.args[0], 'v2=true');
+      assert.notInclude(redirectStub.firstCall.args[0], 'v2=false');
+    });
+
+    it('toggleV2Mode should include v2=false in URL when opting out if default is true', async () => {
+      window.perf.default_to_explore_v2 = true;
+      localStorage.setItem('perf:use-explore-v2', 'true'); // Start enabled
+      await initializeElement();
+      const redirectStub = sinon.stub(element, 'redirect');
+
+      assert.isTrue(element['isV2Enabled']);
+
+      element.toggleV2Mode();
+      assert.strictEqual(localStorage.getItem('perf:use-explore-v2'), 'false');
+      assert.isTrue(redirectStub.calledOnce);
+      assert.include(redirectStub.firstCall.args[0], 'v2=false');
     });
   });
 });

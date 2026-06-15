@@ -59,3 +59,15 @@ func TestInstanceConfig_ParseNewQueryConfigFields(t *testing.T) {
 	// Check default trigger priority
 	require.Equal(t, []string{"subtest", "bench_type"}, cfg.QueryConfig.DefaultTriggerPriority["metric"])
 }
+
+func TestInstanceConfig_ParseDefaultToExploreV2(t *testing.T) {
+	jsonBody := `
+{
+	"default_to_explore_v2": true
+}
+`
+	var cfg InstanceConfig
+	err := json.Unmarshal([]byte(jsonBody), &cfg)
+	require.NoError(t, err)
+	require.True(t, cfg.DefaultToExploreV2)
+}

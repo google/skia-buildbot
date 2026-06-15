@@ -68,7 +68,18 @@ export class PerfScaffoldSk extends LitElement {
   @state()
   private _contentNodes: Node[] = [];
 
+  private get isV2Enabled(): boolean {
+    const localPref = localStorage.getItem('perf:use-explore-v2');
+    if (localPref !== null) {
+      return localPref === 'true';
+    }
+    return !!window.perf.default_to_explore_v2;
+  }
+
   private get multigraphUrl(): string {
+    if (this.isV2Enabled) {
+      return '/e2';
+    }
     if (window.perf.default_to_manual_plot_mode) {
       return '/m?manual_plot_mode=true';
     }
@@ -187,9 +198,14 @@ export class PerfScaffoldSk extends LitElement {
             <a href="${this.multigraphUrl}" tab-index="0">
               <multiline-chart-icon-sk></multiline-chart-icon-sk><span>MultiGraph</span>
             </a>
-            <a href="/e2" tab-index="0">
-              <multiline-chart-icon-sk></multiline-chart-icon-sk><span>Graphs (Prototype)</span>
-            </a>
+            ${!this.isV2Enabled
+              ? html`
+                  <a href="/e2" tab-index="0">
+                    <multiline-chart-icon-sk></multiline-chart-icon-sk
+                    ><span>Graphs (Prototype)</span>
+                  </a>
+                `
+              : ''}
             <div ?hidden=${!window.perf.extra_links}>
               <a href="/l" tab-index="0">
                 <compare-arrows-icon-sk></compare-arrows-icon-sk>
@@ -246,12 +262,16 @@ export class PerfScaffoldSk extends LitElement {
             <a
               href="${this.multigraphUrl}"
               tab-index="0"
-              class="${this.isPageActive('/m') ? 'active' : ''}"
+              class="${this.isPageActive(this.isV2Enabled ? '/e2' : '/m') ? 'active' : ''}"
               >MultiGraph</a
             >
-            <a href="/e2" tab-index="0" class="${this.isPageActive('/e2') ? 'active' : ''}"
-              >Graphs (Prototype)</a
-            >
+            ${!this.isV2Enabled
+              ? html`
+                  <a href="/e2" tab-index="0" class="${this.isPageActive('/e2') ? 'active' : ''}"
+                    >Graphs (Prototype)</a
+                  >
+                `
+              : ''}
             <div class="triage-link" ?hidden=${!this.isHiddenTriage}>
               <a href="/t" tab-index="0" class="${this.isPageActive('/t') ? 'active' : ''}"
                 >Triage</a

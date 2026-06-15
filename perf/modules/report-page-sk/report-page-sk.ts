@@ -142,7 +142,17 @@ export class ReportPageSk extends ElementSk {
 
   private get isV2Enabled(): boolean {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.has('v2') || urlParams.get('explore') === 'v2';
+    // URL parameters take precedence to allow forcing a specific version (V1 vs V2) via links.
+    if (urlParams.has('v2')) {
+      return urlParams.get('v2') === 'true';
+    }
+    if (urlParams.has('explore')) {
+      return urlParams.get('explore') === 'v2';
+    }
+
+    // Fall back to the user's local preference, and then the instance default.
+    const localPref = localStorage.getItem('perf:use-explore-v2');
+    return localPref !== null ? localPref === 'true' : !!window.perf.default_to_explore_v2;
   }
 
   private static template = (ele: ReportPageSk) => html`
@@ -417,6 +427,7 @@ export class ReportPageSk extends ElementSk {
     const newUrl = new URL(window.location.href);
     if (this.isV2Enabled) {
       // Opting out of V2: keep only standard report-page parameters
+      localStorage.setItem('perf:use-explore-v2', 'false');
       const reportParams = ['sid', 'bugID', 'anomalyIDs', 'anomalyGroupID', 'rev'];
       const newParams = new URLSearchParams();
       reportParams.forEach((param) => {
@@ -424,14 +435,23 @@ export class ReportPageSk extends ElementSk {
           newParams.set(param, urlParams.get(param)!);
         }
       });
+      if (window.perf.default_to_explore_v2) {
+        newParams.set('v2', 'false');
+      }
       newUrl.search = newParams.toString();
     } else {
       // Opting in to V2: keep existing params and set v2=true
+      localStorage.setItem('perf:use-explore-v2', 'true');
       urlParams.set('v2', 'true');
       newUrl.search = urlParams.toString();
     }
-    window.location.href = newUrl.toString();
+    this.redirect(newUrl.toString());
   };
+
+  // Visible for testing
+  public redirect(url: string) {
+    window.location.href = url;
+  }
 
   private getQueryFromAnomaly(anomaly: Anomaly) {
     return this.traceFormatter!.formatQuery(anomaly.test_path);

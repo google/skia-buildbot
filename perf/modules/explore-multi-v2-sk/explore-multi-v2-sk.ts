@@ -1790,7 +1790,13 @@ export class ExploreMultiV2Sk extends LitElement {
     }
 
     const nextSearch = urlParams.toString();
-    window.location.href = `/m${nextSearch ? `?${nextSearch}` : ''}`;
+    localStorage.setItem('perf:use-explore-v2', 'false');
+    this.redirect(`/m${nextSearch ? `?${nextSearch}` : ''}`);
+  }
+
+  // Visible for testing
+  public redirect(url: string) {
+    window.location.href = url;
   }
 
   private _mergeSeriesWithStats(existing: TraceSeries[], newSeries: TraceSeries[]): TraceSeries[] {

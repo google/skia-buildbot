@@ -220,7 +220,9 @@ karma_test(
         ":db_ts_lib",
         ":explore-multi-v2-sk",
         "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
         "//:node_modules/chai",
+        "//:node_modules/sinon",
         "//perf/modules/data-service:index_ts_lib",
     ],
 )
