@@ -1,4 +1,4 @@
-import { LitElement, TemplateResult, css, html, PropertyValues } from 'lit';
+import { LitElement, TemplateResult, css, html } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { formatBug } from '../common/anomaly';
@@ -226,15 +226,8 @@ export class UserIssueSk extends LitElement {
     }
   }
 
-  updated(changedProperties: PropertyValues) {
-    if (
-      changedProperties.has('trace_key') ||
-      changedProperties.has('commit_position') ||
-      changedProperties.has('begin_commit_position') ||
-      changedProperties.has('end_commit_position')
-    ) {
-      this.loadExistingIssues();
-    }
+  firstUpdated() {
+    this.loadExistingIssues();
   }
 
   render() {
