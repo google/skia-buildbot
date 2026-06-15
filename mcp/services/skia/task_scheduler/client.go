@@ -230,6 +230,7 @@ func (w TaskWrapper) String() string {
 	_, _ = fmt.Fprintf(&sb, "**Started:** %s\n", w.Started.Format(time.RFC3339))
 	_, _ = fmt.Fprintf(&sb, "**Finished:** %s\n", w.Finished.Format(time.RFC3339))
 	_, _ = fmt.Fprintf(&sb, "**Swarming Task ID:** %s\n", w.SwarmingTaskId)
+	_, _ = fmt.Fprintf(&sb, "**Swarming Bot ID:** %s\n", w.SwarmingBotId)
 	return sb.String()
 }
 

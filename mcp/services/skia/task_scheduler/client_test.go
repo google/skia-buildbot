@@ -62,6 +62,7 @@ func TestTaskWrapper_String(t *testing.T) {
 			Started:        now.Add(10 * time.Second),
 			Finished:       now.Add(time.Minute),
 			SwarmingTaskId: "swarm-123",
+			SwarmingBotId:  "some-bot",
 		},
 	}
 
@@ -75,6 +76,7 @@ func TestTaskWrapper_String(t *testing.T) {
 **Started:** 2025-01-01T12:00:10Z
 **Finished:** 2025-01-01T12:01:00Z
 **Swarming Task ID:** swarm-123
+**Swarming Bot ID:** some-bot
 `
 	assert.Equal(t, expected, task.String())
 }

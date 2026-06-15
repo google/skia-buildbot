@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "gemini",
@@ -6,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/autogardener/go/gemini",
     visibility = ["//visibility:public"],
     deps = [
+        "//autogardener/go/logs",
         "//autogardener/go/mcp",
         "//autogardener/go/types",
         "//autogardener/go/utils",
@@ -16,6 +18,8 @@ go_library(
         "//go/util",
         "//mcp/services/skia/task_details",
         "//mcp/services/skia/task_scheduler",
+        "//task_driver/go/display",
+        "//task_driver/go/td",
         "//task_scheduler/go/types",
         "@com_github_invopop_jsonschema//:jsonschema",
         "@com_github_mark3labs_mcp_go//mcp",
@@ -23,5 +27,17 @@ go_library(
         "@org_golang_google_api//option",
         "@org_golang_google_genai//:genai",
         "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "gemini_test",
+    srcs = ["gemini_test.go"],
+    embed = [":gemini"],
+    deps = [
+        "//mcp/services/skia/task_details",
+        "//task_driver/go/display",
+        "//task_driver/go/td",
+        "@com_github_stretchr_testify//require",
     ],
 )
