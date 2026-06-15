@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -29,6 +30,8 @@ import (
 	"go.skia.org/infra/perf/go/regrshortcut"
 	"go.skia.org/infra/perf/go/subscription"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
+	"go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore/schema"
+	"go.skia.org/infra/perf/go/trace_visibility/store"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -37,16 +40,38 @@ const (
 	regressionsPageSize            = 500
 )
 
+const (
+	partMaster = iota
+	partBot
+	partBenchmark
+	partTest
+)
+
+type rulesCache struct {
+	mutex      sync.RWMutex
+	rules      []parsedRule
+	expireTime time.Time
+	lastError  error
+}
+
+type parsedRule struct {
+	partType int
+	value    string
+}
+
 type anomaliesApi struct {
-	chromeperfClient  chromeperf.ChromePerfClient
-	loginProvider     alogin.Login
-	perfGit           perfgit.Git
-	subStore          subscription.Store
-	alertStore        alerts.Store
-	culpritStore      culprit.Store
-	regStore          regression.Store
-	regrShortcutStore regrshortcut.Store
-	anomalygroupStore anomalygroup.Store
+	chromeperfClient     chromeperf.ChromePerfClient
+	loginProvider        alogin.Login
+	perfGit              perfgit.Git
+	subStore             subscription.Store
+	alertStore           alerts.Store
+	culpritStore         culprit.Store
+	regStore             regression.Store
+	regrShortcutStore    regrshortcut.Store
+	anomalygroupStore    anomalygroup.Store
+	visibilityStore      store.Store
+	rulesCache           *rulesCache
+	showOnlyPublicTraces bool
 }
 
 type CalculateRegrShortcutRequest struct {
@@ -131,17 +156,20 @@ func (api anomaliesApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/anomalies/calculate_regr_shortcut", api.CalculateRegrShortcutHandler)
 }
 
-func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, perfGit perfgit.Git, subStore subscription.Store, alertStore alerts.Store, culpritStore culprit.Store, regStore regression.Store, regrShortcutStore regrshortcut.Store, anomalygroupStore anomalygroup.Store) anomaliesApi {
+func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, perfGit perfgit.Git, subStore subscription.Store, alertStore alerts.Store, culpritStore culprit.Store, regStore regression.Store, regrShortcutStore regrshortcut.Store, anomalygroupStore anomalygroup.Store, visibilityStore store.Store) anomaliesApi {
 	return anomaliesApi{
-		loginProvider:     loginProvider,
-		chromeperfClient:  chromeperfClient,
-		perfGit:           perfGit,
-		subStore:          subStore,
-		alertStore:        alertStore,
-		culpritStore:      culpritStore,
-		regStore:          regStore,
-		regrShortcutStore: regrShortcutStore,
-		anomalygroupStore: anomalygroupStore,
+		loginProvider:        loginProvider,
+		chromeperfClient:     chromeperfClient,
+		perfGit:              perfGit,
+		subStore:             subStore,
+		alertStore:           alertStore,
+		culpritStore:         culpritStore,
+		regStore:             regStore,
+		regrShortcutStore:    regrShortcutStore,
+		anomalygroupStore:    anomalygroupStore,
+		visibilityStore:      visibilityStore,
+		rulesCache:           &rulesCache{},
+		showOnlyPublicTraces: showOnlyPublicTraces(),
 	}
 }
 
@@ -255,16 +283,16 @@ func (api anomaliesApi) GetAnomalyListLegacy(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	query_values := r.URL.Query()
-	sklog.Debugf("[SkiaTriage] Get anomalies request received from frontend: %v", query_values)
-	if query_values.Get("host") == "" {
-		query_values["host"] = []string{config.Config.URL}
+	queryValues := r.URL.Query()
+	sklog.Debugf("[SkiaTriage] Get anomalies request received from frontend: %v", queryValues)
+	if queryValues.Get("host") == "" {
+		queryValues["host"] = []string{config.Config.URL}
 	}
-	currentHost := query_values.Get("host")
-	query_values.Set("host", getOverrideNonProdHost(currentHost))
-	query_values.Set("max_anomalies_to_show", "5000")
-	if query_values.Get("triaged") == "true" || query_values.Get("improvements") == "true" {
-		query_values.Set("max_anomalies_to_show", "500")
+	currentHost := queryValues.Get("host")
+	queryValues.Set("host", getOverrideNonProdHost(currentHost))
+	queryValues.Set("max_anomalies_to_show", "5000")
+	if queryValues.Get("triaged") == "true" || queryValues.Get("improvements") == "true" {
+		queryValues.Set("max_anomalies_to_show", "500")
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -273,7 +301,7 @@ func (api anomaliesApi) GetAnomalyListLegacy(w http.ResponseWriter, r *http.Requ
 	defer cancel()
 	getAnomaliesResponse := &GetAnomaliesResponse{}
 
-	err := api.chromeperfClient.SendGetRequest(ctx, "alerts_skia", "", query_values, getAnomaliesResponse)
+	err := api.chromeperfClient.SendGetRequest(ctx, "alerts_skia", "", queryValues, getAnomaliesResponse)
 	if err != nil {
 		httputils.ReportError(w, err, "Get anomalies request failed due to an internal server error. Please try again.", http.StatusInternalServerError)
 		return
@@ -287,6 +315,15 @@ func (api anomaliesApi) GetAnomalyListLegacy(w http.ResponseWriter, r *http.Requ
 	if err := cleanTestPaths(getAnomaliesResponse.Anomalies); err != nil {
 		httputils.ReportError(w, err, "Failed to clean up test name by regex.", http.StatusInternalServerError)
 		return
+	}
+
+	if api.showOnlyPublicTraces {
+		filtered, err := api.filterAnomaliesByPublicRules(ctx, getAnomaliesResponse.Anomalies)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to filter anomalies by public rules.", http.StatusInternalServerError)
+			return
+		}
+		getAnomaliesResponse.Anomalies = filtered
 	}
 
 	if err := json.NewEncoder(w).Encode(getAnomaliesResponse); err != nil {
@@ -369,6 +406,15 @@ func (api anomaliesApi) GetGroupReportLegacy(w http.ResponseWriter, r *http.Requ
 		httputils.ReportError(w, err, "Failed to clean up test name by regex.", http.StatusInternalServerError)
 		sklog.Debugf("[SkiaTriage] Failed to clean up test name by regex: %v", err)
 		return
+	}
+
+	if api.showOnlyPublicTraces {
+		filtered, err := api.filterAnomaliesByPublicRules(ctx, groupReportResponse.Anomalies)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to filter anomalies by public rules.", http.StatusInternalServerError)
+			return
+		}
+		groupReportResponse.Anomalies = filtered
 	}
 
 	groupReportResponse.TimerangeMap, err = api.getTimerangeMap(ctx, groupReportResponse.Anomalies, preferLegacy(r))
@@ -726,4 +772,117 @@ func parseGetAnomalyListRequest(r *http.Request) regression.GetAnomalyListReques
 		PaginationOffset:    paginationOffset,
 	}
 	return queryValues
+}
+
+func parseRules(rules []schema.PublicTraceRulesSchema) []parsedRule {
+	var validRules []parsedRule
+	for _, rule := range rules {
+		parts := strings.SplitN(rule.RuleExpression, "=", 2)
+		if len(parts) == 2 {
+			// The list of mapped keys (master, bot, benchmark, test) is intentionally not exhaustive
+			// and can be extended to support subtests or other keys if needed.
+			var partType int
+			switch parts[0] {
+			case "master":
+				partType = partMaster
+			case "bot":
+				partType = partBot
+			case "benchmark":
+				partType = partBenchmark
+			case "test":
+				partType = partTest
+			default:
+				continue
+			}
+			validRules = append(validRules, parsedRule{partType: partType, value: parts[1]})
+		}
+	}
+	return validRules
+}
+
+func (api anomaliesApi) getVisibilityRules(ctx context.Context) ([]parsedRule, error) {
+	if api.rulesCache == nil {
+		rules, err := api.visibilityStore.GetAll(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return parseRules(rules), nil
+	}
+
+	api.rulesCache.mutex.RLock()
+	if time.Now().Before(api.rulesCache.expireTime) {
+		rules := api.rulesCache.rules
+		err := api.rulesCache.lastError
+		api.rulesCache.mutex.RUnlock()
+		return rules, err
+	}
+	api.rulesCache.mutex.RUnlock()
+
+	api.rulesCache.mutex.Lock()
+	defer api.rulesCache.mutex.Unlock()
+
+	// Double-checked locking
+	if time.Now().Before(api.rulesCache.expireTime) {
+		return api.rulesCache.rules, api.rulesCache.lastError
+	}
+
+	rules, err := api.visibilityStore.GetAll(ctx)
+	if err != nil {
+		api.rulesCache.rules = nil
+		api.rulesCache.lastError = err
+		api.rulesCache.expireTime = time.Now().Add(15 * time.Second) // 15 seconds negative TTL backoff
+		return nil, err
+	}
+
+	api.rulesCache.rules = parseRules(rules)
+	api.rulesCache.lastError = nil
+	api.rulesCache.expireTime = time.Now().Add(time.Hour)
+	return api.rulesCache.rules, nil
+}
+
+func (api anomaliesApi) filterAnomaliesByPublicRules(ctx context.Context, anomalies []chromeperf.Anomaly) ([]chromeperf.Anomaly, error) {
+	if api.visibilityStore == nil {
+		return []chromeperf.Anomaly{}, skerr.Fmt("visibility store is not configured")
+	}
+
+	validRules, err := api.getVisibilityRules(ctx)
+	if err != nil {
+		return []chromeperf.Anomaly{}, skerr.Wrapf(err, "failed to get public trace rules")
+	}
+
+	if len(validRules) == 0 {
+		return []chromeperf.Anomaly{}, nil
+	}
+
+	filtered := make([]chromeperf.Anomaly, 0, len(anomalies))
+	for _, anomaly := range anomalies {
+		parts := strings.Split(anomaly.TestPath, "/")
+		var testPart string
+		hasTestPart := false
+
+		for _, rule := range validRules {
+			matched := false
+			switch rule.partType {
+			case partMaster:
+				matched = len(parts) >= 1 && parts[0] == rule.value
+			case partBot:
+				matched = len(parts) >= 2 && parts[1] == rule.value
+			case partBenchmark:
+				matched = len(parts) >= 3 && parts[2] == rule.value
+			case partTest:
+				if len(parts) >= 4 {
+					if !hasTestPart {
+						testPart = strings.Join(parts[3:], "/")
+						hasTestPart = true
+					}
+					matched = testPart == rule.value
+				}
+			}
+			if matched {
+				filtered = append(filtered, anomaly)
+				break
+			}
+		}
+	}
+	return filtered, nil
 }

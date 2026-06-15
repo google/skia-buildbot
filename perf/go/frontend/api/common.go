@@ -7,11 +7,21 @@ import (
 	"go.skia.org/infra/perf/go/config"
 )
 
+var (
+	reNonProdEnv = regexp.MustCompile(`(-autopush|-lts|-qa|-staging)(\.corp\.goog|\.luci\.app)$`)
+	reLuciProd   = regexp.MustCompile(`^(https?://)?perf(-autopush)?\.luci\.app$`)
+)
+
 // getOverrideNonProdHost removes the specified suffixes from the host string if they are followed by .*.goog or .*.app.
 // This is to ensure that requests from different non-prod environments (autopush, lts, qa, staging) are routed to the main environment.
 func getOverrideNonProdHost(host string) string {
-	re := regexp.MustCompile(`(-autopush|-lts|-qa|-staging)(\.corp\.goog|\.luci\.app)$`)
-	return re.ReplaceAllString(host, "$2")
+	host = reNonProdEnv.ReplaceAllString(host, "$2")
+
+	// go/public-as-subset-of-internal need to fetch internal alerts for further filtering
+	if reLuciProd.MatchString(host) {
+		return reLuciProd.ReplaceAllString(host, "${1}chrome-perf.corp.goog")
+	}
+	return host
 }
 
 func preferLegacy(r *http.Request) bool {
@@ -24,4 +34,8 @@ func preferLegacy(r *http.Request) bool {
 		}
 	}
 	return !config.Config.FetchAnomaliesFromSql
+}
+
+func showOnlyPublicTraces() bool {
+	return config.Config.VisibilityConfig != nil && config.Config.VisibilityConfig.ShowOnlyPublicTraces
 }

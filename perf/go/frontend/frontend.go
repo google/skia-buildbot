@@ -70,6 +70,7 @@ import (
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/sql/expectedschema"
 	"go.skia.org/infra/perf/go/subscription"
+	"go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore"
 	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracing"
@@ -1486,7 +1487,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		wasmApi,
 		api.NewFavoritesApi(f.loginProvider, f.favStore),
 		api.NewAlertsApi(f.loginProvider, f.configProvider, f.alertStore, f.notifier, f.subStore, f.dryrunRequests),
-		api.NewAnomaliesApi(f.loginProvider, f.chromeperfClient, f.perfGit, f.subStore, f.alertStore, f.culpritStore, f.regStore, f.regrShortcutStore, f.anomalygroupStore),
+		api.NewAnomaliesApi(f.loginProvider, f.chromeperfClient, f.perfGit, f.subStore, f.alertStore, f.culpritStore, f.regStore, f.regrShortcutStore, f.anomalygroupStore, sqlconfigstore.New(f.db)),
 		api.NewRegressionsApi(f.loginProvider, f.configProvider, f.alertStore, f.regStore, f.perfGit, f.anomalyApiClient, f.urlProvider, f.graphsShortcutStore, f.alertGroupClient, f.progressTracker, f.shortcutStore, f.dfBuilder, f.paramsetRefresher),
 		api.NewQueryApi(f.paramsetRefresher),
 		api.NewTraceValuesApi(f.dfBuilder, f.perfGit, f.anomalyStore, f.chromeperfAnomalyStore),

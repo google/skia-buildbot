@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -32,6 +33,8 @@ import (
 	regrshortcut_mocks "go.skia.org/infra/perf/go/regrshortcut/mocks"
 	subscription_mocks "go.skia.org/infra/perf/go/subscription/mocks"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
+	visibility_schema "go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore/schema"
+	visibility_store_mocks "go.skia.org/infra/perf/go/trace_visibility/store/mocks"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
@@ -47,6 +50,7 @@ func setupAnomaliesApiWithMocks(t *testing.T) (anomaliesApi, *anomalygroup_mocks
 		culpritStore:      culpritStore,
 		regStore:          regStore,
 		regrShortcutStore: regrShortcutStore,
+		visibilityStore:   visibility_store_mocks.NewStore(t),
 	}
 	return api, anomalygroupStore, culpritStore, regStore, regrShortcutStore
 }
@@ -792,4 +796,106 @@ func TestGetAnomalyListLegacy_CleansTestPaths(t *testing.T) {
 
 	loginMock.AssertExpectations(t)
 	cpMock.AssertExpectations(t)
+}
+
+func TestGetAnomalyListLegacy_PublicFiltering(t *testing.T) {
+	loginProvider := alogin_mocks.NewLogin(t)
+	loginProvider.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@example.com"))
+
+	chromeperfClient := chromeperf_mocks.NewChromePerfClient(t)
+
+	anomalyList := []chromeperf.Anomaly{
+		{Id: "1", TestPath: "master1/bot-public/benchmark1/test1"},
+		{Id: "2", TestPath: "master1/bot-private/benchmark1/test2"},
+		{Id: "3", TestPath: "master1/bot-private/benchmark-public/test3"},
+	}
+	chromeperfClient.On("SendGetRequest", mock.Anything, "alerts_skia", "", mock.Anything, mock.Anything).
+		Run(func(args mock.Arguments) {
+			resp := args.Get(4).(*GetAnomaliesResponse)
+			resp.Anomalies = anomalyList
+		}).Return(nil).Once()
+
+	mockStore := visibility_store_mocks.NewStore(t)
+	mockStore.On("GetAll", mock.Anything).Return([]visibility_schema.PublicTraceRulesSchema{
+		{RuleExpression: "bot=bot-public"},
+		{RuleExpression: "benchmark=benchmark-public"},
+	}, nil).Once()
+
+	api := anomaliesApi{
+		loginProvider:        loginProvider,
+		chromeperfClient:     chromeperfClient,
+		visibilityStore:      mockStore,
+		showOnlyPublicTraces: true,
+	}
+
+	req := httptest.NewRequest("GET", "/_/anomalies/anomaly_list", nil)
+	w := httptest.NewRecorder()
+
+	api.GetAnomalyListLegacy(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	var resp GetAnomaliesResponse
+	err := json.NewDecoder(w.Body).Decode(&resp)
+	require.NoError(t, err)
+
+	// Anomaly 1 (bot-public) and Anomaly 3 (benchmark-public) must be allowed. Anomaly 2 is filtered out.
+	require.Len(t, resp.Anomalies, 2)
+	assert.Equal(t, "1", resp.Anomalies[0].Id)
+	assert.Equal(t, "3", resp.Anomalies[1].Id)
+}
+
+func TestGetGroupReportLegacy_PublicFiltering(t *testing.T) {
+	loginProvider := alogin_mocks.NewLogin(t)
+	loginProvider.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@example.com"))
+
+	chromeperfClient := chromeperf_mocks.NewChromePerfClient(t)
+
+	anomalyList := []chromeperf.Anomaly{
+		{Id: "1", TestPath: "master1/bot-public/benchmark1/test1", StartRevision: 12345, EndRevision: 54321},
+		{Id: "2", TestPath: "master1/bot-private/benchmark1/test2", StartRevision: 12345, EndRevision: 54321},
+		{Id: "3", TestPath: "master1/bot-private/benchmark-public/test3", StartRevision: 12345, EndRevision: 54321},
+	}
+	// Mock response from Chromeperf client.
+	chromeperfClient.On("SendGetRequest", mock.Anything, "alerts_skia_by_key", "", mock.Anything, mock.Anything).
+		Run(func(args mock.Arguments) {
+			resp := args.Get(4).(*GetGroupReportResponse)
+			resp.Anomalies = anomalyList
+		}).Return(nil).Once()
+
+	mockStore := visibility_store_mocks.NewStore(t)
+	mockStore.On("GetAll", mock.Anything).Return([]visibility_schema.PublicTraceRulesSchema{
+		{RuleExpression: "bot=bot-public"},
+		{RuleExpression: "benchmark=benchmark-public"},
+	}, nil).Once()
+
+	// Mock perfgit.Git
+	mockGit := &perfgit_mocks.Git{}
+	startCommit := provider.Commit{Timestamp: 1672531200}
+	endCommit := provider.Commit{Timestamp: 1672617600}
+	mockGit.On("CommitFromCommitNumber", mock.Anything, types.CommitNumber(12345)).Return(startCommit, nil)
+	mockGit.On("CommitFromCommitNumber", mock.Anything, types.CommitNumber(54321)).Return(endCommit, nil)
+
+	api := anomaliesApi{
+		loginProvider:        loginProvider,
+		chromeperfClient:     chromeperfClient,
+		visibilityStore:      mockStore,
+		perfGit:              mockGit,
+		showOnlyPublicTraces: true,
+	}
+
+	reqBody := `{"anomalyIDs":"1"}`
+	req := httptest.NewRequest("POST", "/_/anomalies/group_report", bytes.NewBufferString(reqBody))
+	w := httptest.NewRecorder()
+
+	api.GetGroupReportLegacy(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	var resp GetGroupReportResponse
+	err := json.NewDecoder(w.Body).Decode(&resp)
+	require.NoError(t, err)
+
+	// Anomaly 1 (bot-public) and Anomaly 3 (benchmark-public) must be allowed. Anomaly 2 is filtered out.
+	require.Len(t, resp.Anomalies, 2)
+	assert.Equal(t, "1", resp.Anomalies[0].Id)
+	assert.Equal(t, "3", resp.Anomalies[1].Id)
 }

@@ -31,6 +31,22 @@ func TestGetOverrideNonProdHost(t *testing.T) {
 			input:    "https://v8-perf.corp.goog",
 			expected: "https://v8-perf.corp.goog",
 		},
+		{
+			input:    "https://perf.luci.app",
+			expected: "https://chrome-perf.corp.goog",
+		},
+		{
+			input:    "https://perf-autopush.luci.app",
+			expected: "https://chrome-perf.corp.goog",
+		},
+		{
+			input:    "perf.luci.app",
+			expected: "chrome-perf.corp.goog",
+		},
+		{
+			input:    "perf-autopush.luci.app",
+			expected: "chrome-perf.corp.goog",
+		},
 	}
 
 	for _, test := range tests {

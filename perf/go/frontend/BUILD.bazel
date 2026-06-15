@@ -58,6 +58,7 @@ go_library(
         "//perf/go/shortcut",
         "//perf/go/sql/expectedschema",
         "//perf/go/subscription:store",
+        "//perf/go/trace_visibility/sqlconfigstore",
         "//perf/go/tracecache",
         "//perf/go/tracestore",
         "//perf/go/tracing",
