@@ -797,6 +797,101 @@ describe('explore-multi-v2-sk', () => {
     expect((element as any).queries[0]['stat']).to.deep.equal(['min']);
   });
 
+  it('applies conditional defaults on add query', async () => {
+    (element as any)._conditionalDefaults = [
+      {
+        trigger: { param: 'metric', values: ['timeNs'] },
+        apply: [{ param: 'stat', values: ['min'], select_only_first: true }],
+      },
+    ];
+    (element as any).queries = [{ metric: [] }];
+
+    (element as any)._handleAddQuery(
+      0,
+      new CustomEvent('add-query', {
+        detail: { key: 'metric', value: 'timeNs' },
+      })
+    );
+
+    expect((element as any).queries[0]['stat']).to.deep.equal(['min']);
+  });
+
+  it('applies multiple values when select_only_first is false', async () => {
+    (element as any)._conditionalDefaults = [
+      {
+        trigger: { param: 'metric', values: ['frameDurationCpuMs'] },
+        apply: [{ param: 'stat', values: ['P50', 'P90'], select_only_first: false }],
+      },
+    ];
+    (element as any).queries = [{ metric: [] }];
+
+    (element as any)._handleAddQuery(
+      0,
+      new CustomEvent('add-query', {
+        detail: { key: 'metric', value: 'frameDurationCpuMs' },
+      })
+    );
+
+    expect((element as any).queries[0]['stat']).to.deep.equal(['P50', 'P90']);
+  });
+
+  it('applies only first value when select_only_first is true', async () => {
+    (element as any)._conditionalDefaults = [
+      {
+        trigger: { param: 'metric', values: ['frameDurationCpuMs'] },
+        apply: [{ param: 'stat', values: ['P50', 'P90'], select_only_first: true }],
+      },
+    ];
+    (element as any).queries = [{ metric: [] }];
+
+    (element as any)._handleAddQuery(
+      0,
+      new CustomEvent('add-query', {
+        detail: { key: 'metric', value: 'frameDurationCpuMs' },
+      })
+    );
+
+    expect((element as any).queries[0]['stat']).to.deep.equal(['P50']);
+  });
+
+  it('does not apply conditional defaults when trigger does not match', async () => {
+    (element as any)._conditionalDefaults = [
+      {
+        trigger: { param: 'metric', values: ['timeNs'] },
+        apply: [{ param: 'stat', values: ['min'], select_only_first: true }],
+      },
+    ];
+    (element as any).queries = [{ metric: [] }];
+
+    (element as any)._handleAddQuery(
+      0,
+      new CustomEvent('add-query', {
+        detail: { key: 'metric', value: 'otherMetric' },
+      })
+    );
+
+    expect((element as any).queries[0]['stat']).to.be.undefined;
+  });
+
+  it('does not re-apply conditional defaults if the trigger value was already present', async () => {
+    (element as any)._conditionalDefaults = [
+      {
+        trigger: { param: 'metric', values: ['timeNs'] },
+        apply: [{ param: 'stat', values: ['min'], select_only_first: true }],
+      },
+    ];
+    (element as any).queries = [{ metric: ['timeNs'], stat: ['max'] }];
+
+    (element as any)._handleAddQuery(
+      0,
+      new CustomEvent('add-query', {
+        detail: { key: 'metric', value: 'otherMetric' },
+      })
+    );
+
+    expect((element as any).queries[0]['stat']).to.deep.equal(['max']);
+  });
+
   it('clears suggestions list on query modification events', () => {
     element['_suggestionsForQueryBar'] = [[{ params: [], score: 100 }]];
 

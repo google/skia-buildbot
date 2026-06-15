@@ -2090,12 +2090,46 @@ export class ExploreMultiV2Sk extends LitElement {
     this._latestSuggestRequestIds[idx] = reqId;
   }
 
+  private _applyConditionalDefaults(
+    query: Record<string, string[]>,
+    changedKey: string,
+    newValues: string[],
+    oldValues: string[]
+  ): Record<string, string[]> {
+    if (!this._conditionalDefaults) {
+      return query;
+    }
+    let nextQuery: Record<string, string[]> | null = null;
+    for (const rule of this._conditionalDefaults) {
+      if (rule.trigger.param === changedKey) {
+        const hasNewTrigger = rule.trigger.values.some(
+          (v: string) => newValues.includes(v) && !oldValues.includes(v)
+        );
+        if (hasNewTrigger) {
+          if (!nextQuery) {
+            nextQuery = { ...query };
+          }
+          for (const apply of rule.apply) {
+            let newValuesToApply = [...apply.values];
+            if (apply.select_only_first && newValuesToApply.length > 0) {
+              newValuesToApply = [newValuesToApply[0]];
+            }
+            nextQuery[apply.param] = newValuesToApply;
+          }
+        }
+      }
+    }
+    return nextQuery || query;
+  }
+
   private _handleAddQuery(idx: number, e: CustomEvent<{ key: string; value: string }>) {
     const { key, value } = e.detail;
     const queries = [...this.queries];
     const current = queries[idx][key] || [];
     if (!current.includes(value)) {
-      queries[idx] = { ...queries[idx], [key]: [...current, value] };
+      const newValues = [...current, value];
+      queries[idx] = { ...queries[idx], [key]: newValues };
+      queries[idx] = this._applyConditionalDefaults(queries[idx], key, newValues, current);
       this.queries = queries;
     }
     this._clearSuggestions(idx);
@@ -2120,26 +2154,9 @@ export class ExploreMultiV2Sk extends LitElement {
   private _handleSetSelected(idx: number, e: CustomEvent<{ key: string; values: string[] }>) {
     const { key, values } = e.detail;
     const queries = [...this.queries];
+    const oldValues = queries[idx][key] || [];
     queries[idx] = { ...queries[idx], [key]: values };
-
-    // Apply conditional defaults
-    if (this._conditionalDefaults) {
-      for (const rule of this._conditionalDefaults) {
-        if (
-          rule.trigger.param === key &&
-          rule.trigger.values.some((v: string) => values.includes(v))
-        ) {
-          for (const apply of rule.apply) {
-            let newValues = apply.values;
-            if (apply.select_only_first && newValues.length > 0) {
-              newValues = [newValues[0]];
-            }
-            queries[idx] = { ...queries[idx], [apply.param]: newValues };
-          }
-        }
-      }
-    }
-
+    queries[idx] = this._applyConditionalDefaults(queries[idx], key, values, oldValues);
     this.queries = queries;
     this._clearSuggestions(idx);
   }
