@@ -146,18 +146,20 @@ export class ExploreWorkerController {
     }
   }
 
-  public filter(queries: any[], numUserQueries: number) {
+  public filter(queries: any[], numUserQueries: number, requestId?: number): number {
     if (!this.worker || !this.ready) {
       console.warn('WorkerController: Worker not ready for filtering');
-      return;
+      return -1;
     }
-    this.workerRequestId++;
+    const finalRequestId = requestId ?? ++this.workerRequestId;
+    this.workerRequestId = Math.max(this.workerRequestId, finalRequestId);
     this.worker.postMessage({
       type: 'FILTER',
       queries: queries,
       numUserQueries: numUserQueries,
-      requestId: this.workerRequestId,
+      requestId: finalRequestId,
     });
+    return finalRequestId;
   }
 
   public suggest(query: string, currentQuery: any, idx: number, availableParams?: any[]): number {

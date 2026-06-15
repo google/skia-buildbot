@@ -20,6 +20,9 @@ describe('explore-multi-v2-sk', () => {
     const exploreMultiV2Sk = (await page.waitForSelector(
       'explore-multi-v2-sk'
     )) as ElementHandle<HTMLElement>;
+    await page.evaluate((el) => {
+      (el as any)._debounceDelay = 0;
+    }, exploreMultiV2Sk);
     exploreMultiV2SkPO = new ExploreMultiV2SkPO(exploreMultiV2Sk);
   });
 
@@ -185,6 +188,13 @@ describe('explore-multi-v2-sk', () => {
     await page.evaluate(async () => {
       const explore = document.querySelector('explore-multi-v2-sk') as any;
       if (!explore) throw new Error('explore-multi-v2-sk not found');
+
+      // Mock worker filter to prevent it from sending empty results
+      if (explore._workerController) {
+        explore._workerController.filter = (_queries: any, _num: number, requestId?: number) => {
+          return requestId !== undefined ? requestId : 0;
+        };
+      }
 
       explore.queries = [{ test: ['Score'] }];
       explore._optionsByKeyPerQuery = [{ test: [{ value: 'Score', count: 1 }] }];

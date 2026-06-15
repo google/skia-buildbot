@@ -16,6 +16,7 @@ describe('explore-multi-v2-sk', () => {
     (window as any).WORKER_URL =
       'data:application/javascript,self.postMessage({ type: "LOADED" }); self.onmessage = (e) => { if (e.data.type === "INIT") { self.postMessage({ type: "READY" }); } };';
     element = document.createElement('explore-multi-v2-sk') as ExploreMultiV2Sk;
+    element['_debounceDelay'] = 0;
     (element as any)._fetchMetadata = async () => {};
     document.body.appendChild(element);
     await element.updateComplete;
@@ -230,8 +231,9 @@ describe('explore-multi-v2-sk', () => {
     let filterArgs: any = null;
     const mockController = {
       isReady: () => true,
-      filter: (queries: any, numUserQueries: number) => {
-        filterArgs = { queries, numUserQueries };
+      filter: (queries: any, numUserQueries: number, requestId?: number) => {
+        filterArgs = { queries, numUserQueries, requestId };
+        return requestId || 0;
       },
       terminate: () => {},
     };
@@ -278,7 +280,7 @@ describe('explore-multi-v2-sk', () => {
       element['_tracePage'] = 0;
       element['_pageSize'] = 10;
 
-      await element['_fetchData']();
+      await element['_fetchData'](element['_latestRequestId']);
 
       expect(element['_globalBounds']).to.deep.equal({});
     } finally {
@@ -593,7 +595,7 @@ describe('explore-multi-v2-sk', () => {
 
       await element.updateComplete;
 
-      await element['_fetchData']();
+      await element['_fetchData'](element['_latestRequestId']);
 
       expect(fetchCount).to.be.greaterThan(0);
       const countBefore = fetchCount;
@@ -602,7 +604,7 @@ describe('explore-multi-v2-sk', () => {
       element['_showAllTraces'] = true;
       await element.updateComplete;
 
-      await element['_fetchData']();
+      await element['_fetchData'](element['_latestRequestId']);
 
       expect(fetchCount).to.be.greaterThan(countBefore);
       expect(fetchTraceIdsArg.length).to.equal(20);
@@ -1424,6 +1426,115 @@ describe('explore-multi-v2-sk', () => {
       expect(localStorage.getItem('perf:use-explore-v2')).to.equal('false');
       expect(redirectStub.calledOnce).to.be.true;
       expect(redirectStub.firstCall.args[0]).to.include('/m');
+    });
+  });
+
+  describe('request ID tracking (race conditions)', () => {
+    it('discards out-of-order fetch results', async () => {
+      let resolveFetch1: (value: any) => void = () => {};
+      let resolveFetch2: (value: any) => void = () => {};
+
+      const fetch1Promise = new Promise((resolve) => {
+        resolveFetch1 = resolve;
+      });
+      const fetch2Promise = new Promise((resolve) => {
+        resolveFetch2 = resolve;
+      });
+
+      let resolveFetch1Started: (value: any) => void = () => {};
+      let resolveFetch2Started: (value: any) => void = () => {};
+      const fetch1StartedPromise = new Promise((resolve) => {
+        resolveFetch1Started = resolve;
+      });
+      const fetch2StartedPromise = new Promise((resolve) => {
+        resolveFetch2Started = resolve;
+      });
+
+      const mockDataService = {
+        getLinksBatch: async () => ({}),
+        sendFrameRequest: async (req: any) => {
+          if (req.trace_ids.includes('t1')) {
+            resolveFetch1Started(null);
+            await fetch1Promise;
+            return {
+              dataframe: {
+                header: [{ offset: 10, timestamp: 1000 }],
+                traceset: { t1: [1.0] },
+              },
+            };
+          } else if (req.trace_ids.includes('t2')) {
+            resolveFetch2Started(null);
+            await fetch2Promise;
+            return {
+              dataframe: {
+                header: [{ offset: 10, timestamp: 1000 }],
+                traceset: { t2: [2.0] },
+              },
+            };
+          }
+          throw new Error('Unexpected request: ' + JSON.stringify(req));
+        },
+      };
+
+      const oldInstance = (DataService as any).instance;
+      (DataService as any).instance = mockDataService;
+
+      const oldGet = TraceDatabase.prototype.get;
+      const oldSet = TraceDatabase.prototype.set;
+      TraceDatabase.prototype.get = async () => null;
+      TraceDatabase.prototype.set = async () => {};
+
+      const oldSubtle = window.crypto.subtle;
+      Object.defineProperty(window.crypto, 'subtle', {
+        get: () => ({
+          digest: async () => new ArrayBuffer(32),
+        }),
+        configurable: true,
+      });
+
+      try {
+        element['_tracePage'] = 0;
+        element['_pageSize'] = 10;
+        element['_seriesData'] = [];
+
+        // Start Fetch 1 (requestId = 1)
+        element['_matchingTraceIds'] = ['t1'];
+        element['_latestRequestId'] = 1;
+        const p1 = element['_fetchData'](1);
+
+        // Wait for Fetch 1 to reach sendFrameRequest
+        await fetch1StartedPromise;
+
+        // Start Fetch 2 (requestId = 2)
+        element['_matchingTraceIds'] = ['t2'];
+        element['_latestRequestId'] = 2;
+        const p2 = element['_fetchData'](2);
+
+        // Wait for Fetch 2 to reach sendFrameRequest
+        await fetch2StartedPromise;
+
+        // Resolve Fetch 2 first
+        resolveFetch2(null);
+        await p2;
+
+        // Verify Fetch 2 data is applied
+        expect(element['_seriesData'].map((s: any) => s.id)).to.deep.equal(['t2']);
+
+        // Resolve Fetch 1 later
+        resolveFetch1(null);
+        await p1;
+
+        // Verify Fetch 1 data is DISCARDED (we still have Fetch 2 data)
+        expect(element['_seriesData'].map((s: any) => s.id)).to.deep.equal(['t2']);
+      } finally {
+        (DataService as any).instance = oldInstance;
+        TraceDatabase.prototype.get = oldGet;
+        TraceDatabase.prototype.set = oldSet;
+        Object.defineProperty(window.crypto, 'subtle', {
+          get: () => oldSubtle,
+          configurable: true,
+        });
+      }
     });
   });
 

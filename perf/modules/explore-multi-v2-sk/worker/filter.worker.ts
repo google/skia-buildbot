@@ -215,6 +215,7 @@ async function handleFilter(queries: Query[], requestId: number, numUserQueries:
           filteredCount: 0,
           results: [],
           queryResults,
+          requestId,
         },
       });
     }
@@ -420,6 +421,7 @@ async function handleFilter(queries: Query[], requestId: number, numUserQueries:
       filteredCount: totalFilteredCount,
       results,
       queryResults,
+      requestId,
     },
   });
 }

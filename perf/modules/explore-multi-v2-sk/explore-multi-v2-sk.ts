@@ -59,7 +59,21 @@ const SUMMARY_INCREMENT_SEC = 90 * 24 * 3600; // 90 days
 
 @customElement('explore-multi-v2-sk')
 export class ExploreMultiV2Sk extends LitElement {
-  @property({ attribute: false }) queries: Record<string, string[]>[] = [{}];
+  private _queries: Record<string, string[]>[] = [{}];
+
+  @property({ attribute: false })
+  get queries(): Record<string, string[]>[] {
+    return this._queries;
+  }
+
+  set queries(val: Record<string, string[]>[]) {
+    const oldVal = this._queries;
+    this._queries = val;
+    this._tracePage = 0;
+    this._summaryBeginOffsetSec = DEFAULT_SUMMARY_RANGE_SEC;
+    this._summaryEndOffsetSec = 0;
+    this.requestUpdate('queries', oldVal);
+  }
 
   @property({ type: Boolean }) embedded = false;
 
@@ -259,6 +273,16 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _inFlightMetadataCommits = new Set<number>();
 
+  private _latestRequestId = 0;
+
+  private _debounceDelay = 100;
+
+  private _workerFilterTimer: number | null = null;
+
+  private _fetchDataTimer: number | null = null;
+
+  private _fetchMetadataTimer: number | null = null;
+
   connectedCallback() {
     super.connectedCallback();
 
@@ -403,6 +427,15 @@ export class ExploreMultiV2Sk extends LitElement {
     if (this._workerController) {
       this._workerController.terminate();
     }
+    if (this._workerFilterTimer !== null) {
+      window.clearTimeout(this._workerFilterTimer);
+    }
+    if (this._fetchDataTimer !== null) {
+      window.clearTimeout(this._fetchDataTimer);
+    }
+    if (this._fetchMetadataTimer !== null) {
+      window.clearTimeout(this._fetchMetadataTimer);
+    }
     window.removeEventListener('anomalies-source-changed', this._onAnomaliesSourceChanged);
     this.removeEventListener('anomaly-changed', this._onAnomalyChanged);
     super.disconnectedCallback();
@@ -413,7 +446,8 @@ export class ExploreMultiV2Sk extends LitElement {
     this._loadedBounds = {};
     this._globalBounds = {};
     this._regressions = {};
-    void this._fetchData();
+    this._latestRequestId++;
+    void this._fetchData(this._latestRequestId);
   };
 
   private _initWorker() {
@@ -423,7 +457,7 @@ export class ExploreMultiV2Sk extends LitElement {
       },
       () => {
         console.log('Orchestrator: Worker ready');
-        this._triggerWorkerFilter();
+        this._latestRequestId = this._triggerWorkerFilter();
       },
       (payload) => {
         console.log(`Worker Progress [${payload.name}]: ${payload.loaded}/${payload.total}`);
@@ -458,6 +492,13 @@ export class ExploreMultiV2Sk extends LitElement {
   private _handleFilterResult(payload: any) {
     console.log('Worker Filter Result:', payload.filteredCount);
 
+    if (payload.requestId !== undefined && payload.requestId !== this._latestRequestId) {
+      console.log(
+        `Discarding stale worker result: expected ${this._latestRequestId}, got ${payload.requestId}`
+      );
+      return;
+    }
+
     const reconstructedIds: string[] = [];
     if (payload.results) {
       payload.results.forEach((r: any) => {
@@ -487,7 +528,7 @@ export class ExploreMultiV2Sk extends LitElement {
     } else {
       this._matchingTraceIds = reconstructedIds;
       console.log(`Reconstructed ${reconstructedIds.length} matching Trace IDs`);
-      void this._fetchData();
+      void this._fetchData(this._latestRequestId);
     }
 
     if (payload.queryResults && payload.queryResults[0]) {
@@ -533,8 +574,8 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   }
 
-  private _triggerWorkerFilter() {
-    if (!this._workerController?.isReady()) return;
+  private _triggerWorkerFilter(requestId?: number): number {
+    if (!this._workerController?.isReady()) return -1;
 
     const queries: Record<string, string[]>[] = [...this.queries];
     const activeFacets: string[] = [];
@@ -551,7 +592,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
     this._latestActiveFacets = activeFacets;
 
-    this._workerController.filter(queries, this.queries.length);
+    return this._workerController.filter(queries, this.queries.length, requestId);
   }
 
   static styles = css`
@@ -831,30 +872,71 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   protected updated(changedProperties: PropertyValues) {
+    let queriesChanged = false;
     if (changedProperties.has('queries')) {
-      this._tracePage = 0;
-      this._summaryBeginOffsetSec = DEFAULT_SUMMARY_RANGE_SEC;
-      this._summaryEndOffsetSec = 0;
+      queriesChanged = true;
+    }
+
+    const pageOrSizeChanged =
+      changedProperties.has('_tracePage') ||
+      changedProperties.has('_pageSize') ||
+      changedProperties.has('_showAllTraces');
+
+    const needsNewRequest = queriesChanged || (!queriesChanged && pageOrSizeChanged);
+
+    if (needsNewRequest) {
+      this._latestRequestId++;
+    }
+
+    const currentRequestId = this._latestRequestId;
+
+    if (queriesChanged) {
       if (this._workerController?.isReady()) {
-        this._triggerWorkerFilter();
+        if (this._debounceDelay === 0) {
+          this._triggerWorkerFilter(currentRequestId);
+        } else {
+          if (this._workerFilterTimer !== null) {
+            window.clearTimeout(this._workerFilterTimer);
+          }
+          this._workerFilterTimer = window.setTimeout(() => {
+            this._workerFilterTimer = null;
+            this._triggerWorkerFilter(currentRequestId);
+          }, this._debounceDelay);
+        }
       }
       void this._updateShortcut();
     }
 
-    if (
-      changedProperties.has('_tracePage') ||
-      changedProperties.has('_pageSize') ||
-      changedProperties.has('_showAllTraces')
-    ) {
-      void this._fetchData();
+    if (!queriesChanged && pageOrSizeChanged) {
+      if (this._debounceDelay === 0) {
+        void this._fetchData(currentRequestId);
+      } else {
+        if (this._fetchDataTimer !== null) {
+          window.clearTimeout(this._fetchDataTimer);
+        }
+        this._fetchDataTimer = window.setTimeout(() => {
+          this._fetchDataTimer = null;
+          void this._fetchData(currentRequestId);
+        }, this._debounceDelay);
+      }
     }
 
     if (
       changedProperties.has('_seriesData') ||
-      changedProperties.has('_tracePage') ||
-      changedProperties.has('_pageSize')
+      (!queriesChanged &&
+        (changedProperties.has('_tracePage') || changedProperties.has('_pageSize')))
     ) {
-      void this._fetchMetadataForVisibleTraces();
+      if (this._debounceDelay === 0) {
+        void this._fetchMetadataForVisibleTraces(currentRequestId);
+      } else {
+        if (this._fetchMetadataTimer !== null) {
+          window.clearTimeout(this._fetchMetadataTimer);
+        }
+        this._fetchMetadataTimer = window.setTimeout(() => {
+          this._fetchMetadataTimer = null;
+          void this._fetchMetadataForVisibleTraces(currentRequestId);
+        }, this._debounceDelay);
+      }
     }
 
     if (
@@ -1036,8 +1118,12 @@ export class ExploreMultiV2Sk extends LitElement {
     };
   }
 
-  private async _fetchData(retryCount = 0): Promise<void> {
-    console.log('[_fetchData] called, retryCount:', retryCount);
+  private async _fetchData(requestId: number, retryCount = 0): Promise<void> {
+    console.log('[_fetchData] called, retryCount:', retryCount, 'requestId:', requestId);
+    if (requestId !== this._latestRequestId) {
+      console.log('[_fetchData] aborted early: request ID mismatch');
+      return;
+    }
     const startIdx = this._tracePage * this._pageSize;
     const endIdx = startIdx + this._pageSize;
     const visibleIds = this._showAllTraces
@@ -1065,6 +1151,9 @@ export class ExploreMultiV2Sk extends LitElement {
       console.log('[_fetchData] reqTraceIds:', reqTraceIds);
       if (reqTraceIds.every((id) => loadedIds.has(id))) {
         console.log('Skipping fetch: all requested traces already loaded in memory');
+        if (requestId === this._latestRequestId) {
+          this._loading = false;
+        }
         return;
       }
 
@@ -1078,6 +1167,7 @@ export class ExploreMultiV2Sk extends LitElement {
       const cacheKey = await hashRequest(req, (window as any).perf?.fetch_anomalies_from_sql);
       const db = new TraceDatabase();
       const cached = await db.get(cacheKey);
+      if (requestId !== this._latestRequestId) return;
       if (cached) {
         console.log('Serving from cache:', cacheKey);
 
@@ -1101,7 +1191,7 @@ export class ExploreMultiV2Sk extends LitElement {
         if (cached.dataframe) {
           const newSeries = this._translateDataFrame(cached.dataframe);
           this._processNewSeries(newSeries, true);
-          void this._prefetchHistory();
+          void this._prefetchHistory(requestId);
         }
         return;
       }
@@ -1110,6 +1200,13 @@ export class ExploreMultiV2Sk extends LitElement {
         onProgress: (prog: string) => console.log('Progress:', prog),
         onMessage: (msg: string) => console.error('Message:', msg),
       });
+
+      if (requestId !== this._latestRequestId) {
+        if (response && response.dataframe) {
+          await db.set(cacheKey, response);
+        }
+        return;
+      }
 
       if (response && response.anomalymap) {
         const nextRegressions = { ...this._regressions };
@@ -1136,18 +1233,20 @@ export class ExploreMultiV2Sk extends LitElement {
             'Out of bounds empty traceset detected. Widening duration bounds retry:',
             retryCount + 1
           );
-          return await this._fetchData(retryCount + 1);
+          return await this._fetchData(requestId, retryCount + 1);
         }
 
         // If traceset is empty, render empty chart.
         this._processNewSeries(newSeries, true);
         await db.set(cacheKey, response);
-        void this._prefetchHistory();
+        void this._prefetchHistory(requestId);
       }
     } catch (e) {
       console.error('Fetch error:', e);
     } finally {
-      this._loading = false;
+      if (requestId === this._latestRequestId) {
+        this._loading = false;
+      }
     }
   }
 
@@ -1170,7 +1269,7 @@ export class ExploreMultiV2Sk extends LitElement {
     return { min, max };
   }
 
-  private async _prefetchHistory(): Promise<void> {
+  private async _prefetchHistory(requestId: number): Promise<void> {
     console.log(
       `[_prefetchHistory] initiating background prefetch from -${this._summaryBeginOffsetSec}s to +${this._summaryEndOffsetSec}s`
     );
@@ -1222,6 +1321,7 @@ export class ExploreMultiV2Sk extends LitElement {
     this._summaryLoading = true;
     try {
       const cached = await db.get(cacheKey);
+      if (requestId !== this._latestRequestId) return;
       if (cached) {
         if (signal.aborted) return;
         console.log('Prefetch serving from cache:', cacheKey);
@@ -1229,6 +1329,7 @@ export class ExploreMultiV2Sk extends LitElement {
           const newSeries = this._translateDataFrame(cached.dataframe);
           this._processNewSeries(newSeries, false);
         }
+
         return;
       }
 
@@ -1237,6 +1338,14 @@ export class ExploreMultiV2Sk extends LitElement {
         onMessage: (msg: string) => console.error('Prefetch Message:', msg),
       });
 
+      if (response && response.dataframe) {
+        await db.set(cacheKey, response);
+      }
+
+      if (requestId !== this._latestRequestId) {
+        console.log('[_prefetchHistory] aborted (but cached): request ID mismatch');
+        return;
+      }
       if (signal.aborted) {
         console.log('Prefetch aborted');
         return;
@@ -1245,12 +1354,11 @@ export class ExploreMultiV2Sk extends LitElement {
       if (response && response.dataframe) {
         const newSeries = this._translateDataFrame(response.dataframe);
         this._processNewSeries(newSeries, false);
-        await db.set(cacheKey, response);
       }
     } catch (e) {
       console.error('Prefetch error:', e);
     } finally {
-      if (!signal.aborted) {
+      if (!signal.aborted && requestId === this._latestRequestId) {
         this._summaryLoading = false;
       }
     }
@@ -1270,7 +1378,8 @@ export class ExploreMultiV2Sk extends LitElement {
     this._loadedBounds = {};
     this._globalBounds = {};
     this._regressions = {};
-    void this._fetchData();
+    this._latestRequestId++;
+    void this._fetchData(this._latestRequestId);
   }
 
   private _determineYAxisTitle(traceNames: string[]): string {
@@ -1468,7 +1577,7 @@ export class ExploreMultiV2Sk extends LitElement {
     } else {
       this._summaryEndOffsetSec += SUMMARY_INCREMENT_SEC;
     }
-    void this._prefetchHistory();
+    void this._prefetchHistory(this._latestRequestId);
   }
 
   private async _doHandleViewportChanged(e: any) {
@@ -1980,7 +2089,6 @@ export class ExploreMultiV2Sk extends LitElement {
     this._workerController.getRandomTrace((randomQuery) => {
       if (randomQuery) {
         this.queries = [randomQuery];
-        void this._fetchData();
       }
     });
   }
@@ -2013,7 +2121,6 @@ export class ExploreMultiV2Sk extends LitElement {
       // Fall back to a single trace if no parameter can be compared
       if (opts.length < 2) {
         this.queries = [randomQuery];
-        void this._fetchData();
         return;
       }
 
@@ -2022,7 +2129,6 @@ export class ExploreMultiV2Sk extends LitElement {
 
       if (otherOpts.length === 0) {
         this.queries = [randomQuery];
-        void this._fetchData();
         return;
       }
 
@@ -2032,7 +2138,6 @@ export class ExploreMultiV2Sk extends LitElement {
         { ...randomQuery, [chosenKey]: [val1] },
         { ...randomQuery, [chosenKey]: [val2] },
       ];
-      void this._fetchData();
     });
   }
 
@@ -2205,7 +2310,8 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   }
 
-  private async _fetchMetadataForVisibleTraces() {
+  private async _fetchMetadataForVisibleTraces(requestId: number) {
+    if (requestId !== this._latestRequestId) return;
     if (!this._seriesData || this._seriesData.length === 0) return;
 
     const startIdx = this._tracePage * this._pageSize;
@@ -2248,6 +2354,7 @@ export class ExploreMultiV2Sk extends LitElement {
       const db = new TraceDatabase();
       const cacheKey = await hashRequest({ commitNumbers, traceIds });
       const cached = await db.get(cacheKey);
+      if (requestId !== this._latestRequestId) return;
 
       let metadataResp: any;
       if (cached) {
@@ -2255,8 +2362,10 @@ export class ExploreMultiV2Sk extends LitElement {
         metadataResp = cached;
       } else {
         metadataResp = await DataService.getInstance().getLinksBatch(commitNumbers, traceIds);
+        if (requestId !== this._latestRequestId) return;
         await db.set(cacheKey, metadataResp);
       }
+      if (requestId !== this._latestRequestId) return;
 
       const nextSeriesData = [...this._seriesData];
       let updatedCount = 0;
