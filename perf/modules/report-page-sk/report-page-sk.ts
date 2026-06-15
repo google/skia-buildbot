@@ -201,20 +201,22 @@ export class ReportPageSk extends ElementSk {
           </div>
         `}
     ${ele.isV2Enabled
-      ? html`
-          <explore-multi-v2-sk
-            id="multi-explore"
-            .queries=${ele._queriesV2}
-            .splitKeys=${ele._splitKeysV2}
-            .dateMode=${false}
-            .viewportMinX=${ele._viewportMinXV2}
-            .viewportMaxX=${ele._viewportMaxXV2}
-            .begin=${ele._beginV2}
-            .end=${ele._endV2}
-            .highlightAnomalies=${ele._highlightAnomaliesV2}
-            .embedded=${true}>
-          </explore-multi-v2-sk>
-        `
+      ? ele._currentlyLoading
+        ? ''
+        : html`
+            <explore-multi-v2-sk
+              id="multi-explore"
+              .queries=${ele._queriesV2}
+              .splitKeys=${ele._splitKeysV2}
+              .dateMode=${false}
+              .viewportMinX=${ele._viewportMinXV2}
+              .viewportMaxX=${ele._viewportMaxXV2}
+              .begin=${ele._beginV2}
+              .end=${ele._endV2}
+              .highlightAnomalies=${ele._highlightAnomaliesV2}
+              .embedded=${true}>
+            </explore-multi-v2-sk>
+          `
       : html`<graph-list-sk id="graph-list"></graph-list-sk>`}
     <div id="bottom-spacer"></div>
   `;
