@@ -13,6 +13,14 @@ module.exports = {
     // Allow empty -demo.scss files
     'no-empty-source': null,
 
+    // Allow the Angular "ng-deep" pseudo-element.
+    'selector-pseudo-element-no-unknown': [
+      true,
+      {
+        ignorePseudoElements: ['ng-deep'],
+      },
+    ],
+
     // -- Temporary overrides --
     // TODO(ansid): enable these rules.
 

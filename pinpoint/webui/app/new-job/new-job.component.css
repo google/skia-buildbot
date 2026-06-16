@@ -68,7 +68,7 @@ mat-expansion-panel-header {
 
 .error-message {
   color: var(--mat-sys-error);
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .no-shrink {
