@@ -9,7 +9,7 @@
           <mat-form-field matTooltip="A descriptive name for this job to help identify it later.
           If left blank, a name will be automatically generated based on the job configuration.">
             <mat-label>Job name (optional)</mat-label>
-            <textarea matInput rows="1" formControlName="jobName" placeholder="e.g. Try job on win-11-perf/jetstream2"></textarea>
+            <textarea matInput rows="1" [formControlName]="Field.JobName" placeholder="e.g. Try job on win-11-perf/jetstream2"></textarea>
             <mat-error>Job name cannot exceed 1000 characters</mat-error>
           </mat-form-field>
         </div>
@@ -18,13 +18,13 @@
           <mat-form-field matTooltip="The number of times the benchmark will run on each commit.
           A higher number increases statistical confidence but takes longer.">
             <mat-label>Attempts</mat-label>
-            <input matInput pattern="[0-9]*" inputmode="numeric" formControlName="attempts" placeholder="e.g. 30" min="1" max="150" required />
+            <input matInput pattern="[0-9]*" inputmode="numeric" [formControlName]="Field.Attempts" placeholder="e.g. 30" min="1" max="150" required />
             <mat-error>Attempts must be > 0 and <= 150 </mat-error>
           </mat-form-field>
 
           <mat-form-field matTooltip="The Issue Tracker bug ID associated with this job.">
             <mat-label>Bug ID (optional)</mat-label>
-            <input matInput pattern="[0-9]*" inputmode="numeric" formControlName="bugId" placeholder="e.g. 1234567" min="1" />
+            <input matInput pattern="[0-9]*" inputmode="numeric" [formControlName]="Field.BugId" placeholder="e.g. 1234567" min="1" />
             <mat-error>Bug ID must be a positive number</mat-error>
           </mat-form-field>
         </div>
@@ -39,16 +39,16 @@
         <div>
           <mat-form-field matTooltip="The swarming bot configuration on which the benchmark will be executed.">
             <mat-label>Bot</mat-label>
-            <input matInput formControlName="bot" placeholder="e.g. win-11-perf" required [matAutocomplete]="auto" />
+            <input matInput [formControlName]="Field.Bot" placeholder="e.g. win-11-perf" required [matAutocomplete]="auto" />
             <mat-autocomplete #auto="matAutocomplete">
               @for (bot of filteredBots(); track bot) {
                 <mat-option [value]="bot">{{bot}}</mat-option>
               }
             </mat-autocomplete>
-            @if (jobForm.get('bot')?.hasError('required')) {
+            @if (jobForm.get(Field.Bot)?.hasError('required')) {
               <mat-error>Bot is required</mat-error>
             }
-            @if (jobForm.get('bot')?.hasError('invalidAutocomplete')) {
+            @if (jobForm.get(Field.Bot)?.hasError('invalidAutocomplete')) {
               <mat-error>Please select a bot from the list of available configurations</mat-error>
             }
           </mat-form-field>
@@ -57,16 +57,16 @@
         <div>
           <mat-form-field matTooltip="The performance benchmark suite to execute (e.g. speedometer3, jetstream2).">
             <mat-label>Benchmark</mat-label>
-            <input matInput formControlName="benchmark" placeholder="e.g. speedometer3.1.crossbench" required [matAutocomplete]="autoBenchmark" />
+            <input matInput [formControlName]="Field.Benchmark" placeholder="e.g. speedometer3.1.crossbench" required [matAutocomplete]="autoBenchmark" />
             <mat-autocomplete #autoBenchmark="matAutocomplete">
               @for (benchmark of filteredBenchmarks(); track benchmark) {
                 <mat-option [value]="benchmark">{{benchmark}}</mat-option>
               }
             </mat-autocomplete>
-            @if (jobForm.get('benchmark')?.hasError('required')) {
+            @if (jobForm.get(Field.Benchmark)?.hasError('required')) {
               <mat-error>Benchmark is required</mat-error>
             }
-            @if (jobForm.get('benchmark')?.hasError('invalidAutocomplete')) {
+            @if (jobForm.get(Field.Benchmark)?.hasError('invalidAutocomplete')) {
               <mat-error>Please select a benchmark from the list of available suites</mat-error>
             }
           </mat-form-field>
@@ -75,7 +75,7 @@
         <div>
           <mat-form-field matTooltip="The specific story or sub-test within the benchmark suite to execute.">
             <mat-label>Story</mat-label>
-            <input matInput formControlName="story" placeholder="e.g. Speedometer3" [matAutocomplete]="autoStory" />
+            <input matInput [formControlName]="Field.Story" placeholder="e.g. Speedometer3" [matAutocomplete]="autoStory" />
             <mat-autocomplete #autoStory="matAutocomplete">
               @for (story of filteredStories(); track story) {
                 <mat-option [value]="story">{{story}}</mat-option>
@@ -88,7 +88,7 @@
         <div>
           <mat-form-field matTooltip="A comma-separated list of tags to filter and run a subset of benchmark stories.">
             <mat-label>Story tags (optional)</mat-label>
-            <input matInput formControlName="storyTags" placeholder="e.g. all, infinite_scroll" [matAutocomplete]="autoStoryTags" />
+            <input matInput [formControlName]="Field.StoryTags" placeholder="e.g. all, infinite_scroll" [matAutocomplete]="autoStoryTags" />
             <mat-autocomplete #autoStoryTags="matAutocomplete">
               @for (tag of filteredStoryTags(); track tag) {
                 <mat-option [value]="tag">{{tag}}</mat-option>
@@ -103,11 +103,11 @@
       <mat-card-header>
         <mat-card-title>Baseline</mat-card-title>
       </mat-card-header>
-      <mat-card-content formGroupName="baseline">
+      <mat-card-content [formGroupName]="Field.Baseline">
         <div>
           <mat-form-field matTooltip="The git commit hash, revision, or HEAD to use as the baseline.">
             <mat-label>Commit</mat-label>
-            <input matInput formControlName="commit" placeholder="e.g. abcd1234 or HEAD" required />
+            <input matInput [formControlName]="Field.Commit" placeholder="e.g. abcd1234 or HEAD" required />
             <mat-error>Commit is required</mat-error>
           </mat-form-field>
         </div>
@@ -121,7 +121,7 @@
             <mat-form-field matTooltip="An optional Gerrit change ID or
             review URL to apply as a patch to the baseline build.">
               <mat-label>Patch (optional)</mat-label>
-              <input matInput formControlName="patch"
+              <input matInput [formControlName]="Field.Patch"
               placeholder="e.g. 12345, crrev.com/c/12345, or https://chromium-review.git.corp.google.com/c/chromium/src/+/12345" />
             </mat-form-field>
           </div>
@@ -129,7 +129,7 @@
           <div>
             <mat-form-field matTooltip="Extra command line arguments to pass directly to the benchmark runner execution.">
               <mat-label>Benchmark runner arguments (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="benchmarkRunnerArgs"
+              <textarea matInput rows="1" [formControlName]="Field.BenchmarkRunnerArgs"
               placeholder="e.g. --wpr=crossbench_android_embedder_000.wprgo"></textarea>
             </mat-form-field>
           </div>
@@ -138,7 +138,7 @@
             <mat-form-field matTooltip="Additional command line flags to pass to the Chrome browser on launch.
             These flags will be wrapped inside --extra-browser-args.">
               <mat-label>Extra browser arguments (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="extraBrowserArgs"
+              <textarea matInput rows="1" [formControlName]="Field.ExtraBrowserArgs"
               placeholder="e.g. --disable-skia-graphite"></textarea>
             </mat-form-field>
           </div>
@@ -147,7 +147,7 @@
             <mat-form-field matTooltip="V8 JavaScript engine flags to pass to Chrome.
             These flags will be wrapped inside --js-flags.">
               <mat-label>--js-flags (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="jsFlags" placeholder="e.g. --turbolev-future"></textarea>
+              <textarea matInput rows="1" [formControlName]="Field.JsFlags" placeholder="e.g. --turbolev-future"></textarea>
             </mat-form-field>
           </div>
 
@@ -155,7 +155,7 @@
             <mat-form-field matTooltip="Chrome features to enable on launch.
             These features will be wrapped inside --enable-features.">
               <mat-label>--enable-features (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="enableFeatures" placeholder="e.g. CADisplayLinkInBrowser"></textarea>
+              <textarea matInput rows="1" [formControlName]="Field.EnableFeatures" placeholder="e.g. CADisplayLinkInBrowser"></textarea>
             </mat-form-field>
           </div>
 
@@ -163,7 +163,7 @@
             <mat-form-field matTooltip="Chrome features to disable on launch.
             These features will be wrapped inside --disable-features.">
               <mat-label>--disable-features (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="disableFeatures" placeholder="e.g. EnableDrDc"></textarea>
+              <textarea matInput rows="1" [formControlName]="Field.DisableFeatures" placeholder="e.g. EnableDrDc"></textarea>
             </mat-form-field>
           </div>
         </mat-expansion-panel>
@@ -174,12 +174,12 @@
       <mat-card-header>
         <mat-card-title>Experiment</mat-card-title>
       </mat-card-header>
-      <mat-card-content formGroupName="experiment">
+      <mat-card-content [formGroupName]="Field.Experiment">
         <div>
           <mat-form-field matTooltip="The Gerrit change ID or review URL
           containing the experiment changes to test against the baseline.">
             <mat-label>Patch (optional)</mat-label>
-            <input matInput formControlName="patch"
+            <input matInput [formControlName]="Field.Patch"
             placeholder="e.g. 12345, crrev.com/c/12345, or https://chromium-review.git.corp.google.com/c/chromium/src/+/12345" />
           </mat-form-field>
         </div>
@@ -193,14 +193,14 @@
             <mat-form-field matTooltip="The git commit hash, revision, or HEAD to use as the experiment base.
             If left blank, it defaults to the baseline commit.">
               <mat-label>Commit (optional)</mat-label>
-              <input matInput formControlName="commit" placeholder="e.g. abcd1234 or HEAD" />
+              <input matInput [formControlName]="Field.Commit" placeholder="e.g. abcd1234 or HEAD" />
             </mat-form-field>
           </div>
 
           <div>
             <mat-form-field matTooltip="Extra command line arguments to pass directly to the benchmark runner execution.">
               <mat-label>Benchmark runner arguments (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="benchmarkRunnerArgs"
+              <textarea matInput rows="1" [formControlName]="Field.BenchmarkRunnerArgs"
               placeholder="e.g. --wpr=crossbench_android_embedder_000.wprgo"></textarea>
             </mat-form-field>
           </div>
@@ -209,7 +209,7 @@
             <mat-form-field matTooltip="Additional command line flags to pass to the Chrome browser on launch.
             These flags will be wrapped inside --extra-browser-args.">
               <mat-label>Extra browser arguments (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="extraBrowserArgs"
+              <textarea matInput rows="1" [formControlName]="Field.ExtraBrowserArgs"
               placeholder="e.g. --disable-skia-graphite"></textarea>
             </mat-form-field>
           </div>
@@ -218,7 +218,7 @@
             <mat-form-field matTooltip="V8 JavaScript engine flags to pass to Chrome.
             These flags will be wrapped inside --js-flags.">
               <mat-label>--js-flags (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="jsFlags" placeholder="e.g. --turbolev-future"></textarea>
+              <textarea matInput rows="1" [formControlName]="Field.JsFlags" placeholder="e.g. --turbolev-future"></textarea>
             </mat-form-field>
           </div>
 
@@ -226,7 +226,7 @@
             <mat-form-field matTooltip="Chrome features to enable on launch.
             These features will be wrapped inside --enable-features.">
               <mat-label>--enable-features (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="enableFeatures" placeholder="e.g. CADisplayLinkInBrowser"></textarea>
+              <textarea matInput rows="1" [formControlName]="Field.EnableFeatures" placeholder="e.g. CADisplayLinkInBrowser"></textarea>
             </mat-form-field>
           </div>
 
@@ -234,12 +234,13 @@
             <mat-form-field matTooltip="Chrome features to disable on launch.
              These features will be wrapped inside --disable-features.">
               <mat-label>--disable-features (optional)</mat-label>
-              <textarea matInput rows="1" formControlName="disableFeatures" placeholder="e.g. EnableDrDc"></textarea>
+              <textarea matInput rows="1" [formControlName]="Field.DisableFeatures" placeholder="e.g. EnableDrDc"></textarea>
             </mat-form-field>
           </div>
         </mat-expansion-panel>
       </mat-card-content>
     </mat-card>
+
     <div class="actions-container">
       @if (errorMessage()) {
         <span class="error-message">{{ errorMessage() }}</span>

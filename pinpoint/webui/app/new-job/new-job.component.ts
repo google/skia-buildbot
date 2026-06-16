@@ -23,14 +23,33 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { GatewayService } from '../gateway/gateway.service';
 import { CreateTryJobRequest, VariantConfig } from '../gateway/gateway';
 
+export enum Field {
+  JobName = 'jobName',
+  Attempts = 'attempts',
+  BugId = 'bugId',
+  Bot = 'bot',
+  Benchmark = 'benchmark',
+  Story = 'story',
+  StoryTags = 'storyTags',
+  Baseline = 'baseline',
+  Experiment = 'experiment',
+  Commit = 'commit',
+  Patch = 'patch',
+  BenchmarkRunnerArgs = 'benchmarkRunnerArgs',
+  ExtraBrowserArgs = 'extraBrowserArgs',
+  JsFlags = 'jsFlags',
+  EnableFeatures = 'enableFeatures',
+  DisableFeatures = 'disableFeatures',
+}
+
 const variantGroupConfig = (commitRequired = false) => ({
-  commit: ['', commitRequired ? [Validators.required] : []],
-  patch: [''],
-  jsFlags: [''],
-  enableFeatures: [''],
-  disableFeatures: [''],
-  extraBrowserArgs: [''],
-  benchmarkRunnerArgs: [''],
+  [Field.Commit]: ['', commitRequired ? [Validators.required] : []],
+  [Field.Patch]: [''],
+  [Field.JsFlags]: [''],
+  [Field.EnableFeatures]: [''],
+  [Field.DisableFeatures]: [''],
+  [Field.ExtraBrowserArgs]: [''],
+  [Field.BenchmarkRunnerArgs]: [''],
 });
 
 @Component({
@@ -52,6 +71,8 @@ const variantGroupConfig = (commitRequired = false) => ({
   styleUrls: ['./new-job.component.css'],
 })
 export class NewJobComponent implements OnInit {
+  readonly Field = Field;
+
   private formBuilder = inject(FormBuilder);
 
   private gatewayService = inject(GatewayService);
@@ -71,31 +92,31 @@ export class NewJobComponent implements OnInit {
   storyTags = signal<string[]>([]);
 
   jobForm: FormGroup = this.formBuilder.group({
-    jobName: [''],
+    [Field.JobName]: [''],
     // 150 is the maximum number of attempts the legacy backend allows.
-    attempts: [30, [Validators.required, Validators.min(1), Validators.max(150)]],
-    bugId: ['', Validators.min(1)],
-    bot: ['', [Validators.required, this.autocompleteValidator(this.bots)]],
-    benchmark: ['', [Validators.required, this.autocompleteValidator(this.benchmarks)]],
-    story: [''],
-    storyTags: [''],
-    baseline: this.formBuilder.group(variantGroupConfig(true)),
-    experiment: this.formBuilder.group(variantGroupConfig()),
+    [Field.Attempts]: [30, [Validators.required, Validators.min(1), Validators.max(150)]],
+    [Field.BugId]: ['', Validators.min(1)],
+    [Field.Bot]: ['', [Validators.required, this.autocompleteValidator(this.bots)]],
+    [Field.Benchmark]: ['', [Validators.required, this.autocompleteValidator(this.benchmarks)]],
+    [Field.Story]: [''],
+    [Field.StoryTags]: [''],
+    [Field.Baseline]: this.formBuilder.group(variantGroupConfig(true)),
+    [Field.Experiment]: this.formBuilder.group(variantGroupConfig()),
   });
 
-  botQuery = this.inputFieldSignal('bot');
+  botQuery = this.inputFieldSignal(Field.Bot);
 
   filteredBots = this.filterValuesByInput(this.botQuery, this.bots);
 
-  benchmarkQuery = this.inputFieldSignal('benchmark');
+  benchmarkQuery = this.inputFieldSignal(Field.Benchmark);
 
   filteredBenchmarks = this.filterValuesByInput(this.benchmarkQuery, this.benchmarks);
 
-  storyQuery = this.inputFieldSignal('story');
+  storyQuery = this.inputFieldSignal(Field.Story);
 
   filteredStories = this.filterValuesByInput(this.storyQuery, this.stories);
 
-  storyTagsQuery = this.inputFieldSignal('storyTags');
+  storyTagsQuery = this.inputFieldSignal(Field.StoryTags);
 
   filteredStoryTags = this.filterValuesByInput(this.storyTagsQuery, this.storyTags);
 
@@ -109,7 +130,7 @@ export class NewJobComponent implements OnInit {
     try {
       const response = await this.gatewayService.ListBotConfigurations({});
       this.bots.set(response.configurations.sort());
-      this.jobForm.get('bot')?.updateValueAndValidity();
+      this.jobForm.get(Field.Bot)?.updateValueAndValidity();
     } catch (error) {
       console.error('Failed to fetch bots: ', error);
     }
@@ -119,21 +140,21 @@ export class NewJobComponent implements OnInit {
     try {
       const response = await this.gatewayService.ListBenchmarks({});
       this.benchmarks.set(response.benchmarks.sort());
-      this.jobForm.get('benchmark')?.updateValueAndValidity();
+      this.jobForm.get(Field.Benchmark)?.updateValueAndValidity();
     } catch (error) {
       console.error('Failed to fetch benchmarks: ', error);
     }
   }
 
   private setupBenchmarkChangeListener() {
-    this.jobForm.get('benchmark')?.valueChanges.subscribe((benchmark) => {
+    this.jobForm.get(Field.Benchmark)?.valueChanges.subscribe((benchmark) => {
       this.stories.set([]);
       this.storyTags.set([]);
       if (this.benchmarks().includes(benchmark)) {
         this.loadBenchmarkDetails(benchmark);
       } else {
-        this.jobForm.get('story')?.setValue('');
-        this.jobForm.get('storyTags')?.setValue('');
+        this.jobForm.get(Field.Story)?.setValue('');
+        this.jobForm.get(Field.StoryTags)?.setValue('');
       }
     });
   }
@@ -144,14 +165,14 @@ export class NewJobComponent implements OnInit {
       this.stories.set(response.stories);
       this.storyTags.set(response.storyTags);
 
-      const storyField = this.jobForm.get('story')!;
+      const storyField = this.jobForm.get(Field.Story)!;
       if (!response.stories.includes(storyField.value)) {
-        storyField.setValue('');
+        storyField?.setValue('');
       }
 
-      const storyTagsField = this.jobForm.get('storyTags')!;
+      const storyTagsField = this.jobForm.get(Field.StoryTags)!;
       if (!response.storyTags.includes(storyTagsField.value)) {
-        storyTagsField.setValue('');
+        storyTagsField?.setValue('');
       }
     } catch (error) {
       console.error('Failed to fetch benchmark details: ', error);
@@ -160,14 +181,14 @@ export class NewJobComponent implements OnInit {
 
   private getVariantConfig(formGroup: any): VariantConfig {
     return {
-      commit: formGroup.commit || '',
-      patch: formGroup.patch || '',
+      commit: formGroup[Field.Commit] || '',
+      patch: formGroup[Field.Patch] || '',
       extraArgs: {
-        benchmarkRunnerArgs: formGroup.benchmarkRunnerArgs || '',
-        extraBrowserArgs: formGroup.extraBrowserArgs || '',
-        jsFlags: formGroup.jsFlags || '',
-        enableFeatures: formGroup.enableFeatures || '',
-        disableFeatures: formGroup.disableFeatures || '',
+        benchmarkRunnerArgs: formGroup[Field.BenchmarkRunnerArgs] || '',
+        extraBrowserArgs: formGroup[Field.ExtraBrowserArgs] || '',
+        jsFlags: formGroup[Field.JsFlags] || '',
+        enableFeatures: formGroup[Field.EnableFeatures] || '',
+        disableFeatures: formGroup[Field.DisableFeatures] || '',
       },
     };
   }
@@ -188,18 +209,18 @@ export class NewJobComponent implements OnInit {
 
     const form = this.jobForm.value;
     const request: CreateTryJobRequest = {
-      benchmark: form.benchmark,
-      configuration: form.bot,
-      story: form.story,
-      storyTags: form.storyTags || '',
-      attemptCount: Number(form.attempts),
-      base: this.getVariantConfig(form.baseline),
+      benchmark: form[Field.Benchmark],
+      configuration: form[Field.Bot],
+      story: form[Field.Story],
+      storyTags: form[Field.StoryTags] || '',
+      attemptCount: Number(form[Field.Attempts]),
+      base: this.getVariantConfig(form[Field.Baseline]),
       experiment: this.getVariantConfig({
-        ...form.experiment,
-        commit: form.experiment.commit || form.baseline.commit,
+        ...form[Field.Experiment],
+        commit: form[Field.Experiment][Field.Commit] || form[Field.Baseline][Field.Commit],
       }),
-      bugId: form.bugId ? Number(form.bugId) : undefined,
-      jobName: form.jobName || '',
+      bugId: form[Field.BugId] ? Number(form[Field.BugId]) : undefined,
+      jobName: form[Field.JobName] || '',
       // Let the backend to set the current user email.
       user: '',
     };

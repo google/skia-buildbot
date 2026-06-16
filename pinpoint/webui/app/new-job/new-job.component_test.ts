@@ -4,7 +4,7 @@ import '@angular/compiler';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
-import { NewJobComponent } from './new-job.component';
+import { NewJobComponent, Field } from './new-job.component';
 import { GatewayService } from '../gateway/gateway.service';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
@@ -40,20 +40,20 @@ describe('NewJobComponent', () => {
   function createValidComponent(mockGateway?: Partial<GatewayService>): NewJobComponent {
     const component = createComponent(mockGateway);
     component.bots.set(['linux-perf']);
-    component.jobForm.get('bot')?.setValue('linux-perf');
+    component.jobForm.get(Field.Bot)?.setValue('linux-perf');
     component.benchmarks.set(['speedometer']);
-    component.jobForm.get('benchmark')?.setValue('speedometer');
-    component.jobForm.get('story')?.setValue('Speedometer3');
-    component.jobForm.get('baseline.commit')?.setValue('abcd1234');
+    component.jobForm.get(Field.Benchmark)?.setValue('speedometer');
+    component.jobForm.get(Field.Story)?.setValue('Speedometer3');
+    component.jobForm.get([Field.Baseline, Field.Commit])?.setValue('abcd1234');
     return component;
   }
 
   it('should initialize form with default values', () => {
     const component = createComponent();
     assert.isNotNull(component.jobForm);
-    assert.equal(component.jobForm.get('attempts')?.value, 30);
-    assert.equal(component.jobForm.get('baseline.commit')?.value, '');
-    assert.equal(component.jobForm.get('experiment.commit')?.value, '');
+    assert.equal(component.jobForm.get(Field.Attempts)?.value, 30);
+    assert.equal(component.jobForm.get([Field.Baseline, Field.Commit])?.value, '');
+    assert.equal(component.jobForm.get([Field.Experiment, Field.Commit])?.value, '');
     assert.isFalse(component.jobForm.valid);
   });
 
@@ -64,7 +64,7 @@ describe('NewJobComponent', () => {
 
   it('should validate bot', () => {
     const form = createValidComponent().jobForm;
-    form.get('bot')?.setValue('');
+    form.get(Field.Bot)?.setValue('');
     assert.isFalse(form.valid);
   });
 
@@ -72,45 +72,45 @@ describe('NewJobComponent', () => {
     const component = createComponent();
     component.bots.set(['linux-perf', 'win-perf']);
 
-    component.jobForm.get('bot')?.setValue('linux-perf');
-    assert.isTrue(component.jobForm.get('bot')?.valid);
+    component.jobForm.get(Field.Bot)?.setValue('linux-perf');
+    assert.isTrue(component.jobForm.get(Field.Bot)?.valid);
 
-    component.jobForm.get('bot')?.setValue('unknown-bot');
-    assert.isTrue(component.jobForm.get('bot')?.hasError('invalidAutocomplete'));
+    component.jobForm.get(Field.Bot)?.setValue('unknown-bot');
+    assert.isTrue(component.jobForm.get(Field.Bot)?.hasError('invalidAutocomplete'));
   });
 
   it('should validate benchmark autocomplete values', () => {
     const component = createComponent();
     component.benchmarks.set(['speedometer3', 'jetstream2']);
 
-    component.jobForm.get('benchmark')?.setValue('speedometer3');
-    assert.isTrue(component.jobForm.get('benchmark')?.valid);
+    component.jobForm.get(Field.Benchmark)?.setValue('speedometer3');
+    assert.isTrue(component.jobForm.get(Field.Benchmark)?.valid);
 
-    component.jobForm.get('benchmark')?.setValue('unknown-benchmark');
-    assert.isTrue(component.jobForm.get('benchmark')?.hasError('invalidAutocomplete'));
+    component.jobForm.get(Field.Benchmark)?.setValue('unknown-benchmark');
+    assert.isTrue(component.jobForm.get(Field.Benchmark)?.hasError('invalidAutocomplete'));
   });
 
   it('should validate attempts count', () => {
     const form = createValidComponent().jobForm;
-    form.get('attempts')?.setValue(0);
+    form.get(Field.Attempts)?.setValue(0);
     assert.isFalse(form.valid);
 
-    form.get('attempts')?.setValue(-5);
+    form.get(Field.Attempts)?.setValue(-5);
     assert.isFalse(form.valid);
 
-    form.get('attempts')?.setValue(1);
+    form.get(Field.Attempts)?.setValue(1);
     assert.isTrue(form.valid);
   });
 
   it('should validate bug ID', () => {
     const form = createValidComponent().jobForm;
-    form.get('bugId')?.setValue('');
+    form.get(Field.BugId)?.setValue('');
     assert.isTrue(form.valid);
 
-    form.get('bugId')?.setValue(0);
+    form.get(Field.BugId)?.setValue(0);
     assert.isFalse(form.valid);
 
-    form.get('bugId')?.setValue(-123);
+    form.get(Field.BugId)?.setValue(-123);
     assert.isFalse(form.valid);
   });
 
@@ -208,38 +208,38 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    component.jobForm.get('bot')?.setValue('bot');
+    component.jobForm.get(Field.Bot)?.setValue('bot');
     assert.deepEqual(component.filteredBots(), ['android-bot', 'chrome-bot', 'win-bot']);
 
-    component.jobForm.get('bot')?.setValue('android');
+    component.jobForm.get(Field.Bot)?.setValue('android');
     assert.deepEqual(component.filteredBots(), ['android-bot']);
   }));
 
   it('should return all bots when query is empty', () => {
     const component = createComponent();
     component.bots.set(['Chrome-Bot', 'Android-Bot', 'Win-Bot']);
-    component.jobForm.patchValue({ bot: '' });
+    component.jobForm.patchValue({ [Field.Bot]: '' });
     assert.deepEqual(component.filteredBots(), ['Chrome-Bot', 'Android-Bot', 'Win-Bot']);
   });
 
   it('should match multiple bots when query matches them', () => {
     const component = createComponent();
     component.bots.set(['Chrome-Bot', 'Android-Bot']);
-    component.jobForm.patchValue({ bot: 'bot' });
+    component.jobForm.patchValue({ [Field.Bot]: 'bot' });
     assert.deepEqual(component.filteredBots(), ['Chrome-Bot', 'Android-Bot']);
   });
 
   it('should trim spaces and ignore case when filtering bots', () => {
     const component = createComponent();
     component.bots.set(['Chrome-Bot', 'Android-Bot', 'Win-Bot', 'macOS-Device']);
-    component.jobForm.patchValue({ bot: '  wbt  ' });
+    component.jobForm.patchValue({ [Field.Bot]: '  wbt  ' });
     assert.deepEqual(component.filteredBots(), ['Win-Bot']);
   });
 
   it('should match to a single bot when input equal bot name', () => {
     const component = createComponent();
     component.bots.set(['Chrome-Bot', 'Android-Bot', 'Win-Bot', 'macOS-Device']);
-    component.jobForm.patchValue({ bot: 'Android-Bot' });
+    component.jobForm.patchValue({ [Field.Bot]: 'Android-Bot' });
     assert.deepEqual(component.filteredBots(), ['Android-Bot']);
   });
 
@@ -266,10 +266,10 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    component.jobForm.get('benchmark')?.setValue('meter');
+    component.jobForm.get(Field.Benchmark)?.setValue('meter');
     assert.deepEqual(component.filteredBenchmarks(), ['speedometer3']);
 
-    component.jobForm.get('benchmark')?.setValue('rendering');
+    component.jobForm.get(Field.Benchmark)?.setValue('rendering');
     assert.deepEqual(component.filteredBenchmarks(), ['rendering']);
   }));
 
@@ -277,26 +277,26 @@ describe('NewJobComponent', () => {
     const component = createComponent({
       ListBotConfigurations: async () => ({ configurations: ['linux-perf'] }),
     });
-    component.jobForm.get('bot')?.setValue('linux-perf');
-    assert.isTrue(component.jobForm.get('bot')?.hasError('invalidAutocomplete'));
+    component.jobForm.get(Field.Bot)?.setValue('linux-perf');
+    assert.isTrue(component.jobForm.get(Field.Bot)?.hasError('invalidAutocomplete'));
 
     component.ngOnInit();
     tick();
 
-    assert.isFalse(component.jobForm.get('bot')?.hasError('invalidAutocomplete'));
+    assert.isFalse(component.jobForm.get(Field.Bot)?.hasError('invalidAutocomplete'));
   }));
 
   it('should re-validate benchmark when benchmarks list is loaded', fakeAsync(() => {
     const component = createComponent({
       ListBenchmarks: async () => ({ benchmarks: ['speedometer3'] }),
     });
-    component.jobForm.get('benchmark')?.setValue('speedometer3');
-    assert.isTrue(component.jobForm.get('benchmark')?.hasError('invalidAutocomplete'));
+    component.jobForm.get(Field.Benchmark)?.setValue('speedometer3');
+    assert.isTrue(component.jobForm.get(Field.Benchmark)?.hasError('invalidAutocomplete'));
 
     component.ngOnInit();
     tick();
 
-    assert.isFalse(component.jobForm.get('benchmark')?.hasError('invalidAutocomplete'));
+    assert.isFalse(component.jobForm.get(Field.Benchmark)?.hasError('invalidAutocomplete'));
   }));
 
   it('should fetch benchmark details when benchmark selection changes to a valid value', fakeAsync(() => {
@@ -312,7 +312,7 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    component.jobForm.get(Field.Benchmark)?.setValue('speedometer3');
     tick();
 
     assert.isTrue(gateway.GetBenchmark.calledWith({ benchmark: 'speedometer3' }));
@@ -333,16 +333,16 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    component.jobForm.get(Field.Benchmark)?.setValue('speedometer3');
     tick();
     assert.deepEqual(component.stories(), ['story1', 'story2']);
 
-    component.jobForm.get('benchmark')?.setValue('');
+    component.jobForm.get(Field.Benchmark)?.setValue('');
     tick();
     assert.deepEqual(component.stories(), []);
     assert.deepEqual(component.storyTags(), []);
-    assert.equal(component.jobForm.get('story')?.value, '');
-    assert.equal(component.jobForm.get('storyTags')?.value, '');
+    assert.equal(component.jobForm.get(Field.Story)?.value, '');
+    assert.equal(component.jobForm.get(Field.StoryTags)?.value, '');
   }));
 
   it('should clear story and tags if they are not in the new benchmark details', fakeAsync(() => {
@@ -367,17 +367,17 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    component.jobForm.get(Field.Benchmark)?.setValue('speedometer3');
     tick();
-    component.jobForm.get('story')?.setValue('story1');
-    component.jobForm.get('storyTags')?.setValue('tag1');
-    tick();
-
-    component.jobForm.get('benchmark')?.setValue('speedometer4');
+    component.jobForm.get(Field.Story)?.setValue('story1');
+    component.jobForm.get(Field.StoryTags)?.setValue('tag1');
     tick();
 
-    assert.equal(component.jobForm.get('story')?.value, '');
-    assert.equal(component.jobForm.get('storyTags')?.value, '');
+    component.jobForm.get(Field.Benchmark)?.setValue('speedometer4');
+    tick();
+
+    assert.equal(component.jobForm.get(Field.Story)?.value, '');
+    assert.equal(component.jobForm.get(Field.StoryTags)?.value, '');
   }));
 
   it('should persist story and tags if they are in the new benchmark details', fakeAsync(() => {
@@ -402,17 +402,17 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    component.jobForm.get(Field.Benchmark)?.setValue('speedometer3');
     tick();
-    component.jobForm.get('story')?.setValue('story1');
-    component.jobForm.get('storyTags')?.setValue('tag1');
-    tick();
-
-    component.jobForm.get('benchmark')?.setValue('speedometer4');
+    component.jobForm.get(Field.Story)?.setValue('story1');
+    component.jobForm.get(Field.StoryTags)?.setValue('tag1');
     tick();
 
-    assert.equal(component.jobForm.get('story')?.value, 'story1');
-    assert.equal(component.jobForm.get('storyTags')?.value, 'tag1');
+    component.jobForm.get(Field.Benchmark)?.setValue('speedometer4');
+    tick();
+
+    assert.equal(component.jobForm.get(Field.Story)?.value, 'story1');
+    assert.equal(component.jobForm.get(Field.StoryTags)?.value, 'tag1');
   }));
 
   it('should filter stories and story tags based on input', fakeAsync(() => {
@@ -420,13 +420,13 @@ describe('NewJobComponent', () => {
     component.stories.set(['story1', 'another-story', 'third-story']);
     component.storyTags.set(['tag1', 'another-tag']);
 
-    component.jobForm.get('story')?.setValue('story');
+    component.jobForm.get(Field.Story)?.setValue('story');
     assert.deepEqual(component.filteredStories(), ['story1', 'another-story', 'third-story']);
 
-    component.jobForm.get('story')?.setValue('another');
+    component.jobForm.get(Field.Story)?.setValue('another');
     assert.deepEqual(component.filteredStories(), ['another-story']);
 
-    component.jobForm.get('storyTags')?.setValue('tag');
+    component.jobForm.get(Field.StoryTags)?.setValue('tag');
     assert.deepEqual(component.filteredStoryTags(), ['tag1', 'another-tag']);
   }));
 });
