@@ -1,4 +1,13 @@
-import { Component, inject, signal, computed, OnInit, Signal, WritableSignal } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  OnInit,
+  Signal,
+  WritableSignal,
+  effect,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import {
   FormBuilder,
@@ -51,11 +60,19 @@ export enum Field {
   DisableFeatures = 'disableFeatures',
 }
 
+export enum CommitOption {
+  Recent = 'Recent',
+  Head = 'HEAD',
+}
+
 // Delay before querying the backend during the user input.
 export const INPUT_DEBOUNCE_TIME_MS = 500;
 
-const variantGroupConfig = (commitRequired = false) => ({
-  [Field.Commit]: ['', commitRequired ? [Validators.required] : []],
+const variantGroupConfig = (isExperiment: boolean) => ({
+  [Field.Commit]: [
+    isExperiment ? '' : CommitOption.Recent,
+    isExperiment ? [] : [Validators.required],
+  ],
   [Field.Patch]: [''],
   [Field.JsFlags]: [''],
   [Field.EnableFeatures]: [''],
@@ -87,6 +104,8 @@ export class NewJobComponent implements OnInit {
   readonly Field = Field;
 
   readonly Variant = Variant;
+
+  readonly CommitOption = CommitOption;
 
   private formBuilder = inject(FormBuilder);
 
@@ -121,8 +140,8 @@ export class NewJobComponent implements OnInit {
     [Field.Benchmark]: ['', [Validators.required, this.autocompleteValidator(this.benchmarks)]],
     [Field.Story]: [''],
     [Field.StoryTags]: [''],
-    [Variant.Baseline]: this.formBuilder.group(variantGroupConfig(true)),
-    [Variant.Experiment]: this.formBuilder.group(variantGroupConfig()),
+    [Variant.Baseline]: this.formBuilder.group(variantGroupConfig(false)),
+    [Variant.Experiment]: this.formBuilder.group(variantGroupConfig(true)),
   });
 
   botQuery = this.inputFieldSignal(Field.Bot);
@@ -145,12 +164,54 @@ export class NewJobComponent implements OnInit {
 
   filteredBaselineCommits = this.filterBuildsByInput(this.baselineCommitQuery, this.recentBuilds);
 
+  showBaselineRecent = computed(() =>
+    this.fuzzyMatch(this.baselineCommitQuery(), CommitOption.Recent)
+  );
+
+  showBaselineHead = computed(() => this.fuzzyMatch(this.baselineCommitQuery(), CommitOption.Head));
+
   experimentCommitQuery = this.inputFieldSignal([Variant.Experiment, Field.Commit]);
 
   filteredExperimentCommits = this.filterBuildsByInput(
     this.experimentCommitQuery,
     this.recentBuilds
   );
+
+  showExperimentRecent = computed(() =>
+    this.fuzzyMatch(this.experimentCommitQuery(), CommitOption.Recent)
+  );
+
+  showExperimentHead = computed(() =>
+    this.fuzzyMatch(this.experimentCommitQuery(), CommitOption.Head)
+  );
+
+  constructor() {
+    effect(() => {
+      const builds = this.recentBuilds();
+      const baselineCommitControl = this.jobForm.get([Variant.Baseline, Field.Commit])!;
+      this.resolveRecentCommit(builds, baselineCommitControl, this.baselineCommitInfo);
+
+      const experimentCommitControl = this.jobForm.get([Variant.Experiment, Field.Commit])!;
+      this.resolveRecentCommit(builds, experimentCommitControl, this.experimentCommitInfo);
+    });
+  }
+
+  private resolveRecentCommit(
+    builds: BuildInfo[],
+    control: AbstractControl,
+    commitInfoSignal: WritableSignal<GetCommitResponse | null>
+  ) {
+    if (control.value.trim().toLowerCase() !== CommitOption.Recent.toLowerCase()) {
+      return;
+    }
+
+    if (builds.length > 0) {
+      this.fetchCommitInfo(control, builds[0].gitHash, commitInfoSignal);
+    } else {
+      commitInfoSignal.set(null);
+      this.clearCommitError(control);
+    }
+  }
 
   ngOnInit() {
     this.loadBots();
@@ -325,43 +386,62 @@ export class NewJobComponent implements OnInit {
   ) {
     const control = this.jobForm.get(name)!;
 
-    const clearCommitError = () => {
-      const errors = control.errors;
-      if (errors) {
-        delete errors['invalidCommit'];
-        control.setErrors(Object.keys(errors).length ? errors : null);
-      }
-    };
-
     // Clear commit details and errors immediately after the value changes.
     control.valueChanges.subscribe(() => {
       commitInfoSignal.set(null);
-      clearCommitError();
+      this.clearCommitError(control);
     });
 
     // Delay the backend query while the user might be typing.
-    control.valueChanges
-      .pipe(debounceTime(INPUT_DEBOUNCE_TIME_MS))
-      .subscribe(async (value: string) => {
-        const commit = value.trim();
-        if (!commit) {
+    control.valueChanges.pipe(debounceTime(INPUT_DEBOUNCE_TIME_MS)).subscribe((value: string) => {
+      let commit = value.trim().toLowerCase();
+      if (!commit) {
+        return;
+      }
+
+      if (commit === CommitOption.Recent.toLowerCase()) {
+        if (this.recentBuilds().length > 0) {
+          commit = this.recentBuilds()[0].gitHash;
+        } else {
           return;
         }
+      }
 
-        try {
-          const resp = await this.gatewayService.GetCommit({ commit: commit });
-          if (control.value === value) {
-            commitInfoSignal.set(resp);
-            clearCommitError();
-          }
-        } catch (error) {
-          if (control.value === value) {
-            console.error(`Failed to fetch commit info for ${commit}: `, error);
-            commitInfoSignal.set(null);
-            control.setErrors({ ...control.errors, invalidCommit: true });
-          }
-        }
-      });
+      if (commit === CommitOption.Head.toLowerCase()) {
+        commit = CommitOption.Head;
+      }
+
+      this.fetchCommitInfo(control, commit, commitInfoSignal);
+    });
+  }
+
+  private async fetchCommitInfo(
+    control: AbstractControl,
+    commit: string,
+    commitInfoSignal: WritableSignal<GetCommitResponse | null>
+  ) {
+    const previsousValue = control.value;
+    try {
+      const resp = await this.gatewayService.GetCommit({ commit });
+      if (control.value === previsousValue) {
+        commitInfoSignal.set(resp);
+        this.clearCommitError(control);
+      }
+    } catch (error) {
+      if (control.value === previsousValue) {
+        console.error(`Failed to fetch commit info for ${commit}: `, error);
+        commitInfoSignal.set(null);
+        control.setErrors({ ...control.errors, invalidCommit: true });
+      }
+    }
+  }
+
+  private clearCommitError(control: AbstractControl) {
+    const errors = control.errors;
+    if (errors) {
+      delete errors['invalidCommit'];
+      control.setErrors(Object.keys(errors).length ? errors : null);
+    }
   }
 
   private filterValuesByInput(input: Signal<string>, values: Signal<string[]>): Signal<string[]> {
@@ -386,7 +466,8 @@ export class NewJobComponent implements OnInit {
     if (!control) {
       throw new Error(`Input filed "${name}" not found.`);
     }
-    return toSignal(control.valueChanges.pipe(startWith('')), { initialValue: '' });
+    const initialValue = control.value || '';
+    return toSignal(control.valueChanges.pipe(startWith(initialValue)), { initialValue });
   }
 
   private filterBuildsByInput(

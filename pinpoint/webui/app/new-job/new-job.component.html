@@ -109,6 +109,16 @@
             <mat-label>Commit</mat-label>
             <input matInput [formControlName]="Field.Commit" placeholder="e.g. abcd1234 or HEAD" required [matAutocomplete]="autoBaselineCommit" />
             <mat-autocomplete #autoBaselineCommit="matAutocomplete">
+              @if (showBaselineRecent()) {
+                <mat-option [value]="CommitOption.Recent">
+                  <div>Recent (latest CI build)</div>
+                </mat-option>
+              }
+              @if (showBaselineHead()) {
+                <mat-option [value]="CommitOption.Head">
+                  <div>HEAD</div>
+                </mat-option>
+              }
               @for (commit of filteredBaselineCommits(); track commit.gitHash) {
                 <mat-option [value]="commit.gitHash">
                   <div>{{ commit.gitHash }}</div>
@@ -228,6 +238,16 @@
               <mat-label>Commit (optional)</mat-label>
               <input matInput [formControlName]="Field.Commit" placeholder="e.g. abcd1234 or HEAD" [matAutocomplete]="autoExperimentCommit" />
               <mat-autocomplete #autoExperimentCommit="matAutocomplete">
+                @if (showExperimentRecent()) {
+                  <mat-option [value]="CommitOption.Recent">
+                    <div>Recent (latest CI build)</div>
+                  </mat-option>
+                }
+                @if (showExperimentHead()) {
+                  <mat-option [value]="CommitOption.Head">
+                    <div>HEAD</div>
+                  </mat-option>
+                }
                 @for (commit of filteredExperimentCommits(); track commit.gitHash) {
                   <mat-option [value]="commit.gitHash">
                     <div>{{ commit.gitHash }}</div>

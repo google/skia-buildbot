@@ -4,7 +4,13 @@ import '@angular/compiler';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
-import { NewJobComponent, Field, Variant, INPUT_DEBOUNCE_TIME_MS } from './new-job.component';
+import {
+  NewJobComponent,
+  Field,
+  Variant,
+  CommitOption,
+  INPUT_DEBOUNCE_TIME_MS,
+} from './new-job.component';
 import { GatewayService } from '../gateway/gateway.service';
 import { BuildInfo } from '../gateway/gateway';
 import { assert } from 'chai';
@@ -80,7 +86,10 @@ describe('NewJobComponent', () => {
     const component = createComponent();
     assert.isNotNull(component.jobForm);
     assert.equal(component.jobForm.get(Field.Attempts)?.value, 30);
-    assert.equal(component.jobForm.get([Variant.Baseline, Field.Commit])?.value, '');
+    assert.equal(
+      component.jobForm.get([Variant.Baseline, Field.Commit])?.value,
+      CommitOption.Recent
+    );
     assert.equal(component.jobForm.get([Variant.Experiment, Field.Commit])?.value, '');
     assert.isFalse(component.jobForm.valid);
   });
@@ -494,6 +503,42 @@ describe('NewJobComponent', () => {
     ]);
   }));
 
+  it('should determine whether to show "Recent" and "HEAD" options based on query', fakeAsync(() => {
+    const component = createComponent();
+    component.ngOnInit();
+    tick();
+
+    // On load, baseline commit is "Recent", so only showBaselineRecent should be true.
+    assert.isTrue(component.showBaselineRecent());
+    assert.isFalse(component.showBaselineHead());
+
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
+
+    // Empty query should show both
+    baselineCommit.setValue('');
+    tick();
+    assert.isTrue(component.showBaselineRecent());
+    assert.isTrue(component.showBaselineHead());
+
+    // Query "rec" should show "Recent" but not "HEAD"
+    baselineCommit.setValue('rec');
+    tick();
+    assert.isTrue(component.showBaselineRecent());
+    assert.isFalse(component.showBaselineHead());
+
+    // Query "HEAD" should show "HEAD" but not "Recent"
+    baselineCommit.setValue(CommitOption.Head);
+    tick();
+    assert.isFalse(component.showBaselineRecent());
+    assert.isTrue(component.showBaselineHead());
+
+    // Query "other" should hide both
+    baselineCommit.setValue('other');
+    tick();
+    assert.isFalse(component.showBaselineRecent());
+    assert.isFalse(component.showBaselineHead());
+  }));
+
   it('should fetch recent commits when bot selection changes to a valid value', fakeAsync(() => {
     const rawCommits: BuildInfo[] = [
       { gitHash: 'commit1', buildNumber: 1, created: '2026-06-11T14:28:34Z' },
@@ -546,7 +591,10 @@ describe('NewJobComponent', () => {
     component.jobForm.get(Field.Bot)?.setValue('');
     tick();
     assert.deepEqual(component.recentBuilds(), []);
-    assert.equal(component.jobForm.get([Variant.Baseline, Field.Commit])?.value, '');
+    assert.equal(
+      component.jobForm.get([Variant.Baseline, Field.Commit])?.value,
+      CommitOption.Recent
+    );
     assert.equal(component.jobForm.get([Variant.Experiment, Field.Commit])?.value, '');
   }));
 
@@ -615,6 +663,80 @@ describe('NewJobComponent', () => {
 
     assert.isNull(component.baselineCommitInfo());
     assert.isFalse(baselineCommit.hasError('invalidCommit'));
+  }));
+
+  it('should update baseline commit info when recent builds load and "Recent" is selected', fakeAsync(() => {
+    const mockCommitResponse = {
+      repository: 'chromium',
+      gitHash: 'hash123',
+      url: 'http://url',
+      author: 'author',
+      created: '',
+      subject: 'recent commit subject',
+      message: 'recent commit message',
+      commitBranch: 'main',
+      commitPosition: 1234,
+      reviewUrl: 'http://review',
+      changeId: 'I1234',
+    };
+    const gateway = {
+      GetCommit: sinon.stub().resolves(mockCommitResponse),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
+    baselineCommit.setValue(CommitOption.Recent);
+    tick(INPUT_DEBOUNCE_TIME_MS);
+
+    // GetCommit shouldn't have been called yet because recentBuilds is empty.
+    assert.isTrue(gateway.GetCommit.notCalled);
+    assert.isNull(component.baselineCommitInfo());
+
+    // Load recent builds.
+    component.recentBuilds.set([{ gitHash: 'hash123', buildNumber: 5, created: '' }]);
+    tick(); // Run the effect
+
+    assert.isTrue(gateway.GetCommit.calledWith({ commit: 'hash123' }));
+    assert.deepEqual(component.baselineCommitInfo(), mockCommitResponse);
+  }));
+
+  it('should update experiment commit info when recent builds load and "Recent" is selected', fakeAsync(() => {
+    const mockCommitResponse = {
+      repository: 'chromium',
+      gitHash: 'hash123',
+      url: 'http://url',
+      author: 'author',
+      created: '',
+      subject: 'recent commit subject',
+      message: 'recent commit message',
+      commitBranch: 'main',
+      commitPosition: 1234,
+      reviewUrl: 'http://review',
+      changeId: 'I1234',
+    };
+    const gateway = {
+      GetCommit: sinon.stub().resolves(mockCommitResponse),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const experimentCommit = component.jobForm.get([Variant.Experiment, Field.Commit])!;
+    experimentCommit.setValue(CommitOption.Recent);
+    tick(INPUT_DEBOUNCE_TIME_MS);
+
+    // GetCommit shouldn't have been called yet because recentBuilds is empty.
+    assert.isTrue(gateway.GetCommit.notCalled);
+    assert.isNull(component.experimentCommitInfo());
+
+    // Load recent builds.
+    component.recentBuilds.set([{ gitHash: 'hash123', buildNumber: 5, created: '' }]);
+    tick(); // Run the effect
+
+    assert.isTrue(gateway.GetCommit.calledWith({ commit: 'hash123' }));
+    assert.deepEqual(component.experimentCommitInfo(), mockCommitResponse);
   }));
 
   it('should ignore outdated commit during async call', fakeAsync(() => {
@@ -736,6 +858,68 @@ describe('NewJobComponent', () => {
     component.submitJob();
     tick();
     assert.isTrue(gateway.CreateTryJob.calledOnce);
+  }));
+
+  it('should fetch commit info for recent build when commit field is set to Recent', fakeAsync(() => {
+    const mockCommitResponse = {
+      repository: 'chromium',
+      gitHash: 'hash123',
+      url: 'http://url',
+      author: 'author',
+      created: '',
+      subject: 'recent commit subject',
+      message: 'recent commit message',
+      commitBranch: 'main',
+      commitPosition: 1234,
+      reviewUrl: 'http://review',
+      changeId: 'I1234',
+    };
+    const gateway = {
+      GetCommit: sinon.stub().resolves(mockCommitResponse),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    // Populate recent builds first.
+    component.recentBuilds.set([{ gitHash: 'hash123', buildNumber: 5, created: '' }]);
+    tick();
+
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
+    baselineCommit.setValue(CommitOption.Recent);
+    tick(INPUT_DEBOUNCE_TIME_MS);
+
+    assert.isTrue(gateway.GetCommit.calledWith({ commit: 'hash123' }));
+    assert.deepEqual(component.baselineCommitInfo(), mockCommitResponse);
+  }));
+
+  it('should fetch commit info for HEAD when commit field is set to HEAD', fakeAsync(() => {
+    const mockCommitResponse = {
+      repository: 'chromium',
+      gitHash: 'head_hash',
+      url: 'http://url',
+      author: 'author',
+      created: '',
+      subject: 'head commit subject',
+      message: 'head commit message',
+      commitBranch: 'main',
+      commitPosition: 1235,
+      reviewUrl: 'http://review',
+      changeId: 'I5678',
+    };
+    const gateway = {
+      GetCommit: sinon.stub().resolves(mockCommitResponse),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
+    baselineCommit.setValue(CommitOption.Head);
+    tick(INPUT_DEBOUNCE_TIME_MS);
+
+    assert.isTrue(gateway.GetCommit.calledWith({ commit: CommitOption.Head }));
+    assert.deepEqual(component.baselineCommitInfo(), mockCommitResponse);
   }));
 
   describe('experimentPanelError', () => {
