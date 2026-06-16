@@ -106,3 +106,22 @@ func TestLoadExistingConfigs_Valid(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotZero(t, cfg, "Config object should not be nil.")
 }
+
+func TestSecurityHeadersMiddleware(t *testing.T) {
+	// Create a dummy handler that does nothing.
+	dummyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+
+	// Wrap it with our middleware.
+	handler := securityHeadersMiddleware(dummyHandler)
+
+	// Create a mock request and response recorder.
+	req, err := http.NewRequest("GET", "/", nil)
+	require.NoError(t, err)
+	rr := httptest.NewRecorder()
+
+	// Serve the request.
+	handler.ServeHTTP(rr, req)
+
+	// Assert the header is set.
+	assert.Equal(t, "frame-ancestors 'self'", rr.Header().Get("Content-Security-Policy"))
+}

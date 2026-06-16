@@ -393,6 +393,7 @@ func mustMakeWebHandlers(ctx context.Context, fsc *frontendServerConfig, db *pgx
 // mustMakeRootRouter returns a chi.Router that can be used to serve Gold's web UI and JSON API.
 func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, plogin alogin.Login) chi.Router {
 	rootRouter := chi.NewRouter()
+	rootRouter.Use(securityHeadersMiddleware)
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	// loggedRouter contains all the endpoints that are logged. See the call below to
@@ -664,4 +665,12 @@ func makeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Req
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
 	}
+}
+
+// securityHeadersMiddleware adds security headers to the response.
+func securityHeadersMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+		next.ServeHTTP(w, r)
+	})
 }

@@ -85,7 +85,7 @@ run_auth_proxy_before_local_instance:
 		--local
 
 
-run_local_frontend: run-spanner-emulator
+run_local_frontend: run_spanner_emulator
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
 		go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
 		../_bazel_bin/golden/cmd/gold_frontend/gold_frontend_/gold_frontend \
@@ -143,7 +143,7 @@ run_local_gold_ingestion_cdb:
 		--common_instance_config=./k8s-instances/local/local-cdb.json5 \
 		--config=./k8s-instances/local/local-ingestion.json5
 
-run_local_diffcalculator: run-spanner-emulator
+run_local_diffcalculator: run_spanner_emulator
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
 	go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
 	GOLD_DIFFCALC_IMAGESOURCE_TYPE=LOCAL ../_bazel_bin/golden/cmd/diffcalculator/diffcalculator_/diffcalculator \
