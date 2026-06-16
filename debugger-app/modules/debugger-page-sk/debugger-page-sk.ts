@@ -540,7 +540,7 @@ export class DebuggerPageSk extends ElementDocSk {
       this._timelineSk!.count = this._fileContext.frameCount;
       this._timelineSk!.hidden = false;
       // shared images deserialproc only used with mskps
-      this._resourcesSk!.update(p);
+      this._resourcesSk!.update(p, this._debugger);
     } else {
       this._timelineSk!.hidden = true;
     }

@@ -10,7 +10,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { DefaultMap } from '../default-map';
 
-import { SkpDebugPlayer } from '../debugger';
+import { Debugger, SkpDebugPlayer } from '../debugger';
 import {
   JumpCommandEventDetail,
   JumpCommandEvent,
@@ -26,6 +26,8 @@ interface ImageItem {
   index: number;
   width: number;
   height: number;
+  colorType: string;
+  alphaType: string;
   pngUri: string;
   // A map from commands to lists of frames
   uses: DefaultMap<number, number[]>;
@@ -81,6 +83,8 @@ export class ResourcesSk extends ElementDocSk {
   private static templateSelectionDetail = (ele: ResourcesSk, item: ImageItem) =>
     html` <b>${item.index}</b><br />
       size: (${item.width}, ${item.height})<br />
+      color: ${item.colorType}<br />
+      alpha: ${item.alphaType}<br />
       Usage in top-level skp
       ${item.uses.size > 0
         ? html`<table class="usage-table">
@@ -124,18 +128,29 @@ export class ResourcesSk extends ElementDocSk {
   // drives the resource grid template
   // To be called once after file load.
   // resources-sk will not save any reference to the player.
-  update(player: SkpDebugPlayer): void {
+  update(player: SkpDebugPlayer, dbg: Debugger): void {
     // At the time of this writing, only MSKP files recorded on android have the necessary metadata
     // to show shared image use across the file.
 
     const imageCount = player.getImageCount();
     this.list = [];
+    const colorTypeLookup = new Map<unknown, string>(
+      Object.entries(dbg.ColorType).map(([key, value]) => [value, key])
+    );
+    const alphaTypeLookup = new Map<unknown, string>(
+      Object.entries(dbg.AlphaType).map(([key, value]) => [value, key])
+    );
+
     for (let i = 0; i < imageCount; i++) {
       const info = player.getImageInfo(i);
+      const colorTypeName = info ? colorTypeLookup.get(info.colorType) ?? 'Unknown' : 'Unknown';
+      const alphaTypeName = info ? alphaTypeLookup.get(info.alphaType) ?? 'Unknown' : 'Unknown';
       this.list.push({
         index: i,
         width: info.width,
         height: info.height,
+        colorType: colorTypeName,
+        alphaType: alphaTypeName,
         pngUri: player.getImageResource(i),
         // this will be populated below
         uses: new DefaultMap<number, number[]>(() => []),
