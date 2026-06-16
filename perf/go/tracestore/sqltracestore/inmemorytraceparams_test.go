@@ -277,7 +277,6 @@ func TestQueryTraceIDs_NonExistentKey_Success(t *testing.T) {
 func TestQueryTraceIDs_KeyOnlyInOlderTile_Success(t *testing.T) {
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, UseInvertedIndex, true)
 
 	// Insert paramsets: 'arch' only in tile 174, 'config' in tile 176.
 	insertIntoParamSets := `
@@ -319,7 +318,6 @@ func TestQueryTraceIDs_KeyOnlyInOlderTile_Success(t *testing.T) {
 func TestQueryTraceIDs_PositiveRegexMatch_Success(t *testing.T) {
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, UseInvertedIndex, true)
 
 	// Insert paramsets
 	insertIntoParamSets := `
@@ -366,7 +364,6 @@ func TestQueryTraceIDs_PositiveRegexMatch_Success(t *testing.T) {
 func TestQueryTraceIDs_EmptyQuery_Success(t *testing.T) {
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, UseInvertedIndex, true)
 
 	// Insert paramsets
 	insertIntoParamSets := `
@@ -407,7 +404,6 @@ func TestQueryTraceIDs_EmptyQuery_Success(t *testing.T) {
 func TestQueryTraceIDs_IntersectionEmpty_Success(t *testing.T) {
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, UseInvertedIndex, true)
 
 	// Insert paramsets
 	insertIntoParamSets := `
@@ -449,7 +445,6 @@ func TestQueryTraceIDs_IntersectionEmpty_Success(t *testing.T) {
 func TestQueryTraceIDs_OnlyNegativeMatch_Success(t *testing.T) {
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, UseInvertedIndex, true)
 
 	// Insert paramsets
 	insertIntoParamSets := `
@@ -493,7 +488,6 @@ func TestQueryTraceIDs_OnlyNegativeMatch_Success(t *testing.T) {
 func TestQueryTraceIDs_OrLogic_Success(t *testing.T) {
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, UseInvertedIndex, true)
 
 	// Insert paramsets
 	insertIntoParamSets := `
@@ -540,7 +534,6 @@ func TestQueryTraceIDs_OrLogic_Success(t *testing.T) {
 func TestQueryTraceIDs_MultipleNegativeMatch_Success(t *testing.T) {
 	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, UseInvertedIndex, true)
 
 	// Insert paramsets
 	insertIntoParamSets := `

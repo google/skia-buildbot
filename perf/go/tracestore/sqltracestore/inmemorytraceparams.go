@@ -43,10 +43,6 @@ type InMemoryTraceParams struct {
 	// Map integer encodings to strings (aka. param values)
 	rEncoding map[int32]string
 
-	// Inverted index: map[param_key]map[param_value_encoding][]int32
-	// Slices of trace_id_idx are naturally sorted because they are built in order.
-	invertIndex map[string]map[int32][]int32
-
 	// Lock around "in-memory" data. Querying takes RLock (non-exclusive),
 	// refreshing takes Lock (exclusive).
 	dataLock sync.RWMutex
@@ -58,11 +54,6 @@ type InMemoryTraceParams struct {
 	// publicParamSet holds the pre-computed ReadOnlyParamSet when showOnlyPublicTraces is true.
 	publicParamSet paramtools.ReadOnlyParamSet
 }
-
-type ContextKey string
-
-const UseInvertedIndex ContextKey = "useInvertedIndex"
-const AllowEmptyQuery ContextKey = "allowEmptyQuery"
 
 const (
 	// No of partitions to use when reading traceParams table.
@@ -137,8 +128,6 @@ func (tp *InMemoryTraceParams) Refresh(ctx context.Context) error {
 		publicParamSet = buildParamSet(traceparams, paramCols, rEncoding).Freeze()
 	}
 
-	invertIndex := buildInvertedIndex(paramCols, traceparams)
-
 	tp.dataLock.Lock()
 	defer tp.dataLock.Unlock()
 	tp.traceparams = traceparams
@@ -146,7 +135,6 @@ func (tp *InMemoryTraceParams) Refresh(ctx context.Context) error {
 	tp.colParams = colParams
 	tp.encoding = encoding
 	tp.rEncoding = rEncoding
-	tp.invertIndex = invertIndex
 	tp.publicTraceIDs = publicTraceIDs
 	tp.publicParamSet = publicParamSet
 	return nil
@@ -365,11 +353,6 @@ func (tp *InMemoryTraceParams) TraceAccessAllowed(traceName string) bool {
 // Query for paramsets in (in-memory version of) traceparams table matching query input
 func (tp *InMemoryTraceParams) QueryTraceIDs(ctx context.Context, tileNumber types.TileNumber,
 	q *query.Query, outParams chan paramtools.Params) {
-	if ctx.Value(UseInvertedIndex) == true {
-		tp.queryTraceIDsInvertIndex(ctx, tileNumber, q, outParams)
-		return
-	}
-
 	go func() {
 		sklog.Debug("Start filtering encodings")
 		ctx, span := trace.StartSpan(ctx, "InMemoryTraceParams.QueryTraceIDs")
@@ -506,221 +489,6 @@ func (tp *InMemoryTraceParams) QueryTraceIDs(ctx context.Context, tileNumber typ
 			sklog.Errorf("Error querying traceids. %s", err)
 		}
 	}()
-}
-
-func (tp *InMemoryTraceParams) queryTraceIDsInvertIndex(ctx context.Context, tileNumber types.TileNumber,
-	q *query.Query, outParams chan paramtools.Params) {
-	go func() {
-		sklog.Debug("Start filtering encodings")
-		_, span := trace.StartSpan(ctx, "InMemoryTraceParams.QueryTraceIDs")
-		defer span.End()
-		defer close(outParams)
-		tp.dataLock.RLock()
-		defer tp.dataLock.RUnlock()
-
-		matchedIndices := tp.executeQuery(q)
-
-		sklog.Infof("Found %d matching traces", len(matchedIndices))
-
-		// Reconstruct Params for matching traces
-		for _, traceIdIdx := range matchedIndices {
-			var params paramtools.Params = paramtools.Params{}
-			for p, c := range tp.paramCols {
-				e := tp.traceparams[c][traceIdIdx]
-				if e >= 0 {
-					params[p] = tp.rEncoding[e]
-				}
-			}
-			outParams <- params
-		}
-	}()
-}
-
-func (tp *InMemoryTraceParams) executeQuery(q *query.Query) []int32 {
-	if len(tp.traceparams) == 0 {
-		return nil
-	}
-
-	var currentResult []int32
-	first := true
-
-	initAllTraces := func() {
-		numTraces := len(tp.traceparams[0])
-		currentResult = make([]int32, numTraces)
-		for i := range currentResult {
-			currentResult[i] = int32(i)
-		}
-		first = false
-	}
-
-	for _, queryParam := range q.Params {
-		key := queryParam.Key()
-		paramIndex, ok := tp.invertIndex[key]
-		if !ok {
-			if len(queryParam.Values) > 0 || queryParam.Reg != nil {
-				return nil
-			}
-			continue
-		}
-
-		matchedIDs := tp.getMatchedIDs(&queryParam, paramIndex)
-
-		hasPositiveConstraints := len(queryParam.Values) > 0 || queryParam.Reg != nil
-		if hasPositiveConstraints && len(matchedIDs) == 0 {
-			return nil
-		}
-
-		if len(matchedIDs) > 0 {
-			if first {
-				currentResult = matchedIDs
-				first = false
-			} else {
-				currentResult = intersect(currentResult, matchedIDs)
-			}
-		}
-
-		excludedIDs := tp.getExcludedIDs(&queryParam, paramIndex)
-		if len(excludedIDs) > 0 {
-			if first {
-				initAllTraces()
-			}
-			currentResult = difference(currentResult, excludedIDs)
-		}
-
-		if len(currentResult) == 0 {
-			return nil
-		}
-	}
-
-	if first {
-		initAllTraces()
-	}
-
-	return currentResult
-}
-
-func (tp *InMemoryTraceParams) getMatchedIDs(queryParam *query.QueryParam, paramIndex map[int32][]int32) []int32 {
-	var matchedIDs []int32
-	for _, val := range queryParam.Values {
-		if e, ok := tp.encoding[val]; ok {
-			if ids, ok := paramIndex[e]; ok {
-				matchedIDs = append(matchedIDs, ids...)
-			}
-		}
-	}
-	if queryParam.Reg != nil {
-		for e, ids := range paramIndex {
-			if queryParam.Reg.MatchString(tp.rEncoding[e]) {
-				matchedIDs = append(matchedIDs, ids...)
-			}
-		}
-	}
-	if len(matchedIDs) > 0 {
-		sort.Slice(matchedIDs, func(i, j int) bool { return matchedIDs[i] < matchedIDs[j] })
-		matchedIDs = deduplicate(matchedIDs)
-	}
-	return matchedIDs
-}
-
-func (tp *InMemoryTraceParams) getExcludedIDs(queryParam *query.QueryParam, paramIndex map[int32][]int32) []int32 {
-	var excludedIDs []int32
-	if len(queryParam.NegativeValues) == 0 && queryParam.NegativeReg == nil {
-		return nil
-	}
-	for _, val := range queryParam.NegativeValues {
-		if e, ok := tp.encoding[val]; ok {
-			if ids, ok := paramIndex[e]; ok {
-				excludedIDs = append(excludedIDs, ids...)
-			}
-		}
-	}
-	if queryParam.NegativeReg != nil {
-		for e, ids := range paramIndex {
-			if queryParam.NegativeReg.MatchString(tp.rEncoding[e]) {
-				excludedIDs = append(excludedIDs, ids...)
-			}
-		}
-	}
-	if len(excludedIDs) > 0 {
-		sort.Slice(excludedIDs, func(i, j int) bool { return excludedIDs[i] < excludedIDs[j] })
-		excludedIDs = deduplicate(excludedIDs)
-	}
-	return excludedIDs
-}
-
-func buildInvertedIndex(paramCols map[string]int32, traceparams [][]int32) map[string]map[int32][]int32 {
-	sklog.Infof("Building inverted index...")
-	invertIndex := map[string]map[int32][]int32{}
-	for p, c := range paramCols {
-		invertIndex[p] = map[int32][]int32{}
-		column := traceparams[c]
-		for traceIdIdx, val := range column {
-			if val >= 0 {
-				invertIndex[p][val] = append(invertIndex[p][val], int32(traceIdIdx))
-			}
-		}
-	}
-	sklog.Infof("Inverted index built.")
-	return invertIndex
-}
-
-func deduplicate(a []int32) []int32 {
-	if len(a) <= 1 {
-		return a
-	}
-	result := make([]int32, 0, len(a))
-	result = append(result, a[0])
-	for i := 1; i < len(a); i++ {
-		if a[i] != a[i-1] {
-			result = append(result, a[i])
-		}
-	}
-	return result
-}
-
-func intersect(a, b []int32) []int32 {
-	result := make([]int32, 0, min(len(a), len(b)))
-	i, j := 0, 0
-	for i < len(a) && j < len(b) {
-		if a[i] < b[j] {
-			i++
-		} else if a[i] > b[j] {
-			j++
-		} else {
-			result = append(result, a[i])
-			i++
-			j++
-		}
-	}
-	return result
-}
-
-func difference(a, b []int32) []int32 {
-	result := make([]int32, 0, len(a))
-	i, j := 0, 0
-	for i < len(a) && j < len(b) {
-		if a[i] < b[j] {
-			result = append(result, a[i])
-			i++
-		} else if a[i] > b[j] {
-			j++
-		} else {
-			i++
-			j++
-		}
-	}
-	for i < len(a) {
-		result = append(result, a[i])
-		i++
-	}
-	return result
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // ShowOnlyPublicTraces returns true if the instance is configured in showOnlyPublicTraces mode.
