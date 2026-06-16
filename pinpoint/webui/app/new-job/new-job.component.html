@@ -103,7 +103,7 @@
       <mat-card-header>
         <mat-card-title>Baseline</mat-card-title>
       </mat-card-header>
-      <mat-card-content [formGroupName]="Field.Baseline">
+      <mat-card-content [formGroupName]="Variant.Baseline">
         <div>
           <mat-form-field matTooltip="The git commit hash, revision, or HEAD to use as the baseline.">
             <mat-label>Commit</mat-label>
@@ -116,10 +116,10 @@
                 </mat-option>
               }
             </mat-autocomplete>
-            @if (jobForm.get([Field.Baseline, Field.Commit])?.hasError('required')) {
+            @if (jobForm.get([Variant.Baseline, Field.Commit])?.hasError('required')) {
               <mat-error>Commit is required</mat-error>
             }
-            @if (jobForm.get([Field.Baseline, Field.Commit])?.hasError('invalidCommit')) {
+            @if (jobForm.get([Variant.Baseline, Field.Commit])?.hasError('invalidCommit')) {
               <mat-error>Invalid commit</mat-error>
             }
           </mat-form-field>
@@ -202,7 +202,7 @@
       <mat-card-header>
         <mat-card-title>Experiment</mat-card-title>
       </mat-card-header>
-      <mat-card-content [formGroupName]="Field.Experiment">
+      <mat-card-content [formGroupName]="Variant.Experiment">
         <div>
           <mat-form-field matTooltip="The Gerrit change ID or review URL
           containing the experiment changes to test against the baseline.">
@@ -235,7 +235,7 @@
                   </mat-option>
                 }
               </mat-autocomplete>
-              @if (jobForm.get([Field.Experiment, Field.Commit])?.hasError('invalidCommit')) {
+              @if (jobForm.get([Variant.Experiment, Field.Commit])?.hasError('invalidCommit')) {
                 <mat-error>Invalid commit</mat-error>
               }
             </mat-form-field>

@@ -4,7 +4,7 @@ import '@angular/compiler';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
-import { NewJobComponent, Field, INPUT_DEBOUNCE_TIME_MS } from './new-job.component';
+import { NewJobComponent, Field, Variant, INPUT_DEBOUNCE_TIME_MS } from './new-job.component';
 import { GatewayService } from '../gateway/gateway.service';
 import { BuildInfo } from '../gateway/gateway';
 import { assert } from 'chai';
@@ -59,7 +59,7 @@ describe('NewJobComponent', () => {
     component.benchmarks.set(['speedometer']);
     component.jobForm.get(Field.Benchmark)?.setValue('speedometer');
     component.jobForm.get(Field.Story)?.setValue('Speedometer3');
-    component.jobForm.get([Field.Baseline, Field.Commit])?.setValue('abcd1234');
+    component.jobForm.get([Variant.Baseline, Field.Commit])?.setValue('abcd1234');
     component.baselineCommitInfo.set({
       repository: 'chromium',
       gitHash: 'abcd1234',
@@ -80,8 +80,8 @@ describe('NewJobComponent', () => {
     const component = createComponent();
     assert.isNotNull(component.jobForm);
     assert.equal(component.jobForm.get(Field.Attempts)?.value, 30);
-    assert.equal(component.jobForm.get([Field.Baseline, Field.Commit])?.value, '');
-    assert.equal(component.jobForm.get([Field.Experiment, Field.Commit])?.value, '');
+    assert.equal(component.jobForm.get([Variant.Baseline, Field.Commit])?.value, '');
+    assert.equal(component.jobForm.get([Variant.Experiment, Field.Commit])?.value, '');
     assert.isFalse(component.jobForm.valid);
   });
 
@@ -468,27 +468,27 @@ describe('NewJobComponent', () => {
     component.recentBuilds.set(builds);
 
     // Test baseline commit filtering by git hash
-    component.jobForm.get([Field.Baseline, Field.Commit])?.setValue('abc');
+    component.jobForm.get([Variant.Baseline, Field.Commit])?.setValue('abc');
     assert.deepEqual(component.filteredBaselineCommits(), [
       { gitHash: 'abc123commit', buildNumber: 10, created: '' },
       { gitHash: 'abc789commit', buildNumber: 30, created: '' },
     ]);
 
     // Test baseline commit filtering by build number
-    component.jobForm.get([Field.Baseline, Field.Commit])?.setValue('2');
+    component.jobForm.get([Variant.Baseline, Field.Commit])?.setValue('2');
     assert.deepEqual(component.filteredBaselineCommits(), [
       { gitHash: 'def456commit', buildNumber: 20, created: '' },
     ]);
 
     // Test case insensitivity and trimming
-    component.jobForm.get([Field.Baseline, Field.Commit])?.setValue('  ABC  ');
+    component.jobForm.get([Variant.Baseline, Field.Commit])?.setValue('  ABC  ');
     assert.deepEqual(component.filteredBaselineCommits(), [
       { gitHash: 'abc123commit', buildNumber: 10, created: '' },
       { gitHash: 'abc789commit', buildNumber: 30, created: '' },
     ]);
 
     // Test experiment commit filtering
-    component.jobForm.get([Field.Experiment, Field.Commit])?.setValue('def');
+    component.jobForm.get([Variant.Experiment, Field.Commit])?.setValue('def');
     assert.deepEqual(component.filteredExperimentCommits(), [
       { gitHash: 'def456commit', buildNumber: 20, created: '' },
     ]);
@@ -546,8 +546,8 @@ describe('NewJobComponent', () => {
     component.jobForm.get(Field.Bot)?.setValue('');
     tick();
     assert.deepEqual(component.recentBuilds(), []);
-    assert.equal(component.jobForm.get([Field.Baseline, Field.Commit])?.value, '');
-    assert.equal(component.jobForm.get([Field.Experiment, Field.Commit])?.value, '');
+    assert.equal(component.jobForm.get([Variant.Baseline, Field.Commit])?.value, '');
+    assert.equal(component.jobForm.get([Variant.Experiment, Field.Commit])?.value, '');
   }));
 
   it('should fetch commit info and clear error on successful GetCommit', fakeAsync(() => {
@@ -571,7 +571,7 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
     baselineCommit.setValue('abcdef0123456789abcdef0123456789abcdef01');
     tick(INPUT_DEBOUNCE_TIME_MS);
 
@@ -590,7 +590,7 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
     baselineCommit.setValue('abcdef0123456789abcdef0123456789abcdef01');
     tick(INPUT_DEBOUNCE_TIME_MS);
 
@@ -606,7 +606,7 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
     baselineCommit.setErrors({ invalidCommit: true });
     component.baselineCommitInfo.set({} as any);
 
@@ -642,7 +642,7 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
 
     baselineCommit.setValue('abcdef0123456789abcdef0123456789abcdef01');
     tick(INPUT_DEBOUNCE_TIME_MS);
@@ -666,7 +666,7 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
 
     baselineCommit.setValue('a');
     tick(100);
@@ -693,7 +693,7 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
     baselineCommit.setValue('123');
 
     component.submitJob();
@@ -721,7 +721,7 @@ describe('NewJobComponent', () => {
     component.ngOnInit();
     tick();
 
-    const experimentCommit = component.jobForm.get([Field.Experiment, Field.Commit])!;
+    const experimentCommit = component.jobForm.get([Variant.Experiment, Field.Commit])!;
     experimentCommit.setValue('456');
 
     component.submitJob();
@@ -746,7 +746,7 @@ describe('NewJobComponent', () => {
 
     it('should return true if experiment commit has invalidCommit error', () => {
       const component = createComponent();
-      const experimentCommit = component.jobForm.get([Field.Experiment, Field.Commit])!;
+      const experimentCommit = component.jobForm.get([Variant.Experiment, Field.Commit])!;
       experimentCommit.setErrors({ invalidCommit: true });
       assert.isTrue(component.experimentPanelError());
     });

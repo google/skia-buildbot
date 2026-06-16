@@ -29,6 +29,11 @@ import {
   GetCommitResponse,
 } from '../gateway/gateway';
 
+export enum Variant {
+  Baseline = 'baseline',
+  Experiment = 'experiment',
+}
+
 export enum Field {
   JobName = 'jobName',
   Attempts = 'attempts',
@@ -37,8 +42,6 @@ export enum Field {
   Benchmark = 'benchmark',
   Story = 'story',
   StoryTags = 'storyTags',
-  Baseline = 'baseline',
-  Experiment = 'experiment',
   Commit = 'commit',
   Patch = 'patch',
   BenchmarkRunnerArgs = 'benchmarkRunnerArgs',
@@ -83,6 +86,8 @@ const variantGroupConfig = (commitRequired = false) => ({
 export class NewJobComponent implements OnInit {
   readonly Field = Field;
 
+  readonly Variant = Variant;
+
   private formBuilder = inject(FormBuilder);
 
   private gatewayService = inject(GatewayService);
@@ -116,8 +121,8 @@ export class NewJobComponent implements OnInit {
     [Field.Benchmark]: ['', [Validators.required, this.autocompleteValidator(this.benchmarks)]],
     [Field.Story]: [''],
     [Field.StoryTags]: [''],
-    [Field.Baseline]: this.formBuilder.group(variantGroupConfig(true)),
-    [Field.Experiment]: this.formBuilder.group(variantGroupConfig()),
+    [Variant.Baseline]: this.formBuilder.group(variantGroupConfig(true)),
+    [Variant.Experiment]: this.formBuilder.group(variantGroupConfig()),
   });
 
   botQuery = this.inputFieldSignal(Field.Bot);
@@ -136,11 +141,11 @@ export class NewJobComponent implements OnInit {
 
   filteredStoryTags = this.filterValuesByInput(this.storyTagsQuery, this.storyTags);
 
-  baselineCommitQuery = this.inputFieldSignal([Field.Baseline, Field.Commit]);
+  baselineCommitQuery = this.inputFieldSignal([Variant.Baseline, Field.Commit]);
 
   filteredBaselineCommits = this.filterBuildsByInput(this.baselineCommitQuery, this.recentBuilds);
 
-  experimentCommitQuery = this.inputFieldSignal([Field.Experiment, Field.Commit]);
+  experimentCommitQuery = this.inputFieldSignal([Variant.Experiment, Field.Commit]);
 
   filteredExperimentCommits = this.filterBuildsByInput(
     this.experimentCommitQuery,
@@ -247,12 +252,12 @@ export class NewJobComponent implements OnInit {
 
     const baselineCommit = this.baselineCommitInfo()?.gitHash;
     if (!baselineCommit) {
-      const baselineCommitControl = this.jobForm.get([Field.Baseline, Field.Commit])!;
+      const baselineCommitControl = this.jobForm.get([Variant.Baseline, Field.Commit])!;
       baselineCommitControl.setErrors({ ...baselineCommitControl.errors, invalidCommit: true });
     }
 
     const experimentCommit = this.experimentCommitInfo()?.gitHash;
-    const experimentCommitControl = this.jobForm.get([Field.Experiment, Field.Commit])!;
+    const experimentCommitControl = this.jobForm.get([Variant.Experiment, Field.Commit])!;
     if (experimentCommitControl.value && !experimentCommit) {
       experimentCommitControl.setErrors({ ...experimentCommitControl.errors, invalidCommit: true });
     }
@@ -273,9 +278,9 @@ export class NewJobComponent implements OnInit {
       story: form[Field.Story],
       storyTags: form[Field.StoryTags] || '',
       attemptCount: Number(form[Field.Attempts]),
-      base: this.getVariantConfig({ ...form[Field.Baseline], commit: baselineCommit }),
+      base: this.getVariantConfig({ ...form[Variant.Baseline], commit: baselineCommit }),
       experiment: this.getVariantConfig({
-        ...form[Field.Experiment],
+        ...form[Variant.Experiment],
         commit: experimentCommit || baselineCommit,
       }),
       bugId: form[Field.BugId] ? Number(form[Field.BugId]) : undefined,
@@ -306,12 +311,12 @@ export class NewJobComponent implements OnInit {
   }
 
   experimentPanelError(): boolean {
-    return this.jobForm.get([Field.Experiment, Field.Commit])!.invalid;
+    return this.jobForm.get([Variant.Experiment, Field.Commit])!.invalid;
   }
 
   private setupCommitChangeListeners() {
-    this.setupCommitListener([Field.Baseline, Field.Commit], this.baselineCommitInfo);
-    this.setupCommitListener([Field.Experiment, Field.Commit], this.experimentCommitInfo);
+    this.setupCommitListener([Variant.Baseline, Field.Commit], this.baselineCommitInfo);
+    this.setupCommitListener([Variant.Experiment, Field.Commit], this.experimentCommitInfo);
   }
 
   private setupCommitListener(
