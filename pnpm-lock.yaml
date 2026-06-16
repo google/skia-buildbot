@@ -261,7 +261,7 @@ importers:
         specifier: ^3.2.0
         version: 3.3.3
       lottie-web:
-        specifier: ^5.9.6
+        specifier: ^5.13.0
         version: 5.13.0
       marked:
         specifier: ^4.0.12

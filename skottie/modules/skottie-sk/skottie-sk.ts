@@ -464,7 +464,7 @@ export class SkottieSk extends ElementSk {
       </summary>
       <div class="options-container">
         <checkbox-sk
-          label="Show lottie-web"
+          label="Show lottie-web (5.13.0)"
           ?checked=${this.showLottie}
           @click=${this.toggleLottie}>
         </checkbox-sk>
