@@ -1,4 +1,4 @@
-package gemini
+package utils
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"google.golang.org/genai"
 )
 
-func doBackoff(opName string, fn func() error) error {
+func DoBackoff(opName string, fn func() error) error {
 	// These are default values at the time of writing, but we lay them out
 	// explicitly for clarity.
 	b := backoff.NewExponentialBackOff()
@@ -35,19 +35,19 @@ func extractErrorMessage(err error) string {
 	return err.Error()
 }
 
-type rateLimiter struct {
+type RateLimiter struct {
 	requestLimiter *rate.Limiter
 	tokenLimiter   *rate.Limiter
 }
 
-func newRateLimiter(rpm, tpm int) *rateLimiter {
-	return &rateLimiter{
+func NewRateLimiter(rpm, tpm int) *RateLimiter {
+	return &RateLimiter{
 		requestLimiter: rate.NewLimiter(rate.Limit(float64(rpm)/60.0), rpm),
 		tokenLimiter:   rate.NewLimiter(rate.Limit(float64(tpm)/60.0), tpm),
 	}
 }
 
-func (l *rateLimiter) Wait(ctx context.Context, model string, client *genai.Client, history []*genai.Content, parts []genai.Part) error {
+func (l *RateLimiter) Wait(ctx context.Context, model string, client *genai.Client, history []*genai.Content, parts []genai.Part) error {
 	if err := l.requestLimiter.Wait(ctx); err != nil {
 		return skerr.Wrap(err)
 	}

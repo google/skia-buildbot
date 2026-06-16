@@ -1,0 +1,35 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "mcp",
+    srcs = ["mcp.go"],
+    importpath = "go.skia.org/infra/autogardener/go/mcp",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autogardener/go/utils",
+        "//go/auth",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//mcp/services/skia/format",
+        "@com_github_cenkalti_backoff_v4//:backoff",
+        "@com_github_mark3labs_mcp_go//client",
+        "@com_github_mark3labs_mcp_go//client/transport",
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@org_golang_google_genai//:genai",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "mcp_test",
+    srcs = ["mcp_test.go"],
+    embed = [":mcp"],
+    deps = [
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_github_mark3labs_mcp_go//server",
+        "@com_github_stretchr_testify//require",
+    ],
+)

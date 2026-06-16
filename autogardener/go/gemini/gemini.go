@@ -11,8 +11,10 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/invopop/jsonschema"
-	"github.com/mark3labs/mcp-go/mcp"
+	m3_mcp "github.com/mark3labs/mcp-go/mcp"
+	"go.skia.org/infra/autogardener/go/mcp"
 	"go.skia.org/infra/autogardener/go/types"
+	"go.skia.org/infra/autogardener/go/utils"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -36,10 +38,10 @@ type clientImpl struct {
 	client           *genai.Client
 	location         string
 	cheapModel       string
-	cheapModelRL     *rateLimiter
+	cheapModelRL     *utils.RateLimiter
 	expensiveModel   string
-	expensiveModelRL *rateLimiter
-	mcpClient        *MCPClient
+	expensiveModelRL *utils.RateLimiter
+	mcpClient        mcp.MCPClient
 	project          string
 	gcs              *storage.Client
 	gcsBucketDebug   string
@@ -47,7 +49,7 @@ type clientImpl struct {
 
 // NewClient returns a Client instance.
 func NewClient(ctx context.Context, project, location, cheapModel, expensiveModel, apiKey, mcpServer, gcsBucketDebug string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (Client, error) {
-	mcpClient, err := NewMCPClient(ctx, mcpServer)
+	mcpClient, err := mcp.NewMCPClient(ctx, mcpServer)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -96,8 +98,8 @@ func NewClient(ctx context.Context, project, location, cheapModel, expensiveMode
 		location:         location,
 		cheapModel:       cheapModel,
 		expensiveModel:   expensiveModel,
-		cheapModelRL:     newRateLimiter(cheapRPM, cheapTPM),
-		expensiveModelRL: newRateLimiter(expensiveRPM, expensiveTPM),
+		cheapModelRL:     utils.NewRateLimiter(cheapRPM, cheapTPM),
+		expensiveModelRL: utils.NewRateLimiter(expensiveRPM, expensiveTPM),
 		mcpClient:        mcpClient,
 		project:          project,
 		gcs:              gcs,
@@ -138,7 +140,7 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 
 	// Retrieve the task steps so that the agent doesn't have to.
 	var taskSteps task_details.GetTaskStepsResult
-	if err := c.mcpClient.callToolJSON(ctx, "get_task_steps", map[string]interface{}{"task_id": task.Id}, &taskSteps); err != nil {
+	if err := mcp.CallToolJSON(ctx, c.mcpClient, "get_task_steps", map[string]interface{}{"task_id": task.Id}, &taskSteps); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -204,7 +206,7 @@ about any other tasks.
 	return &res, nil
 }
 
-func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rateLimiter, allowTools []string, result interface{}) (*DebugInfo, error) {
+func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *utils.RateLimiter, allowTools []string, result interface{}) (*DebugInfo, error) {
 	debug := &DebugInfo{
 		Prompt: prompt,
 		Model:  model,
@@ -232,7 +234,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 	}
 
 	var resp *genai.GenerateContentResponse
-	if err := doBackoff("SendMessage", func() error {
+	if err := utils.DoBackoff("SendMessage", func() error {
 		parts := []genai.Part{{Text: prompt}}
 		if err := rl.Wait(ctx, model, c.client, chat.History(false), parts); err != nil {
 			return skerr.Wrap(err)
@@ -251,14 +253,14 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 
 		var toolResponses []genai.Part
 		for _, fc := range functionCalls {
-			toolRes, err := c.mcpClient.callTool(ctx, fc.Name, fc.Args)
+			toolRes, err := c.mcpClient.CallTool(ctx, fc.Name, fc.Args)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "tool call %s failed", fc.Name)
 			}
 
 			var sb strings.Builder
 			for _, content := range toolRes.Content {
-				if tc, ok := content.(mcp.TextContent); ok {
+				if tc, ok := content.(m3_mcp.TextContent); ok {
 					sb.WriteString(tc.Text)
 				} else {
 					sb.WriteString(fmt.Sprintf("%v", content))
@@ -286,7 +288,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 				Result: sb.String(),
 			})
 		}
-		if err := doBackoff("SendMessage", func() error {
+		if err := utils.DoBackoff("SendMessage", func() error {
 			if err := rl.Wait(ctx, model, c.client, chat.History(false), toolResponses); err != nil {
 				return skerr.Wrap(err)
 			}
@@ -303,7 +305,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *rat
 		ResponseMIMEType:   "application/json",
 		ResponseJsonSchema: jsonschema.Reflect(result),
 	}
-	if err := doBackoff("GenerateContent", func() error {
+	if err := utils.DoBackoff("GenerateContent", func() error {
 		// We use the history from the chat but perform a new GenerateContent
 		// call with the JSON config.
 		history := chat.History(false)

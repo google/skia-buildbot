@@ -1,4 +1,4 @@
-package gemini
+package mcp
 
 import (
 	"context"
@@ -49,7 +49,7 @@ func TestMCPClient_ReInitOnInvalidSession(t *testing.T) {
 
 	// Call the tool. The first call will fail with "Invalid session ID".
 	// The callTool method should trigger maybeReInit and doBackoff should retry.
-	res, err := mcpClient.callTool(ctx, "test_tool", nil)
+	res, err := mcpClient.CallTool(ctx, "test_tool", nil)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, "Success", res.Content[0].(mcp.TextContent).Text)

@@ -1,4 +1,4 @@
-package gemini
+package mcp
 
 import (
 	"bytes"
@@ -14,6 +14,7 @@ import (
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/client/transport"
 	"github.com/mark3labs/mcp-go/mcp"
+	"go.skia.org/infra/autogardener/go/utils"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -24,7 +25,12 @@ import (
 	"google.golang.org/genai"
 )
 
-type MCPClient struct {
+type MCPClient interface {
+	CallTool(ctx context.Context, toolName string, args map[string]interface{}) (*mcp.CallToolResult, error)
+	Tools() []*genai.Tool
+}
+
+type mcpClient struct {
 	client     *client.Client
 	httpClient *http.Client
 	mcpServer  string
@@ -37,7 +43,7 @@ type MCPClient struct {
 	initCount int
 }
 
-func NewMCPClient(ctx context.Context, mcpServer string) (*MCPClient, error) {
+func NewMCPClient(ctx context.Context, mcpServer string) (*mcpClient, error) {
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -46,8 +52,8 @@ func NewMCPClient(ctx context.Context, mcpServer string) (*MCPClient, error) {
 	return NewMCPClientWithClient(ctx, mcpServer, httpClient)
 }
 
-func NewMCPClientWithClient(ctx context.Context, mcpServer string, httpClient *http.Client) (*MCPClient, error) {
-	rv := &MCPClient{
+func NewMCPClientWithClient(ctx context.Context, mcpServer string, httpClient *http.Client) (*mcpClient, error) {
+	rv := &mcpClient{
 		httpClient: httpClient,
 		mcpServer:  mcpServer,
 	}
@@ -58,7 +64,7 @@ func NewMCPClientWithClient(ctx context.Context, mcpServer string, httpClient *h
 }
 
 // init (re)initializes the underlying MCP client.
-func (c *MCPClient) init(ctx context.Context) error {
+func (c *mcpClient) init(ctx context.Context) error {
 	metrics2.GetCounter("autogardener_reinit_count").Inc(1)
 	sklog.Infof("initializing MCP server connection")
 
@@ -110,7 +116,7 @@ func (c *MCPClient) init(ctx context.Context) error {
 	return nil
 }
 
-func (c *MCPClient) maybeReInit(ctx context.Context) {
+func (c *mcpClient) maybeReInit(ctx context.Context) {
 	c.mtx.Lock()
 	if c.initializing {
 		c.mtx.Unlock()
@@ -127,7 +133,7 @@ func (c *MCPClient) maybeReInit(ctx context.Context) {
 	}
 }
 
-func (c *MCPClient) Tools() []*genai.Tool {
+func (c *mcpClient) Tools() []*genai.Tool {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 	return c.tools
@@ -168,10 +174,10 @@ func convertProperty(prop any) *genai.Schema {
 	return res
 }
 
-func (c *MCPClient) callTool(ctx context.Context, toolName string, args map[string]interface{}) (*mcp.CallToolResult, error) {
+func (c *mcpClient) CallTool(ctx context.Context, toolName string, args map[string]interface{}) (*mcp.CallToolResult, error) {
 	defer metrics2.FuncTimer().Stop()
 	var res *mcp.CallToolResult
-	err := doBackoff(toolName, func() error {
+	err := utils.DoBackoff(toolName, func() error {
 		c.mtx.RLock()
 		defer c.mtx.RUnlock()
 
@@ -209,9 +215,9 @@ func (c *MCPClient) callTool(ctx context.Context, toolName string, args map[stri
 	return res, skerr.Wrap(err)
 }
 
-func (c *MCPClient) callToolJSON(ctx context.Context, toolName string, args map[string]interface{}, result interface{}) error {
+func CallToolJSON(ctx context.Context, c MCPClient, toolName string, args map[string]interface{}, result interface{}) error {
 	args[format.ArgFormat] = format.FormatJSON
-	res, err := c.callTool(ctx, toolName, args)
+	res, err := c.CallTool(ctx, toolName, args)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -229,3 +235,6 @@ func (c *MCPClient) callToolJSON(ctx context.Context, toolName string, args map[
 	}
 	return skerr.Wrap(json.NewDecoder(bytes.NewReader([]byte(textContent.String()))).Decode(result))
 }
+
+// Assert that mcpClient implements MCPClient.
+var _ MCPClient = &mcpClient{}

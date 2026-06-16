@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "utils",
+    srcs = ["utils.go"],
+    importpath = "go.skia.org/infra/autogardener/go/utils",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_cenkalti_backoff//:backoff",
+        "@org_golang_google_genai//:genai",
+        "@org_golang_x_time//rate",
+    ],
+)

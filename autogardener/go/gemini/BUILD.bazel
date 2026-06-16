@@ -1,48 +1,27 @@
 load("@rules_go//go:def.bzl", "go_library")
-load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "gemini",
-    srcs = [
-        "gemini.go",
-        "mcp.go",
-        "utils.go",
-    ],
+    srcs = ["gemini.go"],
     importpath = "go.skia.org/infra/autogardener/go/gemini",
     visibility = ["//visibility:public"],
     deps = [
+        "//autogardener/go/mcp",
         "//autogardener/go/types",
+        "//autogardener/go/utils",
         "//go/auth",
-        "//go/httputils",
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "//mcp/services/skia/format",
         "//mcp/services/skia/task_details",
         "//mcp/services/skia/task_scheduler",
         "//task_scheduler/go/types",
-        "@com_github_cenkalti_backoff//:backoff",
-        "@com_github_cenkalti_backoff_v4//:backoff",
         "@com_github_invopop_jsonschema//:jsonschema",
-        "@com_github_mark3labs_mcp_go//client",
-        "@com_github_mark3labs_mcp_go//client/transport",
         "@com_github_mark3labs_mcp_go//mcp",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
         "@org_golang_google_genai//:genai",
         "@org_golang_x_oauth2//google",
-        "@org_golang_x_time//rate",
-    ],
-)
-
-go_test(
-    name = "gemini_test",
-    srcs = ["mcp_test.go"],
-    embed = [":gemini"],
-    deps = [
-        "@com_github_mark3labs_mcp_go//mcp",
-        "@com_github_mark3labs_mcp_go//server",
-        "@com_github_stretchr_testify//require",
     ],
 )
