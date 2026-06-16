@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "logs",
+    srcs = ["logs.go"],
+    importpath = "go.skia.org/infra/autogardener/go/logs",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "logs_test",
+    srcs = ["logs_test.go"],
+    embed = [":logs"],
+    deps = ["@com_github_stretchr_testify//require"],
+)
