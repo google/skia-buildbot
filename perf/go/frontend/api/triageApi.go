@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issuetracker/v1"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
@@ -123,8 +124,8 @@ func cleanErrorMsg(err error) string {
 }
 
 func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
-	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
+	if !api.loginProvider.HasRole(r, roles.Editor) {
+		httputils.ReportError(w, errors.New("not authorized"), "You must be logged in with editor role to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -171,8 +172,8 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 // whether that be the Bug ID due to triage or end revision due to nudging.
 // TODO(b/455571863) Update this description after migration is implemented.
 func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
-	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+	if !api.loginProvider.HasRole(r, roles.Editor) {
+		httputils.ReportError(w, errors.New("not authorized"), "You must be logged in with editor role to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -229,8 +230,8 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
-	if api.loginProvider.LoggedInAs(r) == "" {
-		httputils.ReportError(w, errors.New("not logged in"), fmt.Sprint("You must be logged in to complete this action."), http.StatusUnauthorized)
+	if !api.loginProvider.HasRole(r, roles.Editor) {
+		httputils.ReportError(w, errors.New("not authorized"), "You must be logged in with editor role to complete this action.", http.StatusUnauthorized)
 		return
 	}
 

@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/alogin"
 	aloginMocks "go.skia.org/infra/go/alogin/mocks"
 	"go.skia.org/infra/go/issuetracker/v1"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/testutils"
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	issueTrackerMock "go.skia.org/infra/perf/go/issuetracker/mocks"
@@ -48,7 +49,7 @@ func TestFileNewBug_NotLoggedIn(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail(""))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(false)
 
 	api := NewTriageApi(login, nil, nil, nil)
 
@@ -58,7 +59,7 @@ func TestFileNewBug_NotLoggedIn(t *testing.T) {
 	api.FileNewBug(w, r)
 
 	require.Equal(http.StatusUnauthorized, w.Code)
-	require.Contains(w.Body.String(), "You must be logged in to complete this action.")
+	require.Contains(w.Body.String(), "You must be logged in with editor role to complete this action.")
 	login.AssertExpectations(t)
 }
 
@@ -66,7 +67,7 @@ func TestFileNewBug_InvalidJson(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	api := NewTriageApi(login, nil, nil, nil)
 
@@ -84,7 +85,7 @@ func TestFileNewBug_BackendError(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	mockBackend := &MockTriageBackend{}
 	mockBackend.On("FileBug", testutils.AnyContext, mock.AnythingOfType("*issuetracker.FileBugRequest")).Return(&SkiaFileBugResponse{}, errors.New("backend error"))
@@ -118,7 +119,7 @@ func TestFileNewBug_Success(t *testing.T) {
 	assert := assert.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	mockBackend := &MockTriageBackend{}
 	expectedBugID := 12345
@@ -153,7 +154,7 @@ func TestEditAnomalies_NotLoggedIn(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail(""))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(false)
 
 	api := newTestTriageApi(login, nil)
 
@@ -163,7 +164,7 @@ func TestEditAnomalies_NotLoggedIn(t *testing.T) {
 	api.EditAnomalies(w, r)
 
 	require.Equal(http.StatusUnauthorized, w.Code)
-	require.Contains(w.Body.String(), "You must be logged in to complete this action.")
+	require.Contains(w.Body.String(), "You must be logged in with editor role to complete this action.")
 	login.AssertExpectations(t)
 }
 
@@ -171,7 +172,7 @@ func TestEditAnomalies_InvalidJson(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	api := newTestTriageApi(login, nil)
 
@@ -189,7 +190,7 @@ func TestEditAnomalies_InvalidRequest(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	api := newTestTriageApi(login, nil)
 
@@ -239,7 +240,7 @@ func TestEditAnomalies_BackendError(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	mockBackend := &MockTriageBackend{}
 	mockBackend.On("EditAnomalies", testutils.AnyContext, mock.AnythingOfType("*api.EditAnomaliesRequest")).Return(&EditAnomaliesResponse{}, errors.New("backend error"))
@@ -270,7 +271,7 @@ func TestEditAnomalies_Success(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	mockBackend := &MockTriageBackend{}
 	mockBackend.On("EditAnomalies", testutils.AnyContext, mock.AnythingOfType("*api.EditAnomaliesRequest")).Return(&EditAnomaliesResponse{}, nil)
@@ -297,7 +298,7 @@ func TestAssociateAlerts_NotLoggedIn(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail(""))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(false)
 
 	api := newTestTriageApi(login, nil)
 
@@ -307,7 +308,7 @@ func TestAssociateAlerts_NotLoggedIn(t *testing.T) {
 	api.AssociateAlerts(w, r)
 
 	require.Equal(http.StatusUnauthorized, w.Code)
-	require.Contains(w.Body.String(), "You must be logged in to complete this action.")
+	require.Contains(w.Body.String(), "You must be logged in with editor role to complete this action.")
 	login.AssertExpectations(t)
 }
 
@@ -315,7 +316,7 @@ func TestAssociateAlerts_InvalidJson(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	api := newTestTriageApi(login, nil)
 
@@ -333,7 +334,7 @@ func TestAssociateAlerts_BackendError(t *testing.T) {
 	require := require.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	mockBackend := &MockTriageBackend{}
 	mockBackend.On("AssociateAlerts", testutils.AnyContext, mock.AnythingOfType("*api.SkiaAssociateBugRequest")).Return(&SkiaAssociateBugResponse{}, errors.New("backend error"))
@@ -365,7 +366,7 @@ func TestAssociateAlerts_Success(t *testing.T) {
 	assert := assert.New(t)
 
 	login := &aloginMocks.Login{}
-	login.On("LoggedInAs", mock.Anything).Return(alogin.EMail("testuser@example.com"))
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
 
 	mockBackend := &MockTriageBackend{}
 	expectedBugID := 12345
