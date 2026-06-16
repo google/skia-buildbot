@@ -1742,19 +1742,22 @@ export class ExploreMultiV2Sk extends LitElement {
     this._rangeSelection = null;
   }
 
-  private _handleRemoveTrace(id: string) {
-    this._updateSeriesData(this._seriesData.filter((s) => s.id !== id));
-    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
-    delete this._globalBounds[id];
-    this.requestUpdate();
+  private _handleToggleTrace(id: string) {
+    const nextSeriesData = this._seriesData.map((s) => {
+      if (s.id === id) {
+        return { ...s, hidden: !s.hidden };
+      }
+      return s;
+    });
+    this._updateSeriesData(nextSeriesData);
+    this._updateLoadedBounds();
   }
 
   private _handleCloseChart(ids: string[]) {
     const idSet = new Set(ids);
     this._updateSeriesData(this._seriesData.filter((s) => !idSet.has(s.id)));
-    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
+    this._updateLoadedBounds();
     ids.forEach((id) => delete this._globalBounds[id]);
-    this.requestUpdate();
   }
 
   private _mergeSeriesData(olderSeries: TraceSeries[]) {
@@ -1781,7 +1784,7 @@ export class ExploreMultiV2Sk extends LitElement {
     });
 
     this._updateSeriesData(newSeries);
-    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
+    this._updateLoadedBounds();
   }
 
   private _translateDataFrame(df: any): TraceSeries[] {
@@ -1937,13 +1940,10 @@ export class ExploreMultiV2Sk extends LitElement {
    */
   private _processNewSeries(newSeries: TraceSeries[], updateViewport = true) {
     this._updateSeriesData(this._mergeSeriesWithStats(this._seriesData, newSeries));
-    this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
+    this._updateLoadedBounds();
     if (updateViewport && (this.viewportMinX === null || this.viewportMaxX === null)) {
-      const sharedBounds = calculateSharedBounds(
-        this._seriesData,
-        this._globalBounds,
-        this.dateMode
-      );
+      const visibleSeries = this._seriesData.filter((s) => !s.hidden);
+      const sharedBounds = calculateSharedBounds(visibleSeries, this._globalBounds, this.dateMode);
       if (sharedBounds) {
         const source = Object.keys(sharedBounds)[0];
         this.viewportMinX = sharedBounds[source].min;
@@ -1957,6 +1957,11 @@ export class ExploreMultiV2Sk extends LitElement {
       ...s,
       color: `hsl(${(idx * 137.5) % 360}, 70%, 50%)`,
     }));
+  }
+
+  private _updateLoadedBounds() {
+    const visibleSeries = this._seriesData.filter((s) => !s.hidden);
+    this._loadedBounds = calculateLoadedBounds(visibleSeries as any, this.dateMode);
   }
 
   private _handleHoverChanged(e: CustomEvent<{ dataX: number | null }>) {
@@ -2449,7 +2454,7 @@ export class ExploreMultiV2Sk extends LitElement {
     // Handle side effects
     if (name === 'dateMode') {
       this._globalBounds = {};
-      this._loadedBounds = calculateLoadedBounds(this._seriesData as any, this.dateMode);
+      this._updateLoadedBounds();
       this.viewportMinX = null;
       this.viewportMaxX = null;
     } else if (name === 'smooth') {
@@ -2697,8 +2702,8 @@ export class ExploreMultiV2Sk extends LitElement {
                 @pin-point=${this._handlePinPoint}
                 @toggle-split=${this._handleSplit}
                 @reorder-split-keys=${this._handleReorderSplitKeys}
-                @remove-trace=${(e: CustomEvent<{ id: string }>) =>
-                  this._handleRemoveTrace(e.detail.id)}
+                @toggle-trace=${(e: CustomEvent<{ id: string }>) =>
+                  this._handleToggleTrace(e.detail.id)}
                 @close-chart=${() => this._handleCloseChart(g.series.map((s) => s.id))}>
                 <plot-summary-v2-sk
                   slot="summary"

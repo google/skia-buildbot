@@ -17,8 +17,5 @@ export interface TraceSeries {
   rows: TraceRow[];
   allStats?: Record<string, TraceRow[]>;
   color: string;
-}
-
-export interface ProcessedTraceSeries extends TraceSeries {
-  parsedColor: { r: number; g: number; b: number };
+  hidden?: boolean;
 }

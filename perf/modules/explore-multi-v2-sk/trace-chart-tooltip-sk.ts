@@ -1,6 +1,6 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { TraceSeries, TraceRow, ProcessedTraceSeries } from './trace-types';
+import { TraceSeries, TraceRow } from './trace-types';
 import { Regression, CommitNumber } from '../json';
 import { fromKey } from '../paramtools';
 import { formatBug, formatNumber, formatPercentage, getPercentChange } from '../common/anomaly';
@@ -38,7 +38,7 @@ export class TraceChartTooltipSk extends LitElement {
 
   @property({ type: Boolean }) tooltipDiffs = false;
 
-  @property({ type: Array }) processedSeries: ProcessedTraceSeries[] = [];
+  @property({ type: Array }) processedSeries: TraceSeries[] = [];
 
   @property({ type: Boolean }) showBisectButton = false;
 

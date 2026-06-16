@@ -199,6 +199,70 @@ describe('trace-chart-sk', () => {
     }
   });
 
+  it('draws No Data message when all traces are hidden, even in zoomed state', async () => {
+    element.viewportMinX = 100;
+    element.viewportMaxX = 200;
+
+    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d')!;
+    const oldFillText = ctx.fillText;
+    const texts: string[] = [];
+    ctx.fillText = function (text: string, x: number, y: number) {
+      texts.push(text);
+      oldFillText.call(this, text, x, y);
+    };
+
+    try {
+      element.series = [
+        {
+          id: 'test',
+          color: '#fff',
+          rows: [{ commit_number: 150, val: 10, createdat: 1000 }],
+          hidden: true,
+        },
+      ];
+      await element.updateComplete;
+
+      const hasMessage = texts.some((t) => t.includes('No data available'));
+      expect(hasMessage).to.be.true;
+    } finally {
+      ctx.fillText = oldFillText;
+    }
+  });
+
+  it('does not draw foreground when all traces are hidden, even in zoomed state', async () => {
+    element.viewportMinX = 100;
+    element.viewportMaxX = 200;
+
+    const canvas = element.shadowRoot!.querySelector('#overlay-canvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d')!;
+    const oldBeginPath = ctx.beginPath;
+    let beginPathCalled = false;
+    ctx.beginPath = function () {
+      beginPathCalled = true;
+      oldBeginPath.call(this);
+    };
+
+    try {
+      element.series = [
+        {
+          id: 'test',
+          color: '#fff',
+          rows: [{ commit_number: 150, val: 10, createdat: 1000 }],
+          hidden: true,
+        },
+      ];
+      await element.updateComplete;
+
+      (element as any)['_mousePos'] = { x: 150, y: 150 };
+      (element as any)['_drawForeground']();
+
+      expect(beginPathCalled).to.be.false;
+    } finally {
+      ctx.beginPath = oldBeginPath;
+    }
+  });
+
   it('spaces X axis evenly when evenXAxisSpacing is enabled', async () => {
     element.evenXAxisSpacing = true;
     element.series = [
@@ -581,5 +645,33 @@ describe('trace-chart-sk', () => {
 
     expect((element as any)['_hoveredPoint']).to.be.null;
     expect((element as any)['_mousePos']).to.be.null;
+  });
+
+  it('toggles hidden status and emits toggle-trace event on click', async () => {
+    let eventDetail: any = null;
+    element.addEventListener('toggle-trace', (e: any) => {
+      eventDetail = e.detail;
+    });
+
+    element.activeSplitKeys = ['benchmark'];
+    element.series = [
+      {
+        id: 'benchmark=motion_mark',
+        color: '#fff',
+        rows: [{ commit_number: 1, val: 1, createdat: 1 }],
+      },
+    ];
+    await element.updateComplete;
+    await element.updateComplete;
+
+    const chip = element.shadowRoot!.querySelector('.chip') as HTMLElement;
+    expect(chip).to.not.be.null;
+    expect(chip.classList.contains('active')).to.be.true;
+
+    chip.click();
+    await element.updateComplete;
+
+    expect(eventDetail).to.not.be.null;
+    expect(eventDetail.id).to.equal('benchmark=motion_mark');
   });
 });

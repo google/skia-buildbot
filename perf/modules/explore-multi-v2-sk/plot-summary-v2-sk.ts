@@ -181,14 +181,16 @@ export class PlotSummaryV2Sk extends LitElement {
 
     if (this.evenXAxisSpacing) {
       const uniqueX = new Set<number>();
-      this.series.forEach((s) => {
-        if (s.rows) {
-          s.rows.forEach((r) => {
-            const x = getX(r);
-            if (x !== undefined) uniqueX.add(x);
-          });
-        }
-      });
+      this.series
+        .filter((s) => !s.hidden)
+        .forEach((s) => {
+          if (s.rows) {
+            s.rows.forEach((r) => {
+              const x = getX(r);
+              if (x !== undefined) uniqueX.add(x);
+            });
+          }
+        });
       const uniqueCount = uniqueX.size;
       return {
         min: 0,
@@ -198,17 +200,19 @@ export class PlotSummaryV2Sk extends LitElement {
 
     let minX = Infinity;
     let maxX = -Infinity;
-    this.series.forEach((s) => {
-      if (s.rows) {
-        s.rows.forEach((r) => {
-          const xVal = getX(r);
-          if (xVal !== undefined) {
-            if (xVal < minX) minX = xVal;
-            if (xVal > maxX) maxX = xVal;
-          }
-        });
-      }
-    });
+    this.series
+      .filter((s) => !s.hidden)
+      .forEach((s) => {
+        if (s.rows) {
+          s.rows.forEach((r) => {
+            const xVal = getX(r);
+            if (xVal !== undefined) {
+              if (xVal < minX) minX = xVal;
+              if (xVal > maxX) maxX = xVal;
+            }
+          });
+        }
+      });
 
     return { min: minX, max: maxX };
   }
@@ -268,6 +272,7 @@ export class PlotSummaryV2Sk extends LitElement {
     if (this.evenXAxisSpacing) {
       const uniqueX = new Set<number>();
       this.series.forEach((s) => {
+        if (s.hidden) return;
         s.rows.forEach((r) => {
           uniqueX.add(getX(r));
         });
@@ -282,6 +287,7 @@ export class PlotSummaryV2Sk extends LitElement {
     let maxY = -Infinity;
 
     this.series.forEach((s) => {
+      if (s.hidden) return;
       s.rows.forEach((r) => {
         const xVal = this.evenXAxisSpacing ? xToIndex.get(getX(r))! : getX(r);
         if (xVal < minX) minX = xVal;
@@ -317,6 +323,7 @@ export class PlotSummaryV2Sk extends LitElement {
     ctx.lineWidth = 1.5;
 
     this.series.forEach((s) => {
+      if (s.hidden) return;
       if (!s.rows || s.rows.length === 0) return;
 
       const decimated = this.decimate(s.rows);

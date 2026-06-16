@@ -1,4 +1,4 @@
-import { LitElement, css, html } from 'lit';
+import { LitElement, css, html, PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import {
   normalizeValues,
@@ -28,10 +28,7 @@ export interface TraceSeries {
   rows: TraceRow[];
   allStats?: Record<string, TraceRow[]>;
   color: string;
-}
-
-export interface ProcessedTraceSeries extends TraceSeries {
-  parsedColor: { r: number; g: number; b: number };
+  hidden?: boolean;
 }
 
 // Returns a fractional index representing the value's relative position between two actual indices.
@@ -217,14 +214,14 @@ export class TraceChartSk extends LitElement {
     pointerId: -1,
   };
 
-  private _processedSeries: ProcessedTraceSeries[] = [];
+  @state() private _processedSeries: TraceSeries[] = [];
 
   private _computeSubrepoRolls(): { dataX: number; oldVer: string; newVer: string }[] {
     if (!this.selectedSubrepo || this.selectedSubrepo === 'none') return [];
     const rolls: { dataX: number; oldVer: string; newVer: string }[] = [];
     const seen = new Set<number>();
 
-    this.series.forEach((s) => {
+    this._processedSeries.forEach((s) => {
       let prevVer: string | null = null;
       s.rows.forEach((r) => {
         const currVer = r.metadata?.[this.selectedSubrepo];
@@ -258,19 +255,163 @@ export class TraceChartSk extends LitElement {
     super.disconnectedCallback();
   }
 
-  updated(changedProperties: Map<string | number | symbol, unknown>) {
+  /**
+   * Returns a transparent version of the input CSS color string.
+   * Supports Hex (#RRGGBB or #RGB) and HSL (hsl(...)) formats.
+   *
+   * Note: This helper supports 7-character hex codes (e.g., #RRGGBB) and
+   * 4-character shorthand hex codes (e.g., #RGB), expanding the shorthand
+   * version to a full 8-character hex with alpha '00' (transparent) for
+   * robust browser rendering.
+   */
+  private _getTransparentColor(colorStr: string): string {
+    const color = colorStr.trim();
+    if (color.startsWith('#')) {
+      if (color.length === 7) {
+        return color + '00';
+      }
+      if (color.length === 4) {
+        const r = color[1];
+        const g = color[2];
+        const b = color[3];
+        return `#${r}${r}${g}${g}${b}${b}00`;
+      }
+    }
+    if (color.startsWith('hsl(') && color.endsWith(')')) {
+      return 'hsla' + color.slice(3, -1) + ', 0)';
+    }
+    return 'rgba(0,0,0,0)';
+  }
+
+  /**
+   * Calculates the min, max, and range of Y values for a set of trace rows.
+   */
+  private _calculateSeriesYBounds(rows: TraceRow[]): { min: number; max: number; range: number } {
+    let min = Infinity;
+    let max = -Infinity;
+    rows.forEach((r) => {
+      if (r.val < min) min = r.val;
+      if (r.val > max) max = r.val;
+    });
+    const range = max - min || 1;
+    return { min, max, range };
+  }
+
+  /**
+   * Computes smoothed Y values for trace rows using edge detection and smoothing radius.
+   * Returns null if hoverMode is 'original'.
+   */
+  private _computeSmoothedValues(rows: TraceRow[], minY: number, rangeY: number): number[] | null {
+    if (this.hoverMode === 'original') return null;
+
+    const stablePoints = rows.map((r) => ({
+      px: r.commit_number,
+      py: ((r.val - minY) / rangeY) * 1000,
+      rawPy: ((r.val - minY) / rangeY) * 1000,
+      rawX: r.commit_number,
+    }));
+    const res = smoothPoints(
+      stablePoints,
+      this.smoothingRadius,
+      this.edgeDetectionFactor,
+      this.edgeLookahead
+    );
+    return res.smoothed;
+  }
+
+  /**
+   * Calculates normalization offset and scale for the series.
+   * Uses smoothed values if hoverMode is 'smoothed' and they are available.
+   */
+  private _calculateNormalization(
+    rows: TraceRow[],
+    smoothedValues: number[] | null,
+    minY: number,
+    rangeY: number
+  ): { offset: number; scale: number } {
+    const useSmoothedForNorm = this.hoverMode === 'smoothed';
+    if (useSmoothedForNorm && smoothedValues) {
+      const smoothedReal = smoothedValues.map((v) => minY + (v / 1000) * rangeY);
+      return normalizeValues(
+        smoothedReal,
+        this.normalizeCentre,
+        this.normalizeScale,
+        0,
+        smoothedReal.length - 1
+      );
+    }
+    return normalizeValues(rows, this.normalizeCentre, this.normalizeScale, 0, rows.length - 1);
+  }
+
+  /**
+   * Processes a single TraceSeries by parsing its color, calculating bounds,
+   * applying smoothing and normalization, and mapping its rows and stats.
+   */
+  private _processSingleSeries(s: TraceSeries): TraceSeries {
+    if (s.rows.length === 0) return { ...s, rows: [] };
+
+    const { min: seriesMinY, range: seriesRangeY } = this._calculateSeriesYBounds(s.rows);
+    const smoothedValues = this._computeSmoothedValues(s.rows, seriesMinY, seriesRangeY);
+    const norm = this._calculateNormalization(s.rows, smoothedValues, seriesMinY, seriesRangeY);
+
+    const allStats = s.allStats ? { ...s.allStats } : {};
+    const mappedAllStats: Record<string, TraceRow[]> = {};
+    for (const [key, rows] of Object.entries(allStats)) {
+      mappedAllStats[key] = rows.map((r) => ({
+        ...r,
+        val: (r.val - norm.offset) * (norm.scale || 1),
+      }));
+    }
+
+    return {
+      ...s,
+      rows: s.rows.map((r, i) => {
+        const rawY = r.val;
+        const smoothY = smoothedValues
+          ? seriesMinY + (smoothedValues[i] / 1000) * seriesRangeY
+          : rawY;
+        return {
+          ...r,
+          val: (rawY - norm.offset) * (norm.scale || 1),
+          smoothedVal: (smoothY - norm.offset) * (norm.scale || 1),
+        };
+      }),
+      allStats: Object.keys(mappedAllStats).length > 0 ? mappedAllStats : undefined,
+    };
+  }
+
+  willUpdate(changedProperties: PropertyValues) {
+    if (changedProperties.has('viewportMinX')) {
+      this._viewportMinX = this.viewportMinX;
+    }
+    if (changedProperties.has('viewportMaxX')) {
+      this._viewportMaxX = this.viewportMaxX;
+    }
+
     if (changedProperties.has('series')) {
-      this._diffNamesMap = computeDiffParamNames(this.series);
-      this._potentialSplitKeys = computeChartDimensions(this.series);
+      const series = this.series || [];
+      this._diffNamesMap = computeDiffParamNames(series);
+      this._potentialSplitKeys = computeChartDimensions(series);
     }
 
-    if (changedProperties.has('series') || changedProperties.has('selectedSubrepo')) {
-      this._subrepoRolls = this._computeSubrepoRolls();
+    const seriesChanged = changedProperties.has('series');
+    const normPropsChanged =
+      changedProperties.has('normalizeCentre') ||
+      changedProperties.has('normalizeScale') ||
+      changedProperties.has('hoverMode') ||
+      changedProperties.has('smoothingRadius') ||
+      changedProperties.has('edgeDetectionFactor') ||
+      changedProperties.has('edgeLookahead');
+
+    if (seriesChanged || normPropsChanged) {
+      this._processedSeries = (this.series || [])
+        .filter((s) => !s.hidden)
+        .map((s) => this._processSingleSeries(s));
     }
 
-    if (changedProperties.has('series') || changedProperties.has('dateMode')) {
+    if (seriesChanged || normPropsChanged || changedProperties.has('dateMode')) {
       const uniqueXValues = new Set<number>();
-      this.series.forEach((s) => {
+      this._processedSeries.forEach((s) => {
         s.rows.forEach((r) => {
           uniqueXValues.add(this._xAccessor(r));
         });
@@ -280,120 +421,14 @@ export class TraceChartSk extends LitElement {
       this._sortedXValues.forEach((val, idx) => this._xValueToIndex.set(val, idx));
     }
 
-    if (
-      changedProperties.has('series') ||
-      changedProperties.has('normalizeCentre') ||
-      changedProperties.has('normalizeScale') ||
-      changedProperties.has('hoverMode') ||
-      changedProperties.has('smoothingRadius') ||
-      changedProperties.has('edgeDetectionFactor') ||
-      changedProperties.has('edgeLookahead')
-    ) {
-      this._processedSeries = this.series.map((s) => {
-        let r_c = 26,
-          g_c = 115,
-          b_c = 232;
-        const baseColor = s.color || '#1a73e8';
-        if (baseColor.startsWith('#') && baseColor.length === 7) {
-          r_c = parseInt(baseColor.slice(1, 3), 16);
-          g_c = parseInt(baseColor.slice(3, 5), 16);
-          b_c = parseInt(baseColor.slice(5, 7), 16);
-        }
-        const parsedColor = { r: r_c, g: g_c, b: b_c };
-
-        if (s.rows.length === 0) return { ...s, rows: [], parsedColor };
-
-        let seriesMinY = Infinity;
-        let seriesMaxY = -Infinity;
-        s.rows.forEach((r) => {
-          if (r.val < seriesMinY) seriesMinY = r.val;
-          if (r.val > seriesMaxY) seriesMaxY = r.val;
-        });
-        const seriesRangeY = seriesMaxY - seriesMinY || 1;
-
-        let smoothedValues: number[] | null = null;
-        if (this.hoverMode !== 'original') {
-          const stablePoints = s.rows.map((r) => ({
-            px: r.commit_number,
-            py: ((r.val - seriesMinY) / seriesRangeY) * 1000,
-            rawPy: ((r.val - seriesMinY) / seriesRangeY) * 1000,
-            rawX: r.commit_number,
-          }));
-          const res = smoothPoints(
-            stablePoints,
-            this.smoothingRadius,
-            this.edgeDetectionFactor,
-            this.edgeLookahead
-          );
-          smoothedValues = res.smoothed;
-        }
-
-        let norm: { offset: number; scale: number };
-        const useSmoothedForNorm = this.hoverMode === 'smoothed';
-        if (useSmoothedForNorm && smoothedValues) {
-          const smoothedReal = smoothedValues.map((v) => seriesMinY + (v / 1000) * seriesRangeY);
-          norm = normalizeValues(
-            smoothedReal,
-            this.normalizeCentre,
-            this.normalizeScale,
-            0,
-            smoothedReal.length - 1
-          );
-        } else {
-          norm = normalizeValues(
-            s.rows,
-            this.normalizeCentre,
-            this.normalizeScale,
-            0,
-            s.rows.length - 1
-          );
-        }
-
-        const allStats = s.allStats ? { ...s.allStats } : {};
-
-        const mappedAllStats: Record<string, TraceRow[]> = {};
-        for (const [key, rows] of Object.entries(allStats)) {
-          mappedAllStats[key] = rows.map((r) => ({
-            ...r,
-            val: (r.val - norm.offset) * (norm.scale || 1),
-          }));
-        }
-
-        return {
-          ...s,
-          parsedColor,
-          rows: s.rows.map((r, i) => {
-            const rawY = r.val;
-            const smoothY = smoothedValues
-              ? seriesMinY + (smoothedValues[i] / 1000) * seriesRangeY
-              : rawY;
-            return {
-              ...r,
-              val: (rawY - norm.offset) * (norm.scale || 1),
-              smoothedVal: (smoothY - norm.offset) * (norm.scale || 1),
-            };
-          }),
-          allStats: Object.keys(mappedAllStats).length > 0 ? mappedAllStats : undefined,
-        };
-      });
+    if (seriesChanged || normPropsChanged || changedProperties.has('selectedSubrepo')) {
+      this._subrepoRolls = this._computeSubrepoRolls();
     }
+  }
 
-    if (changedProperties.has('viewportMinX') && this.viewportMinX === null) {
-      this._viewportMinX = null;
-    }
-    if (changedProperties.has('viewportMaxX') && this.viewportMaxX === null) {
-      this._viewportMaxX = null;
-    }
-
+  updated(changedProperties: PropertyValues) {
     let needsBackgroundRedraw = false;
     let needsForegroundRedraw = false;
-
-    if (changedProperties.has('viewportMinX') && this.viewportMinX !== null) {
-      this._viewportMinX = this.viewportMinX;
-    }
-    if (changedProperties.has('viewportMaxX') && this.viewportMaxX !== null) {
-      this._viewportMaxX = this.viewportMaxX;
-    }
 
     if (
       changedProperties.has('series') ||
@@ -531,12 +566,25 @@ export class TraceChartSk extends LitElement {
     const gridColor =
       style.getPropertyValue('--outline-variant').trim() || 'rgba(255, 255, 255, 0.05)';
 
-    if (!this._processedSeries || this._processedSeries.length === 0) {
-      ctx.fillStyle = '#999';
-      ctx.font = '12px sans-serif';
+    const hasTraces =
+      (this.series && this.series.length > 0) ||
+      (this._processedSeries && this._processedSeries.length > 0);
+
+    if (!hasTraces) {
+      ctx.fillStyle = textColorSecondary;
+      ctx.font = '14px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('[No data accessible]', width / 2, height / 2);
+      return;
+    }
+
+    if (!this._processedSeries || this._processedSeries.length === 0) {
+      ctx.fillStyle = textColorSecondary;
+      ctx.font = '14px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('No data available', width / 2, height / 2);
       return;
     }
 
@@ -552,6 +600,7 @@ export class TraceChartSk extends LitElement {
       mapY,
       minTimestamp,
       maxTimestamp,
+      globalMinX,
     } = this._getChartBoundsAndMapping(rect);
 
     let countMaxY = 0;
@@ -573,16 +622,12 @@ export class TraceChartSk extends LitElement {
     const mapCountY = (val: number) =>
       padding.top + graphHeight - (val / (countMaxY || 1)) * graphHeight;
 
-    if (minX === Infinity) {
+    if (globalMinX === Infinity) {
       ctx.fillStyle = textColorSecondary;
       ctx.font = '14px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(
-        'No data available for this trace in the selected time range',
-        width / 2,
-        height / 2
-      );
+      ctx.fillText('No data available', width / 2, height / 2);
       return;
     }
 
@@ -956,8 +1001,8 @@ export class TraceChartSk extends LitElement {
           if (globalMaxPx - globalMinPx > 0) {
             const grad = ctx.createLinearGradient(globalMinPx, 0, globalMaxPx, 0);
 
-            const solidColor = `rgba(${s.parsedColor.r}, ${s.parsedColor.g}, ${s.parsedColor.b}, 1)`;
-            const transparentColor = `rgba(${s.parsedColor.r}, ${s.parsedColor.g}, ${s.parsedColor.b}, 0)`;
+            const solidColor = baseColor;
+            const transparentColor = this._getTransparentColor(baseColor);
 
             const range = global.max - global.min;
             const leftStop = Math.max(0, Math.min(1, (loaded.min - global.min) / range));
@@ -1118,9 +1163,9 @@ export class TraceChartSk extends LitElement {
 
     if (!this._processedSeries || this._processedSeries.length === 0) return;
 
-    const { padding, graphWidth, graphHeight, minX, mapX, unmapX, unmapY } =
+    const { padding, graphWidth, graphHeight, minX, mapX, unmapX, unmapY, globalMinX } =
       this._getChartBoundsAndMapping(rect);
-    if (minX === Infinity) return;
+    if (minX === Infinity || globalMinX === Infinity) return;
 
     // Draw Global Hover Sync Tracker
     if (!this._hoveredPoint && this.globalHoverX !== null) {
@@ -1426,12 +1471,12 @@ export class TraceChartSk extends LitElement {
 
     let globalMinX = Infinity;
     let globalMaxX = -Infinity;
-    this._processedSeries.forEach((s) =>
+    this._processedSeries.forEach((s) => {
       s.rows.forEach((r) => {
         if (r.commit_number < globalMinX) globalMinX = r.commit_number;
         if (r.commit_number > globalMaxX) globalMaxX = r.commit_number;
-      })
-    );
+      });
+    });
     if (globalMinX === Infinity) return null;
 
     const viewMinX = this._viewportMinX !== null ? this._viewportMinX : globalMinX;
@@ -1933,6 +1978,13 @@ export class TraceChartSk extends LitElement {
       font-size: 11px;
     }
 
+    .legend-color-line {
+      display: inline-block;
+      width: 16px;
+      height: 2px;
+      margin-right: 6px;
+    }
+
     .chip:hover {
       background: rgba(255, 255, 255, 0.1);
       color: var(--on-background, #fff);
@@ -1947,14 +1999,22 @@ export class TraceChartSk extends LitElement {
       background: rgba(99, 102, 241, 0.3);
     }
 
-    .remove-icon {
+    .chip.hidden-trace {
+      opacity: 0.5;
+    }
+
+    .chip.hidden-trace:hover {
+      opacity: 0.8;
+    }
+
+    .toggle-icon {
       font-size: 14px;
       font-weight: bold;
       color: inherit;
       opacity: 0.7;
     }
 
-    .remove-icon:hover {
+    .toggle-icon:hover {
       opacity: 1;
     }
 
@@ -2078,25 +2138,21 @@ export class TraceChartSk extends LitElement {
             <div class="footer">
               <div class="footer-row">
                 <span class="footer-label">Traces:</span>
-                ${this._processedSeries.map(
+                ${this.series?.map(
                   (s) => html`
-                    <div class="chip active" style="cursor: default;">
-                      <span
-                        style="display:inline-block; width:16px; height:2px; background:${s.color}; margin-right:6px;"></span>
+                    <div
+                      class="chip ${s.hidden ? 'hidden-trace' : 'active'}"
+                      @click=${() =>
+                        this.dispatchEvent(
+                          new CustomEvent('toggle-trace', {
+                            detail: { id: s.id },
+                            bubbles: true,
+                            composed: true,
+                          })
+                        )}>
+                      <span class="legend-color-line" style="background: ${s.color};"></span>
                       ${this._diffNamesMap.get(s.id) || s.id}
-                      <span
-                        class="remove-icon"
-                        style="cursor: pointer;"
-                        @click=${() =>
-                          this.dispatchEvent(
-                            new CustomEvent('remove-trace', {
-                              detail: { id: s.id },
-                              bubbles: true,
-                              composed: true,
-                            })
-                          )}
-                        >&times;</span
-                      >
+                      <span class="toggle-icon">${s.hidden ? '+' : '\u00d7'}</span>
                     </div>
                   `
                 )}
@@ -2114,7 +2170,7 @@ export class TraceChartSk extends LitElement {
                             @dragover=${(e: DragEvent) => this._handleDragKeyOver(e)}
                             @drop=${(e: DragEvent) => this._handleDropKey(e, key)}
                             @click=${() => this._toggleSplit(key)}>
-                            ${key} <span class="remove-icon">&times;</span>
+                            ${key} <span class="toggle-icon">&times;</span>
                           </div>
                         `
                       )}

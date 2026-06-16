@@ -162,7 +162,6 @@ describe('trace-chart-tooltip-sk', () => {
           { commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' },
           { commit_number: 101, val: 11.0, createdat: 2000, hash: 'hash101' },
         ],
-        parsedColor: { r: 255, g: 255, b: 255 },
       },
     ];
     element.hoveredPoint = {
@@ -199,7 +198,6 @@ describe('trace-chart-tooltip-sk', () => {
           { commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' },
           { commit_number: 101, val: 11.0, createdat: 2000, hash: 'hash101' },
         ],
-        parsedColor: { r: 255, g: 255, b: 255 },
       },
     ];
     element.hoveredPoint = {
@@ -249,7 +247,6 @@ describe('trace-chart-tooltip-sk', () => {
           { commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' },
           { commit_number: 101, val: 11.0, createdat: 2000, hash: 'hash101' },
         ],
-        parsedColor: { r: 255, g: 255, b: 255 },
       },
     ];
     element.hoveredPoint = {
