@@ -1481,7 +1481,9 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 	}
 
 	wasmApi := api.NewWasmApi(f.traceStore, f.paramsetRefresher, config.DefaultWasmCacheDir)
-	wasmApi.Start(context.Background())
+	if !f.flags.DoClustering {
+		wasmApi.Start(context.Background())
+	}
 
 	return []api.FrontendApi{
 		wasmApi,
