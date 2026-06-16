@@ -1110,7 +1110,10 @@ func TestBuildCreateTryJobRequestURL_Success(t *testing.T) {
 
 		parsedURL, err := url.Parse(urlStr)
 		require.NoError(t, err)
-		assert.False(t, parsedURL.Query().Has("story"))
+		assert.True(t, parsedURL.Query().Has("story"))
+		assert.Equal(t, "", parsedURL.Query().Get("story"))
+		assert.True(t, parsedURL.Query().Has("story_tags"))
+		assert.Equal(t, "", parsedURL.Query().Get("story_tags"))
 	})
 }
 

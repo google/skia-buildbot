@@ -574,8 +574,9 @@ func buildCreateTryJobRequestURL(req *pb.CreateTryJobRequest) (string, error) {
 	params.Set("comparison_mode", tryJobComparisonMode)
 	params.Set("benchmark", req.Benchmark)
 	params.Set("configuration", req.Configuration)
-	setIfNotEmpty(params, "story", req.Story)
-	setIfNotEmpty(params, "story_tags", req.StoryTags)
+	// The legacy Pinpoint API requires Story or Story Tags to be set even if they are empty.
+	params.Set("story", req.Story)
+	params.Set("story_tags", req.StoryTags)
 	params.Set("initial_attempt_count", strconv.Itoa(int(req.AttemptCount)))
 
 	if req.BugId != nil {
