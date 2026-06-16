@@ -815,11 +815,20 @@ func (tp *InMemoryTraceParams) GetWasmCache(ctx context.Context, ps paramtools.R
 	}
 	sort.Strings(keys)
 
-	globalLookup := make([]uint16, len(tp.encoding))
+	// globalLookup is a 2D slice: globalLookup[colIdx][valIdx] -> WasmParam.Id
+	// This avoids map lookups in the hot loop, making it as fast as a flat array.
+	globalLookup := make([][]uint16, len(tp.paramCols))
+	for i := range globalLookup {
+		globalLookup[i] = make([]uint16, len(tp.encoding))
+	}
 	var idCounter uint16 = 1
 	var wasmParams []tracestore.WasmParam
 
 	for _, key := range keys {
+		colIdx, ok := tp.paramCols[key]
+		if !ok {
+			continue
+		}
 		values := filteredPs[key]
 		// Sort values for stability
 		sortedValues := make([]string, len(values))
@@ -831,7 +840,7 @@ func (tp *InMemoryTraceParams) GetWasmCache(ctx context.Context, ps paramtools.R
 			idCounter++
 			wasmParams = append(wasmParams, tracestore.WasmParam{Id: id, Key: key, Value: val})
 			if e, ok := tp.encoding[val]; ok {
-				globalLookup[e] = id
+				globalLookup[colIdx][e] = id
 			}
 		}
 	}
@@ -862,7 +871,7 @@ func (tp *InMemoryTraceParams) GetWasmCache(ctx context.Context, ps paramtools.R
 		for _, colIdx := range activeColIdxs {
 			valIdx := tp.traceparams[colIdx][t]
 			if valIdx >= 0 {
-				id := globalLookup[valIdx]
+				id := globalLookup[colIdx][valIdx]
 				if id > 0 {
 					row[i] = id
 					i++
