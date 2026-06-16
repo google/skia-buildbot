@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"slices"
@@ -35,6 +36,7 @@ const (
 	chromeperfLegacyBaseURL       = "https://chromeperf.appspot.com"
 	chromeperfLegacyBisectURL     = chromeperfLegacyBaseURL + "/pinpoint/new/bisect"
 	chromeperfLegacyTestSuitesURL = chromeperfLegacyBaseURL + "/api/test_suites"
+	chromeperfLegacyDescribeURL   = chromeperfLegacyBaseURL + "/api/describe"
 	legacyCreatedTimeLayout       = "2006-01-02T15:04:05.999999" // Layout used to parse legacy Pinpoint job creation time.
 )
 
@@ -75,6 +77,8 @@ type LegacyClient struct {
 	listBotsFailed             metrics2.Counter
 	listBenchmarksCalled       metrics2.Counter
 	listBenchmarksFailed       metrics2.Counter
+	getBenchmarkCalled         metrics2.Counter
+	getBenchmarkFailed         metrics2.Counter
 }
 
 // New returns a new LegacyClient instance.
@@ -104,6 +108,8 @@ func NewLegacyClient(ctx context.Context) (*LegacyClient, error) {
 		listBotsFailed:             metrics2.GetCounter("pinpoint_list_bots_failed"),
 		listBenchmarksCalled:       metrics2.GetCounter("pinpoint_list_benchmarks_called"),
 		listBenchmarksFailed:       metrics2.GetCounter("pinpoint_list_benchmarks_failed"),
+		getBenchmarkCalled:         metrics2.GetCounter("pinpoint_get_benchmark_called"),
+		getBenchmarkFailed:         metrics2.GetCounter("pinpoint_get_benchmark_failed"),
 	}, nil
 }
 
@@ -685,4 +691,45 @@ func (pc *LegacyClient) ListBenchmarks(ctx context.Context) (resp []string, err 
 	benchmarks = append(benchmarks, missingBenchmarks...)
 	slices.Sort(benchmarks)
 	return slices.Compact(benchmarks), nil
+}
+
+type legacyDescribeResponse struct {
+	CaseTags map[string][]string `json:"caseTags"`
+	Cases    []string            `json:"cases"`
+}
+
+// GetBenchmarkInfo queries the legacy Chromeperf API to retrieve available stories and story tags.
+func (pc *LegacyClient) GetBenchmarkInfo(ctx context.Context, benchmark string) (info *BenchmarkInfo, err error) {
+	pc.getBenchmarkCalled.Inc(1)
+	defer func() { trackError(pc.getBenchmarkFailed, err) }()
+
+	params := url.Values{}
+	params.Set("test_suite", benchmark)
+	params.Set("master", "ChromiumPerf")
+	requestURL := fmt.Sprintf("%s?%s", chromeperfLegacyDescribeURL, params.Encode())
+
+	httpResp, err := pc.doPostRequest(ctx, requestURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	body, err := pc.readResponseBody(httpResp)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	var describeResp legacyDescribeResponse
+	if err = json.Unmarshal(body, &describeResp); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse describe response body.")
+	}
+
+	storyTags := slices.Collect(maps.Keys(describeResp.CaseTags))
+	slices.Sort(storyTags)
+	slices.Sort(describeResp.Cases)
+
+	return &BenchmarkInfo{
+		Benchmark: benchmark,
+		Stories:   describeResp.Cases,
+		StoryTags: storyTags,
+	}, nil
 }

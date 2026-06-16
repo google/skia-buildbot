@@ -17,6 +17,7 @@ type pinpointClient interface {
 	CreatePinpointTryJob(ctx context.Context, req *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error)
 	ListBotConfigurations(ctx context.Context) ([]string, error)
 	ListBenchmarks(ctx context.Context) ([]string, error)
+	GetBenchmarkInfo(ctx context.Context, benchmark string) (*BenchmarkInfo, error)
 }
 
 type gatewayServer struct {
@@ -119,5 +120,21 @@ func (s *gatewayServer) ListBenchmarks(
 	}
 	return &pb.ListBenchmarksResponse{
 		Benchmarks: benchmarks,
+	}, nil
+}
+
+func (s *gatewayServer) GetBenchmark(
+	ctx context.Context,
+	req *pb.GetBenchmarkInfoRequest,
+) (*pb.GetBenchmarkInfoResponse, error) {
+	info, err := s.client.GetBenchmarkInfo(ctx, req.Benchmark)
+	if err != nil {
+		// Unwrap the error because it may be displayed to the user.
+		return nil, skerr.Unwrap(err)
+	}
+	return &pb.GetBenchmarkInfoResponse{
+		Benchmark: info.Benchmark,
+		Stories:   info.Stories,
+		StoryTags: info.StoryTags,
 	}, nil
 }

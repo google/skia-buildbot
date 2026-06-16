@@ -7,6 +7,7 @@ type (
 	TryJobCreateRequest    = internal.TryJobCreateRequest
 	BisectJobCreateRequest = internal.BisectJobCreateRequest
 	CreatePinpointResponse = internal.CreatePinpointResponse
+	BenchmarkInfo          = internal.BenchmarkInfo
 )
 
 type (

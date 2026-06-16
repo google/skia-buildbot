@@ -66,6 +66,10 @@ export class NewJobComponent implements OnInit {
 
   benchmarks = signal<string[]>([]);
 
+  stories = signal<string[]>([]);
+
+  storyTags = signal<string[]>([]);
+
   jobForm: FormGroup = this.formBuilder.group({
     jobName: [''],
     // 150 is the maximum number of attempts the legacy backend allows.
@@ -87,9 +91,18 @@ export class NewJobComponent implements OnInit {
 
   filteredBenchmarks = this.filterValuesByInput(this.benchmarkQuery, this.benchmarks);
 
+  storyQuery = this.inputFieldSignal('story');
+
+  filteredStories = this.filterValuesByInput(this.storyQuery, this.stories);
+
+  storyTagsQuery = this.inputFieldSignal('storyTags');
+
+  filteredStoryTags = this.filterValuesByInput(this.storyTagsQuery, this.storyTags);
+
   ngOnInit() {
     this.loadBots();
     this.loadBenchmarks();
+    this.setupBenchmarkChangeListener();
   }
 
   private async loadBots() {
@@ -109,6 +122,39 @@ export class NewJobComponent implements OnInit {
       this.jobForm.get('benchmark')?.updateValueAndValidity();
     } catch (error) {
       console.error('Failed to fetch benchmarks: ', error);
+    }
+  }
+
+  private setupBenchmarkChangeListener() {
+    this.jobForm.get('benchmark')?.valueChanges.subscribe((benchmark) => {
+      this.stories.set([]);
+      this.storyTags.set([]);
+      if (this.benchmarks().includes(benchmark)) {
+        this.loadBenchmarkDetails(benchmark);
+      } else {
+        this.jobForm.get('story')?.setValue('');
+        this.jobForm.get('storyTags')?.setValue('');
+      }
+    });
+  }
+
+  private async loadBenchmarkDetails(benchmark: string) {
+    try {
+      const response = await this.gatewayService.GetBenchmark({ benchmark });
+      this.stories.set(response.stories);
+      this.storyTags.set(response.storyTags);
+
+      const storyField = this.jobForm.get('story')!;
+      if (!response.stories.includes(storyField.value)) {
+        storyField.setValue('');
+      }
+
+      const storyTagsField = this.jobForm.get('storyTags')!;
+      if (!response.storyTags.includes(storyTagsField.value)) {
+        storyTagsField.setValue('');
+      }
+    } catch (error) {
+      console.error('Failed to fetch benchmark details: ', error);
     }
   }
 

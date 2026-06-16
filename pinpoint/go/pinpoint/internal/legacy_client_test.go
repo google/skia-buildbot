@@ -181,6 +181,8 @@ func setupTestMocks(t *testing.T, handler http.HandlerFunc) *LegacyClient {
 		listBotsFailed:             metrics2.GetCounter("pinpoint_list_bots_failed"),
 		listBenchmarksCalled:       metrics2.GetCounter("pinpoint_list_benchmarks_called"),
 		listBenchmarksFailed:       metrics2.GetCounter("pinpoint_list_benchmarks_failed"),
+		getBenchmarkCalled:         metrics2.GetCounter("pinpoint_get_benchmark_called"),
+		getBenchmarkFailed:         metrics2.GetCounter("pinpoint_get_benchmark_failed"),
 	}
 
 	return pc
@@ -1289,5 +1291,53 @@ func TestListBenchmarks(t *testing.T) {
 		assert.Nil(t, resp)
 		assert.Equal(t, int64(1), pc.listBenchmarksCalled.Get())
 		assert.Equal(t, int64(1), pc.listBenchmarksFailed.Get())
+	})
+}
+
+func TestGetBenchmarkInfo(t *testing.T) {
+	t.Run("Returns parsed response on success", func(t *testing.T) {
+		expectedResponse := []byte(`{
+			"cases": ["story2", "story1"],
+			"caseTags": {
+				"tag2": ["story1"],
+				"tag1": ["story2"]
+			}
+		}`)
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodPost, r.Method)
+			assert.Equal(t, "/api/describe", r.URL.Path)
+			assert.Equal(t, "speedometer3", r.URL.Query().Get("test_suite"))
+			assert.Equal(t, "ChromiumPerf", r.URL.Query().Get("master"))
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(expectedResponse)
+		})
+
+		pc.getBenchmarkCalled.Reset()
+		pc.getBenchmarkFailed.Reset()
+
+		info, err := pc.GetBenchmarkInfo(context.Background(), "speedometer3")
+		require.NoError(t, err)
+		assert.Equal(t, "speedometer3", info.Benchmark)
+		assert.Equal(t, []string{"story1", "story2"}, info.Stories)
+		assert.Equal(t, []string{"tag1", "tag2"}, info.StoryTags)
+		assert.Equal(t, int64(1), pc.getBenchmarkCalled.Get())
+		assert.Equal(t, int64(0), pc.getBenchmarkFailed.Get())
+	})
+
+	t.Run("Returns error if non-200 status code", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error": "Internal Server Error"}`))
+		})
+
+		pc.getBenchmarkCalled.Reset()
+		pc.getBenchmarkFailed.Reset()
+
+		info, err := pc.GetBenchmarkInfo(context.Background(), "speedometer3")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Internal Server Error")
+		assert.Nil(t, info)
+		assert.Equal(t, int64(1), pc.getBenchmarkCalled.Get())
+		assert.Equal(t, int64(1), pc.getBenchmarkFailed.Get())
 	})
 }

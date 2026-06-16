@@ -205,6 +205,18 @@ export interface ListBenchmarksResponse {
   benchmarks: string[];
 }
 
+/** Request message to get details of a benchmark (e.g. stories and story tags). */
+export interface GetBenchmarkInfoRequest {
+  benchmark: string;
+}
+
+/** Response message containing stories and story tags for a benchmark. */
+export interface GetBenchmarkInfoResponse {
+  benchmark: string;
+  stories: string[];
+  storyTags: string[];
+}
+
 /** Service definition for Pinpoint Gateway API. */
 export interface PinpointGateway {
   /** Queries a list of jobs based on filters and pagination options. */
@@ -217,4 +229,6 @@ export interface PinpointGateway {
   ListBotConfigurations(request: ListBotConfigurationsRequest): Promise<ListBotConfigurationsResponse>;
   /** Lists all available benchmarks. */
   ListBenchmarks(request: ListBenchmarksRequest): Promise<ListBenchmarksResponse>;
+  /** Retrieves details (stories and story tags) of a benchmark. */
+  GetBenchmark(request: GetBenchmarkInfoRequest): Promise<GetBenchmarkInfoResponse>;
 }

@@ -99,3 +99,12 @@ func (c *Client) ListBenchmarks(ctx context.Context) ([]string, error) {
 	}
 	return resp, nil
 }
+
+// GetBenchmarkInfo retrieves stories and story tags for a given benchmark.
+func (c *Client) GetBenchmarkInfo(ctx context.Context, benchmark string) (*BenchmarkInfo, error) {
+	info, err := c.legacyClient.GetBenchmarkInfo(ctx, benchmark)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return info, nil
+}

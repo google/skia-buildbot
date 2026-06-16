@@ -192,6 +192,18 @@ message ListBenchmarksResponse {
   repeated string benchmarks = 1;
 }
 
+// Request message to get details of a benchmark (e.g. stories and story tags).
+message GetBenchmarkInfoRequest {
+  string benchmark = 1 [(validate.rules).string = {min_len: 1}];
+}
+
+// Response message containing stories and story tags for a benchmark.
+message GetBenchmarkInfoResponse {
+  string benchmark = 1;
+  repeated string stories = 2;
+  repeated string story_tags = 3;
+}
+
 // Service definition for Pinpoint Gateway API.
 service PinpointGateway {
   // Queries a list of jobs based on filters and pagination options.
@@ -227,6 +239,13 @@ service PinpointGateway {
   rpc ListBenchmarks(ListBenchmarksRequest) returns (ListBenchmarksResponse) {
     option (google.api.http) = {
       get: "/pinpoint/v1/benchmarks"
+    };
+  }
+
+  // Retrieves details (stories and story tags) of a benchmark.
+  rpc GetBenchmark(GetBenchmarkInfoRequest) returns (GetBenchmarkInfoResponse) {
+    option (google.api.http) = {
+      get: "/pinpoint/v1/benchmark-info/{benchmark}"
     };
   }
 }

@@ -13,6 +13,8 @@ import {
   ListBotConfigurationsResponse,
   ListBenchmarksRequest,
   ListBenchmarksResponse,
+  GetBenchmarkInfoRequest,
+  GetBenchmarkInfoResponse,
 } from './gateway';
 
 @Injectable({
@@ -50,5 +52,13 @@ export class GatewayService implements PinpointGateway {
 
   ListBenchmarks(_request: ListBenchmarksRequest): Promise<ListBenchmarksResponse> {
     return firstValueFrom(this.http.get<ListBenchmarksResponse>('/pinpoint/v1/benchmarks'));
+  }
+
+  GetBenchmark(request: GetBenchmarkInfoRequest): Promise<GetBenchmarkInfoResponse> {
+    return firstValueFrom(
+      this.http.get<GetBenchmarkInfoResponse>(
+        `/pinpoint/v1/benchmark-info/${encodeURIComponent(request.benchmark)}`
+      )
+    );
   }
 }

@@ -72,6 +72,7 @@ type mockPinpointClient struct {
 	createPinpointTryJobFunc  func(ctx context.Context, req *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error)
 	listBotConfigurationsFunc func(ctx context.Context) ([]string, error)
 	listBenchmarksFunc        func(ctx context.Context) ([]string, error)
+	getBenchmarkInfoFunc      func(ctx context.Context, benchmark string) (*BenchmarkInfo, error)
 }
 
 func (m *mockPinpointClient) QueryJobList(
@@ -104,6 +105,13 @@ func (m *mockPinpointClient) ListBotConfigurations(ctx context.Context) ([]strin
 func (m *mockPinpointClient) ListBenchmarks(ctx context.Context) ([]string, error) {
 	if m.listBenchmarksFunc != nil {
 		return m.listBenchmarksFunc(ctx)
+	}
+	return nil, nil
+}
+
+func (m *mockPinpointClient) GetBenchmarkInfo(ctx context.Context, benchmark string) (*BenchmarkInfo, error) {
+	if m.getBenchmarkInfoFunc != nil {
+		return m.getBenchmarkInfoFunc(ctx, benchmark)
 	}
 	return nil, nil
 }
@@ -237,5 +245,43 @@ func TestListBenchmarks(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Contains(t, err.Error(), "failed to list benchmarks")
+	})
+}
+
+func TestGetBenchmarkEndpoint(t *testing.T) {
+	t.Run("successful get", func(t *testing.T) {
+		expectedStories := []string{"story1", "story2"}
+		expectedTags := []string{"tag1", "tag2"}
+		client := &mockPinpointClient{
+			getBenchmarkInfoFunc: func(ctx context.Context, benchmark string) (*BenchmarkInfo, error) {
+				assert.Equal(t, "speedometer3", benchmark)
+				return &BenchmarkInfo{
+					Benchmark: benchmark,
+					Stories:   expectedStories,
+					StoryTags: expectedTags,
+				}, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.GetBenchmark(context.Background(), &pb.GetBenchmarkInfoRequest{Benchmark: "speedometer3"})
+		require.NoError(t, err)
+		assert.Equal(t, expectedStories, resp.Stories)
+		assert.Equal(t, expectedTags, resp.StoryTags)
+		assert.Equal(t, "speedometer3", resp.Benchmark)
+	})
+
+	t.Run("client returns error", func(t *testing.T) {
+		client := &mockPinpointClient{
+			getBenchmarkInfoFunc: func(ctx context.Context, benchmark string) (*BenchmarkInfo, error) {
+				return nil, errors.New("failed to get benchmark")
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.GetBenchmark(context.Background(), &pb.GetBenchmarkInfoRequest{Benchmark: "speedometer3"})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "failed to get benchmark")
 	})
 }

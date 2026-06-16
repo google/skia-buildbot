@@ -24,6 +24,11 @@ describe('NewJobComponent', () => {
       CreateTryJob: async () => ({ jobId: '12345' }),
       ListBotConfigurations: async () => ({ configurations: [] }),
       ListBenchmarks: async () => ({ benchmarks: [] }),
+      GetBenchmark: async (req) => ({
+        stories: [],
+        storyTags: [],
+        benchmark: req?.benchmark || '',
+      }),
     };
     const gateway = { ...defaultGateway, ...mockGateway };
     TestBed.configureTestingModule({
@@ -292,5 +297,136 @@ describe('NewJobComponent', () => {
     tick();
 
     assert.isFalse(component.jobForm.get('benchmark')?.hasError('invalidAutocomplete'));
+  }));
+
+  it('should fetch benchmark details when benchmark selection changes to a valid value', fakeAsync(() => {
+    const gateway = {
+      ListBenchmarks: sinon.stub().resolves({ benchmarks: ['speedometer3'] }),
+      GetBenchmark: sinon.stub().resolves({
+        stories: ['story1', 'story2'],
+        storyTags: ['tag1'],
+        benchmark: 'speedometer3',
+      }),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    tick();
+
+    assert.isTrue(gateway.GetBenchmark.calledWith({ benchmark: 'speedometer3' }));
+    assert.deepEqual(component.stories(), ['story1', 'story2']);
+    assert.deepEqual(component.storyTags(), ['tag1']);
+  }));
+
+  it('should reset stories and story tags when benchmark changes to invalid/empty', fakeAsync(() => {
+    const gateway = {
+      ListBenchmarks: sinon.stub().resolves({ benchmarks: ['speedometer3'] }),
+      GetBenchmark: sinon.stub().resolves({
+        stories: ['story1', 'story2'],
+        storyTags: ['tag1'],
+        benchmark: 'speedometer3',
+      }),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    tick();
+    assert.deepEqual(component.stories(), ['story1', 'story2']);
+
+    component.jobForm.get('benchmark')?.setValue('');
+    tick();
+    assert.deepEqual(component.stories(), []);
+    assert.deepEqual(component.storyTags(), []);
+    assert.equal(component.jobForm.get('story')?.value, '');
+    assert.equal(component.jobForm.get('storyTags')?.value, '');
+  }));
+
+  it('should clear story and tags if they are not in the new benchmark details', fakeAsync(() => {
+    const gateway = {
+      ListBenchmarks: sinon.stub().resolves({ benchmarks: ['speedometer3', 'speedometer4'] }),
+      GetBenchmark: sinon
+        .stub()
+        .withArgs({ benchmark: 'speedometer3' })
+        .resolves({
+          stories: ['story1'],
+          storyTags: ['tag1'],
+          benchmark: 'speedometer3',
+        })
+        .withArgs({ benchmark: 'speedometer4' })
+        .resolves({
+          stories: ['story2'],
+          storyTags: ['tag2'],
+          benchmark: 'speedometer4',
+        }),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    tick();
+    component.jobForm.get('story')?.setValue('story1');
+    component.jobForm.get('storyTags')?.setValue('tag1');
+    tick();
+
+    component.jobForm.get('benchmark')?.setValue('speedometer4');
+    tick();
+
+    assert.equal(component.jobForm.get('story')?.value, '');
+    assert.equal(component.jobForm.get('storyTags')?.value, '');
+  }));
+
+  it('should persist story and tags if they are in the new benchmark details', fakeAsync(() => {
+    const gateway = {
+      ListBenchmarks: sinon.stub().resolves({ benchmarks: ['speedometer3', 'speedometer4'] }),
+      GetBenchmark: sinon
+        .stub()
+        .withArgs({ benchmark: 'speedometer3' })
+        .resolves({
+          stories: ['story1'],
+          storyTags: ['tag1'],
+          benchmark: 'speedometer3',
+        })
+        .withArgs({ benchmark: 'speedometer4' })
+        .resolves({
+          stories: ['story1'],
+          storyTags: ['tag1'],
+          benchmark: 'speedometer4',
+        }),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    component.jobForm.get('benchmark')?.setValue('speedometer3');
+    tick();
+    component.jobForm.get('story')?.setValue('story1');
+    component.jobForm.get('storyTags')?.setValue('tag1');
+    tick();
+
+    component.jobForm.get('benchmark')?.setValue('speedometer4');
+    tick();
+
+    assert.equal(component.jobForm.get('story')?.value, 'story1');
+    assert.equal(component.jobForm.get('storyTags')?.value, 'tag1');
+  }));
+
+  it('should filter stories and story tags based on input', fakeAsync(() => {
+    const component = createComponent();
+    component.stories.set(['story1', 'another-story', 'third-story']);
+    component.storyTags.set(['tag1', 'another-tag']);
+
+    component.jobForm.get('story')?.setValue('story');
+    assert.deepEqual(component.filteredStories(), ['story1', 'another-story', 'third-story']);
+
+    component.jobForm.get('story')?.setValue('another');
+    assert.deepEqual(component.filteredStories(), ['another-story']);
+
+    component.jobForm.get('storyTags')?.setValue('tag');
+    assert.deepEqual(component.filteredStoryTags(), ['tag1', 'another-tag']);
   }));
 });

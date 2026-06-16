@@ -159,3 +159,9 @@ type LegacyQueryJobListResponse struct {
 type BotConfigurationsResponse struct {
 	Configurations []string `json:"configurations"`
 }
+
+type BenchmarkInfo struct {
+	Benchmark string   `json:"benchmark"`
+	Stories   []string `json:"stories"`
+	StoryTags []string `json:"story_tags"`
+}

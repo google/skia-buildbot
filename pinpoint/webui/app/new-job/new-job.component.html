@@ -75,7 +75,12 @@
         <div>
           <mat-form-field matTooltip="The specific story or sub-test within the benchmark suite to execute.">
             <mat-label>Story</mat-label>
-            <input matInput formControlName="story" placeholder="e.g. Speedometer3" />
+            <input matInput formControlName="story" placeholder="e.g. Speedometer3" [matAutocomplete]="autoStory" />
+            <mat-autocomplete #autoStory="matAutocomplete">
+              @for (story of filteredStories(); track story) {
+                <mat-option [value]="story">{{story}}</mat-option>
+              }
+            </mat-autocomplete>
             <mat-error>Story is required</mat-error>
           </mat-form-field>
         </div>
@@ -83,7 +88,12 @@
         <div>
           <mat-form-field matTooltip="A comma-separated list of tags to filter and run a subset of benchmark stories.">
             <mat-label>Story tags (optional)</mat-label>
-            <input matInput formControlName="storyTags" placeholder="e.g. all, infinite_scroll" />
+            <input matInput formControlName="storyTags" placeholder="e.g. all, infinite_scroll" [matAutocomplete]="autoStoryTags" />
+            <mat-autocomplete #autoStoryTags="matAutocomplete">
+              @for (tag of filteredStoryTags(); track tag) {
+                <mat-option [value]="tag">{{tag}}</mat-option>
+              }
+            </mat-autocomplete>
           </mat-form-field>
         </div>
       </mat-card-content>
