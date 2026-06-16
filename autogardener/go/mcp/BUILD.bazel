@@ -3,10 +3,14 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "mcp",
-    srcs = ["mcp.go"],
+    srcs = [
+        "mcp.go",
+        "pseudotools.go",
+    ],
     importpath = "go.skia.org/infra/autogardener/go/mcp",
     visibility = ["//visibility:public"],
     deps = [
+        "//autogardener/go/logs",
         "//autogardener/go/utils",
         "//go/auth",
         "//go/httputils",
@@ -25,11 +29,15 @@ go_library(
 
 go_test(
     name = "mcp_test",
-    srcs = ["mcp_test.go"],
+    srcs = [
+        "mcp_test.go",
+        "pseudotools_test.go",
+    ],
     embed = [":mcp"],
     deps = [
         "@com_github_mark3labs_mcp_go//mcp",
         "@com_github_mark3labs_mcp_go//server",
         "@com_github_stretchr_testify//require",
+        "@org_golang_google_genai//:genai",
     ],
 )

@@ -193,12 +193,12 @@ about any other tasks.
 %s
 `
 	prompt := fmt.Sprintf(promptTmpl, task.Id, task_scheduler.TaskWrapper{Task: task}, taskSteps)
-	allowedTools := []string{
+	mcpWrapper := mcp.MCPClientWithPseudoTools(c.mcpClient, nil, []string{
 		"get_task_driver_step_logs",
 		"get_recipe_step_logs",
-	}
+	})
 	var res types.TaskSummary
-	debugInfo, err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, allowedTools, &res)
+	debugInfo, err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, &res)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -206,7 +206,7 @@ about any other tasks.
 	return &res, nil
 }
 
-func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *utils.RateLimiter, allowTools []string, result interface{}) (*DebugInfo, error) {
+func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *utils.RateLimiter, mcpClient mcp.MCPClient, result interface{}) (*DebugInfo, error) {
 	debug := &DebugInfo{
 		Prompt: prompt,
 		Model:  model,
@@ -222,11 +222,8 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 	// mode simultaneously. Therefore, we run the tool-calling loop without
 	// JSON mode, and then do one final request with JSON mode to get the
 	// result.
-	toolConfig := &genai.GenerateContentConfig{}
-	for _, tool := range c.mcpClient.Tools() {
-		if util.In(tool.FunctionDeclarations[0].Name, allowTools) {
-			toolConfig.Tools = append(toolConfig.Tools, tool)
-		}
+	toolConfig := &genai.GenerateContentConfig{
+		Tools: mcpClient.Tools(),
 	}
 	chat, err := c.client.Chats.Create(ctx, model, toolConfig, nil)
 	if err != nil {
