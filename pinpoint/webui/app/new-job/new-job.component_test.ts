@@ -935,4 +935,32 @@ describe('NewJobComponent', () => {
       assert.isTrue(component.experimentPanelError());
     });
   });
+
+  describe('onKeyDown', () => {
+    it('should prevent default on enter if target is an input', () => {
+      const component = createComponent();
+      const preventDefaultSpy = sinon.spy();
+      const mockEvent = {
+        target: { tagName: 'INPUT' },
+        preventDefault: preventDefaultSpy,
+      } as unknown as KeyboardEvent;
+
+      component.onKeyDown(mockEvent);
+
+      assert.isTrue(preventDefaultSpy.calledOnce);
+    });
+
+    it('should not prevent default on enter if target is not an input', () => {
+      const component = createComponent();
+      const preventDefaultSpy = sinon.spy();
+      const mockEvent = {
+        target: { tagName: 'TEXTAREA' },
+        preventDefault: preventDefaultSpy,
+      } as unknown as KeyboardEvent;
+
+      component.onKeyDown(mockEvent);
+
+      assert.isFalse(preventDefaultSpy.called);
+    });
+  });
 });

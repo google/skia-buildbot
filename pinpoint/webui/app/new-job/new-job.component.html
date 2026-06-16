@@ -1,5 +1,5 @@
 <div class="new-job-container">
-  <form [formGroup]="jobForm" (ngSubmit)="submitJob()">
+  <form [formGroup]="jobForm" (ngSubmit)="submitJob()" (keydown.enter)="onKeyDown($event)">
     <mat-card>
       <mat-card-header>
         <mat-card-title>New Job</mat-card-title>

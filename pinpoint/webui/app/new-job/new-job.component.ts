@@ -367,6 +367,14 @@ export class NewJobComponent implements OnInit {
     }
   }
 
+  onKeyDown(event: KeyboardEvent) {
+    const target = event.target as HTMLElement;
+    // Prevent accidental form submission with "Enter".
+    if (target && target.tagName === 'INPUT') {
+      event.preventDefault();
+    }
+  }
+
   getClNumber(reviewUrl: string): string {
     return reviewUrl.split('/').at(-1) ?? '';
   }
