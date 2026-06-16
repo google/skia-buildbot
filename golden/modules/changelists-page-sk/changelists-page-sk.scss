@@ -4,6 +4,7 @@
 changelists-page-sk {
   .controls {
     display: flex;
+
     checkbox-sk {
       margin: auto 2px;
     }
@@ -26,9 +27,11 @@ changelists-page-sk {
   td {
     padding: 0.25em;
     min-width: 4em;
+
     &.owner {
-      word-break: break-word;
+      overflow-wrap: break-word;
     }
+
     &.id {
       white-space: nowrap;
     }

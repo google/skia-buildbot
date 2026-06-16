@@ -1,10 +1,10 @@
 @import '../../../elements-sk/modules/styles/buttons';
+
 // This selector includes ".filter-dialog" to avoid overriding the styles of
 // the nested <query-dialog-sk/> (e.g. both define styles for the classes
-// "content" and "buttons").
-//
-// This works because the <div class=filter-dialog> and <query-dialog-sk/>
-// elements in this component are siblings, not ancestors.
+// "content" and "buttons"). This works because the <div class=filter-dialog>
+// and <query-dialog-sk/> elements in this component are siblings, not
+// ancestors.
 filter-dialog-sk .filter-dialog {
   > .content {
     min-width: 500px;
@@ -51,12 +51,11 @@ filter-dialog-sk .filter-dialog {
   select {
     // TODO(lovisolo): Make this the default font size for all <select>s in Gold.
     font-size: 16px; // Same font size as the document body.
-
     margin: 0;
   }
 
   checkbox-sk {
-    margin: 24px 0 8px 0;
+    margin: 24px 0 8px;
 
     label {
       display: flex;

@@ -1,5 +1,6 @@
 module.exports = {
   extends: ['stylelint-config-standard-scss'],
+  ignoreFiles: ['new_element/templates/**', 'new_element/modules/**'],
   rules: {
     // -- Permament overrides --
     // Disable strict kebab-case naming (allow historical Skia naming)
@@ -20,12 +21,5 @@ module.exports = {
         ignorePseudoElements: ['ng-deep'],
       },
     ],
-
-    // -- Temporary overrides --
-    // TODO(ansid): enable these rules.
-
-    // Needs manual fixes
-    'block-no-empty': null,
-    'font-family-no-missing-generic-family-keyword': null,
   },
 };

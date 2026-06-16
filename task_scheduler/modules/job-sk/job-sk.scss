@@ -1,9 +1,9 @@
 @import '../../../elements-sk/modules/styles/buttons';
 @import '../../../elements-sk/modules/styles/table';
-@import '../../../infra-sk/themes.scss';
+@import '../../../infra-sk/themes';
 
 job-sk {
-  font-family: Arial;
+  font-family: Arial, sans-serif;
 
   #cancelButton {
     cursor: pointer;
@@ -13,7 +13,7 @@ job-sk {
   }
 
   #timeline {
-    @extend .button-like;
+    @extend %button-like;
 
     a {
       background: var(--primary);
@@ -23,6 +23,6 @@ job-sk {
   }
 
   td > button {
-    margin: 0px;
+    margin: 0;
   }
 }

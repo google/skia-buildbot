@@ -1,4 +1,4 @@
-@import '../../themes.scss';
+@import '../../themes';
 
 /*
 
@@ -17,9 +17,8 @@ over-ride the defaults regardless of the processing order of the CSS files.
 
 // The mobile breakpoint determines the maximum screen width where a mobile layout should be used.
 // The chosen value corresponds to the smallest "small" window size as per
-// https://material.io/archive/guidelines/layout/responsive-ui.html.
-//
-// Note that custom CSS properties cannot be used in media queries (see
+// https://material.io/archive/guidelines/layout/responsive-ui.html. Note that custom CSS
+// properties cannot be used in media queries (see
 // https://stackoverflow.com/questions/40722882/css-native-variables-not-working-in-media-queries),
 // so we must define the mobile breakpoint as a Sass variable.
 $mobile-breakpoint: 600px;
@@ -27,31 +26,28 @@ $mobile-breakpoint: 600px;
 body {
   --sidebar-width: 200px;
   --sidebar-horiz-padding: 5px;
-  --sidebar-background-color: var(--surface-1dp, #000000);
-  --sidebar-border-color: var(--on-surface, #000000);
-
+  --sidebar-background-color: var(--surface-1dp, #000);
+  --sidebar-border-color: var(--on-surface, #000);
   --header-height: 50px;
-  --header-background-color: var(--surface, #000000);
-  --header-font-color: var(--primary, #ffffff);
+  --header-background-color: var(--surface, #000);
+  --header-font-color: var(--primary, #fff);
   --header-horiz-padding: 16px;
-  --header-border-color: var(--primary, #ffffff);
-
+  --header-border-color: var(--primary, #fff);
   --content-horiz-padding: 5px;
   --content-vert-padding: 0px;
-
   --footer-height: 0;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: Roboto, sans-serif;
 }
 
 app-sk {
-  color: var(--on-background, #000000);
-  fill: var(--on-background, #000000);
-  background: var(--background, #ffffff);
+  color: var(--on-background, #000);
+  fill: var(--on-background, #000);
+  background: var(--background, #fff);
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
   grid-template-rows: var(--header-height) 1fr var(--footer-height);
@@ -70,7 +66,6 @@ app-sk > {
     min-height: 48px;
     border-bottom: solid 1px var(--header-border-color);
     gap: 8px;
-
     grid-column: 1 / span 2;
     grid-row: 1;
 
@@ -99,7 +94,6 @@ app-sk > {
     background-color: var(--sidebar-background-color);
     color: var(--secondary);
     fill: var(--secondary);
-
     min-height: calc(100vh - var(--header-height));
 
     svg.icon-sk-svg {
@@ -118,7 +112,6 @@ app-sk > {
 
   footer {
     grid-area: footer;
-
     grid-column: 1 / span 2;
     grid-row: 3;
   }

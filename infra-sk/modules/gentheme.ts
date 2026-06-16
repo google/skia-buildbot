@@ -2,7 +2,7 @@
 //
 import {
   argbFromHex,
-  hexFromArgb,
+  hexFromArgb as origHexFromArgb,
   MaterialDynamicColors,
   Hct,
   SchemeTonalSpot,
@@ -10,6 +10,22 @@ import {
   TonalPalette,
   sanitizeDegreesDouble,
 } from '@material/material-color-utilities';
+
+const hexFromArgb = (argb: number): string => {
+  const hex = origHexFromArgb(argb);
+  if (hex.length === 7 && hex.startsWith('#')) {
+    const r1 = hex[1];
+    const r2 = hex[2];
+    const g1 = hex[3];
+    const g2 = hex[4];
+    const b1 = hex[5];
+    const b2 = hex[6];
+    if (r1 === r2 && g1 === g2 && b1 === b2) {
+      return `#${r1}${g1}${b1}`;
+    }
+  }
+  return hex;
+};
 
 // Create our own Scheme.
 //
@@ -85,8 +101,6 @@ export const gentheme = (primary: string, secondary: string): string => {
   --on-secondary-highlight:  ${hexFromArgb(MaterialDynamicColors.onSecondaryContainer.getArgb(scheme))};
   --primary-variant:         ${hexFromArgb(MaterialDynamicColors.primaryContainer.getArgb(scheme))};
   --on-primary-variant:      ${hexFromArgb(MaterialDynamicColors.onPrimaryContainer.getArgb(scheme))};
-  --surface-1dp:             ${hexFromArgb(MaterialDynamicColors.surfaceContainerHigh.getArgb(scheme))};
-  --surface-2dp:             ${hexFromArgb(MaterialDynamicColors.surfaceContainerHighest.getArgb(scheme))};
 }`;
 
   // Format as CSS and not SCSS so that the output can be used directly in the

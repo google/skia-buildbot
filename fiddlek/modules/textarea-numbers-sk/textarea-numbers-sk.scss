@@ -3,7 +3,6 @@
 @use 'fiddlek/modules/textarea-numbers-sk/codemirror5_codemirror.css';
 @use 'fiddlek/modules/textarea-numbers-sk/codemirror5_base16-dark.css';
 @use 'fiddlek/modules/textarea-numbers-sk/codemirror5_base16-light.css';
-
 @import '../themes/themes';
 
 .CodeMirror {
@@ -15,26 +14,30 @@
   color: var(--primary);
   text-shadow:
     var(--background) 1px 1px 2px,
-    var(--background)-1px -1px 2px,
+    var(--background) -1px -1px 2px,
     var(--background) 1px -1px 2px,
     var(--background) -1px 1px 2px;
-  font-family: arial;
+  font-family: arial, sans-serif;
   line-height: 0.3;
   cursor: pointer;
 }
+
 .CodeMirror-foldgutter {
   width: 0.7em;
 }
+
 .CodeMirror-foldgutter-open,
 .CodeMirror-foldgutter-folded {
   color: #555;
   cursor: pointer;
 }
-.CodeMirror-foldgutter-open:after {
+
+.CodeMirror-foldgutter-open::after {
   content: '\25BE';
   color: var(--primary);
 }
-.CodeMirror-foldgutter-folded:after {
+
+.CodeMirror-foldgutter-folded::after {
   content: '\25B8';
   color: var(--primary);
 }

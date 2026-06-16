@@ -1,5 +1,5 @@
 @import '../../../elements-sk/modules/styles/select';
-@import '../styles.scss';
+@import '../styles';
 
 * {
   // We use z=1 as our 'base', so that our row highlighting underlay can exist
@@ -13,14 +13,16 @@ commits-table-sk {
 
   .commitsTableContainer {
     display: grid;
+
     // Make the legend and commit columns shrink to content so with few taskspecs the commits don't
     // awkwardly take up a large portion of the screen.
     grid-template-columns: min-content min-content auto;
+
     // Specify header rows (controls, taskspecs, etc) as dynamically sized, then force all
     // commit/task rows to be 18px (plus 2px gap).
     grid-template-rows: min-content min-content min-content min-content;
     grid-auto-rows: 18px;
-    gap: 2px 2px;
+    gap: 2px;
   }
 
   .rowUnderlay {
@@ -60,7 +62,6 @@ commits-table-sk {
         font-family: monospace;
         font-size: 0.75em;
         background-color: #616161;
-        color: #ffffff;
         border-radius: 3px;
         bottom: -5.5px;
         right: 2px;
@@ -84,9 +85,7 @@ commits-table-sk {
 
   .highlight-row {
     pointer-events: none;
-    border-bottom-color: var(--secondary);
-    border-bottom-width: 3px;
-    border-bottom-style: solid;
+    border-bottom: 3px solid var(--secondary);
     margin-bottom: 7px;
     visibility: hidden;
   }
@@ -104,9 +103,7 @@ commits-table-sk {
     justify-content: space-between;
     height: 16px;
     width: 100%;
-    border-left-width: 3px;
-    border-left-style: solid;
-    border-left-color: transparent;
+    border-left: 3px solid transparent;
     padding-left: 2px;
 
     span {
@@ -134,15 +131,19 @@ commits-table-sk {
   .commit.task-emphasize-success {
     border-left-color: var(--success);
   }
+
   .commit.task-emphasize-warning {
     border-left-color: var(--warning);
   }
+
   .commit.task-emphasize-failure {
     border-left-color: var(--failure);
   }
+
   .commit.task-emphasize-mishap {
     border-left-color: var(--unexpected);
   }
+
   .commit.task-emphasize-unknown,
   .commit.task-emphasize- {
     border-left-color: var(--primary);
@@ -198,8 +199,8 @@ commits-table-sk {
     }
 
     select {
-      padding: 2px 0px;
-      margin-left: 0px;
+      padding: 2px 0;
+      margin-left: 0;
       width: 180px;
       text-align-last: center;
       text-align: center;
@@ -256,6 +257,7 @@ commits-table-sk {
 
   .multicommit-task {
     display: grid;
+
     // Lock the rows' height so a comment icon, if present, doesn't skew the individual divs.
     grid-auto-rows: 1fr;
 
@@ -268,12 +270,12 @@ commits-table-sk {
 
     .task:first-child {
       border-top: solid 1px;
-      border-radius: 3px 3px 0px 0px;
+      border-radius: 3px 3px 0 0;
     }
 
     .task:last-child {
       border-bottom: solid 1px;
-      border-radius: 0px 0px 3px 3px;
+      border-radius: 0 0 3px 3px;
     }
 
     .task.dashed-top {
@@ -286,15 +288,15 @@ commits-table-sk {
   }
 
   .multicommit-task:hover {
-    border-color: red;
     border-radius: 3px;
-    border: solid 1px;
+    border: solid 1px red;
     cursor: pointer;
   }
 
   .task.bg-failure {
     background-color: var(--failure);
   }
+
   .task.bg-mishap {
     background-color: var(--unexpected);
   }

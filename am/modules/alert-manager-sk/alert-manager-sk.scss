@@ -1,5 +1,5 @@
 @import '../../../elements-sk/modules/styles/buttons';
-@import '../themes/themes.scss';
+@import '../themes/themes';
 
 alert-manager-sk {
   spinner-sk[active] {
@@ -35,7 +35,6 @@ alert-manager-sk {
   .selection-mode {
     // The checkbox-sk element uses material design icons to render the checkbox part of its UI.
     // These icons look like this in the DOM: <span class="icon-sk">check_box</span>.
-    //
     // When selection mode is enabled, if we select a checkbox-sk and copy it, the text in the
     // clipboard will include the icon name, e.g. "check_box". This clutters the result and makes
     // the "selection mode" feature less useful. We fix this by making the icon part of checkbox-sk
@@ -72,7 +71,7 @@ alert-manager-sk {
 
     alarm-off-icon-sk,
     comment-icon-sk {
-      padding: 0px;
+      padding: 0;
     }
   }
 
@@ -127,19 +126,16 @@ alert-manager-sk {
       background: var(--surface);
       color: var(--on-surface);
       fill: var(--on-surface);
-      padding: 0px 6px;
+      padding: 0 6px;
     }
   }
 
   checkbox-sk.selection-mode-toggle {
     border-top: solid var(--on-background) 1px;
-    margin-top: auto; // Push the toggle to the bottom of the sidebar.
+    margin: auto 0 0; // Push the toggle to the bottom of the sidebar.
 
     // Remove other margins around the toggle so that the top border line will span the entire
     // length of the sidebar.
-    margin-right: 0;
-    margin-bottom: 0;
-    margin-left: 0;
 
     // This restores the visual padding around the toggle, which we eliminated by setting the
     // margins to 0.
@@ -271,21 +267,19 @@ alert-manager-sk {
 
   display: grid;
   height: 100vh;
-  grid-template-columns: 28em 1fr;
-  grid-template-rows: 36px 1fr 5px;
-  grid-template-areas:
-    'nav header'
-    'nav edit'
-    'nav footer';
+  grid-template:
+    'nav header' 36px
+    'nav edit' 1fr
+    'nav footer' 5px
+    / 28em 1fr;
 
-  @media (max-width: 40em) {
-    grid-template-columns: 1fr;
-    grid-template-rows: 36px 1fr 1fr 5px;
-    grid-template-areas:
-      'header'
-      'nav'
-      'edit'
-      'footer';
+  @media (width <= 40em) {
+    grid-template:
+      'header' 36px
+      'nav' 1fr
+      'edit' 1fr
+      'footer' 5px
+      / 1fr;
 
     header,
     .edit,

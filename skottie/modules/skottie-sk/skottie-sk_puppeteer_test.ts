@@ -26,7 +26,7 @@ describe('skottie-sk', () => {
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.click('#options-open');
-      await testBed.page.click('checkbox-sk[label="Show lottie-web"]');
+      await testBed.page.click('checkbox-sk[label^="Show lottie-web"]');
       await takeScreenshot(testBed.page, 'skottie', 'lottie_web');
       expect(testBed.page.url()).contains('l=true');
     });
