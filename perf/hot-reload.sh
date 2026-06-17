@@ -26,16 +26,28 @@ handle_change() {
   CHANGED_FILE=$1
   echo "Detected change in: $CHANGED_FILE"
 
+  IS_CSS=false
+  if [[ "$CHANGED_FILE" == *.css ]] || [[ "$CHANGED_FILE" == *.scss ]]; then
+    IS_CSS=true
+  fi
+
+  if [ "$IS_CSS" = true ]; then
+    echo "[BAZEL] Rebuilding dev_pages (CSS targets)..."
+  else
+    echo "[BAZEL] Rebuilding dev_pages (core targets)..."
+  fi
+  START_TIME=$(date +%s%N | cut -b1-13)
   if $BUILD_CMD; then
-    if [[ "$CHANGED_FILE" == *.css ]] || [[ "$CHANGED_FILE" == *.scss ]]; then
-      echo "CSS change. Triggering style swap..."
+    END_TIME=$(date +%s%N | cut -b1-13)
+    echo "[hot reload iteration ended in $((END_TIME - START_TIME))ms]"
+    if [ "$IS_CSS" = true ]; then
       curl -s -X POST "$TRIGGER_URL?type=css" > /dev/null
     else
-      echo "Core change. Triggering full reload..."
       curl -s -X POST "$TRIGGER_URL?type=full" > /dev/null
     fi
   else
-    echo "Build failed. Holding reload."
+    END_TIME=$(date +%s%N | cut -b1-13)
+    echo "[hot reload iteration FAILED in $((END_TIME - START_TIME))ms]"
   fi
 }
 
@@ -66,8 +78,24 @@ else
   fi
 fi
 
+echo "=== Perf Frontend Live Reloader ==="
+echo "Watching perf/$WATCH_DIR/ for changes to trigger Bazel rebuilds and live page reloads."
+echo ""
+
+echo "Performing initial baseline build..."
+START_TIME=$(date +%s%N | cut -b1-13)
+if $BUILD_CMD; then
+  END_TIME=$(date +%s%N | cut -b1-13)
+  echo "[Initial build successful in $((END_TIME - START_TIME))ms]"
+else
+  END_TIME=$(date +%s%N | cut -b1-13)
+  echo "[Error: Initial build failed in $((END_TIME - START_TIME))ms. Please fix the errors before continuing.]"
+  exit 1
+fi
+echo ""
+
 if [ "$USE_POLLING" = true ]; then
-  echo "Polling $WATCH_DIR for changes (Network/VM Mode)..."
+  echo "Polling $WATCH_DIR for changes..."
 
   REF_FILE="/tmp/.perf_watch_ref_$$"
   trap 'rm -f "$REF_FILE"' EXIT
