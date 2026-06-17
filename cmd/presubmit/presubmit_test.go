@@ -1172,3 +1172,82 @@ exit 0
 		assert.Contains(t, logs.String(), "stylelint failed!")
 	})
 }
+
+func TestModifiedFileNames(t *testing.T) {
+	before := []fileWithChanges{
+		{
+			fileName:     "app/styles.scss",
+			touchedLines: []lineOfCode{{contents: "a { color: red; }", num: 1}},
+		},
+		{
+			fileName:     "perf/go/main.go",
+			touchedLines: []lineOfCode{{contents: "package main", num: 1}},
+		},
+	}
+
+	after := []fileWithChanges{
+		{
+			fileName:     "app/styles.scss",
+			touchedLines: []lineOfCode{{contents: "a {\n  color: red;\n}", num: 1}}, // Modified
+		},
+		{
+			fileName:     "perf/go/main.go",
+			touchedLines: []lineOfCode{{contents: "package main", num: 1}}, // Unchanged
+		},
+		{
+			fileName:     "app/new.scss",
+			touchedLines: []lineOfCode{{contents: "body { margin: 0; }", num: 1}}, // Added
+		},
+	}
+
+	modified := modifiedFileNames(before, after)
+	assert.Equal(t, []string{"app/new.scss", "app/styles.scss"}, modified)
+}
+
+func TestRunStylelint_ModifiesFiles(t *testing.T) {
+	tempDir := t.TempDir()
+	mockBazelisk := filepath.Join(tempDir, "bazelisk")
+	script := "#!/bin/sh\nexit 0\n"
+	err := os.WriteFile(mockBazelisk, []byte(script), 0755)
+	assert.NoError(t, err)
+
+	mockGit := filepath.Join(tempDir, "git")
+	const gitScript = `#!/bin/sh
+if [ "$1" = "citc" ]; then
+  cat << 'EOF'
+--- a/app/styles.scss
++++ b/app/styles.scss
+@@ -1,1 +1,3 @@
++a {
++  color: green;
++}
+EOF
+else
+  cat << 'EOF'
+diff --git a/app/styles.scss b/app/styles.scss
+@@ -1,1 +1,3 @@
++a {
++  color: green;
++}
+EOF
+fi
+exit 0
+`
+	err = os.WriteFile(mockGit, []byte(gitScript), 0755)
+	assert.NoError(t, err)
+
+	oldPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+	ctx, logs := captureLogs()
+	files := []fileWithChanges{
+		{
+			fileName:     "app/styles.scss",
+			touchedLines: []lineOfCode{{contents: "a { color: red; }", num: 1}},
+		},
+	}
+
+	ok := runStylelint(ctx, files, "/path/to/repo", "HEAD~1")
+	assert.False(t, ok)
+	assert.Contains(t, logs.String(), "Stylelint caused additional changes in: app/styles.scss. Please inspect them (git diff) and commit if ok.\n")
+}

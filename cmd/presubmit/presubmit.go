@@ -22,6 +22,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -99,20 +100,20 @@ func main() {
 	}
 
 	// Run checks and keep track of errors.
-	anyErrors := false
+	var failedChecks []string
 	runCheck := func(name string, checkFn func() bool) {
 		if *verbose {
 			logf(ctx, "[presubmit] Running %s...\n", name)
 		}
 		ok := checkFn()
-		if *verbose {
-			if !ok {
+		if !ok {
+			if *verbose {
 				logf(ctx, "[presubmit] %s failed.\n", name)
-			} else {
-				logf(ctx, "[presubmit] %s passed.\n", name)
 			}
+			failedChecks = append(failedChecks, name)
+		} else if *verbose {
+			logf(ctx, "[presubmit] %s passed.\n", name)
 		}
-		anyErrors = anyErrors || !ok
 	}
 
 	runCheck("Buildifier", func() bool { return runBuildifier(ctx, changedFiles, branchBaseCommit) })
@@ -145,8 +146,8 @@ func main() {
 		runCheck("Autoreview", func() bool { return runAutoreview(ctx, branchBaseCommit) })
 	}
 
-	if anyErrors {
-		logf(ctx, "Presubmit errors detected!\n")
+	if len(failedChecks) > 0 {
+		logf(ctx, "Presubmit errors detected! The following checks failed: %s\n", strings.Join(failedChecks, ", "))
 		os.Exit(1)
 	}
 	os.Exit(0)
@@ -959,11 +960,8 @@ func runBuildifier(ctx context.Context, files []fileWithChanges, branchBaseCommi
 		return false
 	}
 
-	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
-		logf(ctx, "Buildifier caused additional changes. %+v \n", changedFiles)
-		return false
-	}
-	return true
+	changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit)
+	return checkUnchanged(ctx, "Buildifier", files, changedFiles)
 }
 
 // runGoimports runs goimports on any changed golang files. It returns false if goimports fails or
@@ -1003,11 +1001,8 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot, b
 		return false
 	}
 
-	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
-		logf(ctx, "goimports caused additional changes. %+v \n", changedFiles)
-		return false
-	}
-	return true
+	changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit)
+	return checkUnchanged(ctx, "Goimports", files, changedFiles)
 }
 
 // runNpmCi runs "npm ci" to ensure that the "node_modules" directory exists.
@@ -1081,12 +1076,7 @@ func runStylelint(ctx context.Context, files []fileWithChanges, workspaceRoot, b
 
 	// Recalculate diffs and fail if stylelint modified anything
 	changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit)
-	if !deepequal.DeepEqual(files, changedFiles) {
-		logf(ctx, "Stylelint caused additional changes. %+v \n", changedFiles)
-		return false
-	}
-
-	return true
+	return checkUnchanged(ctx, "Stylelint", files, changedFiles)
 }
 
 func filterPnpmLock(files []fileWithChanges) []fileWithChanges {
@@ -1132,11 +1122,7 @@ func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot, br
 	files = filterPnpmLock(files)
 	changedFiles = filterPnpmLock(changedFiles)
 
-	if !deepequal.DeepEqual(files, changedFiles) {
-		logf(ctx, "Prettier caused additional changes. %+v \n", changedFiles)
-		return false
-	}
-	return true
+	return checkUnchanged(ctx, "Prettier", files, changedFiles)
 }
 
 // runGofmt runs gofmt on any changed golang files. It returns false if gofmt fails or
@@ -1162,11 +1148,8 @@ func runGofmt(ctx context.Context, files []fileWithChanges, branchBaseCommit str
 		return false
 	}
 
-	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
-		logf(ctx, "gofmt caused additional changes. %+v \n", changedFiles)
-		return false
-	}
-	return true
+	changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit)
+	return checkUnchanged(ctx, "Gofmt", files, changedFiles)
 }
 
 // runGoVet runs `go vet` on all golang files. It returns false if go vet fails.
@@ -1281,6 +1264,42 @@ func contains[T string](a []T, s T) bool {
 		}
 	}
 	return false
+}
+
+// checkUnchanged verifies if the files before and after a tool runs are identical.
+// If there are differences, it logs the modified files with commit instructions and returns false.
+func checkUnchanged(ctx context.Context, toolName string, before, after []fileWithChanges) bool {
+	if deepequal.DeepEqual(before, after) {
+		return true
+	}
+	modified := modifiedFileNames(before, after)
+	logf(ctx, "%s caused additional changes in: %s. Please inspect them (git diff) and commit if ok.\n", toolName, strings.Join(modified, ", "))
+	return false
+}
+
+// modifiedFileNames compares the fileWithChanges slices before and after a tool runs
+// and returns the names of the files that were modified or added by the tool.
+func modifiedFileNames(before, after []fileWithChanges) []string {
+	beforeMap := make(map[string][]lineOfCode)
+	for _, f := range before {
+		beforeMap[f.fileName] = f.touchedLines
+	}
+
+	afterMap := make(map[string]bool)
+	var modified []string
+	for _, f := range after {
+		afterMap[f.fileName] = true
+		if oldLines, ok := beforeMap[f.fileName]; !ok || !deepequal.DeepEqual(oldLines, f.touchedLines) {
+			modified = append(modified, f.fileName)
+		}
+	}
+	for _, f := range before {
+		if !afterMap[f.fileName] {
+			modified = append(modified, f.fileName)
+		}
+	}
+	sort.Strings(modified)
+	return modified
 }
 
 type contextKeyType string
