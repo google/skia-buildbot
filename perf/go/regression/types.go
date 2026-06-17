@@ -73,6 +73,9 @@ type Store interface {
 	// GetRegressionsBefore returns up to limit regressions for the given trace before or at the commit.
 	GetRegressionsBefore(ctx context.Context, traceName string, subName string, commit types.CommitNumber, limit int) ([]*Regression, error)
 
+	// GetBatchRegressionsBefore returns a map from traceName to a map from commitNumber to the previous regression.
+	GetBatchRegressionsBefore(ctx context.Context, traceNames []string, commitNumbers []types.CommitNumber, subName string) (map[string]map[types.CommitNumber]*Regression, error)
+
 	// DeleteByCommit deletes a regression from the Regression table via the CommitNumber.
 	// Use with caution.
 	DeleteByCommit(ctx context.Context, commitNumber types.CommitNumber, tx pgx.Tx) error

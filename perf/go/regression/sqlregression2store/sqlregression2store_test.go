@@ -1965,3 +1965,94 @@ func TestRangeFilteredByTraceId(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Empty(t, regressionsFromDb)
 }
+
+func TestGetBatchRegressionsBefore(t *testing.T) {
+	const (
+		traceKey1 = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test1,"
+		traceKey2 = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test2,"
+	)
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	store := setupStore(t, alertsProvider)
+	store.instanceConfig.Experiments.RegressionsTraceIdField = true
+
+	ctx := context.Background()
+
+	// Add a regression with trace key 1 at commit 12345.
+	r1 := generateNewRegression(subName)
+	r1.CommitNumber = 12345
+	r1.PrevCommitNumber = 12340
+	r1.Frame.DataFrame.TraceSet = types.TraceSet{traceKey1: {}}
+	_, err := store.WriteRegression(ctx, r1, nil)
+	assert.Nil(t, err)
+
+	// Add a regression with trace key 2 at commit 12346.
+	r2 := generateNewRegression(subName)
+	r2.CommitNumber = 12346
+	r2.PrevCommitNumber = 12341
+	r2.Frame.DataFrame.TraceSet = types.TraceSet{traceKey2: {}}
+	_, err = store.WriteRegression(ctx, r2, nil)
+	assert.Nil(t, err)
+
+	// Test batch query for commit > 12345 and > 12346.
+	batch, err := store.GetBatchRegressionsBefore(ctx, []string{traceKey1, traceKey2}, []types.CommitNumber{12350, 12350}, subName)
+	if skipTestIfSpannerEmulatorNotSupported(t, err) {
+		return
+	}
+	assert.Nil(t, err)
+	assert.NotNil(t, batch)
+	assert.Len(t, batch, 2)
+
+	assert.NotNil(t, batch[traceKey1][12350])
+	assert.Equal(t, r1.Id, batch[traceKey1][12350].Id)
+	assert.Equal(t, r1.CommitNumber, batch[traceKey1][12350].CommitNumber)
+
+	assert.NotNil(t, batch[traceKey2][12350])
+	assert.Equal(t, r2.Id, batch[traceKey2][12350].Id)
+	assert.Equal(t, r2.CommitNumber, batch[traceKey2][12350].CommitNumber)
+
+	// Test batch query when no regressions exist.
+	emptyBatch, err := store.GetBatchRegressionsBefore(ctx, []string{"non-existent"}, []types.CommitNumber{100}, subName)
+	assert.Nil(t, err)
+	assert.Empty(t, emptyBatch)
+}
+
+func TestGetBatchRegressionsBefore_MultipleCommits(t *testing.T) {
+	const traceKey = ",benchmark=Blazor,bot=MacM1,master=ChromiumPerf,test=test1,"
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	store := setupStore(t, alertsProvider)
+	store.instanceConfig.Experiments.RegressionsTraceIdField = true
+
+	ctx := context.Background()
+
+	// Write regressions at commit 1, 51, and 101.
+	for _, c := range []types.CommitNumber{1, 51, 101} {
+		r := generateNewRegression(subName)
+		r.CommitNumber = c
+		r.PrevCommitNumber = c - 1
+		r.Frame.DataFrame.TraceSet = types.TraceSet{traceKey: {}}
+		_, err := store.WriteRegression(ctx, r, nil)
+		require.Nil(t, err)
+	}
+
+	// Query batch for candidate commits: 31, 41, 61.
+	batch, err := store.GetBatchRegressionsBefore(ctx, []string{traceKey, traceKey, traceKey}, []types.CommitNumber{31, 41, 61}, subName)
+	if skipTestIfSpannerEmulatorNotSupported(t, err) {
+		return
+	}
+	assert.Nil(t, err)
+	require.NotNil(t, batch[traceKey])
+
+	// 31 -> 1
+	assert.NotNil(t, batch[traceKey][31])
+	assert.Equal(t, types.CommitNumber(1), batch[traceKey][31].CommitNumber)
+
+	// 41 -> 1
+	assert.NotNil(t, batch[traceKey][41])
+	assert.Equal(t, types.CommitNumber(1), batch[traceKey][41].CommitNumber)
+
+	// 61 -> 51
+	assert.NotNil(t, batch[traceKey][61])
+	assert.Equal(t, types.CommitNumber(51), batch[traceKey][61].CommitNumber)
+}

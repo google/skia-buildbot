@@ -1,6 +1,8 @@
 load("@rules_go//go:def.bzl", "go_library")
 load("//bazel/go:go_test.bzl", "go_test")
 
+# gazelle:exclude improved_anomaly_bounds_refiner_integration_test.go
+
 go_library(
     name = "refiner",
     srcs = [
@@ -48,12 +50,39 @@ go_test(
         "//perf/go/dataframe",
         "//perf/go/git/provider",
         "//perf/go/regression",
-        "//perf/go/regression/mocks",
         "//perf/go/stepfit",
         "//perf/go/tracestore/mocks",
         "//perf/go/types",
         "//perf/go/ui/frame",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
+
+# keep
+go_test(
+    name = "refiner_integration_test",
+    srcs = ["improved_anomaly_bounds_refiner_integration_test.go"],
+    embed = [":refiner"],
+    tags = ["manual"],
+    deps = [
+        "//go/sql/pool",
+        "//perf/go/alerts",
+        "//perf/go/alerts/mock",
+        "//perf/go/clustering2",
+        "//perf/go/config",
+        "//perf/go/dataframe",
+        "//perf/go/git/provider",
+        "//perf/go/regression",
+        "//perf/go/regression/sqlregression2store",
+        "//perf/go/sql/sqltest",
+        "//perf/go/stepfit",
+        "//perf/go/tracestore",
+        "//perf/go/types",
+        "//perf/go/ui/frame",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

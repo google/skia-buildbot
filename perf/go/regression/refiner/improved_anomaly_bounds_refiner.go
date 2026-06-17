@@ -31,7 +31,7 @@ type ImprovedAnomalyBoundsRefiner struct {
 	traceStore      tracestore.TraceStore
 	perfGit         git.Git
 	stdDevThreshold float32
-	dryRun          bool
+	dryRun          bool // No longer used, TODO(mordeckimarcin) cleanup.
 }
 
 // NewImprovedAnomalyBoundsRefiner returns a new instance of ImprovedAnomalyBoundsRefiner.
@@ -53,10 +53,13 @@ func NewImprovedAnomalyBoundsRefiner(anomalyStore anomalies.Store, store regress
 // to more effectively separate noise from real regressions.
 func (r *ImprovedAnomalyBoundsRefiner) Process(ctx context.Context, cfg *alerts.Alert, responses []*regression.RegressionDetectionResponse) ([]*regression.ConfirmedRegression, error) {
 	// Run the base AnomalyBoundsRefiner logic.
+	responsesLen := len(responses)
+	sklog.Debugf("starting base refiner logic for %d responses", responsesLen)
 	confirmed, err := r.base.Process(ctx, cfg, responses)
 	if err != nil {
 		return nil, err
 	}
+	sklog.Debugf("base refiner logic for %d responses done", responsesLen)
 
 	// The Const algorithm ignores the baseline, so the improved refiner logic
 	// (which relies on a historical baseline) is not applicable.
@@ -71,17 +74,29 @@ func (r *ImprovedAnomalyBoundsRefiner) Process(ctx context.Context, cfg *alerts.
 		traceNames = append(traceNames, name)
 	}
 	sort.Strings(traceNames)
+	sklog.Debugf("starting batched regressions before - %d resp", responsesLen)
+
+	var batchPrev map[string]map[types.CommitNumber]*regression.Regression
+	if len(confirmed) > 0 {
+		var traceNamesBatch []string
+		var commitsBatch []types.CommitNumber
+		for _, cr := range confirmed {
+			traceNamesBatch = append(traceNamesBatch, cr.Summary.Clusters[0].Keys[0])
+			commitsBatch = append(commitsBatch, cr.DisplayCommitNumber)
+		}
+		var err error
+		batchPrev, err = r.store.GetBatchRegressionsBefore(ctx, traceNamesBatch, commitsBatch, cfg.SubscriptionName)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "[ImprovedAnomalyBoundsRefiner] Failed to get batch regressions before")
+		}
+	}
+	sklog.Debugf("batched regressions queries - %d resp", responsesLen)
 
 	var mu sync.Mutex
 	var refined []*regression.ConfirmedRegression
 
 	g, ctx := errgroup.WithContext(ctx)
-	// In case we are running a dry run, we can use a larger group.
-	// Otherwise, the DB is under heavy load anyway, so we have to limit the parallelism.
-	groupLimit := 1
-	if r.dryRun {
-		groupLimit = 20
-	}
+	groupLimit := 20
 	g.SetLimit(groupLimit)
 
 	for _, traceName := range traceNames {
@@ -91,7 +106,7 @@ func (r *ImprovedAnomalyBoundsRefiner) Process(ctx context.Context, cfg *alerts.
 			sort.Slice(group, func(i, j int) bool {
 				return group[i].CommitNumber < group[j].CommitNumber
 			})
-			localRefined, err := r.processTraceGroup(ctx, group, cfg)
+			localRefined, err := r.processTraceGroup(ctx, group, cfg, batchPrev)
 			if err != nil {
 				return err
 			}
@@ -105,8 +120,9 @@ func (r *ImprovedAnomalyBoundsRefiner) Process(ctx context.Context, cfg *alerts.
 	}
 
 	if err := g.Wait(); err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "error processing trace group")
 	}
+	sklog.Debugf("improved refinement done for %d responses - got %d refined", responsesLen, len(refined))
 
 	return refined, nil
 }
@@ -123,11 +139,11 @@ func groupRegressionsByTrace(confirmed []*regression.ConfirmedRegression) map[st
 
 // processTraceGroup processes a list of regressions for a single trace sequentially,
 // tracking and utilizing the previous refined regression in chronological order.
-func (r *ImprovedAnomalyBoundsRefiner) processTraceGroup(ctx context.Context, group []*regression.ConfirmedRegression, cfg *alerts.Alert) ([]*regression.ConfirmedRegression, error) {
+func (r *ImprovedAnomalyBoundsRefiner) processTraceGroup(ctx context.Context, group []*regression.ConfirmedRegression, cfg *alerts.Alert, batchPrev map[string]map[types.CommitNumber]*regression.Regression) ([]*regression.ConfirmedRegression, error) {
 	var localRefined []*regression.ConfirmedRegression
 	var lastRefined *regression.ConfirmedRegression
 	for _, cr := range group {
-		newCr, err := r.applyImprovedLogic(ctx, cr, cfg, lastRefined)
+		newCr, err := r.applyImprovedLogic(ctx, cr, cfg, lastRefined, batchPrev)
 		if err != nil {
 			return nil, err
 		}
@@ -139,15 +155,12 @@ func (r *ImprovedAnomalyBoundsRefiner) processTraceGroup(ctx context.Context, gr
 	return localRefined, nil
 }
 
-func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(ctx context.Context, cr *regression.ConfirmedRegression, cfg *alerts.Alert, latestRefined *regression.ConfirmedRegression) (*regression.ConfirmedRegression, error) {
+func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(ctx context.Context, cr *regression.ConfirmedRegression, cfg *alerts.Alert, latestRefined *regression.ConfirmedRegression, batchPrev map[string]map[types.CommitNumber]*regression.Regression) (*regression.ConfirmedRegression, error) {
 	traceName := cr.Summary.Clusters[0].Keys[0]
 	pickOffset := cr.DisplayCommitNumber
 
 	// Find the previous regression to determine the boundary for loading historical data.
-	prevInfo, err := r.findPreviousRegression(ctx, traceName, cfg.SubscriptionName, pickOffset, latestRefined)
-	if err != nil {
-		return nil, err
-	}
+	prevInfo := r.findPreviousRegression(traceName, pickOffset, latestRefined, batchPrev)
 	if prevInfo == nil {
 		sklog.Infof("[ImprovedAnomalyBoundsRefiner] No previous regression found for trace %s before %d. Keeping original regression.", traceName, pickOffset)
 		return cr, nil
@@ -217,23 +230,15 @@ type previousRegressionInfo struct {
 }
 
 // findPreviousRegression looks for the most recent regression on the same trace.
-// It checks the database first (unless it's a dry run), and then compares it
-// with the latest regression found in the current processing batch, returning the newer one.
-func (r *ImprovedAnomalyBoundsRefiner) findPreviousRegression(ctx context.Context, traceName string, subName string, pickOffset types.CommitNumber, latestRefined *regression.ConfirmedRegression) (*previousRegressionInfo, error) {
-	var regressions []*regression.Regression
-	var err error
-	if regression.IsDryRun(ctx) {
-		sklog.Infof("[ImprovedAnomalyBoundsRefiner] Dry run enabled. Skipping DB query for previous regressions.")
-	} else {
-		regressions, err = r.store.GetRegressionsBefore(ctx, traceName, subName, pickOffset, 1)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "[ImprovedAnomalyBoundsRefiner] Failed to get regressions before %d", pickOffset)
-		}
-	}
-
+// It checks the pre-loaded batch map first, and compares it with the latest
+// regression found in the current processing batch, returning the newer one.
+func (r *ImprovedAnomalyBoundsRefiner) findPreviousRegression(traceName string, pickOffset types.CommitNumber, latestRefined *regression.ConfirmedRegression, batchPrev map[string]map[types.CommitNumber]*regression.Regression) *previousRegressionInfo {
 	var dbRegression *regression.Regression
-	if len(regressions) > 0 {
-		dbRegression = regressions[0]
+
+	if batchPrev != nil {
+		if tMap, ok := batchPrev[traceName]; ok {
+			dbRegression = tMap[pickOffset]
+		}
 	}
 
 	var lastCommit types.CommitNumber
@@ -258,14 +263,14 @@ func (r *ImprovedAnomalyBoundsRefiner) findPreviousRegression(ctx context.Contex
 	}
 
 	if !found {
-		return nil, nil
+		return nil
 	}
 
 	return &previousRegressionInfo{
 		CommitNumber:     lastCommit,
 		PrevCommitNumber: lastPrevCommit,
 		Source:           source,
-	}, nil
+	}
 }
 
 // getLeftData loads raw trace data from the store for the range between the previous

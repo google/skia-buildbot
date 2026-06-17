@@ -396,6 +396,11 @@ func (s *SQLRegressionStore) GetRegressionsBefore(ctx context.Context, traceName
 }
 
 // Not implemented, old regression will not be developed
+func (s *SQLRegressionStore) GetBatchRegressionsBefore(ctx context.Context, traceNames []string, commitNumbers []types.CommitNumber, subName string) (map[string]map[types.CommitNumber]*regression.Regression, error) {
+	return nil, skerr.Fmt("GetBatchRegressionsBefore is not implemented in old version of regression store.")
+}
+
+// Not implemented, old regression will not be developed
 func (s *SQLRegressionStore) GetBySid(ctx context.Context, sid string) ([]*regression.Regression, error) {
 	return nil, skerr.Fmt("GetBySid is not implemented in old version of regression store.")
 }

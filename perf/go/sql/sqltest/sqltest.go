@@ -44,7 +44,7 @@ func NewSpannerDBForTests(t *testing.T, databaseNamePrefix string) pool.Pool {
 			fmt.Printf("Error while applying database migration: %v", err)
 		}
 		return err == nil
-	}, 10*time.Second, 1*time.Second)
+	}, 30*time.Second, 1*time.Second)
 	// Wrap the db pool in a ContextTimeout which checks that every context has
 	// a timeout.
 	conn := timeout.New(rawConn)

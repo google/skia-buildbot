@@ -43,6 +43,36 @@ func (_m *Store) DeleteByCommit(ctx context.Context, commitNumber types.CommitNu
 	return r0
 }
 
+// GetBatchRegressionsBefore provides a mock function with given fields: ctx, traceNames, commitNumbers, subName
+func (_m *Store) GetBatchRegressionsBefore(ctx context.Context, traceNames []string, commitNumbers []types.CommitNumber, subName string) (map[string]map[types.CommitNumber]*regression.Regression, error) {
+	ret := _m.Called(ctx, traceNames, commitNumbers, subName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBatchRegressionsBefore")
+	}
+
+	var r0 map[string]map[types.CommitNumber]*regression.Regression
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, []types.CommitNumber, string) (map[string]map[types.CommitNumber]*regression.Regression, error)); ok {
+		return rf(ctx, traceNames, commitNumbers, subName)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string, []types.CommitNumber, string) map[string]map[types.CommitNumber]*regression.Regression); ok {
+		r0 = rf(ctx, traceNames, commitNumbers, subName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]map[types.CommitNumber]*regression.Regression)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string, []types.CommitNumber, string) error); ok {
+		r1 = rf(ctx, traceNames, commitNumbers, subName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetBugIdsForRegressions provides a mock function with given fields: ctx, regressions
 func (_m *Store) GetBugIdsForRegressions(ctx context.Context, regressions []*regression.Regression) ([]*regression.Regression, error) {
 	ret := _m.Called(ctx, regressions)

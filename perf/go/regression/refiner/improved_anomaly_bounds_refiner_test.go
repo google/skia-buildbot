@@ -6,12 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/regression"
-	regression_mocks "go.skia.org/infra/perf/go/regression/mocks"
 	"go.skia.org/infra/perf/go/stepfit"
 	tracestore_mocks "go.skia.org/infra/perf/go/tracestore/mocks"
 	"go.skia.org/infra/perf/go/types"
@@ -19,8 +19,7 @@ import (
 )
 
 func TestApplyImprovedLogic_NoPrevRegression_ReturnsOriginal(t *testing.T) {
-	mockStore := &regression_mocks.Store{}
-	r := &ImprovedAnomalyBoundsRefiner{store: mockStore}
+	r := &ImprovedAnomalyBoundsRefiner{}
 
 	cr := &regression.ConfirmedRegression{
 		DisplayCommitNumber: 100,
@@ -31,17 +30,14 @@ func TestApplyImprovedLogic_NoPrevRegression_ReturnsOriginal(t *testing.T) {
 		},
 	}
 
-	mockStore.On("GetRegressionsBefore", mock.Anything, "trace1", "", types.CommitNumber(100), 1).Return([]*regression.Regression{}, nil)
-
-	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, nil)
+	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, cr, res)
 }
 
 func TestApplyImprovedLogic_OverlapWithDB_FiltersOut(t *testing.T) {
-	mockStore := &regression_mocks.Store{}
-	r := &ImprovedAnomalyBoundsRefiner{store: mockStore}
+	r := &ImprovedAnomalyBoundsRefiner{}
 
 	cr := &regression.ConfirmedRegression{
 		DisplayCommitNumber: 100,
@@ -58,17 +54,18 @@ func TestApplyImprovedLogic_OverlapWithDB_FiltersOut(t *testing.T) {
 		CommitNumber:     95,
 		PrevCommitNumber: 85,
 	}
-	mockStore.On("GetRegressionsBefore", mock.Anything, "trace1", "", types.CommitNumber(100), 1).Return([]*regression.Regression{dbReg}, nil)
+	batchPrev := map[string]map[types.CommitNumber]*regression.Regression{
+		"trace1": {100: dbReg},
+	}
 
-	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, nil)
+	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, nil, batchPrev)
 
 	assert.NoError(t, err)
 	assert.Nil(t, res) // Filtered out
 }
 
 func TestApplyImprovedLogic_OverlapWithInMemory_FiltersOut(t *testing.T) {
-	mockStore := &regression_mocks.Store{}
-	r := &ImprovedAnomalyBoundsRefiner{store: mockStore}
+	r := &ImprovedAnomalyBoundsRefiner{}
 
 	cr := &regression.ConfirmedRegression{
 		DisplayCommitNumber: 100,
@@ -91,17 +88,18 @@ func TestApplyImprovedLogic_OverlapWithInMemory_FiltersOut(t *testing.T) {
 		CommitNumber:     50,
 		PrevCommitNumber: 40,
 	}
-	mockStore.On("GetRegressionsBefore", mock.Anything, "trace1", "", types.CommitNumber(100), 1).Return([]*regression.Regression{dbReg}, nil)
+	batchPrev := map[string]map[types.CommitNumber]*regression.Regression{
+		"trace1": {100: dbReg},
+	}
 
-	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, latestRefined)
+	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, latestRefined, batchPrev)
 
 	assert.NoError(t, err)
 	assert.Nil(t, res) // Filtered out
 }
 
-func TestApplyImprovedLogic_DryRun_SkipsDB(t *testing.T) {
-	mockStore := &regression_mocks.Store{}
-	r := &ImprovedAnomalyBoundsRefiner{store: mockStore}
+func TestApplyImprovedLogic_NilBatchPrev_ReturnsOriginal(t *testing.T) {
+	r := &ImprovedAnomalyBoundsRefiner{}
 
 	cr := &regression.ConfirmedRegression{
 		DisplayCommitNumber: 100,
@@ -112,19 +110,15 @@ func TestApplyImprovedLogic_DryRun_SkipsDB(t *testing.T) {
 		},
 	}
 
-	ctx := regression.WithDryRun(context.Background())
-
-	res, err := r.applyImprovedLogic(ctx, cr, &alerts.Alert{}, nil)
+	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, cr, res) // Fallback because no prev regression found in memory either
 }
 
 func TestApplyImprovedLogic_CohenThreshold_Capped(t *testing.T) {
-	mockStore := &regression_mocks.Store{}
 	mockTraceStore := &tracestore_mocks.TraceStore{}
 	r := &ImprovedAnomalyBoundsRefiner{
-		store:           mockStore,
 		traceStore:      mockTraceStore,
 		stdDevThreshold: 0.001,
 	}
@@ -164,7 +158,9 @@ func TestApplyImprovedLogic_CohenThreshold_Capped(t *testing.T) {
 		CommitNumber:     50,
 		PrevCommitNumber: 40,
 	}
-	mockStore.On("GetRegressionsBefore", mock.Anything, "trace1", "", types.CommitNumber(100), 1).Return([]*regression.Regression{dbReg}, nil)
+	batchPrev := map[string]map[types.CommitNumber]*regression.Regression{
+		"trace1": {100: dbReg},
+	}
 
 	mockTraceStore.On("ReadTracesForCommitRange", mock.Anything, []string{"trace1"}, types.CommitNumber(50), types.CommitNumber(90)).Return(
 		types.TraceSet{"trace1": types.Trace{10, 10, 10, 10}},
@@ -179,8 +175,45 @@ func TestApplyImprovedLogic_CohenThreshold_Capped(t *testing.T) {
 		Radius:      2,
 	}
 
-	res, err := r.applyImprovedLogic(context.Background(), cr, alert, nil)
+	res, err := r.applyImprovedLogic(context.Background(), cr, alert, nil, batchPrev)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
+}
+
+func TestFindPreviousRegression_PrefersConfirmedPredecessor(t *testing.T) {
+	r := &ImprovedAnomalyBoundsRefiner{}
+
+	// DB regression at commit 1
+	dbReg1 := &regression.Regression{CommitNumber: 1, PrevCommitNumber: 0}
+	// DB regression at commit 51
+	dbReg51 := &regression.Regression{CommitNumber: 51, PrevCommitNumber: 50}
+
+	batchPrev := map[string]map[types.CommitNumber]*regression.Regression{
+		"trace1": {
+			31: dbReg1,
+			41: dbReg1,
+			61: dbReg51,
+		},
+	}
+
+	// Suppose candidate 31 was already confirmed by applyImprovedLogic
+	confirmed31 := &regression.ConfirmedRegression{
+		CommitNumber:     31,
+		PrevCommitNumber: 30,
+	}
+
+	// Now we evaluate findPreviousRegression for candidate at 41
+	prevInfo41 := r.findPreviousRegression("trace1", 41, confirmed31, batchPrev)
+
+	require.NotNil(t, prevInfo41)
+	assert.Equal(t, types.CommitNumber(31), prevInfo41.CommitNumber)
+	assert.Equal(t, "in-memory", prevInfo41.Source)
+
+	// Evaluate findPreviousRegression for candidate at 61 (where DB 51 > confirmed 31)
+	prevInfo61 := r.findPreviousRegression("trace1", 61, confirmed31, batchPrev)
+
+	require.NotNil(t, prevInfo61)
+	assert.Equal(t, types.CommitNumber(51), prevInfo61.CommitNumber)
+	assert.Equal(t, "DB", prevInfo61.Source)
 }

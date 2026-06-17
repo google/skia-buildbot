@@ -77,6 +77,8 @@ const (
 	getSubscriptionsForRegressions
 	readRegressionsBefore
 	readRegressionsBeforeByTraceId
+	readRegressionsBeforeBatch
+	readRegressionsBeforeBatchByTraceId
 )
 
 // statementContext provides a struct to expand sql statement templates.
@@ -215,6 +217,54 @@ var statementFormats = map[statementFormat]string{
 			commit_number DESC
 		LIMIT $3
 	`,
+	readRegressionsBeforeBatch: `
+		WITH Candidates AS (
+			SELECT
+				t1.trace_name,
+				t1.i,
+				t2.commit_number AS current_commit_number,
+				r2.id,
+				r2.commit_number,
+				r2.prev_commit_number
+			FROM UNNEST($1::text[]) WITH ORDINALITY AS t1(trace_name, i)
+			JOIN UNNEST($2::bigint[]) WITH ORDINALITY AS t2(commit_number, j) ON t1.i = t2.j
+			JOIN Regressions2 r2
+			  ON (r2.frame->'dataframe'->'traceset') ? t1.trace_name
+			 AND r2.sub_name = $3
+			 AND r2.commit_number < t2.commit_number
+		),
+		MaxCommits AS (
+			SELECT i, MAX(commit_number) AS max_commit
+			FROM Candidates
+			GROUP BY i
+		)
+		SELECT c.trace_name, c.current_commit_number, c.id, c.commit_number, c.prev_commit_number
+		FROM Candidates c
+		JOIN MaxCommits m ON c.i = m.i AND c.commit_number = m.max_commit
+	`,
+	readRegressionsBeforeBatchByTraceId: `
+		WITH MaxCommits AS (
+			SELECT
+				t1.trace_id,
+				t1.i,
+				t2.commit_number AS current_commit_number,
+				MAX(r2.commit_number) AS max_commit
+			FROM UNNEST($1::bytea[]) WITH ORDINALITY AS t1(trace_id, i)
+			JOIN UNNEST($2::bigint[]) WITH ORDINALITY AS t2(commit_number, j) ON t1.i = t2.j
+			JOIN Regressions2 r2
+			  ON r2.trace_id = t1.trace_id
+			 AND r2.sub_name = $3
+			 AND r2.commit_number < t2.commit_number
+			GROUP BY t1.trace_id, t1.i, t2.commit_number
+		)
+		SELECT m.trace_id, m.current_commit_number, r.id, r.commit_number, r.prev_commit_number
+		FROM MaxCommits m
+		JOIN Regressions2 r
+		  ON r.trace_id = m.trace_id
+		 AND r.sub_name = $3
+		 AND r.commit_number = m.max_commit
+	`,
+
 	write: `
 		INSERT INTO
 			Regressions2 ({{ .Columns }})
@@ -1367,6 +1417,102 @@ func (s *SQLRegression2Store) GetSubscriptionsForRegressions(ctx context.Context
 	}
 
 	return regressionIDsFromSql, subscriptions, nil
+}
+
+// GetBatchRegressionsBefore returns a map from traceName to a map from commitNumber to the previous regression.
+func (s *SQLRegression2Store) GetBatchRegressionsBefore(ctx context.Context, traceNames []string, commitNumbers []types.CommitNumber, subName string) (map[string]map[types.CommitNumber]*regression.Regression, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlregression2store.GetBatchRegressionsBefore")
+	defer span.End()
+
+	if len(traceNames) != len(commitNumbers) {
+		return nil, skerr.Fmt("traceNames and commitNumbers must have equal length, got %d vs %d", len(traceNames), len(commitNumbers))
+	}
+	if len(traceNames) == 0 {
+		return map[string]map[types.CommitNumber]*regression.Regression{}, nil
+	}
+
+	commitNumbersInt64 := make([]int64, len(commitNumbers))
+	for i, c := range commitNumbers {
+		commitNumbersInt64[i] = int64(c)
+	}
+
+	ret := map[string]map[types.CommitNumber]*regression.Regression{}
+
+	var rows pgx.Rows
+	var err error
+
+	if s.instanceConfig.Experiments.RegressionsTraceIdField {
+		traceIDs := make([][]byte, len(traceNames))
+		traceIDToName := make(map[string]string, len(traceNames))
+		for i, name := range traceNames {
+			tid := types.TraceIDForSQLInBytesFromTraceName(name)
+			traceIDs[i] = tid[:]
+			traceIDToName[string(tid[:])] = name
+		}
+		rows, err = s.db.Query(ctx, s.statements[readRegressionsBeforeBatchByTraceId], traceIDs, commitNumbersInt64, subName)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to read batch regressions before for %d tuples", len(traceNames))
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var traceIDBytes []byte
+			var currentCommit int64
+			var prevID sql.NullString
+			var prevCommit sql.NullInt64
+			var prevPrevCommit sql.NullInt64
+			if err := rows.Scan(&traceIDBytes, &currentCommit, &prevID, &prevCommit, &prevPrevCommit); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			if prevID.Valid {
+				traceName, ok := traceIDToName[string(traceIDBytes)]
+				if !ok {
+					continue
+				}
+				traceMap, ok := ret[traceName]
+				if !ok {
+					traceMap = map[types.CommitNumber]*regression.Regression{}
+					ret[traceName] = traceMap
+				}
+				r := regression.NewRegression()
+				r.Id = prevID.String
+				r.CommitNumber = types.CommitNumber(prevCommit.Int64)
+				r.PrevCommitNumber = types.CommitNumber(prevPrevCommit.Int64)
+				traceMap[types.CommitNumber(currentCommit)] = r
+			}
+		}
+	} else {
+		rows, err = s.db.Query(ctx, s.statements[readRegressionsBeforeBatch], traceNames, commitNumbersInt64, subName)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to read batch regressions before for %d tuples", len(traceNames))
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var traceName string
+			var currentCommit int64
+			var prevID sql.NullString
+			var prevCommit sql.NullInt64
+			var prevPrevCommit sql.NullInt64
+			if err := rows.Scan(&traceName, &currentCommit, &prevID, &prevCommit, &prevPrevCommit); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			if prevID.Valid {
+				traceMap, ok := ret[traceName]
+				if !ok {
+					traceMap = map[types.CommitNumber]*regression.Regression{}
+					ret[traceName] = traceMap
+				}
+				r := regression.NewRegression()
+				r.Id = prevID.String
+				r.CommitNumber = types.CommitNumber(prevCommit.Int64)
+				r.PrevCommitNumber = types.CommitNumber(prevPrevCommit.Int64)
+				traceMap[types.CommitNumber(currentCommit)] = r
+			}
+		}
+	}
+
+	return ret, nil
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.
