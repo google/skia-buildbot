@@ -68,19 +68,22 @@ export class SidePanelSk extends LitElement {
       border-radius: 8px;
       overflow: scroll; /* legend entries can be very long */
       box-shadow:
-        0px 2px 1px -1px rgba(0, 0, 0, 0.2),
-        0px 1px 1px 0px rgba(0, 0, 0, 0.14),
-        0px 1px 3px 0px rgba(0, 0, 0, 0.12); /* Elevation shadow */
+        0 2px 1px -1px rgb(0 0 0 / 20%),
+        0 1px 1px 0 rgb(0 0 0 / 14%),
+        0 1px 3px 0 rgb(0 0 0 / 12%); /* Elevation shadow */
     }
+
     .show-hide-bar {
       width: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     .show-hide-bar:hover {
       background-color: gray;
     }
+
     .label-key-title {
       color: #274878; /* Hex blue, which aligns with the graph title's color */
       padding-top: 10px;
@@ -88,6 +91,7 @@ export class SidePanelSk extends LitElement {
       padding-bottom: 5px;
       position: relative;
     }
+
     .delta-range {
       color: #274878; /* Hex blue, which aligns with the graph title's color */
       padding-top: 10px;
@@ -95,23 +99,28 @@ export class SidePanelSk extends LitElement {
       padding-bottom: 5px;
       position: relative;
     }
+
     .info.closed {
       display: none;
     }
+
     .select-all-checkbox {
       color: #274878; /* Hex blue, which aligns with the graph title's color */
       display: flex;
       padding-left: 5px;
     }
+
     ul {
       list-style: none; /* Remove default bullet points */
       padding-left: 5px;
       font-size: 15px;
       margin-block-start: 3px;
     }
+
     .default {
       border-style: none;
     }
+
     .highlight {
       border-style: solid;
     }

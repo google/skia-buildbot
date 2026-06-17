@@ -1091,12 +1091,12 @@ func TestRunWorkflowCheck(t *testing.T) {
 }
 
 func TestRunStylelint(t *testing.T) {
-	t.Run("No scss files - skips execution", func(t *testing.T) {
+	t.Run("No stylesheet or TS files - skips execution", func(t *testing.T) {
 		ctx, _ := captureLogs()
 		files := []fileWithChanges{
 			{fileName: "perf/go/main.go"},
 			{fileName: "pinpoint/README.md"},
-			{fileName: "app/test.ts"},
+			{fileName: "app/test.py"},
 		}
 
 		ok := runStylelint(ctx, files, "/path/to/repo", "HEAD~1")
@@ -1148,6 +1148,57 @@ exit 0
 		assert.NoError(t, err)
 		expectedArgs := "run --config=mayberemote //:npx -- stylelint --quiet --fix app/styles.scss\n"
 		assert.Equal(t, expectedArgs, string(argsData))
+	})
+
+	t.Run("TS files - success (runs Stylelint then Prettier)", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		const script = `#!/bin/sh
+if echo "$@" | grep -q stylelint; then
+  echo "$@" > "$(dirname "$0")/args_stylelint.txt"
+elif echo "$@" | grep -q prettier; then
+  echo "$@" > "$(dirname "$0")/args_prettier.txt"
+fi
+exit 0
+`
+		err := os.WriteFile(mockBazelisk, []byte(script), 0755)
+		assert.NoError(t, err)
+
+		mockGit := filepath.Join(tempDir, "git")
+		const gitScript = `#!/bin/sh
+if [ "$1" = "citc" ]; then
+  cat << 'EOF'
+--- a/perf/modules/foo-sk.ts
++++ b/perf/modules/foo-sk.ts
+EOF
+else
+  cat << 'EOF'
+diff --git a/perf/modules/foo-sk.ts b/perf/modules/foo-sk.ts
+EOF
+fi
+exit 0
+`
+		err = os.WriteFile(mockGit, []byte(gitScript), 0755)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, _ := captureLogs()
+		files := []fileWithChanges{
+			{fileName: "perf/modules/foo-sk.ts"},
+		}
+
+		ok := runStylelint(ctx, files, "/path/to/repo", "HEAD~1")
+		assert.True(t, ok)
+
+		stylelintArgs, err := os.ReadFile(filepath.Join(tempDir, "args_stylelint.txt"))
+		assert.NoError(t, err)
+		assert.Equal(t, "run --config=mayberemote //:npx -- stylelint --quiet --fix perf/modules/foo-sk.ts\n", string(stylelintArgs))
+
+		prettierArgs, err := os.ReadFile(filepath.Join(tempDir, "args_prettier.txt"))
+		assert.NoError(t, err)
+		assert.Equal(t, "run --config=mayberemote //:npx -- prettier --write perf/modules/foo-sk.ts\n", string(prettierArgs))
 	})
 
 	t.Run("Command fails", func(t *testing.T) {

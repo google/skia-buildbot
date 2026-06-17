@@ -33,7 +33,7 @@ export class InteractiveTourSk extends LitElement {
 
     .tour-spotlight {
       position: fixed;
-      box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55);
+      box-shadow: 0 0 0 9999px rgb(15 23 42 / 55%);
       border-radius: 8px;
       border: 2px solid var(--primary, #6366f1);
       transition: all 0.3s ease;
@@ -47,7 +47,7 @@ export class InteractiveTourSk extends LitElement {
       border: 1px solid #334155;
       border-radius: 8px;
       padding: 16px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 30%);
       color: #f8fafc;
       z-index: 10000;
       transition: all 0.3s ease;
@@ -95,7 +95,7 @@ export class InteractiveTourSk extends LitElement {
     }
 
     .tour-btn:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgb(255 255 255 / 5%);
       color: #fff;
     }
 

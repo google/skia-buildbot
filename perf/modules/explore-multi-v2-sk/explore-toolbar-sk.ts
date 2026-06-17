@@ -83,9 +83,9 @@ export class ExploreToolbarSk extends LitElement {
     }
 
     .custom-btn {
-      background: var(--surface, rgba(255, 255, 255, 0.05));
+      background: var(--surface, rgb(255 255 255 / 5%));
       color: var(--on-surface, #f8fafc);
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       padding: 4px 8px;
       border-radius: 4px;
       font-weight: 500;
@@ -95,7 +95,7 @@ export class ExploreToolbarSk extends LitElement {
     }
 
     .custom-btn:hover {
-      background: var(--outline, rgba(255, 255, 255, 0.1));
+      background: var(--outline, rgb(255 255 255 / 10%));
       border-color: var(--primary, #6366f1);
     }
 
@@ -105,9 +105,9 @@ export class ExploreToolbarSk extends LitElement {
     }
 
     .custom-select {
-      background: var(--surface, rgba(255, 255, 255, 0.05));
+      background: var(--surface, rgb(255 255 255 / 5%));
       color: var(--on-surface, #f8fafc);
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       border-radius: 4px;
       padding: 3px 8px;
       font-size: 12px;
@@ -139,8 +139,8 @@ export class ExploreToolbarSk extends LitElement {
     .checkmark {
       height: 14px;
       width: 14px;
-      background-color: var(--surface, rgba(255, 255, 255, 0.05));
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      background-color: var(--surface, rgb(255 255 255 / 5%));
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       border-radius: 3px;
       margin-right: 6px;
       transition: all 0.2s;
@@ -150,7 +150,7 @@ export class ExploreToolbarSk extends LitElement {
     }
 
     .custom-checkbox:hover input ~ .checkmark {
-      background-color: var(--outline, rgba(255, 255, 255, 0.1));
+      background-color: var(--outline, rgb(255 255 255 / 10%));
     }
 
     .custom-checkbox input:checked ~ .checkmark {
@@ -158,7 +158,7 @@ export class ExploreToolbarSk extends LitElement {
       border-color: var(--primary, #6366f1);
     }
 
-    .checkmark:after {
+    .checkmark::after {
       content: '';
       display: none;
       width: 3px;
@@ -169,12 +169,12 @@ export class ExploreToolbarSk extends LitElement {
       margin-bottom: 1px;
     }
 
-    .custom-checkbox input:checked ~ .checkmark:after {
+    .custom-checkbox input:checked ~ .checkmark::after {
       display: block;
     }
 
     .custom-slider {
-      -webkit-appearance: none;
+      appearance: none;
       width: 60px;
       height: 2px;
       border-radius: 1px;
@@ -183,7 +183,6 @@ export class ExploreToolbarSk extends LitElement {
     }
 
     .custom-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
       appearance: none;
       width: 10px;
       height: 10px;
@@ -206,7 +205,7 @@ export class ExploreToolbarSk extends LitElement {
     }
 
     .section-divider {
-      border-top: 1px solid var(--outline, rgba(255, 255, 255, 0.05));
+      border-top: 1px solid var(--outline, rgb(255 255 255 / 5%));
       margin: 4px 0;
     }
   `;

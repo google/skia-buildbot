@@ -58,14 +58,13 @@ export class GeminiSidePanelSk extends LitElement {
 
   static styles = css`
     :host {
-      display: block;
       position: fixed;
       top: 0;
       right: -400px;
       width: 400px;
       height: 100%;
       background: var(--background-color, white);
-      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+      box-shadow: -2px 0 5px rgb(0 0 0 / 20%);
       transition: right 0.3s ease-in-out;
       z-index: 1000;
       display: flex;
@@ -98,7 +97,7 @@ export class GeminiSidePanelSk extends LitElement {
       padding: 8px 12px;
       border-radius: 8px;
       max-width: 80%;
-      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .user {
@@ -128,7 +127,7 @@ export class GeminiSidePanelSk extends LitElement {
     close-icon-sk,
     send-icon-sk {
       cursor: pointer;
-      fill: currentColor;
+      fill: currentcolor;
     }
   `;
 

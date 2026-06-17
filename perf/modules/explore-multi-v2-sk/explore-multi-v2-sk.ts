@@ -629,8 +629,8 @@ export class ExploreMultiV2Sk extends LitElement {
       border: 1px solid var(--border, #334155);
       border-radius: 4px;
       box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        0 4px 6px -1px rgb(0 0 0 / 10%),
+        0 2px 4px -1px rgb(0 0 0 / 6%);
       padding: 8px;
       display: flex;
       flex-direction: column;
@@ -662,7 +662,7 @@ export class ExploreMultiV2Sk extends LitElement {
     .spinner {
       width: 32px;
       height: 32px;
-      border: 3px solid rgba(255, 255, 255, 0.1);
+      border: 3px solid rgb(255 255 255 / 10%);
       border-radius: 50%;
       border-top-color: var(--primary, #818cf8);
       animation: spin 1s linear infinite;
@@ -692,26 +692,26 @@ export class ExploreMultiV2Sk extends LitElement {
       margin: 0;
       letter-spacing: -0.025em;
       background: linear-gradient(to right, var(--primary, #6366f1), #a855f7);
-      -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .subtitle {
       color: var(--on-surface, #94a3b8);
       font-size: 12px;
-      margin: 4px 0 0 0;
+      margin: 4px 0 0;
     }
 
     .workspace {
-      background: var(--surface, rgba(30, 41, 59, 0.5));
+      background: var(--surface, rgb(30 41 59 / 50%));
       backdrop-filter: blur(12px);
       border: none;
       color: var(--on-surface, #f8fafc);
       border-radius: 12px;
       padding: 12px;
       box-shadow:
-        0 10px 25px -5px rgba(0, 0, 0, 0.1),
-        0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        0 10px 25px -5px rgb(0 0 0 / 10%),
+        0 8px 10px -6px rgb(0 0 0 / 10%);
     }
 
     .section-title {
@@ -754,12 +754,13 @@ export class ExploreMultiV2Sk extends LitElement {
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
       transition: all 0.2s;
     }
+
     .add-query-circle-btn:hover {
       background: #f1f3f4;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 6px rgb(0 0 0 / 15%);
     }
 
     .config-pills {
@@ -774,16 +775,16 @@ export class ExploreMultiV2Sk extends LitElement {
       align-items: center;
       gap: 6px;
       padding: 4px 12px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgb(255 255 255 / 5%);
       border-radius: 16px;
       font-size: 12px;
       color: var(--on-surface, #f8fafc);
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
     }
 
     .config-pill.diff-base {
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.3);
+      background: rgb(99 102 241 / 15%);
+      border: 1px solid rgb(99 102 241 / 30%);
     }
 
     .config-pill-label {
@@ -817,14 +818,14 @@ export class ExploreMultiV2Sk extends LitElement {
 
     .expand-queries-btn {
       background: var(--surface, #1e293b);
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       color: var(--on-surface, #f8fafc);
       border-radius: 16px;
       padding: 4px 12px;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
       transition: all 0.2s;
       display: inline-flex;
       align-items: center;
@@ -835,7 +836,7 @@ export class ExploreMultiV2Sk extends LitElement {
       background: var(--surface-hover, #334155);
       border-color: var(--primary, #818cf8);
       color: var(--on-background, #fff);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 6px rgb(0 0 0 / 15%);
     }
 
     .worker-init-overlay {
@@ -845,7 +846,7 @@ export class ExploreMultiV2Sk extends LitElement {
       background: var(--surface, #1e293b);
       border: 1px solid var(--border, #334155);
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
       padding: 12px 20px;
       display: flex;
       align-items: center;

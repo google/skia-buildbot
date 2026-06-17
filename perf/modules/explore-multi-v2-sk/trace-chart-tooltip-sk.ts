@@ -103,16 +103,16 @@ export class TraceChartTooltipSk extends LitElement {
   static styles = css`
     .hover-tooltip {
       position: absolute;
-      background: var(--surface, rgba(15, 23, 42, 0.9));
+      background: var(--surface, rgb(15 23 42 / 90%));
       backdrop-filter: blur(8px);
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       color: var(--on-surface, #fff);
       padding: 12px 16px;
       border-radius: 8px;
       font-size: 12px;
       pointer-events: auto;
       z-index: 10;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 25px -5px rgb(0 0 0 / 50%);
       max-width: 320px;
       font-family: 'JetBrains Mono', monospace;
     }
@@ -146,7 +146,7 @@ export class TraceChartTooltipSk extends LitElement {
     .tooltip-section {
       margin-bottom: 8px;
       padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgb(255 255 255 / 10%);
     }
 
     .tooltip-section:last-child {
@@ -172,7 +172,6 @@ export class TraceChartTooltipSk extends LitElement {
 
     .wrap {
       white-space: normal;
-      word-wrap: break-word;
       overflow-wrap: break-word;
     }
 
@@ -258,9 +257,11 @@ export class TraceChartTooltipSk extends LitElement {
       0% {
         opacity: 0.6;
       }
+
       50% {
         opacity: 0.3;
       }
+
       100% {
         opacity: 0.6;
       }

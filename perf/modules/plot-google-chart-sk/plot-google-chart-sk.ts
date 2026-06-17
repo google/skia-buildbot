@@ -59,16 +59,20 @@ export class PlotGoogleChartSk extends LitElement {
     :host {
       background-color: var(--plot-background-color-sk, var(--md-sys-color-background, 'white'));
     }
+
     slot {
       display: none;
     }
+
     .container {
       display: flex;
       height: 100%;
     }
+
     .side {
       max-width: 20%;
     }
+
     .plot {
       height: 100%;
       flex-grow: 1;
@@ -76,8 +80,8 @@ export class PlotGoogleChartSk extends LitElement {
 
     .anomaly {
       position: absolute;
-      top: 0px;
-      left: 0px;
+      top: 0;
+      left: 0;
 
       md-icon {
         transform: translate(-50%, -50%);
@@ -87,18 +91,23 @@ export class PlotGoogleChartSk extends LitElement {
         width: 16px;
         height: 16px;
       }
+
       md-icon.improvement {
-        background-color: rgba(0, 155, 0, 0.8); /* green */
+        background-color: rgb(0 155 0 / 80%); /* green */
       }
+
       md-icon.untriage {
-        background-color: rgba(255, 255, 0, 1); /* yellow */
+        background-color: rgb(255 255 0 / 100%); /* yellow */
       }
+
       md-icon.regression {
-        background-color: rgba(255, 0, 0, 1); /* red */
+        background-color: rgb(255 0 0 / 100%); /* red */
       }
+
       md-icon.ignored {
-        background-color: rgba(100, 100, 100, 0.8); /* grey */
+        background-color: rgb(100 100 100 / 80%); /* grey */
       }
+
       md-icon.highlighted {
         outline: 2px solid var(--warning);
         outline-offset: 2px;
@@ -107,8 +116,8 @@ export class PlotGoogleChartSk extends LitElement {
 
     .userissue {
       position: absolute;
-      top: 0px;
-      left: 0px;
+      top: 0;
+      left: 0;
 
       md-icon {
         transform: translate(-50%, -50%);
@@ -118,6 +127,7 @@ export class PlotGoogleChartSk extends LitElement {
         font-size: 12px;
         color: var(--primary);
       }
+
       md-icon.issue {
         background: var(--background);
         border: white 1px solid;
@@ -126,8 +136,8 @@ export class PlotGoogleChartSk extends LitElement {
 
     .xbar {
       position: absolute;
-      top: 0px;
-      left: 0px;
+      top: 0;
+      left: 0;
 
       md-text {
         pointer-events: none;
@@ -140,17 +150,14 @@ export class PlotGoogleChartSk extends LitElement {
     .delta {
       position: absolute;
       border: 1px solid purple;
-      background-color: rgba(255, 255, 0, 0.2); /* semi-transparent yellow */
-      top: 0px;
+      background-color: rgb(255 255 0 / 20%); /* semi-transparent yellow */
+      top: 0;
 
       p {
         position: relative;
         top: 10px;
         left: 10px;
       }
-    }
-
-    .closeIcon {
     }
 
     .hover-indicator {

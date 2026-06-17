@@ -1050,24 +1050,42 @@ func runESLint(ctx context.Context, files []fileWithChanges, workspaceRoot, bran
 	return true
 }
 
-// runStylelint runs stylelint on any changed SCSS or CSS files. It returns
+// runStylelint runs stylelint on any changed SCSS, CSS, or TS files. It returns
 // false if stylelint returns a non-zero error code.
 func runStylelint(ctx context.Context, files []fileWithChanges, workspaceRoot, branchBaseCommit string) bool {
-	args := []string{"run", "--config=mayberemote", "//:npx", "--", "stylelint", "--quiet", "--fix"}
-	numFiles := 0
+	var allFiles []string
+	var tsFiles []string
 	for _, f := range files {
 		ext := filepath.Ext(f.fileName)
-		if ext == ".scss" || ext == ".css" {
-			args = append(args, f.fileName)
-			numFiles++
+		if ext == ".scss" || ext == ".css" || ext == ".ts" {
+			allFiles = append(allFiles, f.fileName)
+			if ext == ".ts" {
+				tsFiles = append(tsFiles, f.fileName)
+			}
 		}
 	}
-	if numFiles == 0 {
+
+	if len(allFiles) == 0 {
 		return true
 	}
 
+	args := append([]string{"run", "--config=mayberemote", "//:npx", "--", "stylelint", "--quiet", "--fix"}, allFiles...)
 	cmd := exec.CommandContext(ctx, "bazelisk", args...)
 	output, err := cmd.CombinedOutput()
+
+	if len(tsFiles) > 0 {
+		// PostCSS-Lit AST serializer reconstructs TS template strings with class-relative indentation.
+		// Immediately run Prettier on the touched TS files to normalize formatting back to Prettier rules.
+		pArgs := append([]string{"run", "--config=mayberemote", "//:npx", "--", "prettier", "--write"}, tsFiles...)
+		pCmd := exec.CommandContext(ctx, "bazelisk", pArgs...)
+		pOutput, pErr := pCmd.CombinedOutput()
+		if pErr != nil {
+			log(ctx, string(pOutput))
+			log(ctx, "prettier failed!\n")
+			return false
+		}
+	}
+
 	if err != nil {
 		log(ctx, string(output))
 		log(ctx, "stylelint failed!\n")

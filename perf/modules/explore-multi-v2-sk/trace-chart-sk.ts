@@ -1894,7 +1894,7 @@ export class TraceChartSk extends LitElement {
       margin-bottom: 16px;
       box-shadow: none;
       color: var(--on-surface, #f8fafc);
-      border-bottom: 1px solid var(--outline, rgba(255, 255, 255, 0.05));
+      border-bottom: 1px solid var(--outline, rgb(255 255 255 / 5%));
     }
 
     .header {
@@ -1964,7 +1964,7 @@ export class TraceChartSk extends LitElement {
     }
 
     .chip {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgb(255 255 255 / 5%);
       border: none;
       color: var(--on-surface, #94a3b8);
       border-radius: 4px;
@@ -1986,17 +1986,17 @@ export class TraceChartSk extends LitElement {
     }
 
     .chip:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgb(255 255 255 / 10%);
       color: var(--on-background, #fff);
     }
 
     .chip.active {
-      background: rgba(99, 102, 241, 0.2);
+      background: rgb(99 102 241 / 20%);
       color: var(--primary, #818cf8);
     }
 
     .chip.active:hover {
-      background: rgba(99, 102, 241, 0.3);
+      background: rgb(99 102 241 / 30%);
     }
 
     .chip.hidden-trace {
@@ -2020,11 +2020,8 @@ export class TraceChartSk extends LitElement {
 
     .loading-overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(15, 23, 42, 0.7);
+      inset: 0;
+      background: rgb(15 23 42 / 70%);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -2039,7 +2036,7 @@ export class TraceChartSk extends LitElement {
     .spinner {
       width: 24px;
       height: 24px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
+      border: 2px solid rgb(255 255 255 / 10%);
       border-radius: 50%;
       border-top-color: var(--primary, #818cf8);
       animation: spin 1s linear infinite;

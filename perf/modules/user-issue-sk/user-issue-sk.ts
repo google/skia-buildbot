@@ -76,7 +76,6 @@ export class UserIssueSk extends LitElement {
     }
 
     .new-issue-label {
-      background: none;
       background: none !important;
       border: none;
       padding: 0 !important;
@@ -122,8 +121,7 @@ export class UserIssueSk extends LitElement {
 
     .add-issue-container {
       display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
+      flex-flow: row nowrap;
       align-items: center;
       gap: 4px;
     }

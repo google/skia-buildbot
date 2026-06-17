@@ -79,7 +79,7 @@ export class MultiSelectSk extends LitElement {
     }
 
     .multiselect-trigger {
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       border-radius: 8px;
       padding: 8px 12px;
       cursor: pointer;
@@ -95,14 +95,14 @@ export class MultiSelectSk extends LitElement {
     }
 
     .multiselect-trigger:hover {
-      background-color: var(--surface, rgba(255, 255, 255, 0.05));
-      border-color: var(--outline, rgba(255, 255, 255, 0.2));
+      background-color: var(--surface, rgb(255 255 255 / 5%));
+      border-color: var(--outline, rgb(255 255 255 / 20%));
     }
 
     .multiselect-trigger.pill {
       border-radius: 16px;
       background: transparent;
-      border: 1px solid var(--md-sys-color-outline, rgba(255, 255, 255, 0.2));
+      border: 1px solid var(--md-sys-color-outline, rgb(255 255 255 / 20%));
       padding: 4px 12px;
       gap: 6px;
       font-size: 13px;
@@ -111,13 +111,13 @@ export class MultiSelectSk extends LitElement {
     }
 
     .multiselect-trigger.pill:hover {
-      background-color: rgba(128, 128, 128, 0.2);
-      border-color: var(--md-sys-color-outline, rgba(255, 255, 255, 0.3));
+      background-color: rgb(128 128 128 / 20%);
+      border-color: var(--md-sys-color-outline, rgb(255 255 255 / 30%));
     }
 
     .multiselect-trigger.open {
       border-color: var(--primary, #6366f1);
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+      box-shadow: 0 0 0 2px rgb(99 102 241 / 20%);
     }
 
     .pill-key {
@@ -141,7 +141,7 @@ export class MultiSelectSk extends LitElement {
     }
 
     .pill-remove:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: rgb(255 255 255 / 10%);
       color: var(--on-background, #fff);
     }
 
@@ -186,25 +186,25 @@ export class MultiSelectSk extends LitElement {
       backdrop-filter: blur(12px);
       border-radius: 12px;
       box-shadow:
-        0 10px 25px -5px rgba(0, 0, 0, 0.5),
-        0 8px 10px -6px rgba(0, 0, 0, 0.5);
+        0 10px 25px -5px rgb(0 0 0 / 50%),
+        0 8px 10px -6px rgb(0 0 0 / 50%);
       z-index: 2000;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--outline, rgb(255 255 255 / 5%));
     }
 
     .multiselect-search {
       padding: 12px;
-      border-bottom: 1px solid var(--outline, rgba(255, 255, 255, 0.05));
-      background-color: rgba(15, 23, 42, 0.3);
+      border-bottom: 1px solid var(--outline, rgb(255 255 255 / 5%));
+      background-color: rgb(15 23 42 / 30%);
     }
 
     .multiselect-search input {
       width: 100%;
       padding: 8px 12px;
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       border-radius: 6px;
       box-sizing: border-box;
       font-size: 13px;
@@ -238,18 +238,18 @@ export class MultiSelectSk extends LitElement {
 
     .multiselect-option:hover,
     .multiselect-option.focused {
-      background-color: rgba(255, 255, 255, 0.03);
+      background-color: rgb(255 255 255 / 3%);
       color: var(--on-background, #fff);
     }
 
     .multiselect-option.selected {
-      background-color: rgba(99, 102, 241, 0.1);
+      background-color: rgb(99 102 241 / 10%);
       color: var(--primary, #818cf8);
     }
 
     .multiselect-option.preview {
       color: var(--on-surface, #64748b);
-      background-color: rgba(255, 255, 255, 0.01);
+      background-color: rgb(255 255 255 / 1%);
       font-style: italic;
     }
 
@@ -288,9 +288,9 @@ export class MultiSelectSk extends LitElement {
       opacity: 0;
       padding: 4px 8px;
       font-size: 11px;
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       border-radius: 4px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgb(255 255 255 / 5%);
       color: var(--on-surface, #94a3b8);
       cursor: pointer;
       flex-shrink: 0;
@@ -304,23 +304,23 @@ export class MultiSelectSk extends LitElement {
     }
 
     .ms-diff-btn:hover {
-      background-color: rgba(99, 102, 241, 0.2);
+      background-color: rgb(99 102 241 / 20%);
       border-color: var(--primary, #6366f1);
       color: var(--on-background, #fff);
     }
 
     .multiselect-footer {
       padding: 12px;
-      border-top: 1px solid var(--outline, rgba(255, 255, 255, 0.05));
-      background-color: rgba(15, 23, 42, 0.3);
+      border-top: 1px solid var(--outline, rgb(255 255 255 / 5%));
+      background-color: rgb(15 23 42 / 30%);
     }
 
     .ms-split-btn {
       width: 100%;
       padding: 8px;
       cursor: pointer;
-      background-color: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      background-color: rgb(255 255 255 / 5%);
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       border-radius: 6px;
       color: var(--on-surface, #cbd5e1);
       font-weight: 600;
@@ -329,14 +329,14 @@ export class MultiSelectSk extends LitElement {
     }
 
     .ms-split-btn:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-      border-color: var(--outline, rgba(255, 255, 255, 0.2));
+      background-color: rgb(255 255 255 / 10%);
+      border-color: var(--outline, rgb(255 255 255 / 20%));
       color: var(--on-background, #fff);
     }
 
     .ms-split-btn.active {
-      background-color: rgba(99, 102, 241, 0.15);
-      border-color: rgba(99, 102, 241, 0.3);
+      background-color: rgb(99 102 241 / 15%);
+      border-color: rgb(99 102 241 / 30%);
       color: var(--primary, #818cf8);
     }
 
@@ -368,8 +368,8 @@ export class MultiSelectSk extends LitElement {
     .checkmark {
       height: 16px;
       width: 16px;
-      background-color: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--outline, rgba(255, 255, 255, 0.1));
+      background-color: rgb(255 255 255 / 5%);
+      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
       border-radius: 4px;
       transition: all 0.2s;
       display: flex;
@@ -378,8 +378,8 @@ export class MultiSelectSk extends LitElement {
     }
 
     .custom-checkbox:hover input ~ .checkmark {
-      background-color: rgba(255, 255, 255, 0.1);
-      border-color: var(--outline, rgba(255, 255, 255, 0.2));
+      background-color: rgb(255 255 255 / 10%);
+      border-color: var(--outline, rgb(255 255 255 / 20%));
     }
 
     .checkmark.checked {
@@ -387,7 +387,7 @@ export class MultiSelectSk extends LitElement {
       border-color: var(--primary, #6366f1);
     }
 
-    .checkmark:after {
+    .checkmark::after {
       content: '';
       display: none;
       width: 4px;
@@ -398,7 +398,7 @@ export class MultiSelectSk extends LitElement {
       margin-bottom: 2px;
     }
 
-    .checkmark.checked:after {
+    .checkmark.checked::after {
       display: block;
     }
   `;

@@ -93,7 +93,7 @@ export class QueryBarSk extends LitElement {
       flex-wrap: wrap;
       align-items: center;
       cursor: text;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
       transition: all 0.2s ease;
     }
 
@@ -125,6 +125,7 @@ export class QueryBarSk extends LitElement {
       --md-outlined-text-field-focus-outline-color: transparent;
       --md-outlined-text-field-container-color: transparent;
       --md-outlined-text-field-input-text-color: var(--on-surface, #3c4043);
+
       width: 100%;
       flex: 1;
       font-size: 13px;
@@ -161,7 +162,7 @@ export class QueryBarSk extends LitElement {
       background: var(--md-sys-color-surface, white);
       border: 1px solid var(--md-sys-color-outline-variant, #dadce0);
       border-radius: 4px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
       z-index: 1000;
       margin-top: 4px;
       padding: 4px 0;
@@ -188,13 +189,13 @@ export class QueryBarSk extends LitElement {
 
     .suggestion-item:hover,
     .suggestion-item.focused {
-      background-color: rgba(128, 128, 128, 0.1);
+      background-color: rgb(128 128 128 / 10%);
     }
 
     .suggestion-pill {
       display: inline-flex;
       align-items: center;
-      background: rgba(128, 128, 128, 0.15);
+      background: rgb(128 128 128 / 15%);
       border-radius: 10px;
       padding: 1px 8px;
       font-size: 11px;
@@ -204,10 +205,12 @@ export class QueryBarSk extends LitElement {
     .s-key {
       color: var(--md-sys-color-on-surface-variant, #5f6368);
     }
+
     .s-sep {
       color: var(--md-sys-color-outline, #dadce0);
       margin: 0 2px;
     }
+
     .s-val {
       color: var(--on-surface, #cbd5e1);
       font-weight: 500;
@@ -246,7 +249,7 @@ export class QueryBarSk extends LitElement {
 
     .qb-clone-query-btn:hover,
     .qb-remove-query-btn:hover {
-      background-color: var(--md-sys-color-surface-container-highest, rgba(0, 0, 0, 0.05));
+      background-color: var(--md-sys-color-surface-container-highest, rgb(0 0 0 / 5%));
     }
   `;
 

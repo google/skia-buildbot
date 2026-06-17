@@ -15,10 +15,12 @@ export class DragToZoomBox extends LitElement {
       display: none;
       position: absolute; /* note: this interferes with calculating offsetY */
       border-style: solid;
-      border-width: 1px 1px;
-      border-color: rgba(255, 99, 71, 0.4); /* almost orange red color */
-      background-color: rgba(255, 99, 68, 0.4); /* semi-transparent shade of orange hue */
+      border-width: 1px;
+      border-color: rgb(255 99 71 / 40%); /* almost orange red color */
+      background-color: rgb(255 99 68 / 40%); /* semi-transparent shade of orange hue */
+
       --md-elevation-level: 1;
+
       cursor: magnifying glass;
     }
   `;

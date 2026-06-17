@@ -27,11 +27,13 @@ export class VResizableBoxSk extends LitElement {
       display: none;
       position: absolute;
       border-style: solid;
-      border-width: 1px 0px; /* no borders left and right */
-      border-color: rgba(255, 255, 0, 0.5); /* yellow */
-      background-color: rgba(255, 255, 0, 0.2); /* almost transparent yellow */
-      this.style.height: 0px;
+      border-width: 1px 0; /* no borders left and right */
+      border-color: rgb(255 255 0 / 50%); /* yellow */
+      background-color: rgb(255 255 0 / 20%); /* almost transparent yellow */
+      height: 0;
+
       --md-elevation-level: 1;
+
       cursor: row-resize;
       pointer-events: none; /* allows pointer events to occur underneath */
     }
@@ -46,10 +48,12 @@ export class VResizableBoxSk extends LitElement {
         -1px 1px 0 var(--md-sys-color-background, 'white'),
         1px 1px 0 var(--md-sys-color-background, 'white');
     }
+
     /* show the delta calculation slightly above the box */
     p.upper {
       top: ${fontPosition.upper}px;
     }
+
     /* show the delta calculation slightly below the box */
     p.lower {
       top: ${fontPosition.lower}px;

@@ -55,7 +55,7 @@ export class HelpHubSk extends LitElement {
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 4px 14px rgb(99 102 241 / 40%);
       z-index: 999;
       display: flex;
       align-items: center;
@@ -65,7 +65,7 @@ export class HelpHubSk extends LitElement {
 
     .help-fab:hover {
       transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+      box-shadow: 0 6px 20px rgb(99 102 241 / 60%);
     }
 
     .help-panel {
@@ -74,10 +74,10 @@ export class HelpHubSk extends LitElement {
       right: -390px;
       width: 360px;
       height: 100vh;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgb(15 23 42 / 90%);
       backdrop-filter: blur(16px);
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+      border-left: 1px solid rgb(255 255 255 / 10%);
+      box-shadow: -10px 0 30px rgb(0 0 0 / 30%);
       z-index: 1000;
       transition: right 0.3s ease-in-out;
       display: flex;
@@ -93,7 +93,7 @@ export class HelpHubSk extends LitElement {
       justify-content: space-between;
       align-items: center;
       padding: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgb(255 255 255 / 8%);
     }
 
     .panel-title {
@@ -127,8 +127,8 @@ export class HelpHubSk extends LitElement {
     .search-bar {
       width: 95%;
       padding: 8px 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgb(255 255 255 / 5%);
+      border: 1px solid rgb(255 255 255 / 10%);
       border-radius: 6px;
       color: #fff;
       font-size: 12px;
@@ -137,7 +137,7 @@ export class HelpHubSk extends LitElement {
     .tabs-nav {
       display: flex;
       gap: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgb(255 255 255 / 5%);
       padding-bottom: 8px;
       font-size: 12px;
     }
@@ -155,21 +155,21 @@ export class HelpHubSk extends LitElement {
     }
 
     .tour-card {
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.3);
+      background: rgb(99 102 241 / 15%);
+      border: 1px solid rgb(99 102 241 / 30%);
       border-radius: 8px;
       padding: 14px;
       text-align: center;
     }
 
     .tour-card h4 {
-      margin: 0 0 6px 0;
+      margin: 0 0 6px;
       color: #a5b4fc;
       font-size: 13px;
     }
 
     .tour-card p {
-      margin: 0 0 12px 0;
+      margin: 0 0 12px;
       font-size: 11px;
       color: #cbd5e1;
       line-height: 1.4;
@@ -202,7 +202,7 @@ export class HelpHubSk extends LitElement {
       justify-content: space-between;
       align-items: center;
       padding: 8px;
-      background: rgba(255, 255, 255, 0.02);
+      background: rgb(255 255 255 / 2%);
       border-radius: 6px;
       font-size: 12px;
     }
@@ -219,7 +219,7 @@ export class HelpHubSk extends LitElement {
     }
 
     .faq-item {
-      background: rgba(255, 255, 255, 0.02);
+      background: rgb(255 255 255 / 2%);
       padding: 10px;
       border-radius: 6px;
     }
@@ -252,8 +252,8 @@ export class HelpHubSk extends LitElement {
     }
 
     .recipe-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgb(255 255 255 / 2%);
+      border: 1px solid rgb(255 255 255 / 5%);
       border-radius: 6px;
       padding: 10px;
     }
@@ -273,7 +273,7 @@ export class HelpHubSk extends LitElement {
     }
 
     .recipe-body code {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgb(255 255 255 / 8%);
       padding: 2px 4px;
       border-radius: 3px;
       font-family: monospace;

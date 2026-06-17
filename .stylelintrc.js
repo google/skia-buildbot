@@ -7,6 +7,12 @@ module.exports = {
     '_bazel_buildbot/**',
     '_bazel_out/**',
     '_bazel_testlogs/**',
+    '**/*.ts',
+    '!perf/**/*-sk.ts',
+    '!perf/**/*.css.ts',
+    // Exclude v-resizable-box-sk.ts because postcss-lit corrupts dynamic template
+    // literal expressions like ${fontPosition.upper}px into postcss_lit_0px during --fix.
+    'perf/modules/plot-google-chart-sk/v-resizable-box-sk.ts',
   ],
   rules: {
     // -- Permament overrides --
@@ -38,6 +44,11 @@ module.exports = {
         'color-named': 'never',
         'function-disallowed-list': ['rgb', 'rgba', 'hsl', 'hsla'],
       },
+    },
+    {
+      files: ['perf/**/*-sk.ts', 'perf/**/*.css.ts'],
+      customSyntax: 'postcss-lit',
+      rules: {},
     },
   ],
 };
