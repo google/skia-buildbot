@@ -2,17 +2,48 @@
 # Runs a perf instance against the given spanner database.
 
 # Example Command:
-# ./run_with_spanner.sh p=skia-infra-corp i=tfgen-spanid-20241205020733610
-# d=v8_int_autopush config=./configs/spanner/v8-internal-autopush.json
+# ./run_with_spanner.sh p=skia-infra-corp i=tfgen-spanid-20241205020733610 \
+#   d=v8_int_autopush config=./configs/spanner/v8-internal-autopush.json
+#
+# Required Parameters:
+#   p      - GCP Project ID (e.g., skia-infra-corp)
+#   i      - Spanner Instance ID (e.g., tfgen-spanid-20241205020733610)
+#   d      - Spanner Database Name (e.g., v8_int_autopush)
+#   config - Path to perfserver configuration JSON (e.g., ./configs/spanner/v8-internal-autopush.json)
+#
+# Optional Parameters & Flags:
+#   domain              - Gitiles domain (default: chromium.googlesource.com)
+#   repo                - Gitiles repository path (default: chromium/src)
+#   --no-launch-browser - Require copy-pasting an auth code (works on remote machines/Cloudtop) [default]
+#   --launch-browser    - Use local browser redirect flow (only works when running on a local machine)
 
 # Ensure background processes (like auth-proxy) are cleaned up when the script exits
 trap 'echo -e "\nStopping background processes..."; kill $(jobs -p) 2>/dev/null' EXIT
+
+# Parse all arguments passed in
+LAUNCH_BROWSER_FLAG="--no-launch-browser"
+for arg in "$@"; do
+  case "$arg" in
+    --no-launch-browser)
+      LAUNCH_BROWSER_FLAG="--no-launch-browser"
+      ;;
+    --launch-browser)
+      LAUNCH_BROWSER_FLAG="--launch-browser"
+      ;;
+    *=*)
+      argKey=$(echo "$arg" | cut -f1 -d=)
+      keyLen=${#argKey}
+      val="${arg:$keyLen+1}"
+      export "$argKey"="$val"
+      ;;
+  esac
+done
 
 # --- Credential check ---
 echo "Checking Google Cloud credentials for apps (ADC)..."
 if ! gcloud auth application-default print-access-token &>/dev/null; then
   echo "ADC credentials missing or expired. Launching login flow..."
-  gcloud auth application-default login
+  gcloud auth application-default login "$LAUNCH_BROWSER_FLAG"
 
   # Double check if the login succeeded
   if ! gcloud auth application-default print-access-token &>/dev/null; then
@@ -26,15 +57,6 @@ fi
 
 # First delete any existing docker containers to start clean.
 sudo docker ps -q | xargs -r sudo docker rm -vf
-
-# Now let's get all the arguments passed in.
-for arg in "$@"
-do
-    argKey=$(echo $arg | cut -f1 -d=)
-    keyLen=${#argKey}
-    val="${arg:$keyLen+1}"
-    export "$argKey"="$val"
-done
 
 # Check if domain or repo are set via params, if not set them to default values.
 if [[ -z "${domain}" ]]; then
