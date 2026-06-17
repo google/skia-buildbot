@@ -66,9 +66,7 @@ func TestTaskWrapper_String(t *testing.T) {
 		},
 	}
 
-	expected := `# Task Details
-
-**ID:** 123
+	expected := `**ID:** 123
 **Name:** Task 1
 **Status:** SUCCESS
 **Revision:** abcdef1234567890

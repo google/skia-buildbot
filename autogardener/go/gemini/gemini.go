@@ -166,6 +166,11 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 		prunedRecipeSteps, failedSteps := pruneSuccessfulRecipeSteps(taskSteps.Recipe)
 		taskSteps.Recipe = prunedRecipeSteps
 		for _, s := range failedSteps {
+			// The root step has an empty name. Its log contents are nonsensical
+			// (as far as we're concerned), so we skip it.
+			if s.Name == "" {
+				continue
+			}
 			lines, err := c.fetchRecipeStepLogs(ctx, taskSteps.SwarmingTaskID, s.StdoutStream)
 			if err != nil {
 				sklog.Warningf("Failed to fetch recipe step logs for %s: %s", s.Name, err)
@@ -237,7 +242,7 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
 2. Scan the logs of the failed steps and extract a digestible snippet.
    - You have been given snippets that were extracted using a coarse heuristic
      process. They may or may not contain the actual error. If you have any
-	 suspicion that they do not, you MUST load more log lines.
+     suspicion that they do not, you MUST load more log lines.
    - **WARNING:** Skia tasks (especially "dm" and "nanobench") sometimes
      produce massive amounts of log spam (e.g., graphics API warnings, compiler
      warnings) that are non-fatal red herrings. Do not get distracted by them.

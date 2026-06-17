@@ -149,3 +149,39 @@ func TestExtractLogSnippet_ShortLog(t *testing.T) {
 2 | uninteresting log 2
 `, snippet)
 }
+
+func TestIsLogLineInteresting(t *testing.T) {
+	tests := []struct {
+		line string
+		want bool
+	}{
+		// Match cases for "error"
+		{"error: connection refused", true},
+		{"An error occurred", true},
+		{"panic: fatal error", true},
+		{"ERROR: build failed", true},
+		{"This is an ERROR line", true},
+
+		// Match cases for "fail"
+		{"fail to compile", true},
+		{"compilation failed", true},
+		{"FAIL: test failed", true},
+		{"step failure", true},
+
+		// Match cases for "fatal"
+		{"fatal: division by zero", true},
+		{"FATAL error", true},
+		{"a fatal exception", true},
+
+		// Non-matching cases
+		{"terror in the city", false},
+		{"start unit test TestErrorCases", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.line, func(t *testing.T) {
+			got := IsLogLineInteresting(tc.line)
+			require.Equal(t, tc.want, got, "Line: %q", tc.line)
+		})
+	}
+}

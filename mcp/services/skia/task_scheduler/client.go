@@ -221,7 +221,6 @@ type TaskWrapper struct {
 
 func (w TaskWrapper) String() string {
 	var sb strings.Builder
-	_, _ = fmt.Fprintf(&sb, "# Task Details\n\n")
 	_, _ = fmt.Fprintf(&sb, "**ID:** %s\n", w.Id)
 	_, _ = fmt.Fprintf(&sb, "**Name:** %s\n", w.Name)
 	_, _ = fmt.Fprintf(&sb, "**Status:** %s\n", w.Status)

@@ -50,7 +50,7 @@ func TestGetTaskStepsResult_String_TaskDriver(t *testing.T) {
 		},
 	}
 
-	expected := `# Task Driver
+	expected := `## Task Driver details
 
 - id=root name="Root Step" (SUCCESS)
   - id=sub-1 name="Sub Step 1" (SUCCESS)
@@ -90,7 +90,7 @@ func TestGetTaskStepsResult_String_Recipe(t *testing.T) {
 		SwarmingTaskState: "FAILURE",
 	}
 
-	expected := `# Recipe
+	expected := `## Recipe details
 
 **Swarming Task ID:** abc123
 **Swarming Task State:** FAILURE
@@ -115,7 +115,7 @@ func TestGetTaskStepsResult_String_Swarming(t *testing.T) {
 		SwarmingTaskLogs:  "Log line 1\nLog line 2",
 	}
 
-	expected := `# Raw Swarming Task (no steps available)
+	expected := `## Raw Swarming Task (no steps available)
 
 **Swarming Task ID:** abc123
 **Swarming Task State:** SUCCESS

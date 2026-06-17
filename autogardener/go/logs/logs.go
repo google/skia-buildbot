@@ -2,6 +2,7 @@ package logs
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -60,8 +61,7 @@ func ExtractSnippets(lines []string, contextLines, includeLastN int) []*LineRang
 
 	var snippets []*LineRange
 	for i, line := range lines[:totalLines-includeLastN] {
-		lower := strings.ToLower(line)
-		if strings.Contains(lower, "error") || strings.Contains(lower, "fail") || strings.Contains(lower, "fatal") {
+		if IsLogLineInteresting(line) {
 			start := i - contextLines
 			if start < 0 {
 				start = 0
@@ -96,4 +96,10 @@ func ExtractSnippets(lines []string, contextLines, includeLastN int) []*LineRang
 	}
 
 	return merged
+}
+
+var interestingLogLineRegex = regexp.MustCompile(`(?i)\b(error|fail|fatal)`)
+
+func IsLogLineInteresting(line string) bool {
+	return interestingLogLineRegex.MatchString(line)
 }

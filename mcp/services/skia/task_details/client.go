@@ -353,17 +353,17 @@ type GetTaskStepsResult struct {
 func (r GetTaskStepsResult) String() string {
 	var sb strings.Builder
 	if r.TaskDriver != nil {
-		_, _ = fmt.Fprintf(&sb, "# Task Driver\n\n")
+		_, _ = fmt.Fprintf(&sb, "## Task Driver details\n\n")
 		printTaskDriverStep(&sb, r.TaskDriver.StepDisplay, 0)
 	} else if r.Recipe != nil {
-		_, _ = fmt.Fprintf(&sb, "# Recipe\n\n")
+		_, _ = fmt.Fprintf(&sb, "## Recipe details\n\n")
 		_, _ = fmt.Fprintf(&sb, "**Swarming Task ID:** %s\n", r.SwarmingTaskID)
 		_, _ = fmt.Fprintf(&sb, "**Swarming Task State:** %s\n", r.SwarmingTaskState)
 		_, _ = fmt.Fprintf(&sb, "**Swarming Bot ID:** %s\n", r.SwarmingBotID)
 		_, _ = fmt.Fprintf(&sb, "**Steps:**\n")
 		printRecipeStep(&sb, r.Recipe, 0)
 	} else {
-		_, _ = fmt.Fprintf(&sb, "# Raw Swarming Task (no steps available)\n\n")
+		_, _ = fmt.Fprintf(&sb, "## Raw Swarming Task (no steps available)\n\n")
 		_, _ = fmt.Fprintf(&sb, "**Swarming Task ID:** %s\n", r.SwarmingTaskID)
 		_, _ = fmt.Fprintf(&sb, "**Swarming Task State:** %s\n", r.SwarmingTaskState)
 		_, _ = fmt.Fprintf(&sb, "**Swarming Bot ID:** %s\n", r.SwarmingBotID)
