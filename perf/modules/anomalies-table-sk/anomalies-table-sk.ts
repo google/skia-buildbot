@@ -6,7 +6,7 @@
  */
 
 import { html, TemplateResult, LitElement } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, state, query } from 'lit/decorators.js';
 
 import { Anomaly, RegressionBug } from '../json';
 import {
@@ -26,6 +26,9 @@ import { formatPercentage } from '../common/anomaly';
 import '../window/window';
 import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
+import { TriagePanelSk } from '../triage-panel-sk/triage-panel-sk';
+import '../triage-panel-sk/triage-panel-sk';
+
 import '@material/web/button/outlined-button.js';
 
 import '../../../elements-sk/modules/spinner-sk';
@@ -126,6 +129,9 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   }
 
   @state()
+  triageMode: boolean = localStorage.getItem('perf-triage-mode-enabled') === 'true';
+
+  @state()
   private sortKey: string = 'revisions';
 
   @state()
@@ -150,6 +156,10 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
   private triageMenu: TriageMenuSk | null = null;
 
+  @query('triage-panel-sk') triagePanel!: TriagePanelSk;
+
+  @state() private activeBuckets: { name: string; anomalies: Anomaly[] }[] = [];
+
   private headerCheckbox: HTMLInputElement | null = null;
 
   shortcutUrl: string = '';
@@ -170,8 +180,8 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   private onWindowClick = (e: Event) => {
     if (this.activeFilterPopup) {
       const composedPath = e.composedPath();
-      const isInsideFilter = composedPath.some(
-        (node: any) => node?.classList?.contains('header-filter-container')
+      const isInsideFilter = composedPath.some((node: any) =>
+        node?.classList?.contains('header-filter-container')
       );
       if (!isInsideFilter) {
         this.activeFilterPopup = null;
@@ -480,6 +490,24 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
           ?disabled="${this.selectionController.size === 0}">
           Graph Selected by Group
         </button>
+        <label class="enable-triage-mode">
+          <input
+            id="triage-mode-${this.uniqueId}"
+            type="checkbox"
+            .checked=${this.triageMode}
+            @change=${(e: Event) => {
+              this.triageMode = (e.target as HTMLInputElement).checked;
+              localStorage.setItem('perf-triage-mode-enabled', String(this.triageMode));
+              this.dispatchEvent(
+                new CustomEvent('triage-mode-changed', {
+                  detail: { triageMode: this.triageMode },
+                  bubbles: true,
+                  composed: true,
+                })
+              );
+            }} />
+          Enable Triage Mode
+        </label>
         ${this.groupingSettingsTemplate()}
       </div>
       <div class="popup-container" ?hidden="${!this.showPopup}">
@@ -489,6 +517,14 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
             .anomalies=${this.selectionController.items}
             .traceNames=${[]}></triage-menu-sk>
         </div>
+      </div>
+      <div class="triage-panel-container" ?hidden="${!this.triageMode}">
+        <triage-panel-sk
+          id="triage-panel-${this.uniqueId}"
+          .anomalies=${this.anomalyList}
+          .traceNames=${[]}
+          @buckets-changed=${(e: CustomEvent) => (this.activeBuckets = e.detail.buckets)}>
+        </triage-panel-sk>
       </div>
       <table
         id="anomalies-table-${this.uniqueId}"
@@ -520,6 +556,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
           )}
           ${this.renderSortableHeader('test', 'Test', 'filterTest', 'Filter test...')}
           ${this.renderSortableHeader('delta', 'Delta %')}
+          <th id="triage-actions-${this.uniqueId}" ?hidden=${!this.triageMode}>Triage Buckets</th>
         </tr>
         <tbody id="rows-${this.uniqueId}">
           ${this.generateGroups()}
@@ -601,8 +638,25 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     return group.anomalies.some((anomaly) => this.initiallyRequestedAnomalyIDs.has(anomaly.id));
   }
 
+  private getStagedAnomalyIds(): Set<string> {
+    if (!this.triageMode || !this.triagePanel) {
+      return new Set<string>();
+    }
+    return this.triagePanel.getStagedAnomalyIds();
+  }
+
   private generateGroups() {
-    const sortedGroups = this.sortGroups(this.groupingController.groups);
+    const stagedIds = this.getStagedAnomalyIds();
+    const filteredGroups = this.groupingController.groups
+      .map((g) => {
+        const newG = new AnomalyGroup();
+        newG.anomalies = g.anomalies.filter((a) => !stagedIds.has(a.id));
+        newG.expanded = g.expanded;
+        return newG;
+      })
+      .filter((g) => g.anomalies.length > 0);
+
+    const sortedGroups = this.sortGroups(filteredGroups);
 
     if (!this.show_requested_groups_first || this.initiallyRequestedAnomalyIDs.size === 0) {
       return sortedGroups.map((group) => this.generateRows(group));
@@ -749,6 +803,22 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
           <td>${processedAnomaly.testsuite}</td>
           <td>${processedAnomaly.test}</td>
           <td class=${anomalyClass}>${formatPercentage(processedAnomaly.delta)}%</td>
+          <td ?hidden=${!this.triageMode} @click=${(e: Event) => e.stopPropagation()}>
+            <div class="bucket-buttons-group">
+              ${this.activeBuckets.map(
+                (b) => html`
+                  <button
+                    class="bucket-btn"
+                    @click=${(e: Event) => {
+                      e.stopPropagation();
+                      this.onAddToBucket(b.name, [anomaly]);
+                    }}>
+                    ${b.name}
+                  </button>
+                `
+              )}
+            </div>
+          </td>
         </tr>
       `);
     }
@@ -912,8 +982,36 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         <td>${summaryData.testsuite}</td>
         <td>${summaryData.test}</td>
         <td class=${summaryClass}>${formatPercentage(summaryData.delta)}%</td>
+        <td ?hidden=${!this.triageMode} @click=${(e: Event) => e.stopPropagation()}>
+          <div class="bucket-buttons-group">
+            ${this.activeBuckets.map(
+              (b) => html`
+                <button
+                  class="bucket-btn"
+                  @click=${(e: Event) => {
+                    e.stopPropagation();
+                    this.onAddToBucket(b.name, anomalyGroup.anomalies);
+                  }}>
+                  ${b.name}
+                </button>
+              `
+            )}
+          </div>
+        </td>
       </tr>
     `;
+  }
+
+  private onAddToBucket(bucketName: string, anomalies: Anomaly[]) {
+    if (this.triagePanel) {
+      this.triagePanel.addToBucket(bucketName, anomalies);
+      anomalies.forEach((a) => {
+        if (this.selectionController.has(a)) {
+          this.selectionController.deselect(a);
+        }
+      });
+      this.requestUpdate();
+    }
   }
 
   getReportLinkForBugId(bug_id: number) {
@@ -974,7 +1072,14 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   }
 
   expandGroup(anomalyGroup: AnomalyGroup) {
-    anomalyGroup.expanded = !anomalyGroup.expanded;
+    const matching = this.groupingController.groups.find(
+      (g) => g === anomalyGroup || g.anomalies.some((a) => anomalyGroup.anomalies.includes(a))
+    );
+    if (matching) {
+      matching.expanded = !matching.expanded;
+    } else {
+      anomalyGroup.expanded = !anomalyGroup.expanded;
+    }
     this.requestUpdate();
   }
 

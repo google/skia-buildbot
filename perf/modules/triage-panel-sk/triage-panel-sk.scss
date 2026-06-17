@@ -1,0 +1,295 @@
+triage-panel-sk {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 64px;
+  right: 24px;
+  width: 450px;
+  min-width: 350px;
+  max-width: 90vw;
+  max-height: calc(100vh - 88px);
+  overflow: hidden;
+  z-index: 1000;
+  padding: 8px;
+  background-color: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--transparent-overlay);
+  box-sizing: border-box;
+
+  &[collapsed] {
+    height: auto !important;
+    padding-bottom: 8px;
+
+    .header {
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+
+    .resize-handle {
+      display: none !important;
+    }
+  }
+
+  .resize-handle {
+    position: absolute;
+    z-index: 1010;
+
+    &.n {
+      top: 0;
+      left: 8px;
+      right: 8px;
+      height: 6px;
+      cursor: ns-resize;
+    }
+
+    &.s {
+      bottom: 0;
+      left: 8px;
+      right: 8px;
+      height: 6px;
+      cursor: ns-resize;
+    }
+
+    &.e {
+      top: 8px;
+      bottom: 8px;
+      right: 0;
+      width: 6px;
+      cursor: ew-resize;
+    }
+
+    &.w {
+      top: 8px;
+      bottom: 8px;
+      left: 0;
+      width: 6px;
+      cursor: ew-resize;
+    }
+
+    &.ne {
+      top: 0;
+      right: 0;
+      width: 8px;
+      height: 8px;
+      cursor: nesw-resize;
+    }
+
+    &.nw {
+      top: 0;
+      left: 0;
+      width: 8px;
+      height: 8px;
+      cursor: nwse-resize;
+    }
+
+    &.se {
+      bottom: 0;
+      right: 0;
+      width: 8px;
+      height: 8px;
+      cursor: nwse-resize;
+    }
+
+    &.sw {
+      bottom: 0;
+      left: 0;
+      width: 8px;
+      height: 8px;
+      cursor: nesw-resize;
+    }
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--on-surface);
+    cursor: grab;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--outline);
+    user-select: none;
+    flex-shrink: 0;
+
+    &:active {
+      cursor: grabbing;
+    }
+
+    .collapse-btn {
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--primary);
+      cursor: pointer;
+      padding: 0 4px;
+
+      &:hover {
+        color: var(--primary-variant);
+      }
+    }
+  }
+
+  .panel-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: auto;
+    min-height: 0;
+
+    &[hidden] {
+      display: none !important;
+    }
+  }
+
+  button.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: none;
+    border: none;
+    color: var(--on-surface);
+    cursor: pointer;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &:hover {
+      background-color: var(--surface-variant);
+      color: var(--on-surface);
+    }
+
+    &:disabled {
+      color: var(--outline);
+      cursor: default;
+      background: none;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+      fill: currentcolor;
+    }
+  }
+
+  .add-bucket {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+
+    input {
+      flex-grow: 1;
+      padding: 4px 8px;
+      font-size: 12px;
+      border: 1px solid var(--outline);
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--on-surface);
+    }
+  }
+
+  .buckets-grid {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .bucket-card {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    background: var(--background);
+    border: 1px solid var(--outline);
+    border-radius: 6px;
+    padding: 6px 8px;
+    box-shadow: 0 1px 3px var(--transparent-overlay);
+    min-height: 140px;
+    box-sizing: border-box;
+
+    .bucket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 6px;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--outline);
+      flex-shrink: 0;
+
+      .title-and-controls {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+
+        h3 {
+          margin: 0;
+          font-size: 13px;
+          color: var(--on-background);
+          white-space: nowrap;
+          padding-right: 4px;
+        }
+      }
+
+      .actions-group {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        button {
+          padding: 2px 6px;
+          font-size: 11px;
+          border-radius: 4px;
+          cursor: pointer;
+          border: 1px solid var(--outline);
+          background: var(--surface);
+          color: var(--on-surface);
+          white-space: nowrap;
+
+          &:hover {
+            background: var(--surface-variant);
+          }
+
+          &.primary {
+            background-color: var(--primary);
+            color: var(--on-primary);
+            border: none;
+
+            &:hover {
+              background-color: var(--primary-variant);
+            }
+          }
+        }
+      }
+    }
+
+    .bucket-textarea {
+      width: 100%;
+      flex-grow: 1;
+      min-height: 80px;
+      font-family: monospace;
+      font-size: 11px;
+      background: var(--surface-variant);
+      color: var(--on-surface);
+      border: 1px solid var(--outline);
+      border-radius: 4px;
+      padding: 6px;
+      resize: vertical;
+      box-sizing: border-box;
+      white-space: pre;
+      overflow: auto;
+
+      &:focus {
+        outline: 1px solid var(--primary);
+        background: var(--surface);
+      }
+    }
+  }
+}

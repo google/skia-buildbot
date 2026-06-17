@@ -18,6 +18,7 @@ import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dial
 import { Anomaly } from '../json';
 import { AnomalyData } from '../common/anomaly-data';
 import { CountMetric, telemetry } from '../telemetry/telemetry';
+import { makeEditAnomalyRequest as makeEditRequest } from '../anomalies-table-sk/triage-api';
 
 import '../new-bug-dialog-sk/new-bug-dialog-sk';
 import '../existing-bug-dialog-sk/existing-bug-dialog-sk';
@@ -195,33 +196,8 @@ export class TriageMenuSk extends LitElement {
    * @param editAction - An action that corresponds to different behaviors.
    */
   makeEditAnomalyRequest(anomalies: Anomaly[], traceNames: string[], editAction: string): void {
-    const keys: string[] = anomalies.map((a) => a.id);
-    const body: any = {
-      keys: keys,
-      trace_names: traceNames,
-      action: editAction,
-    };
-
-    fetch('/_/triage/edit_anomalies', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then(async () => {
-        let bug_id: number | null = null;
-        if (editAction === 'RESET') {
-          bug_id = 0;
-        } else if (editAction === 'IGNORE') {
-          bug_id = -2;
-        }
-        if (bug_id !== null) {
-          for (let i = 0; i < anomalies.length; i++) {
-            anomalies[i].bug_id = bug_id;
-          }
-        }
+    makeEditRequest(anomalies, traceNames, editAction)
+      .then(() => {
         this.ignoreTriageToast?.show();
         this.dispatchEvent(
           new CustomEvent('anomaly-changed', {
@@ -236,9 +212,7 @@ export class TriageMenuSk extends LitElement {
         );
       })
       .catch(() => {
-        errorMessage(
-          'Edit anomalies request failed due to an internal server error. Please try again.'
-        );
+        // errorMessage is handled by makeEditRequest
       });
   }
 

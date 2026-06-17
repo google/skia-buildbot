@@ -75,6 +75,7 @@ describe('anomalies-table-sk', () => {
       },
     });
 
+    localStorage.clear();
     element = newInstance();
   });
 
@@ -1469,7 +1470,7 @@ describe('anomalies-table-sk', () => {
       const row = element.querySelector(`[id^="anomaly-row-"][id$="-${id}"]`)!.closest('tr');
       assert.isNotNull(row, `Row for anomaly ${id} should exist.`);
 
-      const deltaCell = row!.querySelector('td:last-child');
+      const deltaCell = row!.querySelector('td:nth-last-child(2)');
       assert.isNotNull(deltaCell, `Delta cell for anomaly ${id} should exist.`);
 
       assert.include(
@@ -1552,7 +1553,7 @@ describe('anomalies-table-sk', () => {
 
       const summaryRow = element.querySelector('tr[data-bugid="12345"]');
       assert.isNotNull(summaryRow);
-      const summaryCell = summaryRow!.querySelector('td:last-child');
+      const summaryCell = summaryRow!.querySelector('td:nth-last-child(2)');
       assert.isNotNull(summaryCell);
       assert.include(summaryCell!.className, 'improvement');
       assert.notInclude(summaryCell!.className, 'regression');
@@ -1567,7 +1568,7 @@ describe('anomalies-table-sk', () => {
 
       const summaryRow = element.querySelector('tr[data-bugid="12345"]');
       assert.isNotNull(summaryRow);
-      const summaryCell = summaryRow!.querySelector('td:last-child');
+      const summaryCell = summaryRow!.querySelector('td:nth-last-child(2)');
       assert.isNotNull(summaryCell);
       assert.include(summaryCell!.className, 'regression');
       assert.notInclude(summaryCell!.className, 'improvement');
@@ -1583,7 +1584,7 @@ describe('anomalies-table-sk', () => {
 
       const summaryRow = element.querySelector('tr[data-bugid="12345"]');
       assert.isNotNull(summaryRow);
-      const summaryCell = summaryRow!.querySelector('td:last-child');
+      const summaryCell = summaryRow!.querySelector('td:nth-last-child(2)');
       assert.isNotNull(summaryCell);
       assert.include(summaryCell!.className, 'regression');
       assert.notInclude(summaryCell!.className, 'improvement');
@@ -1600,7 +1601,7 @@ describe('anomalies-table-sk', () => {
 
       const summaryRow = element.querySelector('tr[data-bugid="12345"]');
       assert.isNotNull(summaryRow);
-      const summaryCell = summaryRow!.querySelector('td:last-child');
+      const summaryCell = summaryRow!.querySelector('td:nth-last-child(2)');
       assert.isNotNull(summaryCell);
 
       // The class should be 'regression' because regressions exist.
