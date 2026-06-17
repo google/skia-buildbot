@@ -17,8 +17,8 @@ triage2-sk {
   }
 
   button:not([selected]) {
-    fill: #bbb;
-    background: #fff;
+    fill: var(--on-disabled, var(--light-gray));
+    background: var(--surface-1dp, var(--dark-white));
   }
 
   .positive:hover,
@@ -27,7 +27,7 @@ triage2-sk {
   .positive[raised]:hover,
   .negative[raised]:hover,
   .untriaged[raised]:hover {
-    background: #ddd;
+    background: var(--surface, var(--light-gray));
   }
 
   button {
@@ -44,15 +44,15 @@ triage2-sk {
   }
 
   .positive {
-    fill: #388e3c;
+    fill: var(--positive);
   }
 
   .negative {
-    fill: #d32f2f;
+    fill: var(--negative);
   }
 
   .untriaged {
-    fill: #8d6e63;
+    fill: var(--untriaged);
   }
 
   button:not([selected]) {
@@ -71,22 +71,6 @@ triage2-sk {
 }
 
 .body-sk.darkmode triage2-sk {
-  .positive {
-    fill: #4caf50;
-  }
-
-  .negative {
-    fill: #f44336;
-  }
-
-  .untriaged {
-    fill: #8d6e63;
-  }
-
-  button:not([selected]) {
-    fill: var(--disabled);
-  }
-
   button:not([selected]) {
     fill: var(--disabled);
     background: var(--surface-1dp);

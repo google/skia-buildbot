@@ -17,7 +17,7 @@ chart-tooltip-sk {
     padding: 4px;
     overflow-wrap: break-word;
     background: var(--surface-2dp);
-    box-shadow: 5px 5px 10px 2px rgb(0 0 0 / 30%);
+    box-shadow: 5px 5px 10px 2px var(--transparent-overlay);
 
     md-elevation {
       transition-duration: 0.3s;
@@ -60,11 +60,11 @@ chart-tooltip-sk {
         display: table-row;
 
         .regression {
-          color: #e36041;
+          color: var(--negative);
         }
 
         .improvement {
-          color: #3fab46;
+          color: var(--positive);
         }
       }
 

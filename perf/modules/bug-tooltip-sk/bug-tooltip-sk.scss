@@ -13,8 +13,8 @@ bug-tooltip-sk {
   .bug-tooltip {
     visibility: hidden;
     opacity: 0;
-    background-color: #333;
-    color: #fff;
+    background-color: var(--surface-2dp);
+    color: var(--on-surface);
     text-align: left;
     border-radius: 6px;
     padding: 5px 10px;
@@ -29,7 +29,7 @@ bug-tooltip-sk {
     outside the perf content div. */
     overflow: auto; /* Enable vertical scrolling */ /* Enable horizontal scrolling */
     white-space: normal; /* Allow text to wrap */
-    box-shadow: 0 0 10px rgb(0 0 0 / 20%);
+    box-shadow: 0 0 10px var(--transparent-overlay);
   }
 
   .bug-tooltip ul {
@@ -44,7 +44,7 @@ bug-tooltip-sk {
   }
 
   .bug-tooltip a {
-    color: #fff;
+    color: var(--primary);
     text-decoration: underline;
   }
 

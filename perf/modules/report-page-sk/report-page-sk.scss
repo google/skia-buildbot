@@ -45,12 +45,12 @@ report-page-sk {
       max-height: 200px;
       overflow-y: auto;
       margin-top: 10px;
-      border-top: 1px solid #ccc;
+      border-top: 1px solid var(--surface-1dp);
       padding-top: 10px;
     }
 
     #roll-commits-link {
-      color: rgb(87 120 211);
+      color: var(--primary);
       cursor: pointer;
       display: contents;
     }

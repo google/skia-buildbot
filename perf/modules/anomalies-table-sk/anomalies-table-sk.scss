@@ -213,7 +213,7 @@ anomalies-table-sk {
     background-color: var(--background);
     padding: 20px;
     border: var(--on-background);
-    box-shadow: 0 0 10px rgb(0 0 0 / 50%);
+    box-shadow: 0 0 10px var(--transparent-overlay);
 
     // Popups tier (z-index >= 100).
     z-index: 100;
@@ -405,8 +405,8 @@ details.grouping-settings summary {
   z-index: 100;
   background-color: var(--background);
   color: var(--on-background);
-  border: 1px solid var(--surface-1dp, #ccc);
-  box-shadow: 0 0 10px rgb(0 0 0 / 50%);
+  border: 1px solid var(--surface-1dp);
+  box-shadow: 0 0 10px var(--transparent-overlay);
   border-radius: 4px;
   padding: 16px;
   min-width: 300px;
@@ -451,7 +451,7 @@ details.grouping-settings summary {
   help-icon-sk {
     margin: 0 0 0 8px;
     cursor: default;
-    fill: var(--on-surface-variant, #999);
+    fill: var(--on-surface-variant);
 
     &:hover {
       fill: var(--primary);
