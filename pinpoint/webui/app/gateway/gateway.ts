@@ -234,6 +234,27 @@ export interface ListRecentBuildsResponse {
   builds: BuildInfo[];
 }
 
+/** Request message to get details of a git commit. */
+export interface GetCommitRequest {
+  /** The commit identifier. Accepts a commit hash, commit position/number, or "HEAD". */
+  commit: string;
+}
+
+/** Response message containing git commit details. */
+export interface GetCommitResponse {
+  repository: string;
+  gitHash: string;
+  url: string;
+  author: string;
+  created: string;
+  subject: string;
+  message: string;
+  commitBranch: string;
+  commitPosition: number;
+  reviewUrl: string;
+  changeId: string;
+}
+
 /** Service definition for Pinpoint Gateway API. */
 export interface PinpointGateway {
   /** Queries a list of jobs based on filters and pagination options. */
@@ -250,4 +271,6 @@ export interface PinpointGateway {
   GetBenchmark(request: GetBenchmarkInfoRequest): Promise<GetBenchmarkInfoResponse>;
   /** Lists recent builds for a given bot configuration. */
   ListRecentBuilds(request: ListRecentBuildsRequest): Promise<ListRecentBuildsResponse>;
+  /** Retrieves details of a git commit. */
+  GetCommit(request: GetCommitRequest): Promise<GetCommitResponse>;
 }

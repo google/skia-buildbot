@@ -1271,7 +1271,9 @@ func TestListBenchmarks(t *testing.T) {
 		resp, err := pc.ListBenchmarks(context.Background())
 		require.NoError(t, err)
 
-		expected := append([]string{"benchmark1", "benchmark2", "blink-ai.crossbench"}, missingBenchmarks...)
+		expected := append(
+			[]string{"benchmark1", "benchmark2", "blink-ai.crossbench"},
+			missingBenchmarks...)
 		slices.Sort(expected)
 		expected = slices.Compact(expected)
 		assert.Equal(t, expected, resp)
@@ -1342,5 +1344,66 @@ func TestGetBenchmarkInfo(t *testing.T) {
 		assert.Nil(t, info)
 		assert.Equal(t, int64(1), pc.getBenchmarkCalled.Get())
 		assert.Equal(t, int64(1), pc.getBenchmarkFailed.Get())
+	})
+}
+
+func TestGetCommit(t *testing.T) {
+	t.Run("Returns parsed response on success", func(t *testing.T) {
+		expectedResponse := []byte(`{
+			"repository": "test-repo",
+			"git_hash": "abcdef0123456789abcdef0123456789abcdef01",
+			"url": "https://test.googlesource.com/test/src/+/abcdef0123456789abcdef0123456789abcdef01",
+			"author": "author@test.com",
+			"created": "2026-06-12T12:00:00",
+			"subject": "test subject",
+			"message": "test subject\n\nTest commit message.",
+			"commit_branch": "refs/heads/main",
+			"commit_position": 123456,
+			"review_url": "https://test-review.googlesource.com/c/test/src/+/12345",
+			"change_id": "I1234567890"
+		}`)
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodPost, r.Method)
+			assert.Equal(t, "/api/commit", r.URL.Path)
+			assert.Equal(t, "chromium", r.URL.Query().Get("repository"))
+			assert.Equal(
+				t,
+				"abcdef0123456789abcdef0123456789abcdef01",
+				r.URL.Query().Get("git_hash"),
+			)
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(expectedResponse)
+		})
+
+		resp, err := pc.GetCommit(context.Background(), "abcdef0123456789abcdef0123456789abcdef01")
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Equal(t, "test-repo", resp.Repository)
+		assert.Equal(t, "abcdef0123456789abcdef0123456789abcdef01", resp.GitHash)
+		assert.Equal(
+			t,
+			"https://test.googlesource.com/test/src/+/abcdef0123456789abcdef0123456789abcdef01",
+			resp.Url,
+		)
+		assert.Equal(t, "author@test.com", resp.Author)
+		assert.Equal(t, "2026-06-12T12:00:00", resp.Created)
+		assert.Equal(t, "test subject", resp.Subject)
+		assert.Contains(t, resp.Message, "Test commit message")
+		assert.Equal(t, "refs/heads/main", resp.CommitBranch)
+		assert.Equal(t, int64(123456), resp.CommitPosition)
+		assert.Equal(t, "https://test-review.googlesource.com/c/test/src/+/12345", resp.ReviewUrl)
+		assert.Equal(t, "I1234567890", resp.ChangeId)
+	})
+
+	t.Run("Returns error if non-200 status code", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error": "Internal Server Error"}`))
+		})
+
+		resp, err := pc.GetCommit(context.Background(), "abcdef0123456789abcdef0123456789abcdef01")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Internal Server Error")
+		assert.Nil(t, resp)
 	})
 }

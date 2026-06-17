@@ -4,7 +4,7 @@ import '@angular/compiler';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
-import { NewJobComponent, Field } from './new-job.component';
+import { NewJobComponent, Field, INPUT_DEBOUNCE_TIME_MS } from './new-job.component';
 import { GatewayService } from '../gateway/gateway.service';
 import { BuildInfo } from '../gateway/gateway';
 import { assert } from 'chai';
@@ -31,6 +31,19 @@ describe('NewJobComponent', () => {
         benchmark: req?.benchmark || '',
       }),
       ListRecentBuilds: async () => ({ builds: [] }),
+      GetCommit: async () => ({
+        repository: '',
+        gitHash: '',
+        url: '',
+        author: '',
+        created: '',
+        subject: '',
+        message: '',
+        commitBranch: '',
+        commitPosition: 0,
+        reviewUrl: '',
+        changeId: '',
+      }),
     };
     const gateway = { ...defaultGateway, ...mockGateway };
     TestBed.configureTestingModule({
@@ -47,6 +60,19 @@ describe('NewJobComponent', () => {
     component.jobForm.get(Field.Benchmark)?.setValue('speedometer');
     component.jobForm.get(Field.Story)?.setValue('Speedometer3');
     component.jobForm.get([Field.Baseline, Field.Commit])?.setValue('abcd1234');
+    component.baselineCommitInfo.set({
+      repository: 'chromium',
+      gitHash: 'abcd1234',
+      url: 'https://url',
+      author: 'author',
+      created: '',
+      subject: 'subject',
+      message: 'message',
+      commitBranch: 'main',
+      commitPosition: 100,
+      reviewUrl: 'https://review',
+      changeId: 'I123',
+    });
     return component;
   }
 
@@ -523,4 +549,206 @@ describe('NewJobComponent', () => {
     assert.equal(component.jobForm.get([Field.Baseline, Field.Commit])?.value, '');
     assert.equal(component.jobForm.get([Field.Experiment, Field.Commit])?.value, '');
   }));
+
+  it('should fetch commit info and clear error on successful GetCommit', fakeAsync(() => {
+    const mockCommitResponse = {
+      repository: 'chromium',
+      gitHash: 'abcdef0123456789abcdef0123456789abcdef01',
+      url: 'http://url',
+      author: 'author',
+      created: '',
+      subject: 'test subject',
+      message: 'test message',
+      commitBranch: 'main',
+      commitPosition: 1234,
+      reviewUrl: 'http://review',
+      changeId: 'I1234',
+    };
+    const gateway = {
+      GetCommit: sinon.stub().resolves(mockCommitResponse),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    baselineCommit.setValue('abcdef0123456789abcdef0123456789abcdef01');
+    tick(INPUT_DEBOUNCE_TIME_MS);
+
+    assert.isTrue(
+      gateway.GetCommit.calledWith({ commit: 'abcdef0123456789abcdef0123456789abcdef01' })
+    );
+    assert.deepEqual(component.baselineCommitInfo(), mockCommitResponse);
+    assert.isFalse(baselineCommit.hasError('invalidCommit'));
+  }));
+
+  it('should set invalidCommit error and clear commit info on failed GetCommit', fakeAsync(() => {
+    const gateway = {
+      GetCommit: sinon.stub().rejects(new Error('Commit not found')),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    baselineCommit.setValue('abcdef0123456789abcdef0123456789abcdef01');
+    tick(INPUT_DEBOUNCE_TIME_MS);
+
+    assert.isTrue(
+      gateway.GetCommit.calledWith({ commit: 'abcdef0123456789abcdef0123456789abcdef01' })
+    );
+    assert.isNull(component.baselineCommitInfo());
+    assert.isTrue(baselineCommit.hasError('invalidCommit'));
+  }));
+
+  it('should clear commit info and errors when input is empty', fakeAsync(() => {
+    const component = createComponent();
+    component.ngOnInit();
+    tick();
+
+    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    baselineCommit.setErrors({ invalidCommit: true });
+    component.baselineCommitInfo.set({} as any);
+
+    baselineCommit.setValue('');
+    tick();
+
+    assert.isNull(component.baselineCommitInfo());
+    assert.isFalse(baselineCommit.hasError('invalidCommit'));
+  }));
+
+  it('should ignore outdated commit during async call', fakeAsync(() => {
+    let resolveFirst: (value: any) => void;
+    const firstPromise = new Promise((resolve) => {
+      resolveFirst = resolve;
+    });
+
+    const mockFirstResponse = {
+      gitHash: 'abcdef0123456789abcdef0123456789abcdef01',
+      subject: 'first subject',
+    };
+    const mockSecondResponse = {
+      gitHash: 'bbcdef0123456789abcdef0123456789abcdef01',
+      subject: 'second subject',
+    };
+
+    const gateway = {
+      GetCommit: sinon.stub(),
+    };
+    gateway.GetCommit.onFirstCall().returns(firstPromise);
+    gateway.GetCommit.onSecondCall().resolves(mockSecondResponse);
+
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+
+    baselineCommit.setValue('abcdef0123456789abcdef0123456789abcdef01');
+    tick(INPUT_DEBOUNCE_TIME_MS);
+
+    baselineCommit.setValue('bbcdef0123456789abcdef0123456789abcdef01');
+    tick(INPUT_DEBOUNCE_TIME_MS);
+
+    assert.deepEqual(component.baselineCommitInfo(), mockSecondResponse as any);
+
+    resolveFirst!(mockFirstResponse);
+    tick();
+
+    assert.deepEqual(component.baselineCommitInfo(), mockSecondResponse as any);
+  }));
+
+  it('should debounce GetCommit calls', fakeAsync(() => {
+    const gateway = {
+      GetCommit: sinon.stub().resolves({}),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+
+    baselineCommit.setValue('a');
+    tick(100);
+    baselineCommit.setValue('ab');
+    tick(100);
+    baselineCommit.setValue('abcdef0123456789abcdef0123456789abcdef01');
+    tick(100);
+
+    assert.isFalse(gateway.GetCommit.called);
+
+    tick(INPUT_DEBOUNCE_TIME_MS - 100);
+
+    assert.isTrue(gateway.GetCommit.calledOnce);
+  }));
+
+  it('should block submission if baseline commit is entered but info is not yet fetched', fakeAsync(() => {
+    const gateway = {
+      CreateTryJob: sinon.stub().resolves({ jobId: '12345' }),
+      GetCommit: sinon.stub().resolves({ gitHash: '123' }),
+      ListBotConfigurations: sinon.stub().resolves({ configurations: ['linux-perf'] }),
+      ListBenchmarks: sinon.stub().resolves(['speedometer']),
+    };
+    const component = createValidComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const baselineCommit = component.jobForm.get([Field.Baseline, Field.Commit])!;
+    baselineCommit.setValue('123');
+
+    component.submitJob();
+    tick();
+
+    assert.isFalse(gateway.CreateTryJob.called);
+    assert.isTrue(baselineCommit.hasError('invalidCommit'));
+
+    tick(INPUT_DEBOUNCE_TIME_MS);
+    assert.isFalse(baselineCommit.hasError('invalidCommit'));
+
+    component.submitJob();
+    tick();
+    assert.isTrue(gateway.CreateTryJob.calledOnce);
+  }));
+
+  it('should block submission if experiment commit is entered but info is not yet fetched', fakeAsync(() => {
+    const gateway = {
+      CreateTryJob: sinon.stub().resolves({ jobId: '12345' }),
+      GetCommit: sinon.stub().resolves({ gitHash: '456' }),
+      ListBotConfigurations: sinon.stub().resolves({ configurations: ['linux-perf'] }),
+      ListBenchmarks: sinon.stub().resolves(['speedometer']),
+    };
+    const component = createValidComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const experimentCommit = component.jobForm.get([Field.Experiment, Field.Commit])!;
+    experimentCommit.setValue('456');
+
+    component.submitJob();
+    tick();
+
+    assert.isFalse(gateway.CreateTryJob.called);
+    assert.isTrue(experimentCommit.hasError('invalidCommit'));
+
+    tick(INPUT_DEBOUNCE_TIME_MS);
+    assert.isFalse(experimentCommit.hasError('invalidCommit'));
+
+    component.submitJob();
+    tick();
+    assert.isTrue(gateway.CreateTryJob.calledOnce);
+  }));
+
+  describe('experimentPanelError', () => {
+    it('should return false if experiment commit has no error', () => {
+      const component = createComponent();
+      assert.isFalse(component.experimentPanelError());
+    });
+
+    it('should return true if experiment commit has invalidCommit error', () => {
+      const component = createComponent();
+      const experimentCommit = component.jobForm.get([Field.Experiment, Field.Commit])!;
+      experimentCommit.setErrors({ invalidCommit: true });
+      assert.isTrue(component.experimentPanelError());
+    });
+  });
 });

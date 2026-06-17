@@ -221,6 +221,27 @@ message ListRecentBuildsResponse {
   repeated BuildInfo builds = 1;
 }
 
+// Request message to get details of a git commit.
+message GetCommitRequest {
+  // The commit identifier. Accepts a commit hash, commit position/number, or "HEAD".
+  string commit = 1 [(validate.rules).string = {min_len: 1}];
+}
+
+// Response message containing git commit details.
+message GetCommitResponse {
+  string repository = 1;
+  string git_hash = 2;
+  string url = 3;
+  string author = 4;
+  string created = 5;
+  string subject = 6;
+  string message = 7;
+  string commit_branch = 8;
+  int64 commit_position = 9;
+  string review_url = 10;
+  string change_id = 11;
+}
+
 // Service definition for Pinpoint Gateway API.
 service PinpointGateway {
   // Queries a list of jobs based on filters and pagination options.
@@ -270,6 +291,13 @@ service PinpointGateway {
   rpc ListRecentBuilds(ListRecentBuildsRequest) returns (ListRecentBuildsResponse) {
     option (google.api.http) = {
       get: "/pinpoint/v1/recent-builds/{configuration}"
+    };
+  }
+
+  // Retrieves details of a git commit.
+  rpc GetCommit(GetCommitRequest) returns (GetCommitResponse) {
+    option (google.api.http) = {
+      get: "/pinpoint/v1/commit/{commit}"
     };
   }
 }

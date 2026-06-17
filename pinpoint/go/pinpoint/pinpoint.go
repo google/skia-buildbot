@@ -117,3 +117,15 @@ func (c *Client) ListRecentBuilds(ctx context.Context, configuration string) ([]
 	}
 	return builds, nil
 }
+
+// GetCommit retrieves details of a git commit.
+func (c *Client) GetCommit(
+	ctx context.Context,
+	commit string,
+) (*pb.GetCommitResponse, error) {
+	resp, err := c.legacyClient.GetCommit(ctx, commit)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
+}

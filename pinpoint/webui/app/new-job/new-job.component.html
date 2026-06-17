@@ -112,13 +112,33 @@
               @for (commit of filteredBaselineCommits(); track commit.gitHash) {
                 <mat-option [value]="commit.gitHash">
                   <div>{{ commit.gitHash }}</div>
-                  <div>Build {{ commit.number }}, {{ commit.created | date:'MMM d, y, h:mm a' }}</div>
+                  <div>Build {{ commit.buildNumber }}, {{ commit.created | date:'MMM d, y, h:mm a' }}</div>
                 </mat-option>
               }
             </mat-autocomplete>
-            <mat-error>Commit is required</mat-error>
+            @if (jobForm.get([Field.Baseline, Field.Commit])?.hasError('required')) {
+              <mat-error>Commit is required</mat-error>
+            }
+            @if (jobForm.get([Field.Baseline, Field.Commit])?.hasError('invalidCommit')) {
+              <mat-error>Invalid commit</mat-error>
+            }
           </mat-form-field>
         </div>
+
+        @if (baselineCommitInfo()) {
+          <div class="commit-info">
+            <div>
+              <a [href]="baselineCommitInfo().url" target="_blank">{{ baselineCommitInfo().gitHash.substring(0, 10) }}</a>
+              {{ ' ' }}
+              <a [href]="baselineCommitInfo().reviewUrl" target="_blank">crrev/{{ getClNumber(baselineCommitInfo().reviewUrl) }}</a>
+              ({{ baselineCommitInfo().commitPosition }})
+              {{ baselineCommitInfo().author }}
+            </div>
+            <div>
+              {{ baselineCommitInfo().subject }}
+            </div>
+          </div>
+        }
 
         <mat-expansion-panel class="mat-elevation-z0">
           <mat-expansion-panel-header>
@@ -194,7 +214,12 @@
 
         <mat-expansion-panel class="mat-elevation-z0">
           <mat-expansion-panel-header>
-            <mat-panel-title>Advanced Options</mat-panel-title>
+            <mat-panel-title [class.error-panel-title]="experimentPanelError()">
+              @if (experimentPanelError()) {
+                <mat-icon>error</mat-icon>
+              }
+              Advanced Options
+            </mat-panel-title>
           </mat-expansion-panel-header>
 
           <div>
@@ -206,12 +231,30 @@
                 @for (commit of filteredExperimentCommits(); track commit.gitHash) {
                   <mat-option [value]="commit.gitHash">
                     <div>{{ commit.gitHash }}</div>
-                    <div>Build {{ commit.number }} {{ commit.created | date:'MMM d, y, h:mm a' }}</div>
+                    <div>Build {{ commit.buildNumber }} {{ commit.created | date:'MMM d, y, h:mm a' }}</div>
                   </mat-option>
                 }
               </mat-autocomplete>
+              @if (jobForm.get([Field.Experiment, Field.Commit])?.hasError('invalidCommit')) {
+                <mat-error>Invalid commit</mat-error>
+              }
             </mat-form-field>
           </div>
+
+          @if (experimentCommitInfo()) {
+            <div class="commit-info">
+              <div>
+                <a [href]="experimentCommitInfo().url" target="_blank">{{ experimentCommitInfo().gitHash.substring(0, 10) }}</a>
+                {{ ' ' }}
+                <a [href]="experimentCommitInfo().reviewUrl" target="_blank">crrev/{{ getClNumber(experimentCommitInfo().reviewUrl) }}</a>
+                ({{ experimentCommitInfo().commitPosition }})
+                {{ experimentCommitInfo().author }}
+              </div>
+              <div>
+                {{ experimentCommitInfo().subject }}
+              </div>
+            </div>
+          }
 
           <div>
             <mat-form-field matTooltip="Extra command line arguments to pass directly to the benchmark runner execution.">

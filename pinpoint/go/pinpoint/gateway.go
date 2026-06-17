@@ -19,6 +19,7 @@ type pinpointClient interface {
 	ListBenchmarks(ctx context.Context) ([]string, error)
 	GetBenchmarkInfo(ctx context.Context, benchmark string) (*BenchmarkInfo, error)
 	ListRecentBuilds(ctx context.Context, configuration string) ([]*pb.BuildInfo, error)
+	GetCommit(ctx context.Context, commit string) (*pb.GetCommitResponse, error)
 }
 
 type gatewayServer struct {
@@ -152,4 +153,15 @@ func (s *gatewayServer) ListRecentBuilds(
 	return &pb.ListRecentBuildsResponse{
 		Builds: builds,
 	}, nil
+}
+
+func (s *gatewayServer) GetCommit(
+	ctx context.Context,
+	req *pb.GetCommitRequest,
+) (*pb.GetCommitResponse, error) {
+	resp, err := s.client.GetCommit(ctx, req.Commit)
+	if err != nil {
+		return nil, skerr.Unwrap(err)
+	}
+	return resp, nil
 }

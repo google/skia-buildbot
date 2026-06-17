@@ -74,6 +74,7 @@ type mockPinpointClient struct {
 	listBenchmarksFunc        func(ctx context.Context) ([]string, error)
 	getBenchmarkInfoFunc      func(ctx context.Context, benchmark string) (*BenchmarkInfo, error)
 	listRecentBuildsFunc      func(ctx context.Context, configuration string) ([]*pb.BuildInfo, error)
+	getCommitFunc             func(ctx context.Context, commit string) (*pb.GetCommitResponse, error)
 }
 
 func (m *mockPinpointClient) QueryJobList(
@@ -120,6 +121,13 @@ func (m *mockPinpointClient) GetBenchmarkInfo(ctx context.Context, benchmark str
 func (m *mockPinpointClient) ListRecentBuilds(ctx context.Context, configuration string) ([]*pb.BuildInfo, error) {
 	if m.listRecentBuildsFunc != nil {
 		return m.listRecentBuildsFunc(ctx, configuration)
+	}
+	return nil, nil
+}
+
+func (m *mockPinpointClient) GetCommit(ctx context.Context, commit string) (*pb.GetCommitResponse, error) {
+	if m.getCommitFunc != nil {
+		return m.getCommitFunc(ctx, commit)
 	}
 	return nil, nil
 }
@@ -325,5 +333,52 @@ func TestListRecentCommits(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Contains(t, err.Error(), "failed to list recent builds")
+	})
+}
+
+func TestGetCommitGateway(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		expectedResp := &pb.GetCommitResponse{
+			Repository:     "chromium",
+			GitHash:        "91a446671c3d1518f6d8cb5349e8155ec3a4f3d8",
+			Url:            "https://chromium.googlesource.com/chromium/src/+/91a446671c3d1518f6d8cb5349e8155ec3a4f3d8",
+			Author:         "neis@chromium.org",
+			Created:        "2026-06-12T12:58:40",
+			Subject:        "ash: Remove BestResultCategoryRanker and FtrlRanker category ranking",
+			Message:        "ash: Remove BestResultCategoryRanker and FtrlRanker category ranking\n\n...",
+			CommitBranch:   "refs/heads/main",
+			CommitPosition: 1645883,
+			ReviewUrl:      "https://chromium-review.googlesource.com/c/chromium/src/+/7930566",
+			ChangeId:       "I27a4ae239808ad400480ebfda8a2016e634b3aa5",
+		}
+		client := &mockPinpointClient{
+			getCommitFunc: func(ctx context.Context, commit string) (*pb.GetCommitResponse, error) {
+				assert.Equal(t, "91a446671c3d1518f6d8cb5349e8155ec3a4f3d8", commit)
+				return expectedResp, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.GetCommit(context.Background(), &pb.GetCommitRequest{
+			Commit: "91a446671c3d1518f6d8cb5349e8155ec3a4f3d8",
+		})
+		require.NoError(t, err)
+		assert.Equal(t, expectedResp, resp)
+	})
+
+	t.Run("client returns error", func(t *testing.T) {
+		client := &mockPinpointClient{
+			getCommitFunc: func(ctx context.Context, commit string) (*pb.GetCommitResponse, error) {
+				return nil, errors.New("failed to get commit info")
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.GetCommit(context.Background(), &pb.GetCommitRequest{
+			Commit: "91a446671c3d1518f6d8cb5349e8155ec3a4f3d8",
+		})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "failed to get commit info")
 	})
 }

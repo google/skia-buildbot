@@ -17,6 +17,8 @@ import {
   GetBenchmarkInfoResponse,
   ListRecentBuildsRequest,
   ListRecentBuildsResponse,
+  GetCommitRequest,
+  GetCommitResponse,
 } from './gateway';
 
 @Injectable({
@@ -69,6 +71,12 @@ export class GatewayService implements PinpointGateway {
       this.http.get<ListRecentBuildsResponse>(
         `/pinpoint/v1/recent-builds/${encodeURIComponent(request.configuration)}`
       )
+    );
+  }
+
+  GetCommit(request: GetCommitRequest): Promise<GetCommitResponse> {
+    return firstValueFrom(
+      this.http.get<GetCommitResponse>(`/pinpoint/v1/commit/${encodeURIComponent(request.commit)}`)
     );
   }
 }

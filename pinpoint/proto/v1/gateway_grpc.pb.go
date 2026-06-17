@@ -27,6 +27,7 @@ const (
 	PinpointGateway_ListBenchmarks_FullMethodName        = "/pinpoint.v1.PinpointGateway/ListBenchmarks"
 	PinpointGateway_GetBenchmark_FullMethodName          = "/pinpoint.v1.PinpointGateway/GetBenchmark"
 	PinpointGateway_ListRecentBuilds_FullMethodName      = "/pinpoint.v1.PinpointGateway/ListRecentBuilds"
+	PinpointGateway_GetCommit_FullMethodName             = "/pinpoint.v1.PinpointGateway/GetCommit"
 )
 
 // PinpointGatewayClient is the client API for PinpointGateway service.
@@ -49,6 +50,8 @@ type PinpointGatewayClient interface {
 	GetBenchmark(ctx context.Context, in *GetBenchmarkInfoRequest, opts ...grpc.CallOption) (*GetBenchmarkInfoResponse, error)
 	// Lists recent builds for a given bot configuration.
 	ListRecentBuilds(ctx context.Context, in *ListRecentBuildsRequest, opts ...grpc.CallOption) (*ListRecentBuildsResponse, error)
+	// Retrieves details of a git commit.
+	GetCommit(ctx context.Context, in *GetCommitRequest, opts ...grpc.CallOption) (*GetCommitResponse, error)
 }
 
 type pinpointGatewayClient struct {
@@ -129,6 +132,16 @@ func (c *pinpointGatewayClient) ListRecentBuilds(ctx context.Context, in *ListRe
 	return out, nil
 }
 
+func (c *pinpointGatewayClient) GetCommit(ctx context.Context, in *GetCommitRequest, opts ...grpc.CallOption) (*GetCommitResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCommitResponse)
+	err := c.cc.Invoke(ctx, PinpointGateway_GetCommit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PinpointGatewayServer is the server API for PinpointGateway service.
 // All implementations must embed UnimplementedPinpointGatewayServer
 // for forward compatibility.
@@ -149,6 +162,8 @@ type PinpointGatewayServer interface {
 	GetBenchmark(context.Context, *GetBenchmarkInfoRequest) (*GetBenchmarkInfoResponse, error)
 	// Lists recent builds for a given bot configuration.
 	ListRecentBuilds(context.Context, *ListRecentBuildsRequest) (*ListRecentBuildsResponse, error)
+	// Retrieves details of a git commit.
+	GetCommit(context.Context, *GetCommitRequest) (*GetCommitResponse, error)
 	mustEmbedUnimplementedPinpointGatewayServer()
 }
 
@@ -179,6 +194,9 @@ func (UnimplementedPinpointGatewayServer) GetBenchmark(context.Context, *GetBenc
 }
 func (UnimplementedPinpointGatewayServer) ListRecentBuilds(context.Context, *ListRecentBuildsRequest) (*ListRecentBuildsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRecentBuilds not implemented")
+}
+func (UnimplementedPinpointGatewayServer) GetCommit(context.Context, *GetCommitRequest) (*GetCommitResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCommit not implemented")
 }
 func (UnimplementedPinpointGatewayServer) mustEmbedUnimplementedPinpointGatewayServer() {}
 func (UnimplementedPinpointGatewayServer) testEmbeddedByValue()                         {}
@@ -327,6 +345,24 @@ func _PinpointGateway_ListRecentBuilds_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PinpointGateway_GetCommit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCommitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointGatewayServer).GetCommit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PinpointGateway_GetCommit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointGatewayServer).GetCommit(ctx, req.(*GetCommitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PinpointGateway_ServiceDesc is the grpc.ServiceDesc for PinpointGateway service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -361,6 +397,10 @@ var PinpointGateway_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListRecentBuilds",
 			Handler:    _PinpointGateway_ListRecentBuilds_Handler,
+		},
+		{
+			MethodName: "GetCommit",
+			Handler:    _PinpointGateway_GetCommit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

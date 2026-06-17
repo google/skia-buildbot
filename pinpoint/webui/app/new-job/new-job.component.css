@@ -74,3 +74,11 @@ mat-expansion-panel-header {
 .no-shrink {
   flex-shrink: 0;
 }
+
+.commit-info {
+  padding-bottom: 24px;
+}
+
+.error-panel-title {
+  color: var(--mat-sys-error) !important;
+}

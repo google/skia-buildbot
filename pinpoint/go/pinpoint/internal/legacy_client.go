@@ -32,6 +32,7 @@ const (
 	pinpointLegacyJobStateURL     = pinpointLegacyBaseURL + "/api/job"
 	pinpointLegacyConfigURL       = pinpointLegacyBaseURL + "/api/config"
 	pinpointLegacyBuildsURL       = pinpointLegacyBaseURL + "/api/builds"
+	pinpointLegacyCommitURL       = pinpointLegacyBaseURL + "/api/commit"
 	contentType                   = "application/json"
 	tryJobComparisonMode          = "try"
 	chromeperfLegacyBaseURL       = "https://chromeperf.appspot.com"
@@ -787,4 +788,32 @@ func (pc *LegacyClient) ListRecentBuilds(
 	}
 
 	return commits, nil
+}
+
+// GetCommit queries the legacy Pinpoint API to retrieve information about a commit.
+func (pc *LegacyClient) GetCommit(
+	ctx context.Context,
+	commit string,
+) (resp *pb.GetCommitResponse, err error) {
+	params := url.Values{}
+	params.Set("repository", "chromium")
+	params.Set("git_hash", commit)
+	requestURL := fmt.Sprintf("%s?%s", pinpointLegacyCommitURL, params.Encode())
+
+	httpResp, err := pc.doPostRequest(ctx, requestURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	body, err := pc.readResponseBody(httpResp)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	var commitResp pb.GetCommitResponse
+	if err = json.Unmarshal(body, &commitResp); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse pinpoint commit response body.")
+	}
+
+	return &commitResp, nil
 }
