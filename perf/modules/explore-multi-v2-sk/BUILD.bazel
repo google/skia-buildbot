@@ -33,6 +33,7 @@ sk_element(
         ":trace-types_ts_lib",
         ":help-hub-sk_ts_lib",
         ":interactive-tour-sk_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-v2-sk.ts",
@@ -102,9 +103,7 @@ ts_library(
     name = "explore-worker-controller_ts_lib",
     srcs = ["explore-worker-controller.ts"],
     visibility = ["//visibility:public"],
-    deps = [
-        ":db_ts_lib",
-    ],
+    deps = ["//perf/modules/explore-multi-v2-sk/worker:filter.worker_ts_lib"],
 )
 
 ts_library(
@@ -258,7 +257,7 @@ sk_demo_page_server(
     sk_page = ":explore-multi-v2-sk-demo",
     static_assets = {
         "/dist/explore-multi-v2-sk": [
-            "//perf/modules/explore-multi-v2-sk/worker:filter.worker_js_dev",
+            "//perf/modules/explore-multi-v2-sk/worker:filter.worker-demo_js_dev",
             "//perf/modules/explore-multi-v2-sk/wasm:compile_wasm_filter",
         ],
     },

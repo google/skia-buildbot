@@ -10,6 +10,7 @@ ts_library(
         ":wasm_utils_ts_lib",
         ":worker-types_ts_lib",
         ":worker_logic_ts_lib",
+        "//perf/modules/explore-multi-v2-sk:db_ts_lib",
     ],
 )
 
@@ -72,4 +73,28 @@ esbuild_dev_bundle(
     output = "filter.worker.bundle.js",
     visibility = ["//visibility:public"],
     deps = [":filter.worker_ts_lib"],
+)
+
+ts_library(
+    name = "explore-multi-v2-sk-mocks_ts_lib",
+    srcs = ["explore-multi-v2-sk-mocks.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "filter.worker-demo_ts_lib",
+    srcs = ["filter.worker-demo.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":explore-multi-v2-sk-mocks_ts_lib",
+        ":filter.worker_ts_lib",
+    ],
+)
+
+esbuild_dev_bundle(
+    name = "filter.worker-demo_js_dev",
+    entry_point = "filter.worker-demo.ts",
+    output = "filter.worker-demo.bundle.js",
+    visibility = ["//visibility:public"],
+    deps = [":filter.worker-demo_ts_lib"],
 )

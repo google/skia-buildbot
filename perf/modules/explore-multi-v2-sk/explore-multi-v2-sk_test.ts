@@ -658,96 +658,6 @@ describe('explore-multi-v2-sk', () => {
     }
   });
 
-  it('attempts to load static files from cache', async () => {
-    const oldGet = TraceDatabase.prototype.get;
-    const getCalledWith: string[] = [];
-    TraceDatabase.prototype.get = async (key: string) => {
-      getCalledWith.push(key);
-      return null;
-    };
-
-    const oldFetch = window.fetch;
-    window.fetch = async (url: string | Request | URL) => {
-      const urlStr = url.toString();
-      if (urlStr.includes('meta.json')) {
-        return {
-          ok: true,
-          json: async () => ({ version: 'test-version' }),
-        } as any;
-      }
-      return {
-        ok: true,
-        json: async () => ({}),
-        arrayBuffer: async () => new ArrayBuffer(0),
-      } as any;
-    };
-
-    try {
-      const controller = new (element as any)._workerController.constructor(
-        () => {},
-        () => {},
-        () => {},
-        () => {},
-        () => {},
-        () => {},
-        () => {}
-      );
-      controller.worker = { postMessage: () => {} } as any;
-      await controller.fetchDataForWorker();
-
-      expect(getCalledWith).to.include('static:params:test-version');
-      expect(getCalledWith).to.include('static:wasm:test-version');
-      expect(getCalledWith).to.include('static:traces:test-version');
-    } finally {
-      TraceDatabase.prototype.get = oldGet;
-      window.fetch = oldFetch;
-    }
-  });
-
-  it('skips fetching static files when cached', async () => {
-    const oldGet = TraceDatabase.prototype.get;
-    TraceDatabase.prototype.get = async (key: string) => {
-      if (key.includes('params')) return {};
-      if (key.includes('wasm')) return new ArrayBuffer(0);
-      if (key.includes('traces')) return new ArrayBuffer(0);
-      return null;
-    };
-
-    const oldFetch = window.fetch;
-    const fetchCalledWith: string[] = [];
-    window.fetch = async (url: string | Request | URL) => {
-      const urlStr = url.toString();
-      fetchCalledWith.push(urlStr);
-      if (urlStr.includes('meta.json')) {
-        return {
-          ok: true,
-          json: async () => ({ version: 'test-version' }),
-        } as any;
-      }
-      throw new Error(`Unexpected fetch for ${urlStr}`);
-    };
-
-    try {
-      const controller = new (element as any)._workerController.constructor(
-        () => {},
-        () => {},
-        () => {},
-        () => {},
-        () => {},
-        () => {},
-        () => {}
-      );
-      controller.worker = { postMessage: () => {} } as any;
-      await controller.fetchDataForWorker();
-
-      expect(fetchCalledWith.length).to.equal(1);
-      expect(fetchCalledWith[0]).to.include('meta.json');
-    } finally {
-      TraceDatabase.prototype.get = oldGet;
-      window.fetch = oldFetch;
-    }
-  });
-
   it('applies default param selections on load if queries empty', async () => {
     const mockDataService = {
       getInitPage: async () => ({ dataframe: { paramset: {} } }),
@@ -1564,5 +1474,126 @@ describe('explore-multi-v2-sk', () => {
       expect(element['_seriesData'][1].color).to.equal(c2); // stable
       expect(c3).to.equal('hsl(275, 70%, 50%)'); // unique
     });
+  });
+
+  it('shows loading overlay during worker initialization and hides it when ready', async () => {
+    const newElement = document.createElement('explore-multi-v2-sk') as ExploreMultiV2Sk;
+
+    const WORKER_LOADED_DELAY = 5;
+    const WORKER_STATUS_DELAY = 10;
+    const WORKER_READY_DELAY = 20;
+
+    const STEP1_WAIT = 2; // Before WORKER_LOADED_DELAY
+    const STEP2_WAIT = 15; // After WORKER_LOADED_DELAY + WORKER_STATUS_DELAY (5 + 10 = 15)
+    const STEP3_WAIT = 15; // Wait another 15ms (total 32ms), ensuring we are past the READY event (at 25ms)
+
+    let workerOnMessage: ((e: MessageEvent) => void) | null = null;
+    const mockWorker = {
+      postMessage: (msg: any) => {
+        if (msg.type === 'INIT') {
+          setTimeout(() => {
+            workerOnMessage!({
+              data: { type: 'STATUS', payload: { message: 'Loading database...' } },
+            } as any);
+          }, WORKER_STATUS_DELAY);
+          setTimeout(() => {
+            workerOnMessage!({ data: { type: 'READY' } } as any);
+          }, WORKER_READY_DELAY);
+        }
+      },
+      terminate: () => {},
+    };
+
+    const originalWorker = window.Worker;
+    (window as any).Worker = function (_: string) {
+      const w = Object.create(mockWorker);
+      Object.defineProperty(w, 'onmessage', {
+        set: (handler) => {
+          workerOnMessage = handler;
+        },
+        get: () => workerOnMessage,
+      });
+      setTimeout(() => {
+        workerOnMessage!({ data: { type: 'LOADED' } } as any);
+      }, WORKER_LOADED_DELAY);
+      return w;
+    } as any;
+
+    try {
+      document.body.appendChild(newElement);
+
+      // 1. Initial connection status
+      await new Promise((resolve) => setTimeout(resolve, STEP1_WAIT));
+      let overlay = newElement.shadowRoot!.querySelector('.worker-init-overlay');
+      let status = newElement.shadowRoot!.querySelector('.worker-init-status');
+      expect(overlay).to.not.be.null;
+      expect(status!.textContent).to.equal('Starting worker...');
+
+      // 2. Updated status from worker
+      await new Promise((resolve) => setTimeout(resolve, STEP2_WAIT));
+      status = newElement.shadowRoot!.querySelector('.worker-init-status');
+      expect(status!.textContent).to.equal('Loading database...');
+
+      // 3. Hidden when READY
+      await new Promise((resolve) => setTimeout(resolve, STEP3_WAIT));
+      overlay = newElement.shadowRoot!.querySelector('.worker-init-overlay');
+      expect(overlay).to.be.null;
+    } finally {
+      window.Worker = originalWorker;
+      newElement.parentNode?.removeChild(newElement);
+    }
+  });
+
+  it('dismisses loading overlay on worker initialization failure', async () => {
+    const newElement = document.createElement('explore-multi-v2-sk') as ExploreMultiV2Sk;
+
+    let workerOnMessage: ((e: MessageEvent) => void) | null = null;
+    const mockWorker = {
+      postMessage: (msg: any) => {
+        if (msg.type === 'INIT') {
+          setTimeout(() => {
+            workerOnMessage!({
+              data: { type: 'ERROR', payload: { message: 'Failed to fetch Wasm' } },
+            } as any);
+          }, 10);
+        }
+      },
+      terminate: () => {},
+    };
+
+    const originalWorker = window.Worker;
+    (window as any).Worker = function (_: string) {
+      const w = Object.create(mockWorker);
+      Object.defineProperty(w, 'onmessage', {
+        set: (handler) => {
+          workerOnMessage = handler;
+        },
+        get: () => workerOnMessage,
+      });
+      setTimeout(() => {
+        workerOnMessage!({ data: { type: 'LOADED' } } as any);
+      }, 5);
+      return w;
+    } as any;
+
+    try {
+      document.body.appendChild(newElement);
+
+      // Poll until overlay is dismissed (should happen after ERROR)
+      const startTime = Date.now();
+      while (
+        newElement.shadowRoot!.querySelector('.worker-init-overlay') &&
+        Date.now() - startTime < 2000
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        await newElement.updateComplete;
+      }
+
+      const overlay = newElement.shadowRoot!.querySelector('.worker-init-overlay');
+      expect(overlay).to.be.null;
+    } finally {
+      window.Worker = originalWorker;
+      newElement.parentNode?.removeChild(newElement);
+    }
   });
 });

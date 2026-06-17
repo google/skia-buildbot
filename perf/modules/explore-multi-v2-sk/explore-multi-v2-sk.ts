@@ -27,6 +27,7 @@ import { CountMetric } from '../telemetry/types';
 import { TraceDatabase, hashRequest } from './db';
 import './explore-toolbar-sk';
 import { ExploreWorkerController } from './explore-worker-controller';
+import { errorMessage } from '../errorMessage';
 import './help-hub-sk';
 import './interactive-tour-sk';
 import { TourStep } from './interactive-tour-sk';
@@ -168,7 +169,11 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _defaults: any = null;
 
+  @state() private _workerInitializing = true;
+
   @state() private _loading = false;
+
+  @state() private _statusMessage = '';
 
   @state() private _availableParams: { key: string; value: string; count: number }[] = [];
 
@@ -451,12 +456,16 @@ export class ExploreMultiV2Sk extends LitElement {
   };
 
   private _initWorker() {
+    this._workerInitializing = true;
+    this._loading = true;
+    this._statusMessage = 'Starting worker...';
     this._workerController = new ExploreWorkerController(
       () => {
         console.log('Orchestrator: Worker loaded');
       },
       () => {
         console.log('Orchestrator: Worker ready');
+        this._workerInitializing = false;
         this._latestRequestId = this._triggerWorkerFilter();
       },
       (payload) => {
@@ -464,6 +473,10 @@ export class ExploreMultiV2Sk extends LitElement {
       },
       (message) => {
         console.error('Worker Error:', message);
+        this._loading = false;
+        this._statusMessage = '';
+        this._workerInitializing = false;
+        errorMessage(`Worker initialization failed: ${message}`);
       },
       (payload) => {
         console.log('Worker Params Ready');
@@ -484,6 +497,9 @@ export class ExploreMultiV2Sk extends LitElement {
         const newSuggestions = [...this._suggestionsForQueryBar];
         newSuggestions[idx] = payload;
         this._suggestionsForQueryBar = newSuggestions;
+      },
+      (message) => {
+        this._statusMessage = message;
       }
     );
     this._workerController.init();
@@ -525,6 +541,8 @@ export class ExploreMultiV2Sk extends LitElement {
       this._loadedBounds = {};
       this._globalBounds = {};
       this._regressions = {};
+      this._loading = false;
+      this._statusMessage = '';
     } else {
       this._matchingTraceIds = reconstructedIds;
       console.log(`Reconstructed ${reconstructedIds.length} matching Trace IDs`);
@@ -577,6 +595,7 @@ export class ExploreMultiV2Sk extends LitElement {
   private _triggerWorkerFilter(requestId?: number): number {
     if (!this._workerController?.isReady()) return -1;
 
+    this._statusMessage = ''; // Clear stale status messages from initialization.
     const queries: Record<string, string[]>[] = [...this.queries];
     const activeFacets: string[] = [];
 
@@ -817,6 +836,36 @@ export class ExploreMultiV2Sk extends LitElement {
       border-color: var(--primary, #818cf8);
       color: var(--on-background, #fff);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .worker-init-overlay {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface, #1e293b);
+      border: 1px solid var(--border, #334155);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 2000;
+    }
+
+    .worker-init-status {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--on-background, #f8fafc);
+    }
+
+    .worker-init-overlay .spinner {
+      border: 2px solid var(--border, #334155);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border-left-color: var(--primary, #818cf8);
+      animation: spin 1s linear infinite;
     }
   `;
 
@@ -2659,7 +2708,7 @@ export class ExploreMultiV2Sk extends LitElement {
           ? html`
               <div class="page-loading">
                 <div class="spinner"></div>
-                <span>Loading traces...</span>
+                <span>${this._statusMessage || 'Loading traces...'}</span>
               </div>
             `
           : ''}
@@ -2749,6 +2798,15 @@ export class ExploreMultiV2Sk extends LitElement {
         @tour-finished=${() => {
           this._tourActive = false;
         }}></interactive-tour-sk>
+
+      ${this._workerInitializing
+        ? html`
+            <div class="worker-init-overlay">
+              <div class="spinner"></div>
+              <div class="worker-init-status">${this._statusMessage}</div>
+            </div>
+          `
+        : ''}
     `;
   }
 }

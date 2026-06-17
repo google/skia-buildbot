@@ -6,28 +6,10 @@ import fetchMock from 'fetch-mock';
 setUpExploreDemoEnv();
 (window as any).fetchMock = fetchMock;
 fetchMock.config.fallbackToNetwork = true;
-(window as any).WORKER_URL = '/dist/explore-multi-v2-sk/filter.worker.bundle.js';
+(window as any).WORKER_URL = '/dist/explore-multi-v2-sk/filter.worker-demo.bundle.js';
 
 const numTraces = 10;
 const numPoints = 100;
-const stride = 10;
-
-const params = [
-  { id: 1, key: 'os', value: 'Android' },
-  { id: 2, key: 'os', value: 'Ubuntu' },
-  { id: 3, key: 'arch', value: 'arm' },
-  { id: 4, key: 'arch', value: 'x86' },
-  { id: 5, key: 'config', value: '8888' },
-  { id: 6, key: 'config', value: 'gpu' },
-];
-
-const tracesBuffer = new Uint16Array(numTraces * stride);
-for (let i = 0; i < numTraces; i++) {
-  const offset = i * stride;
-  tracesBuffer[offset] = (i % 2) + 1; // os
-  tracesBuffer[offset + 1] = ((i >> 1) % 2) + 3; // arch
-  tracesBuffer[offset + 2] = ((i >> 2) % 2) + 5; // config
-}
 
 const header = [];
 for (let i = 0; i < numPoints; i++) {
@@ -92,15 +74,7 @@ anomalymap[thirdKey] = {
   },
 };
 
-fetchMock.get(
-  'glob:*/_/wasm/meta.json*',
-  { version: 'test-version', count: numTraces, stride: stride, commonParams: { project: 'Skia' } },
-  { overwriteRoutes: true }
-);
-fetchMock.get('glob:*/_/wasm/params.json*', params, { overwriteRoutes: true });
-fetchMock.get('glob:*/_/wasm/traces.bin*', new Response(tracesBuffer.buffer), {
-  overwriteRoutes: true,
-});
+// Wasm assets are now mocked inside the demo worker.
 
 fetchMock.post(
   '/_/frame/start',
