@@ -3,7 +3,7 @@
 @use 'fiddlek/modules/textarea-numbers-sk/codemirror5_codemirror.css';
 @use 'fiddlek/modules/textarea-numbers-sk/codemirror5_base16-dark.css';
 @use 'fiddlek/modules/textarea-numbers-sk/codemirror5_base16-light.css';
-@import '../themes/themes';
+@use '../themes/themes';
 
 .CodeMirror {
   height: auto;

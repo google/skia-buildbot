@@ -1,6 +1,6 @@
-@import '../../../elements-sk/modules/styles/buttons';
-@import '../../../elements-sk/modules/styles/table';
-@import '../../../infra-sk/themes';
+@use '../../../elements-sk/modules/styles/buttons';
+@use '../../../elements-sk/modules/styles/table';
+@use '../../../infra-sk/themes';
 
 job-sk {
   font-family: Arial, sans-serif;

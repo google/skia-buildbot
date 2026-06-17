@@ -1,7 +1,7 @@
 @use 'shaders/modules/debugger-app-sk/codemirror_codemirror.css';
 @use 'shaders/modules/debugger-app-sk/codemirror_ambiance.css';
 @use 'shaders/modules/debugger-app-sk/codemirror_base16-light.css';
-@import '../themes/themes';
+@use '../themes/themes';
 
 .cm-s-base16-light .cm-current-line {
   background: rgb(0 128 255 / 20%);

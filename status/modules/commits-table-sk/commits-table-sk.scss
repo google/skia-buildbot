@@ -1,5 +1,5 @@
-@import '../../../elements-sk/modules/styles/select';
-@import '../styles';
+@use '../../../elements-sk/modules/styles/select';
+@use '../styles';
 
 * {
   // We use z=1 as our 'base', so that our row highlighting underlay can exist

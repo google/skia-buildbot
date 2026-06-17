@@ -1,9 +1,9 @@
 @use 'shaders/modules/shaders-app-sk/codemirror_codemirror.css';
 @use 'shaders/modules/shaders-app-sk/codemirror_ambiance.css';
 @use 'shaders/modules/shaders-app-sk/codemirror_base16-light.css';
-@import '../../../elements-sk/modules/styles/select';
-@import '../../../elements-sk/modules/styles/buttons';
-@import '../themes/themes';
+@use '../../../elements-sk/modules/styles/select';
+@use '../../../elements-sk/modules/styles/buttons';
+@use '../themes/themes';
 
 .body-sk shaders-app-sk {
   overflow: hidden;

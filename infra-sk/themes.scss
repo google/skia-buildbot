@@ -79,11 +79,11 @@ to see how these styles apply to title bars and sidebars.
 
 */
 
-@import '../elements-sk/modules/themes/themes';
-@import '../elements-sk/modules/styles/buttons';
-@import '../elements-sk/modules/styles/select';
-@import '../elements-sk/modules/styles/table';
-@import 'tokens';
+@use '../elements-sk/modules/themes/themes';
+@use '../elements-sk/modules/styles/buttons';
+@use '../elements-sk/modules/styles/select';
+@use '../elements-sk/modules/styles/table';
+@use 'tokens';
 
 .body-sk {
   &.font-sk,
