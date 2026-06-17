@@ -785,6 +785,76 @@ describe('explore-multi-v2-sk', () => {
       const screenshot = await page.screenshot();
       console.log('SCREENSHOT_TOOLTIP_BASE64:', screenshot.toString('base64'));
 
+      // Verify that hovering and clicking inside the tooltip does not close it
+      // Wait for updates to complete to ensure tooltip is fully rendered
+      await page.evaluate(async () => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        await explore.updateComplete;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        await traceChart.updateComplete;
+      });
+
+      const tooltipRect = await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk');
+        const traceChart = explore?.shadowRoot?.querySelector('trace-chart-sk') as any;
+        const tooltip = traceChart?.shadowRoot?.querySelector('trace-chart-tooltip-sk');
+        const hoverTooltip = tooltip?.shadowRoot?.querySelector('.hover-tooltip');
+        if (!hoverTooltip) return null;
+        const r = hoverTooltip.getBoundingClientRect();
+        return { x: r.left, y: r.top, width: r.width, height: r.height };
+      });
+
+      expect(tooltipRect, 'tooltipRect should not be null').to.not.be.null;
+      expect(tooltipRect!.width, 'tooltip width should be > 0').to.be.greaterThan(0);
+      expect(tooltipRect!.height, 'tooltip height should be > 0').to.be.greaterThan(0);
+
+      // Move mouse to the center of the tooltip
+      const tooltipCenterX = tooltipRect!.x + tooltipRect!.width / 2;
+      const tooltipCenterY = tooltipRect!.y + tooltipRect!.height / 2;
+      console.log(`Moving mouse to tooltip center: (${tooltipCenterX}, ${tooltipCenterY})`);
+      await page.mouse.move(tooltipCenterX, tooltipCenterY);
+
+      // Wait to ensure no debounced hover logic closes it
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Check if tooltip moved
+      const tooltipRectAfterMove = await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk');
+        const traceChart = explore?.shadowRoot?.querySelector('trace-chart-sk') as any;
+        const tooltip = traceChart?.shadowRoot?.querySelector('trace-chart-tooltip-sk');
+        const hoverTooltip = tooltip?.shadowRoot?.querySelector('.hover-tooltip');
+        if (!hoverTooltip) return null;
+        const r = hoverTooltip.getBoundingClientRect();
+        return { x: r.left, y: r.top, width: r.width, height: r.height };
+      });
+      console.log('Tooltip rect after move:', tooltipRectAfterMove);
+
+      // Verify it remains open
+      let isTooltipOpen = await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk');
+        const traceChart = explore?.shadowRoot?.querySelector('trace-chart-sk') as any;
+        const tooltip = traceChart?.shadowRoot?.querySelector('trace-chart-tooltip-sk');
+        return tooltip !== null;
+      });
+      expect(isTooltipOpen, 'tooltip should remain open after moving mouse inside it').to.be.true;
+
+      expect(tooltipRectAfterMove, 'tooltipRectAfterMove should not be null').to.not.be.null;
+
+      // Click in a safe area of the tooltip (top-left, avoiding links/buttons)
+      const safeClickX = tooltipRectAfterMove!.x + 15;
+      const safeClickY = tooltipRectAfterMove!.y + 15;
+      console.log(`Clicking safe area in tooltip: (${safeClickX}, ${safeClickY})`);
+      await page.mouse.click(safeClickX, safeClickY);
+
+      // Verify it remains open after click
+      isTooltipOpen = await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk');
+        const traceChart = explore?.shadowRoot?.querySelector('trace-chart-sk') as any;
+        const tooltip = traceChart?.shadowRoot?.querySelector('trace-chart-tooltip-sk');
+        return tooltip !== null;
+      });
+      expect(isTooltipOpen, 'tooltip should remain open after clicking inside it').to.be.true;
+
       // Click Bisect button
       await page.evaluate(() => {
         const explore = document.querySelector('explore-multi-v2-sk') as any;

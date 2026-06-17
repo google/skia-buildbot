@@ -72,6 +72,34 @@ export class TraceChartTooltipSk extends LitElement {
 
   private _debounceTimer: number | null = null;
 
+  private _handlers: { [key: string]: (e: Event) => void } = {};
+
+  connectedCallback() {
+    super.connectedCallback();
+    const stopPropagation = (e: Event) => e.stopPropagation();
+    const events = [
+      'pointerdown',
+      'pointermove',
+      'pointerup',
+      'click',
+      'dblclick',
+      'wheel',
+      'mousedown',
+      'mouseup',
+    ];
+    events.forEach((event) => {
+      this._handlers[event] = stopPropagation;
+      this.addEventListener(event, stopPropagation);
+    });
+  }
+
+  disconnectedCallback() {
+    Object.keys(this._handlers).forEach((event) => {
+      this.removeEventListener(event, this._handlers[event]);
+    });
+    super.disconnectedCallback();
+  }
+
   static styles = css`
     .hover-tooltip {
       position: absolute;
@@ -685,7 +713,6 @@ export class TraceChartTooltipSk extends LitElement {
     return html`
       <div
         class="hover-tooltip"
-        @pointerdown=${(e: Event) => e.stopPropagation()}
         style="${this.hoveredPoint.y > this.canvasHeight / 2
           ? `bottom: ${this.canvasHeight - this.hoveredPoint.y + 10}px;`
           : `top: ${this.hoveredPoint.y + 10}px;`} ${this.canvasWidth > 0 &&

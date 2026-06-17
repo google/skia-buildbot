@@ -356,4 +356,33 @@ describe('trace-chart-tooltip-sk', () => {
     const subrepoSkeleton = element.shadowRoot!.querySelector('.subrepo-skeleton');
     expect(subrepoSkeleton).to.not.be.null;
   });
+
+  it('stops propagation of pointer and mouse events', async () => {
+    const events = [
+      'pointerdown',
+      'pointermove',
+      'pointerup',
+      'click',
+      'dblclick',
+      'wheel',
+      'mousedown',
+      'mouseup',
+    ];
+
+    for (const eventName of events) {
+      let eventBubbled = false;
+      const listener = () => {
+        eventBubbled = true;
+      };
+      document.body.addEventListener(eventName, listener);
+
+      // Dispatch event on the element
+      const event = new Event(eventName, { bubbles: true, composed: true });
+      element.dispatchEvent(event);
+
+      expect(eventBubbled, `Event ${eventName} should not bubble`).to.be.false;
+
+      document.body.removeEventListener(eventName, listener);
+    }
+  });
 });
