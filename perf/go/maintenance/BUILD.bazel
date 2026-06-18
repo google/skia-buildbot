@@ -21,6 +21,7 @@ go_library(
         "//perf/go/sheriffconfig/service",
         "//perf/go/sql/expectedschema",
         "//perf/go/trace_visibility/checker",
+        "//perf/go/trace_visibility/promoter",
         "//perf/go/trace_visibility/provider",
         "//perf/go/trace_visibility/provider/chrome",
         "//perf/go/trace_visibility/sqlconfigstore",

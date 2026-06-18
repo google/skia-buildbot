@@ -20,6 +20,7 @@ import (
 	sheriffconfig "go.skia.org/infra/perf/go/sheriffconfig/service"
 	"go.skia.org/infra/perf/go/sql/expectedschema"
 	"go.skia.org/infra/perf/go/trace_visibility/checker"
+	"go.skia.org/infra/perf/go/trace_visibility/promoter"
 	"go.skia.org/infra/perf/go/trace_visibility/provider"
 	"go.skia.org/infra/perf/go/trace_visibility/provider/chrome"
 	"go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore"
@@ -48,6 +49,18 @@ const (
 
 	// Size of the batch of shortcuts to delete.
 	deletionBatchSize = 1000
+
+	// How often to run the trace visibility checker.
+	visibilityCheckPeriod = time.Hour
+
+	// How often to run the trace visibility promoter.
+	traceVisibilityPromotionPeriod = time.Hour * 12
+
+	// Timeout for a single run of the trace visibility checker.
+	visibilityCheckTimeout = time.Minute * 5
+
+	// Initial delay before starting the background visibility tasks.
+	visibilityTaskInitialDelay = time.Minute * 15
 )
 
 // Start all the long running processes. This function does not return if all
@@ -69,6 +82,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	}
 
 	startVisibilityChecker(ctx, instanceConfig, db)
+	startVisibilityPromoter(ctx, instanceConfig, db)
 
 	if flags.GenerateTraceParamsAdditions {
 		var traceParamsIndexes []string
@@ -188,10 +202,10 @@ func startVisibilityChecker(ctx context.Context, instanceConfig *config.Instance
 		sklog.Warningf("Failed to create authenticated token source for visibility checker: %s. Using unauthenticated client.", tokenErr)
 	}
 
-	var provider provider.Provider
+	var visibilityProvider provider.Provider
 	switch instanceConfig.VisibilityConfig.ProviderName {
 	case "chrome":
-		provider, err = chrome.ChromeProvider(*instanceConfig.VisibilityConfig, client)
+		visibilityProvider, err = chrome.ChromeProvider(*instanceConfig.VisibilityConfig, client)
 	default:
 		sklog.Errorf("Unknown visibility provider: %q", instanceConfig.VisibilityConfig.ProviderName)
 		return
@@ -202,12 +216,39 @@ func startVisibilityChecker(ctx context.Context, instanceConfig *config.Instance
 		return
 	}
 
-	checkPeriod := time.Hour
+	visibilityChecker := checker.NewChecker(sqlconfigstore.New(db), visibilityProvider)
 
-	visibilityChecker := checker.NewChecker(sqlconfigstore.New(db), provider)
-	go util.RepeatCtx(ctx, checkPeriod, func(ctx context.Context) {
-		if err := visibilityChecker.Check(ctx); err != nil {
-			sklog.Errorf("Failed to run visibility checker: %s", err)
+	go func() {
+		sklog.Infof("Waiting %v before starting trace visibility checker...", visibilityTaskInitialDelay)
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(visibilityTaskInitialDelay):
 		}
-	})
+		util.RepeatCtx(ctx, visibilityCheckPeriod, func(ctx context.Context) {
+			checkCtx, cancel := context.WithTimeout(ctx, visibilityCheckTimeout)
+			defer cancel()
+			if err := visibilityChecker.Check(checkCtx); err != nil {
+				sklog.Errorf("Failed to run visibility checker: %s", err)
+			}
+		})
+	}()
+}
+
+func startVisibilityPromoter(ctx context.Context, instanceConfig *config.InstanceConfig, db pool.Pool) {
+	if instanceConfig.VisibilityConfig == nil {
+		return
+	}
+	sklog.Info("Starting background trace visibility promoter...")
+	configStore := sqlconfigstore.New(db)
+	backgroundPromoter := promoter.New(db, configStore)
+	go func() {
+		sklog.Infof("Waiting %v before starting background trace visibility promoter loop...", visibilityTaskInitialDelay)
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(visibilityTaskInitialDelay):
+		}
+		backgroundPromoter.StartBackgroundLoop(ctx, traceVisibilityPromotionPeriod)
+	}()
 }
