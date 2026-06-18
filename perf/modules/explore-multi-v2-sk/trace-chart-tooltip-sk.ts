@@ -103,16 +103,16 @@ export class TraceChartTooltipSk extends LitElement {
   static styles = css`
     .hover-tooltip {
       position: absolute;
-      background: var(--surface, rgb(15 23 42 / 90%));
+      background: var(--surface);
       backdrop-filter: blur(8px);
-      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
-      color: var(--on-surface, #fff);
+      border: 1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
+      color: var(--on-surface);
       padding: 12px 16px;
       border-radius: 8px;
       font-size: 12px;
       pointer-events: auto;
       z-index: 10;
-      box-shadow: 0 10px 25px -5px rgb(0 0 0 / 50%);
+      box-shadow: 0 10px 25px -5px var(--transparent-overlay);
       max-width: 320px;
       font-family: 'JetBrains Mono', monospace;
     }
@@ -137,7 +137,7 @@ export class TraceChartTooltipSk extends LitElement {
     }
 
     .tooltip-row strong {
-      color: var(--on-surface, #94a3b8);
+      color: var(--on-surface);
       font-weight: 600;
       min-width: 60px;
       opacity: 0.6;
@@ -146,7 +146,7 @@ export class TraceChartTooltipSk extends LitElement {
     .tooltip-section {
       margin-bottom: 8px;
       padding-bottom: 8px;
-      border-bottom: 1px solid rgb(255 255 255 / 10%);
+      border-bottom: 1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
     }
 
     .tooltip-section:last-child {
@@ -176,11 +176,11 @@ export class TraceChartTooltipSk extends LitElement {
     }
 
     .regression {
-      color: #e53935;
+      color: var(--negative);
     }
 
     .improvement {
-      color: #4caf50;
+      color: var(--positive);
     }
 
     .inline-buttons {
@@ -191,12 +191,12 @@ export class TraceChartTooltipSk extends LitElement {
     .diff-section {
       margin-bottom: 8px;
       font-size: 13px;
-      border-top: 1px solid #eee;
+      border-top: 1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
       padding-top: 6px;
     }
 
     .diff-title {
-      color: #666;
+      color: var(--on-surface-variant);
       margin-bottom: 4px;
       font-weight: 500;
     }
@@ -240,7 +240,7 @@ export class TraceChartTooltipSk extends LitElement {
     }
 
     .diff-distance {
-      color: #999;
+      color: var(--on-surface-variant);
       font-size: 11px;
       margin-left: 6px;
       white-space: nowrap;
@@ -248,7 +248,7 @@ export class TraceChartTooltipSk extends LitElement {
 
     .skeleton {
       display: inline-block;
-      background: var(--outline, #334155);
+      background: var(--outline);
       border-radius: 4px;
       animation: pulse 1.5s infinite;
     }
@@ -268,18 +268,18 @@ export class TraceChartTooltipSk extends LitElement {
     }
 
     triage-menu-sk button {
-      height: var(--perf-button-height, 24px);
-      min-width: var(--perf-button-min-width, 50px);
+      height: var(--perf-button-height);
+      min-width: var(--perf-button-min-width);
       padding: var(--perf-button-padding, 0 8px);
-      font-size: var(--perf-button-font-size, 11px);
+      font-size: var(--perf-button-font-size);
       text-transform: none;
-      border-radius: var(--perf-button-border-radius, 4px);
+      border-radius: var(--perf-button-border-radius);
       border: solid 1px var(--outline);
       background: var(--surface);
       color: var(--primary);
       font-family: var(--font);
       cursor: pointer;
-      margin: var(--perf-button-margin, 0);
+      margin: var(--perf-button-margin);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -299,9 +299,9 @@ export class TraceChartTooltipSk extends LitElement {
       position: fixed;
       left: auto;
       bottom: 0;
-      color: var(--on-background, #fff);
-      background: var(--background, #000);
-      fill: var(--on-background, #fff);
+      color: var(--on-background);
+      background: var(--background);
+      fill: var(--on-background);
       padding: 10px 15px;
       opacity: 0;
       z-index: 20;
@@ -311,16 +311,16 @@ export class TraceChartTooltipSk extends LitElement {
       visibility: visible;
       opacity: 1;
       bottom: 30px;
-      color: var(--on-background, #fff);
-      background: var(--background, #000);
-      fill: var(--background, #000);
+      color: var(--on-background);
+      background: var(--background);
+      fill: var(--background);
       width: auto;
       max-width: 1000px;
     }
 
     triage-menu-sk #ignore_toast {
-      background-color: var(--background, #000);
-      color: var(--on-background, #fff);
+      background-color: var(--background);
+      color: var(--on-background);
     }
   `;
 

@@ -33,9 +33,9 @@ export class InteractiveTourSk extends LitElement {
 
     .tour-spotlight {
       position: fixed;
-      box-shadow: 0 0 0 9999px rgb(15 23 42 / 55%);
+      box-shadow: 0 0 0 9999px color-mix(in srgb, var(--surface) 55%, transparent);
       border-radius: 8px;
-      border: 2px solid var(--primary, #6366f1);
+      border: 2px solid var(--primary);
       transition: all 0.3s ease;
       pointer-events: none;
     }
@@ -43,12 +43,12 @@ export class InteractiveTourSk extends LitElement {
     .tour-bubble {
       position: fixed;
       width: 280px;
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: var(--surface);
+      border: 1px solid var(--surface);
       border-radius: 8px;
       padding: 16px;
-      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 30%);
-      color: #f8fafc;
+      box-shadow: 0 20px 25px -5px color-mix(in srgb, var(--transparent-overlay) 60%, transparent);
+      color: var(--on-surface);
       z-index: 10000;
       transition: all 0.3s ease;
       display: flex;
@@ -59,7 +59,7 @@ export class InteractiveTourSk extends LitElement {
 
     .bubble-title {
       font-weight: 700;
-      color: var(--primary, #818cf8);
+      color: var(--primary);
       font-size: 14px;
       margin: 0;
     }
@@ -68,7 +68,7 @@ export class InteractiveTourSk extends LitElement {
       font-size: 12px;
       line-height: 1.5;
       margin: 0;
-      color: #cbd5e1;
+      color: var(--on-surface-variant);
     }
 
     .tour-footer {
@@ -87,7 +87,7 @@ export class InteractiveTourSk extends LitElement {
     .tour-btn {
       background: none;
       border: none;
-      color: #94a3b8;
+      color: var(--on-surface-variant);
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 4px;
@@ -95,22 +95,22 @@ export class InteractiveTourSk extends LitElement {
     }
 
     .tour-btn:hover {
-      background: rgb(255 255 255 / 5%);
-      color: #fff;
+      background: color-mix(in srgb, var(--on-surface) 5%, transparent);
+      color: var(--on-surface);
     }
 
     .tour-btn-primary {
-      background: var(--primary, #6366f1);
-      color: white;
+      background: var(--primary);
+      color: var(--on-primary);
     }
 
     .tour-btn-primary:hover {
-      background: #4f46e5;
-      color: white;
+      background: var(--primary-variant);
+      color: var(--on-primary);
     }
 
     .tour-progress {
-      color: #64748b;
+      color: var(--on-surface-variant);
       font-weight: 500;
     }
   `;

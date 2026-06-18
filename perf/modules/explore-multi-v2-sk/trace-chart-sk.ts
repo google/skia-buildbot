@@ -2006,21 +2006,21 @@ export class TraceChartSk extends LitElement {
       padding: 12px 0;
       margin-bottom: 16px;
       box-shadow: none;
-      color: var(--on-surface, #f8fafc);
-      border-bottom: 1px solid var(--outline, rgb(255 255 255 / 5%));
+      color: var(--on-surface);
+      border-bottom: 1px solid var(--outline);
 
       /* Selection Overlay */
-      --selection-fill: color-mix(in srgb, var(--primary, #1a73e8) 10%, transparent);
-      --selection-stroke: color-mix(in srgb, var(--primary, #1a73e8) 80%, transparent);
+      --selection-fill: color-mix(in srgb, var(--primary) 10%, transparent);
+      --selection-stroke: color-mix(in srgb, var(--primary) 80%, transparent);
 
       /* Measurement (Delta Y) Overlay */
-      --measurement-fill: rgb(249 171 0 / 10%);
-      --measurement-stroke: rgb(249 171 0 / 80%);
+      --measurement-fill: color-mix(in srgb, var(--warning) 10%, transparent);
+      --measurement-stroke: color-mix(in srgb, var(--warning) 80%, transparent);
 
       /* Tooltip and Label Chips */
-      --tooltip-background: rgb(15 23 42 / 90%);
-      --tooltip-text: rgb(255 255 255 / 90%);
-      --crosshair-stroke: color-mix(in srgb, var(--on-surface, #f8fafc) 40%, transparent);
+      --tooltip-background: color-mix(in srgb, var(--surface) 90%, transparent);
+      --tooltip-text: color-mix(in srgb, var(--on-surface) 90%, transparent);
+      --crosshair-stroke: color-mix(in srgb, var(--on-surface) 40%, transparent);
     }
 
     .header {
@@ -2035,19 +2035,19 @@ export class TraceChartSk extends LitElement {
     .title {
       font-size: 12px;
       font-weight: 400;
-      color: var(--on-surface-variant, #94a3b8);
+      color: var(--on-surface-variant);
       letter-spacing: -0.01em;
     }
 
     .canvas-container {
       position: relative;
-      background: var(--background, #0b0f19);
+      background: var(--background);
       border: none;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--on-surface, #64748b);
+      color: var(--on-surface);
       font-size: 13px;
     }
 
@@ -2082,7 +2082,7 @@ export class TraceChartSk extends LitElement {
     }
 
     .footer-label {
-      color: var(--on-surface, #64748b);
+      color: var(--on-surface);
       font-weight: 600;
       text-transform: uppercase;
       font-size: 10px;
@@ -2090,9 +2090,9 @@ export class TraceChartSk extends LitElement {
     }
 
     .chip {
-      background: rgb(255 255 255 / 5%);
+      background: color-mix(in srgb, var(--on-surface) 5%, transparent);
       border: none;
-      color: var(--on-surface, #94a3b8);
+      color: var(--on-surface);
       border-radius: 4px;
       padding: 2px 8px;
       cursor: pointer;
@@ -2112,17 +2112,17 @@ export class TraceChartSk extends LitElement {
     }
 
     .chip:hover {
-      background: rgb(255 255 255 / 10%);
-      color: var(--on-background, #fff);
+      background: color-mix(in srgb, var(--on-surface) 10%, transparent);
+      color: var(--on-background);
     }
 
     .chip.active {
-      background: rgb(99 102 241 / 20%);
-      color: var(--primary, #818cf8);
+      background: color-mix(in srgb, var(--primary) 20%, transparent);
+      color: var(--primary);
     }
 
     .chip.active:hover {
-      background: rgb(99 102 241 / 30%);
+      background: color-mix(in srgb, var(--primary) 30%, transparent);
     }
 
     .chip.hidden-trace {
@@ -2147,13 +2147,13 @@ export class TraceChartSk extends LitElement {
     .loading-overlay {
       position: absolute;
       inset: 0;
-      background: rgb(15 23 42 / 70%);
+      background: color-mix(in srgb, var(--surface) 70%, transparent);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       gap: 12px;
-      color: var(--on-surface, #94a3b8);
+      color: var(--on-surface);
       font-size: 14px;
       backdrop-filter: blur(2px);
       z-index: 10;
@@ -2162,9 +2162,9 @@ export class TraceChartSk extends LitElement {
     .spinner {
       width: 24px;
       height: 24px;
-      border: 2px solid rgb(255 255 255 / 10%);
+      border: 2px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
       border-radius: 50%;
-      border-top-color: var(--primary, #818cf8);
+      border-top-color: var(--primary);
       animation: spin 1s linear infinite;
     }
 

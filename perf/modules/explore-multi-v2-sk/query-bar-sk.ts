@@ -85,21 +85,21 @@ export class QueryBarSk extends LitElement {
     }
 
     .query-bar-container {
-      background: var(--md-sys-color-surface, white);
-      border: 1px solid var(--md-sys-color-outline, #dadce0);
+      background: var(--md-sys-color-surface);
+      border: 1px solid var(--md-sys-color-outline);
       border-radius: 4px;
       padding: 4px 8px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       cursor: text;
-      box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+      box-shadow: 0 1px 2px color-mix(in srgb, var(--transparent-overlay) 10%, transparent);
       transition: all 0.2s ease;
     }
 
     .query-bar-container:focus-within {
-      border-color: var(--md-sys-color-primary, #1a73e8);
-      box-shadow: 0 0 0 1px var(--md-sys-color-primary, #1a73e8);
+      border-color: var(--md-sys-color-primary);
+      box-shadow: 0 0 0 1px var(--md-sys-color-primary);
     }
 
     .query-pills {
@@ -124,7 +124,7 @@ export class QueryBarSk extends LitElement {
       --md-outlined-text-field-outline-color: transparent;
       --md-outlined-text-field-focus-outline-color: transparent;
       --md-outlined-text-field-container-color: transparent;
-      --md-outlined-text-field-input-text-color: var(--on-surface, #3c4043);
+      --md-outlined-text-field-input-text-color: var(--on-surface);
 
       width: 100%;
       flex: 1;
@@ -132,15 +132,15 @@ export class QueryBarSk extends LitElement {
     }
 
     .query-input::placeholder {
-      color: var(--md-sys-color-on-surface-variant, #80868b);
+      color: var(--md-sys-color-on-surface-variant);
       font-style: normal;
     }
 
     .input-spinner {
       width: 14px;
       height: 14px;
-      border: 2px solid var(--md-sys-color-outline-variant, #f1f3f4);
-      border-top-color: var(--md-sys-color-primary, #1a73e8);
+      border: 2px solid var(--md-sys-color-outline-variant);
+      border-top-color: var(--md-sys-color-primary);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       margin-right: 6px;
@@ -159,10 +159,10 @@ export class QueryBarSk extends LitElement {
       min-width: 350px;
       max-height: 300px;
       overflow-y: auto;
-      background: var(--md-sys-color-surface, white);
-      border: 1px solid var(--md-sys-color-outline-variant, #dadce0);
+      background: var(--md-sys-color-surface);
+      border: 1px solid var(--md-sys-color-outline-variant);
       border-radius: 4px;
-      box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--transparent-overlay) 20%, transparent);
       z-index: 1000;
       margin-top: 4px;
       padding: 4px 0;
@@ -178,24 +178,24 @@ export class QueryBarSk extends LitElement {
       font-family: monospace;
       font-size: 12px;
       transition: background-color 0.2s;
-      color: var(--on-surface, #cbd5e1);
+      color: var(--on-surface);
     }
 
     .suggestion-item.info {
-      color: var(--md-sys-color-on-surface-variant, #70757a);
+      color: var(--md-sys-color-on-surface-variant);
       font-style: italic;
       cursor: default;
     }
 
     .suggestion-item:hover,
     .suggestion-item.focused {
-      background-color: rgb(128 128 128 / 10%);
+      background-color: color-mix(in srgb, var(--on-surface) 10%, transparent);
     }
 
     .suggestion-pill {
       display: inline-flex;
       align-items: center;
-      background: rgb(128 128 128 / 15%);
+      background: color-mix(in srgb, var(--on-surface) 15%, transparent);
       border-radius: 10px;
       padding: 1px 8px;
       font-size: 11px;
@@ -203,22 +203,22 @@ export class QueryBarSk extends LitElement {
     }
 
     .s-key {
-      color: var(--md-sys-color-on-surface-variant, #5f6368);
+      color: var(--md-sys-color-on-surface-variant);
     }
 
     .s-sep {
-      color: var(--md-sys-color-outline, #dadce0);
+      color: var(--md-sys-color-outline);
       margin: 0 2px;
     }
 
     .s-val {
-      color: var(--on-surface, #cbd5e1);
+      color: var(--on-surface);
       font-weight: 500;
     }
 
     .s-count.right {
       margin-left: auto;
-      color: var(--md-sys-color-on-surface-variant, #70757a);
+      color: var(--md-sys-color-on-surface-variant);
       font-style: italic;
       font-size: 10px;
     }
@@ -234,7 +234,7 @@ export class QueryBarSk extends LitElement {
     .qb-remove-query-btn {
       background: none;
       border: none;
-      color: var(--md-sys-color-on-surface-variant, #5f6368);
+      color: var(--md-sys-color-on-surface-variant);
       font-size: 16px;
       cursor: pointer;
       padding: 0 4px;
@@ -249,7 +249,7 @@ export class QueryBarSk extends LitElement {
 
     .qb-clone-query-btn:hover,
     .qb-remove-query-btn:hover {
-      background-color: var(--md-sys-color-surface-container-highest, rgb(0 0 0 / 5%));
+      background-color: var(--md-sys-color-surface-container-highest);
     }
   `;
 

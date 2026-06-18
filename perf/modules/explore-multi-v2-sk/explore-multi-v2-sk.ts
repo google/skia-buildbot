@@ -612,18 +612,18 @@ export class ExploreMultiV2Sk extends LitElement {
       display: block;
       padding: 16px;
       font-family: var(--font, 'Inter', system-ui, -apple-system, sans-serif);
-      background-color: var(--background, #0b0f19);
-      color: var(--on-background, #f8fafc);
+      background-color: var(--background);
+      color: var(--on-background);
       min-height: 100vh;
     }
 
     .range-menu {
-      background-color: var(--surface, #1e293b);
-      border: 1px solid var(--border, #334155);
+      background-color: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 4px;
       box-shadow:
-        0 4px 6px -1px rgb(0 0 0 / 10%),
-        0 2px 4px -1px rgb(0 0 0 / 6%);
+        0 4px 6px -1px color-mix(in srgb, var(--transparent-overlay) 20%, transparent),
+        0 2px 4px -1px color-mix(in srgb, var(--transparent-overlay) 12%, transparent);
       padding: 8px;
       display: flex;
       flex-direction: column;
@@ -634,7 +634,7 @@ export class ExploreMultiV2Sk extends LitElement {
     .range-menu button {
       background: none;
       border: none;
-      color: var(--on-surface, #f8fafc);
+      color: var(--on-surface);
       text-align: left;
       padding: 4px 8px;
       cursor: pointer;
@@ -647,7 +647,7 @@ export class ExploreMultiV2Sk extends LitElement {
       justify-content: center;
       align-items: center;
       gap: 12px;
-      color: var(--on-surface, #94a3b8);
+      color: var(--on-surface);
       font-size: 16px;
       padding: 40px;
     }
@@ -655,9 +655,9 @@ export class ExploreMultiV2Sk extends LitElement {
     .spinner {
       width: 32px;
       height: 32px;
-      border: 3px solid rgb(255 255 255 / 10%);
+      border: 3px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
       border-radius: 50%;
-      border-top-color: var(--primary, #818cf8);
+      border-top-color: var(--primary);
       animation: spin 1s linear infinite;
     }
 
@@ -668,7 +668,7 @@ export class ExploreMultiV2Sk extends LitElement {
     }
 
     .range-menu button:hover {
-      background-color: var(--surface-hover, #334155);
+      background-color: var(--surface-hover);
     }
 
     .header {
@@ -679,32 +679,29 @@ export class ExploreMultiV2Sk extends LitElement {
     }
 
     h1 {
-      color: var(--on-background, #fff);
+      color: var(--primary);
       font-size: 24px;
       font-weight: 800;
       margin: 0;
       letter-spacing: -0.025em;
-      background: linear-gradient(to right, var(--primary, #6366f1), #a855f7);
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
 
     .subtitle {
-      color: var(--on-surface, #94a3b8);
+      color: var(--on-surface);
       font-size: 12px;
       margin: 4px 0 0;
     }
 
     .workspace {
-      background: var(--surface, rgb(30 41 59 / 50%));
+      background: var(--surface);
       backdrop-filter: blur(12px);
       border: none;
-      color: var(--on-surface, #f8fafc);
+      color: var(--on-surface);
       border-radius: 12px;
       padding: 12px;
       box-shadow:
-        0 10px 25px -5px rgb(0 0 0 / 10%),
-        0 8px 10px -6px rgb(0 0 0 / 10%);
+        0 10px 25px -5px color-mix(in srgb, var(--transparent-overlay) 20%, transparent),
+        0 8px 10px -6px color-mix(in srgb, var(--transparent-overlay) 20%, transparent);
     }
 
     .section-title {
@@ -712,7 +709,7 @@ export class ExploreMultiV2Sk extends LitElement {
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: var(--on-surface, #64748b);
+      color: var(--on-surface);
       margin-bottom: 8px;
     }
 
@@ -738,22 +735,22 @@ export class ExploreMultiV2Sk extends LitElement {
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: white;
-      border: 1px solid #dadce0;
-      color: #1a73e8;
+      background: var(--surface);
+      border: none;
+      color: var(--primary);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
+      box-shadow: 0 2px 4px color-mix(in srgb, var(--transparent-overlay) 20%, transparent);
       transition: all 0.2s;
     }
 
     .add-query-circle-btn:hover {
-      background: #f1f3f4;
-      box-shadow: 0 4px 6px rgb(0 0 0 / 15%);
+      background: var(--surface-variant);
+      box-shadow: 0 4px 6px color-mix(in srgb, var(--transparent-overlay) 30%, transparent);
     }
 
     .config-pills {
@@ -768,21 +765,21 @@ export class ExploreMultiV2Sk extends LitElement {
       align-items: center;
       gap: 6px;
       padding: 4px 12px;
-      background: rgb(255 255 255 / 5%);
+      background: color-mix(in srgb, var(--on-surface) 5%, transparent);
       border-radius: 16px;
       font-size: 12px;
-      color: var(--on-surface, #f8fafc);
-      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
+      color: var(--on-surface);
+      border: 1px solid var(--outline);
     }
 
     .config-pill.diff-base {
-      background: rgb(99 102 241 / 15%);
-      border: 1px solid rgb(99 102 241 / 30%);
+      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
     }
 
     .config-pill-label {
       font-weight: 600;
-      color: var(--primary, #818cf8);
+      color: var(--primary);
     }
 
     .config-pill-value {
@@ -797,7 +794,7 @@ export class ExploreMultiV2Sk extends LitElement {
       background: none;
       cursor: pointer;
       font-size: 14px;
-      color: var(--on-surface, #94a3b8);
+      color: var(--on-surface);
       padding: 0;
       margin-left: 4px;
       line-height: 1;
@@ -806,19 +803,19 @@ export class ExploreMultiV2Sk extends LitElement {
     }
 
     .config-pill-remove:hover {
-      color: var(--on-background, #fff);
+      color: var(--on-background);
     }
 
     .expand-queries-btn {
-      background: var(--surface, #1e293b);
-      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
-      color: var(--on-surface, #f8fafc);
+      background: var(--surface);
+      border: 1px solid var(--outline);
+      color: var(--on-surface);
       border-radius: 16px;
       padding: 4px 12px;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
+      box-shadow: 0 2px 4px color-mix(in srgb, var(--transparent-overlay) 20%, transparent);
       transition: all 0.2s;
       display: inline-flex;
       align-items: center;
@@ -826,20 +823,20 @@ export class ExploreMultiV2Sk extends LitElement {
     }
 
     .expand-queries-btn:hover {
-      background: var(--surface-hover, #334155);
-      border-color: var(--primary, #818cf8);
-      color: var(--on-background, #fff);
-      box-shadow: 0 4px 6px rgb(0 0 0 / 15%);
+      background: var(--surface-hover);
+      border-color: var(--primary);
+      color: var(--on-background);
+      box-shadow: 0 4px 6px color-mix(in srgb, var(--transparent-overlay) 30%, transparent);
     }
 
     .worker-init-overlay {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: var(--surface, #1e293b);
-      border: 1px solid var(--border, #334155);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--transparent-overlay) 60%, transparent);
       padding: 12px 20px;
       display: flex;
       align-items: center;
@@ -850,15 +847,15 @@ export class ExploreMultiV2Sk extends LitElement {
     .worker-init-status {
       font-size: 14px;
       font-weight: 500;
-      color: var(--on-background, #f8fafc);
+      color: var(--on-background);
     }
 
     .worker-init-overlay .spinner {
-      border: 2px solid var(--border, #334155);
+      border: 2px solid var(--border);
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      border-left-color: var(--primary, #818cf8);
+      border-left-color: var(--primary);
       animation: spin 1s linear infinite;
     }
   `;
@@ -2520,7 +2517,7 @@ export class ExploreMultiV2Sk extends LitElement {
                 >
                 <button
                   @click=${this._toggleV2Mode}
-                  style="background: var(--primary, #1a73e8); color: white; border: none; padding: 4px 16px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                  style="background: var(--primary); color: var(--on-primary); border: none; padding: 4px 16px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
                   ACTIVE (Switch to Legacy)
                 </button>
               </div>

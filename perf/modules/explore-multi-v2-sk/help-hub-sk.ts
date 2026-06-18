@@ -49,13 +49,13 @@ export class HelpHubSk extends LitElement {
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: var(--primary, #6366f1);
-      color: white;
+      background: var(--primary);
+      color: var(--on-primary);
       border: none;
       font-size: 20px;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgb(99 102 241 / 40%);
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 40%, transparent);
       z-index: 999;
       display: flex;
       align-items: center;
@@ -65,7 +65,7 @@ export class HelpHubSk extends LitElement {
 
     .help-fab:hover {
       transform: scale(1.05);
-      box-shadow: 0 6px 20px rgb(99 102 241 / 60%);
+      box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 60%, transparent);
     }
 
     .help-panel {
@@ -74,10 +74,10 @@ export class HelpHubSk extends LitElement {
       right: -390px;
       width: 360px;
       height: 100vh;
-      background: rgb(15 23 42 / 90%);
+      background: color-mix(in srgb, var(--surface) 90%, transparent);
       backdrop-filter: blur(16px);
-      border-left: 1px solid rgb(255 255 255 / 10%);
-      box-shadow: -10px 0 30px rgb(0 0 0 / 30%);
+      border-left: 1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
+      box-shadow: -10px 0 30px color-mix(in srgb, var(--transparent-overlay) 60%, transparent);
       z-index: 1000;
       transition: right 0.3s ease-in-out;
       display: flex;
@@ -93,26 +93,26 @@ export class HelpHubSk extends LitElement {
       justify-content: space-between;
       align-items: center;
       padding: 16px;
-      border-bottom: 1px solid rgb(255 255 255 / 8%);
+      border-bottom: 1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
     }
 
     .panel-title {
       margin: 0;
       font-size: 16px;
       font-weight: 700;
-      color: var(--primary, #818cf8);
+      color: var(--primary);
     }
 
     .close-btn {
       background: none;
       border: none;
-      color: #94a3b8;
+      color: var(--on-surface-variant);
       font-size: 24px;
       cursor: pointer;
     }
 
     .close-btn:hover {
-      color: #fff;
+      color: var(--on-surface);
     }
 
     .panel-content {
@@ -127,36 +127,36 @@ export class HelpHubSk extends LitElement {
     .search-bar {
       width: 95%;
       padding: 8px 10px;
-      background: rgb(255 255 255 / 5%);
-      border: 1px solid rgb(255 255 255 / 10%);
+      background: color-mix(in srgb, var(--on-surface) 5%, transparent);
+      border: 1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
       border-radius: 6px;
-      color: #fff;
+      color: var(--on-surface);
       font-size: 12px;
     }
 
     .tabs-nav {
       display: flex;
       gap: 12px;
-      border-bottom: 1px solid rgb(255 255 255 / 5%);
+      border-bottom: 1px solid color-mix(in srgb, var(--on-surface) 5%, transparent);
       padding-bottom: 8px;
       font-size: 12px;
     }
 
     .tab-item {
-      color: #94a3b8;
+      color: var(--on-surface-variant);
       cursor: pointer;
       font-weight: 600;
     }
 
     .tab-item.active {
-      color: var(--primary, #818cf8);
-      border-bottom: 2px solid var(--primary, #818cf8);
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
       padding-bottom: 6px;
     }
 
     .tour-card {
-      background: rgb(99 102 241 / 15%);
-      border: 1px solid rgb(99 102 241 / 30%);
+      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
       border-radius: 8px;
       padding: 14px;
       text-align: center;
@@ -164,20 +164,20 @@ export class HelpHubSk extends LitElement {
 
     .tour-card h4 {
       margin: 0 0 6px;
-      color: #a5b4fc;
+      color: var(--primary);
       font-size: 13px;
     }
 
     .tour-card p {
       margin: 0 0 12px;
       font-size: 11px;
-      color: #cbd5e1;
+      color: var(--on-surface-variant);
       line-height: 1.4;
     }
 
     .tour-trigger-btn {
-      background: var(--primary, #6366f1);
-      color: white;
+      background: var(--primary);
+      color: var(--on-primary);
       border: none;
       padding: 6px 14px;
       border-radius: 6px;
@@ -187,7 +187,7 @@ export class HelpHubSk extends LitElement {
     }
 
     .tour-trigger-btn:hover {
-      background: #4f46e5;
+      background: var(--primary-variant);
     }
 
     .shortcut-list,
@@ -202,24 +202,24 @@ export class HelpHubSk extends LitElement {
       justify-content: space-between;
       align-items: center;
       padding: 8px;
-      background: rgb(255 255 255 / 2%);
+      background: color-mix(in srgb, var(--on-surface) 2%, transparent);
       border-radius: 6px;
       font-size: 12px;
     }
 
     .keys-badge kbd {
-      background: #334155;
-      border: 1px solid #475569;
+      background: var(--surface);
+      border: 1px solid var(--outline);
       border-radius: 3px;
       padding: 2px 4px;
       font-size: 10px;
       font-family: monospace;
-      color: #f8fafc;
+      color: var(--on-surface);
       margin-left: 4px;
     }
 
     .faq-item {
-      background: rgb(255 255 255 / 2%);
+      background: color-mix(in srgb, var(--on-surface) 2%, transparent);
       padding: 10px;
       border-radius: 6px;
     }
@@ -227,13 +227,13 @@ export class HelpHubSk extends LitElement {
     .faq-q {
       font-weight: bold;
       font-size: 12px;
-      color: #cbd5e1;
+      color: var(--on-surface-variant);
       margin-bottom: 4px;
     }
 
     .faq-a {
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--on-surface-variant);
       line-height: 1.4;
     }
 
@@ -248,12 +248,12 @@ export class HelpHubSk extends LitElement {
       margin: 0;
       font-size: 12px;
       font-weight: 700;
-      color: #a5b4fc;
+      color: var(--primary);
     }
 
     .recipe-card {
-      background: rgb(255 255 255 / 2%);
-      border: 1px solid rgb(255 255 255 / 5%);
+      background: color-mix(in srgb, var(--on-surface) 2%, transparent);
+      border: 1px solid color-mix(in srgb, var(--on-surface) 5%, transparent);
       border-radius: 6px;
       padding: 10px;
     }
@@ -261,23 +261,23 @@ export class HelpHubSk extends LitElement {
     .recipe-header {
       font-weight: 600;
       font-size: 11px;
-      color: #f1f5f9;
+      color: var(--on-surface);
       margin-bottom: 4px;
     }
 
     .recipe-body p {
       margin: 0;
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--on-surface-variant);
       line-height: 1.4;
     }
 
     .recipe-body code {
-      background: rgb(255 255 255 / 8%);
+      background: color-mix(in srgb, var(--on-surface) 8%, transparent);
       padding: 2px 4px;
       border-radius: 3px;
       font-family: monospace;
-      color: #f472b6;
+      color: var(--secondary);
     }
   `;
 

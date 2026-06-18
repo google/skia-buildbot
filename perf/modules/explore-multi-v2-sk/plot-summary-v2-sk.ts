@@ -61,9 +61,9 @@ export class PlotSummaryV2Sk extends LitElement {
       position: relative;
       flex: 1;
       height: 45px;
-      border: 1px solid var(--outline, rgb(255 255 255 / 10%));
+      border: 1px solid var(--outline);
       border-radius: 6px;
-      background: var(--background, #0b0f19);
+      background: var(--background);
       box-sizing: border-box;
       overflow: hidden;
     }
@@ -91,7 +91,7 @@ export class PlotSummaryV2Sk extends LitElement {
     .overlay {
       position: absolute;
       inset: 0;
-      background: rgb(11 15 25 / 50%);
+      background: color-mix(in srgb, var(--background) 50%, transparent);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -101,7 +101,7 @@ export class PlotSummaryV2Sk extends LitElement {
     .spinner {
       width: 16px;
       height: 16px;
-      border: 2px solid var(--primary, #1a73e8);
+      border: 2px solid var(--primary);
       border-top-color: transparent;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
