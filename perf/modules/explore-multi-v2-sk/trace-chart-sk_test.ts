@@ -131,9 +131,9 @@ describe('trace-chart-sk', () => {
     }
   });
 
-  it('emits range-selected event on Ctrl+Drag', async () => {
+  it('zooms instantly and emits viewport-changed event on Drag', async () => {
     let eventDetail: any = null;
-    element.addEventListener('range-selected', (e: any) => {
+    element.addEventListener('viewport-changed', (e: any) => {
       eventDetail = e.detail;
     });
 
@@ -150,19 +150,21 @@ describe('trace-chart-sk', () => {
       padding: { left: 0, top: 0, right: 0, bottom: 0 },
       graphWidth: 1000,
       graphHeight: 400,
+      unmapY: (y: number) => y,
     });
 
     try {
-      // Simulate pointer down with Ctrl
+      // Simulate pointer down (which sets isCtrl to true by default if not shift)
       (element as any)['_dragCtx'] = {
         isDragging: true,
         dragStartX: 100,
-        dragStartY: 100,
+        dragStartY: 150,
         isCtrl: true,
         currentX: 200,
+        currentY: 250,
       };
 
-      const upEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 100, ctrlKey: true });
+      const upEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 250 });
       // Mock canvas.getBoundingClientRect
       const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
       canvas.getBoundingClientRect = () =>
@@ -171,8 +173,120 @@ describe('trace-chart-sk', () => {
       (element as any)['_handlePointerUp'](upEvent);
 
       expect(eventDetail).to.not.be.null;
-      expect(eventDetail.startX).to.equal(100);
-      expect(eventDetail.endX).to.equal(200);
+      expect(eventDetail.minCommit).to.equal(100);
+      expect(eventDetail.maxCommit).to.equal(200);
+
+      // Verify internal viewport states are updated
+      expect((element as any)['_viewportMinX']).to.equal(100);
+      expect((element as any)['_viewportMaxX']).to.equal(200);
+      expect((element as any)['_viewportMinY']).to.equal(150);
+      expect((element as any)['_viewportMaxY']).to.equal(250);
+    } finally {
+      (element as any)['_getChartBoundsAndMapping'] = oldGetMapping;
+    }
+  });
+
+  it('zooms X-only when dragging mostly horizontally', async () => {
+    let eventDetail: any = null;
+    element.addEventListener('viewport-changed', (e: any) => {
+      eventDetail = e.detail;
+    });
+
+    (element as any)['_processedSeries'] = [
+      { id: 'test', color: '#fff', rows: [{ commit_number: 100, val: 1, createdat: 1 }] },
+    ];
+
+    const oldGetMapping = (element as any)['_getChartBoundsAndMapping'];
+    (element as any)['_getChartBoundsAndMapping'] = () => ({
+      minX: 0,
+      maxX: 1000,
+      padding: { left: 0, top: 0, right: 0, bottom: 0 },
+      graphWidth: 1000,
+      graphHeight: 400,
+      unmapY: (y: number) => y,
+    });
+
+    try {
+      // dx = 100, dy = 10 (ratio dy/dx = 0.1 < 0.3) -> X_ONLY
+      (element as any)['_dragCtx'] = {
+        isDragging: true,
+        dragStartX: 100,
+        dragStartY: 150,
+        isCtrl: true,
+        currentX: 200,
+        currentY: 160,
+      };
+
+      const upEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 160 });
+      const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+      canvas.getBoundingClientRect = () =>
+        ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
+
+      (element as any)['_handlePointerUp'](upEvent);
+
+      expect(eventDetail).to.not.be.null;
+      expect(eventDetail.minCommit).to.equal(100);
+      expect(eventDetail.maxCommit).to.equal(200);
+
+      expect((element as any)['_viewportMinX']).to.equal(100);
+      expect((element as any)['_viewportMaxX']).to.equal(200);
+      expect((element as any)['_viewportMinY']).to.be.null;
+      expect((element as any)['_viewportMaxY']).to.be.null;
+    } finally {
+      (element as any)['_getChartBoundsAndMapping'] = oldGetMapping;
+    }
+  });
+
+  it('zooms Y-only when dragging mostly vertically', async () => {
+    let eventDetail: any = null;
+    element.addEventListener('viewport-changed', (e: any) => {
+      eventDetail = e.detail;
+    });
+
+    (element as any)['_processedSeries'] = [
+      { id: 'test', color: '#fff', rows: [{ commit_number: 100, val: 1, createdat: 1 }] },
+    ];
+
+    const oldGetMapping = (element as any)['_getChartBoundsAndMapping'];
+    (element as any)['_getChartBoundsAndMapping'] = () => ({
+      minX: 0,
+      maxX: 1000,
+      padding: { left: 0, top: 0, right: 0, bottom: 0 },
+      graphWidth: 1000,
+      graphHeight: 400,
+      unmapY: (y: number) => y,
+    });
+
+    element.viewportMinX = 50;
+    element.viewportMaxX = 500;
+    (element as any)['_viewportMinX'] = 50;
+    (element as any)['_viewportMaxX'] = 500;
+
+    try {
+      // dx = 10, dy = 100 (ratio dx/dy = 0.1 < 0.3) -> Y_ONLY
+      (element as any)['_dragCtx'] = {
+        isDragging: true,
+        dragStartX: 100,
+        dragStartY: 150,
+        isCtrl: true,
+        currentX: 110,
+        currentY: 250,
+      };
+
+      const upEvent = new PointerEvent('pointerup', { clientX: 110, clientY: 250 });
+      const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+      canvas.getBoundingClientRect = () =>
+        ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
+
+      (element as any)['_handlePointerUp'](upEvent);
+
+      expect(eventDetail).to.be.null;
+
+      expect((element as any)['_viewportMinX']).to.equal(50);
+      expect((element as any)['_viewportMaxX']).to.equal(500);
+
+      expect((element as any)['_viewportMinY']).to.equal(150);
+      expect((element as any)['_viewportMaxY']).to.equal(250);
     } finally {
       (element as any)['_getChartBoundsAndMapping'] = oldGetMapping;
     }
@@ -363,46 +477,6 @@ describe('trace-chart-sk', () => {
     expect(mapping.mapX(20)).to.be.closeTo(591.4, 0.1);
   });
 
-  it('maintains constant spacing during panning in even spacing mode', async () => {
-    element.evenXAxisSpacing = true;
-    element.series = [
-      {
-        id: 'test',
-        color: '#fff',
-        rows: [
-          { commit_number: 10, val: 1, createdat: 1000 },
-          { commit_number: 20, val: 2, createdat: 2000 },
-          { commit_number: 30, val: 3, createdat: 2500 },
-          { commit_number: 100, val: 4, createdat: 3000 },
-        ],
-      },
-    ];
-    await element.updateComplete;
-
-    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
-    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
-
-    const mapping1 = (element as any)['_getChartBoundsAndMapping'](canvas.getBoundingClientRect());
-    const spacing1 = mapping1.mapX(30) - mapping1.mapX(20);
-
-    (element as any)['_dragCtx'] = {
-      isDragging: true,
-      dragStartX: 500,
-      dragStartY: 200,
-      isCtrl: false,
-      isShift: false,
-    };
-
-    const moveEvent = new PointerEvent('pointermove', { clientX: 444, clientY: 200 });
-    (element as any)['_handlePointerMove'](moveEvent);
-    await element.updateComplete;
-
-    const mapping2 = (element as any)['_getChartBoundsAndMapping'](canvas.getBoundingClientRect());
-    const spacing2 = mapping2.mapX(30) - mapping2.mapX(20);
-
-    expect(spacing2).to.equal(spacing1);
-  });
-
   it('aligns multiple traces correctly in even spacing mode', async () => {
     element.evenXAxisSpacing = true;
     element.series = [
@@ -441,50 +515,6 @@ describe('trace-chart-sk', () => {
     const diff2 = x30_B - x20_A;
 
     expect(Math.abs(diff1 - diff2)).to.be.below(1);
-  });
-
-  it('does not expand points when panning beyond edges in even spacing mode', async () => {
-    element.evenXAxisSpacing = true;
-    element.series = [
-      {
-        id: 'test',
-        color: '#fff',
-        rows: [
-          { commit_number: 10, val: 1, createdat: 1000 },
-          { commit_number: 20, val: 2, createdat: 2000 },
-          { commit_number: 30, val: 3, createdat: 2500 },
-          { commit_number: 100, val: 4, createdat: 3000 },
-        ],
-      },
-    ];
-    await element.updateComplete;
-
-    element.viewportMinX = 20;
-    element.viewportMaxX = 100;
-    await element.updateComplete;
-
-    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
-    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
-
-    const mapping1 = (element as any)['_getChartBoundsAndMapping'](canvas.getBoundingClientRect());
-    const spacing1 = mapping1.mapX(30) - mapping1.mapX(20);
-
-    (element as any)['_dragCtx'] = {
-      isDragging: true,
-      dragStartX: 500,
-      dragStartY: 200,
-      isCtrl: false,
-      isShift: false,
-    };
-
-    const moveEvent = new PointerEvent('pointermove', { clientX: 250, clientY: 200 });
-    (element as any)['_handlePointerMove'](moveEvent);
-    await element.updateComplete;
-
-    const mapping2 = (element as any)['_getChartBoundsAndMapping'](canvas.getBoundingClientRect());
-    const spacing2 = mapping2.mapX(30) - mapping2.mapX(20);
-
-    expect(spacing2).to.equal(spacing1);
   });
 
   it('finds closest point correctly in dateMode', async () => {

@@ -53,16 +53,6 @@ function getVirtualIndex(arr: number[], val: number): number {
   return i + frac;
 }
 
-function getXFromVirtualIndex(arr: number[], vIdx: number): number {
-  if (arr.length === 0) return 0;
-  if (vIdx <= 0) return arr[0];
-  if (vIdx >= arr.length - 1) return arr[arr.length - 1];
-
-  const i = Math.floor(vIdx);
-  const frac = vIdx - i;
-  return arr[i] + frac * (arr[i + 1] - arr[i]);
-}
-
 // Styling and layout constants for subrepo update rollout drawing
 const ROLLOUT_COLOR = 'rgba(99, 102, 241, 0.8)'; // Indigo indicator line and label box background
 const ROLLOUT_LINE_WIDTH = 1.5;
@@ -73,6 +63,32 @@ const ROLLOUT_LABEL_STAGGER_OFFSET = 15; // Vertical distance between staggered 
 const ROLLOUT_BOX_PADDING_X = 4; // Horizontal padding around text inside the label box
 const ROLLOUT_BOX_PADDING_Y = 2; // Vertical padding around text inside the label box
 const ROLLOUT_BOX_HEIGHT = 14; // Total height of the label background box
+
+const ZOOM_PIXEL_THRESHOLD = 15;
+const ZOOM_RATIO_THRESHOLD = 0.3;
+
+type ZoomMode = 'X_ONLY' | 'Y_ONLY' | 'BOTH';
+
+function getZoomMode(startX: number, startY: number, currentX: number, currentY: number): ZoomMode {
+  const dx = Math.abs(currentX - startX);
+  const dy = Math.abs(currentY - startY);
+
+  if (dy <= ZOOM_PIXEL_THRESHOLD) {
+    return 'X_ONLY';
+  }
+  if (dx <= ZOOM_PIXEL_THRESHOLD) {
+    return 'Y_ONLY';
+  }
+
+  if (dy / dx < ZOOM_RATIO_THRESHOLD) {
+    return 'X_ONLY';
+  }
+  if (dx / dy < ZOOM_RATIO_THRESHOLD) {
+    return 'Y_ONLY';
+  }
+
+  return 'BOTH';
+}
 
 @customElement('trace-chart-sk')
 export class TraceChartSk extends LitElement {
@@ -195,6 +211,10 @@ export class TraceChartSk extends LitElement {
 
   @state() private _viewportMaxX: number | null = null;
 
+  @state() private _viewportMinY: number | null = null;
+
+  @state() private _viewportMaxY: number | null = null;
+
   @state() private _selectedRange: {
     minCommit: number;
     maxCommit: number;
@@ -211,6 +231,7 @@ export class TraceChartSk extends LitElement {
     isShift: false,
     isCtrl: false,
     currentX: 0,
+    currentY: 0,
     pointerId: -1,
   };
 
@@ -383,6 +404,10 @@ export class TraceChartSk extends LitElement {
   willUpdate(changedProperties: PropertyValues) {
     if (changedProperties.has('viewportMinX')) {
       this._viewportMinX = this.viewportMinX;
+      if (this.viewportMinX === null) {
+        this._viewportMinY = null;
+        this._viewportMaxY = null;
+      }
     }
     if (changedProperties.has('viewportMaxX')) {
       this._viewportMaxX = this.viewportMaxX;
@@ -1323,43 +1348,62 @@ export class TraceChartSk extends LitElement {
     }
 
     // Draw Range Selection Overlay
-    if ((this._dragCtx.isDragging && this._dragCtx.isCtrl) || this._selectedRange) {
-      const startX =
-        this._dragCtx.isDragging && this._dragCtx.isCtrl
-          ? this._dragCtx.dragStartX
-          : this._selectedRange!.startX;
-      const currentX =
-        this._dragCtx.isDragging && this._dragCtx.isCtrl
-          ? this._dragCtx.currentX
-          : this._selectedRange!.endX;
-      const rectX = Math.min(startX, currentX);
-      const rectW = Math.abs(startX - currentX);
+    if (this._dragCtx.isDragging && this._dragCtx.isCtrl) {
+      const startX = this._dragCtx.dragStartX;
+      const currentX = this._dragCtx.currentX;
+      const startY = this._dragCtx.dragStartY;
+      const currentY = this._dragCtx.currentY;
+
+      const zoomMode = getZoomMode(startX, startY, currentX, currentY);
+
+      let rectX = padding.left;
+      let rectW = graphWidth;
+      let rectY = padding.top;
+      let rectH = graphHeight;
+
+      if (zoomMode === 'X_ONLY' || zoomMode === 'BOTH') {
+        const x1 = Math.min(startX, currentX);
+        const x2 = Math.max(startX, currentX);
+        rectX = Math.max(padding.left, x1);
+        rectW = Math.min(padding.left + graphWidth, x2) - rectX;
+      }
+
+      if (zoomMode === 'Y_ONLY' || zoomMode === 'BOTH') {
+        const y1 = Math.min(startY, currentY);
+        const y2 = Math.max(startY, currentY);
+        rectY = Math.max(padding.top, y1);
+        rectH = Math.min(padding.top + graphHeight, y2) - rectY;
+      }
 
       ctx.fillStyle = 'rgba(26, 115, 232, 0.1)';
       ctx.strokeStyle = 'rgba(26, 115, 232, 0.8)';
       ctx.lineWidth = 1;
-      ctx.fillRect(rectX, padding.top, rectW, graphHeight);
-      ctx.strokeRect(rectX, padding.top, rectW, graphHeight);
+      if (rectW > 0 && rectH > 0) {
+        ctx.fillRect(rectX, rectY, rectW, rectH);
+        ctx.strokeRect(rectX, rectY, rectW, rectH);
+      }
 
       // Draw labels for selection
-      const startVal = unmapX(startX);
-      const currentVal = unmapX(currentX);
+      if (zoomMode === 'X_ONLY' || zoomMode === 'BOTH') {
+        const startVal = unmapX(startX);
+        const currentVal = unmapX(currentX);
 
-      const drawLabelX = (px: number, val: number) => {
-        const label = Math.round(val).toString();
-        ctx.font = '11px sans-serif';
-        const textWidth = ctx.measureText(label).width;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-        const labelY = padding.top + graphHeight + 4;
-        ctx.fillRect(px - textWidth / 2 - 4, labelY, textWidth + 8, 18);
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.fillText(label, px, labelY + 2);
-      };
+        const drawLabelX = (px: number, val: number) => {
+          const label = Math.round(val).toString();
+          ctx.font = '11px sans-serif';
+          const textWidth = ctx.measureText(label).width;
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+          const labelY = padding.top + graphHeight + 4;
+          ctx.fillRect(px - textWidth / 2 - 4, labelY, textWidth + 8, 18);
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(label, px, labelY + 2);
+        };
 
-      drawLabelX(startX, startVal);
-      drawLabelX(currentX, currentVal);
+        drawLabelX(startX, startVal);
+        drawLabelX(currentX, currentVal);
+      }
     }
   }
 
@@ -1387,27 +1431,32 @@ export class TraceChartSk extends LitElement {
     const displayMinX = this._viewportMinX ?? minX;
     const displayMaxX = this._viewportMaxX ?? maxX;
 
-    // Calculate Y-axis range based on visible data points only
-    this._processedSeries.forEach((s) => {
-      s.rows.forEach((r) => {
-        const valX = this._xAccessor(r);
-        if (valX >= displayMinX && valX <= displayMaxX) {
-          const valY = Number(r.val);
-          if (valY < minY) minY = valY;
-          if (valY > maxY) maxY = valY;
-        }
-      });
-    });
-
-    // Fallback if no visible points are found inside the viewport range
-    if (minY === Infinity || maxY === -Infinity) {
+    if (this._viewportMinY === null || this._viewportMaxY === null) {
+      // Calculate Y-axis range based on visible data points only
       this._processedSeries.forEach((s) => {
         s.rows.forEach((r) => {
-          const valY = Number(r.val);
-          if (valY < minY) minY = valY;
-          if (valY > maxY) maxY = valY;
+          const valX = this._xAccessor(r);
+          if (valX >= displayMinX && valX <= displayMaxX) {
+            const valY = Number(r.val);
+            if (valY < minY) minY = valY;
+            if (valY > maxY) maxY = valY;
+          }
         });
       });
+
+      // Fallback if no visible points are found inside the viewport range
+      if (minY === Infinity || maxY === -Infinity) {
+        this._processedSeries.forEach((s) => {
+          s.rows.forEach((r) => {
+            const valY = Number(r.val);
+            if (valY < minY) minY = valY;
+            if (valY > maxY) maxY = valY;
+          });
+        });
+      }
+    } else {
+      minY = this._viewportMinY;
+      maxY = this._viewportMaxY;
     }
 
     const padding = this.isSparkline
@@ -1520,7 +1569,7 @@ export class TraceChartSk extends LitElement {
     const mouseY = e.clientY - rect.top;
 
     const isShiftNow = e.shiftKey;
-    const isCtrlNow = e.ctrlKey || e.metaKey;
+    const isCtrlNow = !isShiftNow; // Zoom by default if not shifting
     if (!isShiftNow && this._measureState) {
       this._measureState = null;
     }
@@ -1541,6 +1590,7 @@ export class TraceChartSk extends LitElement {
     this._dragCtx.isShift = isShiftNow;
     this._dragCtx.isCtrl = isCtrlNow;
     this._dragCtx.currentX = mouseX;
+    this._dragCtx.currentY = mouseY;
     this._dragCtx.pointerId = e.pointerId;
 
     try {
@@ -1595,46 +1645,8 @@ export class TraceChartSk extends LitElement {
         }
       } else if (this._dragCtx.isCtrl) {
         this._dragCtx.currentX = mouseX;
+        this._dragCtx.currentY = mouseY;
         this._drawForeground();
-      } else {
-        const dx = mouseX - this._dragCtx.dragStartX;
-
-        if (this.evenXAxisSpacing && this._sortedXValues.length > 0) {
-          const vMinIdx = getVirtualIndex(this._sortedXValues, mapping.minX);
-          const vMaxIdx = getVirtualIndex(this._sortedXValues, mapping.maxX);
-          const vIdxRange = vMaxIdx - vMinIdx;
-          let vIdxOffset = (dx / mapping.graphWidth) * vIdxRange;
-
-          if (vMinIdx - vIdxOffset < 0) {
-            vIdxOffset = vMinIdx;
-          }
-          if (vMaxIdx - vIdxOffset > this._sortedXValues.length - 1) {
-            vIdxOffset = vMaxIdx - (this._sortedXValues.length - 1);
-          }
-
-          this._viewportMinX = getXFromVirtualIndex(this._sortedXValues, vMinIdx - vIdxOffset);
-          this._viewportMaxX = getXFromVirtualIndex(this._sortedXValues, vMaxIdx - vIdxOffset);
-        } else {
-          const dataXOffset = (dx / mapping.graphWidth) * (mapping.maxX - mapping.minX);
-          this._viewportMinX = mapping.minX - dataXOffset;
-          this._viewportMaxX = mapping.maxX - dataXOffset;
-        }
-
-        this._dragCtx.dragStartX = mouseX;
-        this._dragCtx.dragStartY = mouseY;
-
-        this.requestUpdate();
-
-        this.dispatchEvent(
-          new CustomEvent('viewport-changed', {
-            detail: {
-              minCommit: this._viewportMinX,
-              maxCommit: this._viewportMaxX,
-            },
-            bubbles: true,
-            composed: true,
-          })
-        );
       }
       return;
     }
@@ -1756,38 +1768,70 @@ export class TraceChartSk extends LitElement {
     if (this._dragCtx.isCtrl) {
       const startX = this._dragCtx.dragStartX;
       const currentX = mouseX;
-      if (Math.abs(startX - currentX) > 5) {
+      const startY = this._dragCtx.dragStartY;
+      const currentY = mouseY;
+
+      const zoomMode = getZoomMode(startX, startY, currentX, currentY);
+
+      const dx = Math.abs(startX - currentX);
+      const dy = Math.abs(startY - currentY);
+
+      if (dx > 5 || dy > 5) {
         const mapping = this._getChartBoundsAndMapping(rect);
-        const xRange = mapping.maxX - mapping.minX;
-        const dataX1 =
-          mapping.minX + ((startX - mapping.padding.left) / mapping.graphWidth) * xRange;
-        const dataX2 =
-          mapping.minX + ((currentX - mapping.padding.left) / mapping.graphWidth) * xRange;
 
-        const newMin = Math.min(dataX1, dataX2);
-        const newMax = Math.max(dataX1, dataX2);
+        let newMinX = this._viewportMinX;
+        let newMaxX = this._viewportMaxX;
+        let newMinY = this._viewportMinY;
+        let newMaxY = this._viewportMaxY;
+        let xZoomChanged = false;
 
-        this._selectedRange = {
-          minCommit: newMin,
-          maxCommit: newMax,
-          startX: startX,
-          endX: currentX,
-        };
+        if (zoomMode === 'X_ONLY' || zoomMode === 'BOTH') {
+          if (dx > 5) {
+            const xRange = mapping.maxX - mapping.minX;
+            const dataX1 =
+              mapping.minX + ((startX - mapping.padding.left) / mapping.graphWidth) * xRange;
+            const dataX2 =
+              mapping.minX + ((currentX - mapping.padding.left) / mapping.graphWidth) * xRange;
+            newMinX = Math.min(dataX1, dataX2);
+            newMaxX = Math.max(dataX1, dataX2);
+            xZoomChanged = true;
 
-        this.dispatchEvent(
-          new CustomEvent('range-selected', {
-            detail: {
-              minCommit: newMin,
-              maxCommit: newMax,
-              startX: startX,
-              endX: currentX,
-              clientX: e.clientX,
-              clientY: e.clientY,
-            },
-            bubbles: true,
-            composed: true,
-          })
-        );
+            if (zoomMode === 'X_ONLY') {
+              // Reset Y zoom to auto-scale
+              newMinY = null;
+              newMaxY = null;
+            }
+          }
+        }
+
+        if (zoomMode === 'Y_ONLY' || zoomMode === 'BOTH') {
+          if (dy > 5) {
+            const dataY1 = mapping.unmapY(startY);
+            const dataY2 = mapping.unmapY(currentY);
+            newMinY = Math.min(dataY1, dataY2);
+            newMaxY = Math.max(dataY1, dataY2);
+          }
+        }
+
+        this._viewportMinX = newMinX;
+        this._viewportMaxX = newMaxX;
+        this._viewportMinY = newMinY;
+        this._viewportMaxY = newMaxY;
+
+        this.requestUpdate();
+
+        if (xZoomChanged) {
+          this.dispatchEvent(
+            new CustomEvent('viewport-changed', {
+              detail: {
+                minCommit: newMinX,
+                maxCommit: newMaxX,
+              },
+              bubbles: true,
+              composed: true,
+            })
+          );
+        }
         return;
       }
     }
@@ -1873,6 +1917,8 @@ export class TraceChartSk extends LitElement {
   private _handleDoubleClick() {
     this._viewportMinX = null;
     this._viewportMaxX = null;
+    this._viewportMinY = null;
+    this._viewportMaxY = null;
     this.dispatchEvent(
       new CustomEvent('viewport-changed', {
         detail: { minCommit: null, maxCommit: null },

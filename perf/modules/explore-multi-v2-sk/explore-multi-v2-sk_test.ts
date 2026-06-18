@@ -479,59 +479,6 @@ describe('explore-multi-v2-sk', () => {
     expect(merged[0].allStats['min'][0].val).to.equal(0.5); // Accumulated stats
   });
 
-  it('shows range menu on range-selected event', async () => {
-    (element as any)['_handleRangeSelected'](
-      new CustomEvent('range-selected', {
-        detail: {
-          minCommit: 100,
-          maxCommit: 200,
-          clientX: 150,
-          clientY: 250,
-        },
-      })
-    );
-
-    await element.updateComplete;
-
-    const menu = element.shadowRoot!.querySelector('.range-menu');
-    expect(menu).to.not.be.null;
-
-    const style = (menu as HTMLElement).style;
-    expect(style.left).to.equal('150px');
-    expect(style.top).to.equal('250px');
-  });
-
-  it('closes range menu on range-cleared event', async () => {
-    // First show it
-    element['_rangeSelection'] = { minCommit: 100, maxCommit: 200, clientX: 150, clientY: 250 };
-    await element.updateComplete;
-
-    expect(element.shadowRoot!.querySelector('.range-menu')).to.not.be.null;
-
-    // Now clear it by setting state directly (as the inline handler would)
-    element['_rangeSelection'] = null;
-    await element.updateComplete;
-
-    expect(element.shadowRoot!.querySelector('.range-menu')).to.be.null;
-  });
-
-  it('zooms to range when Zoom button is clicked', async () => {
-    element['_rangeSelection'] = { minCommit: 100, maxCommit: 200, clientX: 150, clientY: 250 };
-    await element.updateComplete;
-
-    const zoomBtn = element.shadowRoot!.querySelectorAll(
-      '.range-menu button'
-    )[0] as HTMLButtonElement;
-    expect(zoomBtn.textContent?.trim()).to.equal('Zoom to Range');
-
-    zoomBtn.click();
-    await element.updateComplete;
-
-    expect(element['viewportMinX']).to.equal(100);
-    expect(element['viewportMaxX']).to.equal(200);
-    expect(element['_rangeSelection']).to.be.null;
-  });
-
   it('toggles showAllTraces when Show All button is clicked', async () => {
     element['_showAllTraces'] = false;
     await element.updateComplete;

@@ -251,13 +251,6 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _showSummaryBar = true;
 
-  @state() private _rangeSelection: {
-    minCommit: number;
-    maxCommit: number;
-    clientX: number;
-    clientY: number;
-  } | null = null;
-
   @state() private _showAllTraces = false;
 
   @property({ type: Number }) begin = -1;
@@ -1747,51 +1740,6 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   }
 
-  private _handleRangeSelected(e: any) {
-    const detail = e.detail as {
-      minCommit: number;
-      maxCommit: number;
-      clientX: number;
-      clientY: number;
-    };
-    this._rangeSelection = {
-      minCommit: detail.minCommit,
-      maxCommit: detail.maxCommit,
-      clientX: detail.clientX,
-      clientY: detail.clientY,
-    };
-  }
-
-  private _zoomToRange() {
-    if (!this._rangeSelection) return;
-    this.viewportMinX = this._rangeSelection.minCommit;
-    this.viewportMaxX = this._rangeSelection.maxCommit;
-    if (this.dateMode) {
-      this.begin = Math.floor(this._rangeSelection.minCommit);
-      this.end = Math.ceil(this._rangeSelection.maxCommit);
-    }
-    this._rangeSelection = null;
-    this.requestUpdate();
-  }
-
-  private _queryRange() {
-    if (!this._rangeSelection) return;
-    console.log('Query range:', this._rangeSelection.minCommit, this._rangeSelection.maxCommit);
-    this._rangeSelection = null;
-  }
-
-  private _showCommits() {
-    if (!this._rangeSelection) return;
-    console.log('Show commits:', this._rangeSelection.minCommit, this._rangeSelection.maxCommit);
-    this._rangeSelection = null;
-  }
-
-  private _bisect() {
-    if (!this._rangeSelection) return;
-    console.log('Bisect:', this._rangeSelection.minCommit, this._rangeSelection.maxCommit);
-    this._rangeSelection = null;
-  }
-
   private _handleToggleTrace(id: string) {
     const nextSeriesData = this._seriesData.map((s) => {
       if (s.id === id) {
@@ -2746,8 +2694,6 @@ export class ExploreMultiV2Sk extends LitElement {
                 .user_id=${this._user}
                 .yAxisLabel=${this._determineYAxisTitle(g.series.map((s) => s.id))}
                 @viewport-changed=${this._handleViewportChanged}
-                @range-selected=${this._handleRangeSelected}
-                @range-cleared=${() => (this._rangeSelection = null)}
                 @hover-changed=${this._handleHoverChanged}
                 @pin-point=${this._handlePinPoint}
                 @toggle-split=${this._handleSplit}
@@ -2771,20 +2717,6 @@ export class ExploreMultiV2Sk extends LitElement {
             `
           )}
         </div>
-
-        ${this._rangeSelection
-          ? html`
-              <div
-                class="range-menu"
-                style="position: absolute; left: ${this._rangeSelection.clientX}px; top: ${this
-                  ._rangeSelection.clientY}px;">
-                <button @click=${this._zoomToRange}>Zoom to Range</button>
-                <button @click=${this._queryRange}>Query Range</button>
-                <button @click=${this._showCommits}>Show Commits</button>
-                <button @click=${this._bisect}>Bisect</button>
-              </div>
-            `
-          : ''}
       </div>
 
       <help-hub-sk
