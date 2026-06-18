@@ -152,6 +152,7 @@ func main() {
 	w.RegisterWorkflowWithOptions(internal.CbbRunnerWorkflow, workflow.RegisterOptions{Name: workflows.CbbRunner})
 	w.RegisterWorkflowWithOptions(internal.CbbNewReleaseDetectorWorkflow, workflow.RegisterOptions{Name: workflows.CbbNewReleaseDetector})
 	w.RegisterWorkflowWithOptions(internal.CbbGetBrowserVersionsWorkflow, workflow.RegisterOptions{Name: workflows.CbbGetBrowserVersions})
+	w.RegisterWorkflowWithOptions(internal.DownloadSafariTPWorkflow, workflow.RegisterOptions{Name: workflows.CbbDownloadSafariTP})
 
 	// TODO(b/322203189) - Remove Catapult workflows and activities once the backwards
 	// UI compatibility is no longer needed and thus the catapult package is deprecated.

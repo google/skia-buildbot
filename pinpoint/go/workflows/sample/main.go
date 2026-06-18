@@ -68,6 +68,7 @@ var (
 	triggerCbbRunnerFlag      = flag.Bool("cbb-runner", false, "toggle true to trigger CBB runner workflow")
 	triggerCbbNewReleaseFlag  = flag.Bool("cbb-new-release", false, "toggle true to trigger CbbNewReleaseDetectorWorkflow")
 	triggerCbbGetVersionsFlag = flag.Bool("cbb-get-versions", false, "toggle true to trigger CbbGetBrowserVersionsWorkflow")
+	triggerCbbDownloadSTPFlag = flag.Bool("cbb-download-stp", false, "toggle true to trigger DownloadSafariTPWorkflow")
 	// The following flags are used by cbb-runner only.
 	commitPosition = flag.Int("commit-position", 0, "Commit position (required for CBB).")
 	browser        = flag.String("browser", "chrome", "chrome or safari or edge (used by CBB only)")
@@ -508,6 +509,22 @@ func triggerCbbGetBrowserVersions(c client.Client) ([]internal.BuildInfo, error)
 	return buildInfos, nil
 }
 
+func triggerCbbDownloadSTP(c client.Client) (string, error) {
+	ctx := context.Background()
+
+	var result string
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.CbbDownloadSafariTP)
+	if err != nil {
+		return "", skerr.Wrapf(err, "Unable to execute the workflow")
+	}
+	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if err := we.Get(ctx, &result); err != nil {
+		return "", skerr.Wrapf(err, "Unable to get results from DownloadSafariTP workflow")
+	}
+	return result, nil
+}
+
 var gerritURLRegex = regexp.MustCompile(`^https?://([^/]+)/c/(.+)/\+/([0-9]+)(?:/([0-9]+))?/?$`)
 
 func parseGerritURL(gerritURL string) (*pb.GerritChange, error) {
@@ -827,6 +844,9 @@ func main() {
 	}
 	if *triggerCbbGetVersionsFlag {
 		result, err = triggerCbbGetBrowserVersions(c)
+	}
+	if *triggerCbbDownloadSTPFlag {
+		result, err = triggerCbbDownloadSTP(c)
 	}
 	if *mimicLegacyJob != "" {
 		result, err = triggerMimicLegacyJob(c, *mimicLegacyJob)

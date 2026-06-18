@@ -9,19 +9,31 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"go.chromium.org/luci/cipd/client/cipd/pkg"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.temporal.io/sdk/temporal"
+	"go.temporal.io/sdk/workflow"
 	"golang.org/x/net/html"
 )
 
 const (
+	// Where to store the CIPD package in production:
+	// https://chrome-infra-packages.appspot.com/p/infra/chromeperf/cbb/safari_technology_preview
 	cipdPathProd = "infra/chromeperf/cbb/safari_technology_preview"
-	cipdPathExp  = "experimental/chromeperf/cbb/safari_technology_preview"
-	macosVersion = "macos15"
-	dmgFilename  = "SafariTechnologyPreview.dmg"
+
+	// Where to store the CIPD package during testing / experimenting:
+	// https://chrome-infra-packages.appspot.com/p/experimental/chromeperf/cbb/safari_technology_preview
+	cipdPathExp = "experimental/chromeperf/cbb/safari_technology_preview"
+
+	// The MacOS version currently used in CBB production.
+	macosVersion = "macos26"
+
+	// Name of the STP installation package file.
+	dmgFilename = "SafariTechnologyPreview.dmg"
 )
 
 // Download the Safari Technology Preview resources page, and then parse its HTML contents.
@@ -41,9 +53,12 @@ func downloadAndParseHtml() (*html.Node, error) {
 }
 
 type releaseInfo struct {
-	release     string
-	linkTahoe   string
-	linkSequoia string
+	// The STP release number, e.g., "246" as of June 17, 2026.
+	release string
+
+	// The link to download the STP installation package for MacOS 26.
+	// Links for other MacOS versions can be added to this struct as needed.
+	link26 string
 }
 
 // Extract releaseInfo from downloaded STP resource page.
@@ -92,12 +107,12 @@ func extractFromHtml(doc *html.Node) *releaseInfo {
 			for _, a := range n.Attr {
 				if a.Key == "href" && strings.Contains(a.Val, "SafariTechnologyPreview.dmg") {
 					osInfo := n.LastChild.Data
-					if strings.Contains(osInfo, "Tahoe") {
-						ri.linkTahoe = a.Val
-					} else if strings.Contains(osInfo, "Sequoia") {
-						ri.linkSequoia = a.Val
+					if strings.Contains(osInfo, "Tahoe") || strings.Contains(osInfo, "26") {
+						ri.link26 = a.Val
+					} else if strings.Contains(osInfo, "27") {
+						// Ignore macOS 27 link for now.
 					} else {
-						fmt.Fprintf(os.Stderr, "Unable to discover macOS version: %s\n", n.LastChild.Data)
+						fmt.Fprintf(os.Stderr, "Unable to discover macOS version: %s\n", osInfo)
 					}
 				}
 			}
@@ -187,15 +202,12 @@ func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
 	if ri.release == "" {
 		return "", fmt.Errorf("unable to discover STP release number")
 	}
-	if ri.linkSequoia == "" {
-		return "", fmt.Errorf("unable to discover STP download link for Sequoia")
-	}
-	if ri.linkTahoe == "" {
-		return "", fmt.Errorf("unable to discover STP download link for Tahoe")
+	if ri.link26 == "" {
+		return "", fmt.Errorf("unable to discover STP download link for MacOS 26")
 	}
 
 	sklog.Infof("Release: %s\n", ri.release)
-	sklog.Infof("Download Links:\n  %s\n  %s\n", ri.linkTahoe, ri.linkSequoia)
+	sklog.Infof("Download Links:\n  %s\n", ri.link26)
 
 	cipdClient, cipdRootPath, err := prepareCipd(ctx)
 	if err != nil {
@@ -222,16 +234,33 @@ func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
 	// point to the same version as the "stable" ref.
 	// The other refs are for informational purposes only.
 	err = createCipd(
-		ctx, cipdClient, cipdPath, ri.linkSequoia,
-		[]string{ri.release + "-macos15", "stable", "canary", "latest"})
-	if err != nil {
-		return "", skerr.Wrapf(err, "unable to create CIPD package for MacOS 15")
-	}
-	err = createCipd(
-		ctx, cipdClient, cipdPath, ri.linkTahoe, []string{ri.release + "-macos26"})
+		ctx, cipdClient, cipdPath, ri.link26,
+		[]string{ri.release + "-macos26", "stable", "canary", "latest"})
 	if err != nil {
 		return "", skerr.Wrapf(err, "unable to create CIPD package for MacOS 26")
 	}
 
 	return ri.release, nil
+}
+
+var (
+	downloadSafariTPActivityOptions = workflow.ActivityOptions{
+		StartToCloseTimeout: 5 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    15 * time.Second,
+			BackoffCoefficient: 2.0,
+			MaximumInterval:    2 * time.Minute,
+			MaximumAttempts:    1,
+		},
+	}
+)
+
+// DownloadSafariTPWorkflow is a Temporal workflow that calls DownloadSafariTPActivity.
+// This workflow is intended for dev testing only, not for production, thus we always pass
+// isDev=true to the underlying activity.
+func DownloadSafariTPWorkflow(ctx workflow.Context) (string, error) {
+	ctx = workflow.WithActivityOptions(ctx, downloadSafariTPActivityOptions)
+	var version string
+	err := workflow.ExecuteActivity(ctx, DownloadSafariTPActivity, true).Get(ctx, &version)
+	return version, err
 }
