@@ -35,12 +35,17 @@ func extractRulePrefix(rule string) string {
 
 // Check fetches visibility config and compares them to the database,
 // auto-remediating any discrepancies.
-func (c *Checker) Check(ctx context.Context) error {
+//
+// Returns:
+//   - addedCount (int): Number of missing expected rules that were newly saved to the database.
+//   - extraCount (int): Number of extra rules found in the database that are not expected.
+//   - error: An error if the check operation failed.
+func (c *Checker) Check(ctx context.Context) (int, int, error) {
 	sklog.Info("Starting check and sync of visibility rules...")
 
 	dbConfigs, err := c.store.GetAll(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "failed to fetch current visibility configs from DB")
+		return 0, 0, skerr.Wrapf(err, "failed to fetch current visibility configs from DB")
 	}
 
 	dbRules := make(map[string]bool)
@@ -50,7 +55,7 @@ func (c *Checker) Check(ctx context.Context) error {
 
 	expectedRules, err := c.provider.GetExpectedRules(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "failed to fetch expected rules")
+		return 0, 0, skerr.Wrapf(err, "failed to fetch expected rules")
 	}
 
 	var missingRules []string
@@ -61,18 +66,22 @@ func (c *Checker) Check(ctx context.Context) error {
 	}
 
 	missingByPrefixCount := make(map[string]int)
+	addedCount := 0
 	if len(missingRules) > 0 {
 		sklog.Infof("Auto-remediation: Saving %d missing expected rules to DB: %s", len(missingRules), strings.Join(missingRules, ", "))
 		for _, rule := range missingRules {
 			if err := c.store.Set(ctx, rule); err != nil {
 				sklog.Errorf("Failed to save expected rule %q: %s", rule, err)
-				missingByPrefixCount[extractRulePrefix(rule)]++
+			} else {
+				addedCount++
 			}
+			missingByPrefixCount[extractRulePrefix(rule)]++
 		}
 	}
 
 	extraByPrefixCount := make(map[string]int)
 	allPrefixes := make(map[string]bool)
+	extraCount := 0
 	for rule := range expectedRules {
 		allPrefixes[extractRulePrefix(rule)] = true
 	}
@@ -87,6 +96,7 @@ func (c *Checker) Check(ctx context.Context) error {
 			// when their rule is deleted. This will be handled in a separate CL.
 			sklog.Warningf("Outdated extra rule %q found in database that is not in expected provider configs", rule)
 			extraByPrefixCount[rulePrefix]++
+			extraCount++
 		}
 	}
 
@@ -98,5 +108,5 @@ func (c *Checker) Check(ctx context.Context) error {
 		metrics2.GetInt64Metric("perf_visibility_rules_diff", tagsMissing).Update(int64(missingByPrefixCount[prefix]))
 	}
 
-	return nil
+	return addedCount, extraCount, nil
 }

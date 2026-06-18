@@ -53,18 +53,11 @@ func New(db pool.Pool, configStore store.Store) *Promoter {
 	}
 }
 
-// StartBackgroundLoop launches the background promotion sweep periodically.
-func (p *Promoter) StartBackgroundLoop(ctx context.Context, checkInterval time.Duration) {
-	sklog.Infof("Starting background trace visibility promoter loop (interval: %v)...", checkInterval)
-	go util.RepeatCtx(ctx, checkInterval, func(ctx context.Context) {
-		if err := p.Promote(ctx); err != nil {
-			sklog.Errorf("Failed background trace promotion loop: %s", err)
-		}
-	})
-}
-
 // Promote performs the dynamic index-free promotion of historical traces to public.
-func (p *Promoter) Promote(ctx context.Context) error {
+// Returns:
+//   - int: The total number of traces successfully promoted to public.
+//   - error: An error if the operation failed.
+func (p *Promoter) Promote(ctx context.Context) (int, error) {
 	sklog.Info("Starting background trace visibility promotion sweep...")
 
 	// Create a query context with deadline if not already set.
@@ -77,17 +70,17 @@ func (p *Promoter) Promote(ctx context.Context) error {
 	// 1. Retrieve the list of active expected public rules (synced by the Checker)
 	rules, err := p.configStore.GetAll(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "failed to get active visibility rules from DB")
+		return 0, skerr.Wrapf(err, "failed to get active visibility rules from DB")
 	}
 	if len(rules) == 0 {
 		sklog.Info("No active visibility rules found. Sweep skipped.")
-		return nil
+		return 0, nil
 	}
 
 	// 2. Promotion Phase: Query and bulk promote matching internal trace IDs in dynamic batches
 	totalPromoted, err := p.promoteMatchingTraces(ctx, rules)
 	if err != nil {
-		return err
+		return totalPromoted, err
 	}
 
 	if totalPromoted > 0 {
@@ -97,7 +90,7 @@ func (p *Promoter) Promote(ctx context.Context) error {
 	}
 
 	sklog.Info("Background trace visibility sweep completed successfully.")
-	return nil
+	return totalPromoted, nil
 }
 
 func (p *Promoter) promoteMatchingTraces(ctx context.Context, rules []schema.PublicTraceRulesSchema) (int, error) {

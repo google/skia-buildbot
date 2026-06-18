@@ -23,6 +23,7 @@ go_test(
         "//perf/go/trace_visibility/provider/mocks",
         "//perf/go/trace_visibility/sqlconfigstore/schema",
         "//perf/go/trace_visibility/store/mocks",
+        "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],

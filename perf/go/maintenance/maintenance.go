@@ -7,6 +7,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
@@ -228,9 +229,13 @@ func startVisibilityChecker(ctx context.Context, instanceConfig *config.Instance
 		util.RepeatCtx(ctx, visibilityCheckPeriod, func(ctx context.Context) {
 			checkCtx, cancel := context.WithTimeout(ctx, visibilityCheckTimeout)
 			defer cancel()
-			if err := visibilityChecker.Check(checkCtx); err != nil {
+			added, _, err := visibilityChecker.Check(checkCtx)
+			if err != nil {
 				sklog.Errorf("Failed to run visibility checker: %s", err)
 			}
+			metrics2.GetCounter("perf_visibility_checker_added_count", nil).Inc(int64(added))
+			// TODO(sergeirudenkov): Increment a removed metric here once the checker implements auto-remediation.
+			// Check() currently returns the absolute count of extra rules, not the removed count.
 		})
 	}()
 }
@@ -249,6 +254,15 @@ func startVisibilityPromoter(ctx context.Context, instanceConfig *config.Instanc
 			return
 		case <-time.After(visibilityTaskInitialDelay):
 		}
-		backgroundPromoter.StartBackgroundLoop(ctx, traceVisibilityPromotionPeriod)
+		sklog.Infof("Starting background trace visibility promoter loop (interval: %v)...", traceVisibilityPromotionPeriod)
+		util.RepeatCtx(ctx, traceVisibilityPromotionPeriod, func(ctx context.Context) {
+			start := time.Now()
+			promoted, err := backgroundPromoter.Promote(ctx)
+			if err != nil {
+				sklog.Errorf("Failed background trace promotion loop: %s", err)
+			}
+			metrics2.GetCounter("perf_visibility_traces_promoted_count", nil).Inc(int64(promoted))
+			metrics2.GetFloat64SummaryMetric("perf_visibility_promotion_time_s").Observe(time.Since(start).Seconds())
+		})
 	}()
 }

@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/auth",
         "//go/httputils",
+        "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
         "//go/sql/pool",

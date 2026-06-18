@@ -906,7 +906,8 @@ func (app) VisibilityPromote(ctx context.Context, instanceConfig *config.Instanc
 
 	configStore := sqlconfigstore.New(db)
 	backgroundPromoter := promoter.New(db, configStore)
-	return backgroundPromoter.Promote(ctx)
+	_, err = backgroundPromoter.Promote(ctx)
+	return err
 }
 
 // Confirm app implements App.

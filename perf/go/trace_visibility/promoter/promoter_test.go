@@ -44,8 +44,9 @@ func TestPromote_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// 4. Run the promotion sweep!
-	err = p.Promote(ctx)
+	promotedCount, err := p.Promote(ctx)
 	require.NoError(t, err)
+	assert.Equal(t, 2, promotedCount, "Expected 2 traces to be promoted")
 
 	// 5. Verify database updates
 	var isPublic1 bool
@@ -85,8 +86,9 @@ func TestPromote_AlreadyPublicTraces_Skipped(t *testing.T) {
 	require.NoError(t, err)
 
 	// Run sweep. Should exit successfully.
-	err = p.Promote(ctx)
+	promotedCount, err := p.Promote(ctx)
 	require.NoError(t, err)
+	assert.Equal(t, 0, promotedCount, "Expected 0 traces to be promoted since they are already public")
 
 	var isPublic bool
 	err = db.QueryRow(ctx, "SELECT is_public FROM TraceParams WHERE trace_id = $1", tidBytes1[:]).Scan(&isPublic)
