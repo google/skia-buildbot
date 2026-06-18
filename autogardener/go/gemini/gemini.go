@@ -38,6 +38,12 @@ const (
 
 	// Number of log lines at the end of the log to include in snippets.
 	logSnippetLinesAtEnd = 50
+
+	// Maximum length of an individual log snippet.
+	maxLogSnippetLength = 100
+
+	// Maximum number of log snippets.
+	maxLogSnippetCount = 20
 )
 
 // Client is an interface for the Gemini client, used for testing.
@@ -178,7 +184,7 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 				sklog.Warningf("Failed to fetch recipe step logs for %s: %s", s.Name, err)
 				continue
 			}
-			snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd))
+			snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd, maxLogSnippetLength, maxLogSnippetCount))
 			logSnippets = append(logSnippets, fmt.Sprintf("## Log for failed recipe step %q\n\n%s\n", s.Name, snippet))
 			logsByStep[s.Name] = lines
 		}
@@ -193,16 +199,16 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 				sklog.Warningf("Failed to fetch task driver step logs for %s: %s", s.Name, err)
 				continue
 			}
-			snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd))
+			snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd, maxLogSnippetLength, maxLogSnippetCount))
 			logSnippets = append(logSnippets, fmt.Sprintf("## Log for failed task driver step %q\n\n%s\n", s.Name, snippet))
 			logsByStep[s.Name] = lines
 		}
 		taskStepsStr = taskSteps.String()
 	} else if taskSteps.SwarmingTaskLogs != "" {
 		lines := strings.Split(taskSteps.SwarmingTaskLogs, "\n")
-		snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd))
+		snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd, maxLogSnippetLength, maxLogSnippetCount))
 		logSnippets = append(logSnippets, fmt.Sprintf("## Raw Swarming Task Log Snippet\n\n%s\n", snippet))
-		taskStepsStr = "(raw swarming task; no steps available)"
+		taskStepsStr = fmt.Sprintf("(raw swarming task; no steps available)\nSwarming Task State: %s", taskSteps.SwarmingTaskState)
 		logsByStep[""] = lines
 	}
 
