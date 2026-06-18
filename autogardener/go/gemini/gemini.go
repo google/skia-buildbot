@@ -159,10 +159,12 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 	}
 
 	// Reduce down to only the failed steps. Extract log snippets.
+	var allowedTools []string
 	var taskStepsStr string
 	var logSnippets []string
 	logsByStep := map[string][]string{}
 	if taskSteps.Recipe != nil {
+		allowedTools = append(allowedTools, "get_recipe_step_logs")
 		prunedRecipeSteps, failedSteps := pruneSuccessfulRecipeSteps(taskSteps.Recipe)
 		taskSteps.Recipe = prunedRecipeSteps
 		for _, s := range failedSteps {
@@ -182,6 +184,7 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 		}
 		taskStepsStr = taskSteps.String()
 	} else if taskSteps.TaskDriver != nil {
+		allowedTools = append(allowedTools, "get_task_driver_step_logs")
 		prunedTaskDriver, failedSteps := pruneSuccessfulTaskDriverSteps(taskSteps.TaskDriver.StepDisplay)
 		taskSteps.TaskDriver.StepDisplay = prunedTaskDriver
 		for _, s := range failedSteps {
@@ -268,10 +271,7 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
 	prompt := fmt.Sprintf(promptTmpl, task.Id, task_scheduler.TaskWrapper{Task: task}, taskStepsStr, snippetsStr)
 	mcpWrapper := mcp.MCPClientWithPseudoTools(c.mcpClient, []*mcp.PseudoTool{
 		mcp.GetLogLinesTool(logsByStep),
-	}, []string{
-		"get_task_driver_step_logs",
-		"get_recipe_step_logs",
-	})
+	}, allowedTools)
 	var res types.TaskSummary
 	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, fmt.Sprintf("GetTaskSummary/%s", task.Id), &res); err != nil {
 		return nil, skerr.Wrap(err)
