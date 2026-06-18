@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path"
 	"sort"
 	"strings"
 
@@ -274,11 +273,9 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
 		"get_recipe_step_logs",
 	})
 	var res types.TaskSummary
-	debugInfo, err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, &res)
-	if err != nil {
+	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, fmt.Sprintf("GetTaskSummary/%s", task.Id), &res); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	go c.uploadDebugInfo(ctx, debugInfo, "GetTaskSummary", task.Id)
 	return &res, nil
 }
 
@@ -383,7 +380,7 @@ func (c *clientImpl) fetchStepLogs(ctx context.Context, tool string, toolArgs ma
 	return allLines, nil
 }
 
-func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *utils.RateLimiter, mcpClient mcp.MCPClient, result interface{}) (*DebugInfo, error) {
+func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *utils.RateLimiter, mcpClient mcp.MCPClient, debugObjectPath string, result interface{}) (rvErr error) {
 	// Gemini doesn't use MCP tools directly. Rather, it returns requests to use
 	// tools as part of its response, expecting to see the results of those tool
 	// calls in our next message. Therefore, we need to repeatedly send messages
@@ -397,18 +394,27 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 	config := &genai.GenerateContentConfig{
 		Tools: mcpClient.Tools(),
 	}
+
 	debug := &DebugInfo{
 		Prompt: prompt,
 		Model:  model,
 		Config: config,
 	}
+	defer func() {
+		if rvErr != nil {
+			debug.Error = rvErr.Error()
+		}
+		go c.uploadDebugInfo(ctx, debug, debugObjectPath)
+	}()
+
 	chat, err := c.client.Chats.Create(ctx, model, config, nil)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 
 	var resp *genai.GenerateContentResponse
-	if err := utils.DoBackoff("SendMessage", func() error {
+	backoffOp := fmt.Sprintf("SendMessage/%s", debugObjectPath)
+	if err := utils.DoBackoff(backoffOp, func() error {
 		parts := []genai.Part{{Text: prompt}}
 		if err := rl.Wait(ctx, model, c.client, chat.History(false), parts); err != nil {
 			return skerr.Wrap(err)
@@ -419,7 +425,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 		}
 		return err
 	}); err != nil {
-		return nil, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 
 	for {
@@ -432,7 +438,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 		for _, fc := range functionCalls {
 			toolRes, err := c.mcpClient.CallTool(ctx, fc.Name, fc.Args)
 			if err != nil {
-				return nil, skerr.Wrapf(err, "tool call %s failed", fc.Name)
+				return skerr.Wrapf(err, "tool call %s failed", fc.Name)
 			}
 
 			var sb strings.Builder
@@ -465,14 +471,14 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 				Result: sb.String(),
 			})
 		}
-		if err := utils.DoBackoff("SendMessage", func() error {
+		if err := utils.DoBackoff(backoffOp, func() error {
 			if err := rl.Wait(ctx, model, c.client, chat.History(false), toolResponses); err != nil {
 				return skerr.Wrap(err)
 			}
 			resp, err = chat.SendMessage(ctx, toolResponses...)
 			return err
 		}); err != nil {
-			return nil, skerr.Wrap(err)
+			return skerr.Wrap(err)
 		}
 	}
 
@@ -493,23 +499,22 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 		resp, err = c.client.Models.GenerateContent(ctx, model, history, finalConfig)
 		return err
 	}); err != nil {
-		return nil, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 
 	// Only the first part of the first candidate seems to be relevant.
 	if len(resp.Candidates) > 0 && resp.Candidates[0].Content != nil && len(resp.Candidates[0].Content.Parts) > 0 {
 		r := bytes.NewReader([]byte(resp.Candidates[0].Content.Parts[0].Text))
 		debug.Result = resp.Candidates[0].Content.Parts[0].Text
-		return debug, skerr.Wrap(json.NewDecoder(r).Decode(result))
+		return skerr.Wrap(json.NewDecoder(r).Decode(result))
 	}
-	return nil, skerr.Fmt("no output generated")
+	return skerr.Fmt("no output generated")
 }
 
-func (c *clientImpl) uploadDebugInfo(ctx context.Context, debug *DebugInfo, parts ...string) {
+func (c *clientImpl) uploadDebugInfo(ctx context.Context, debug *DebugInfo, object string) {
 	if c.gcsBucketDebug == "" {
 		return
 	}
-	object := path.Join(parts...)
 	w := c.gcs.Bucket(c.gcsBucketDebug).Object(object).NewWriter(ctx)
 	defer util.Close(w)
 	if err := json.NewEncoder(w).Encode(debug); err != nil {
@@ -562,6 +567,7 @@ type DebugInfo struct {
 	Config    *genai.GenerateContentConfig `json:"config"`
 	ToolCalls []DebugInfo_ToolCall         `json:"toolCalls"`
 	Result    string                       `json:"result"`
+	Error     string                       `json:"error"`
 }
 
 type DebugInfo_ToolCall struct {
