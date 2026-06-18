@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"github.com/cenkalti/backoff"
 	"github.com/invopop/jsonschema"
 	m3_mcp "github.com/mark3labs/mcp-go/mcp"
 	"go.skia.org/infra/autogardener/go/logs"
@@ -413,6 +414,9 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 			return skerr.Wrap(err)
 		}
 		resp, err = chat.SendMessage(ctx, parts...)
+		if err != nil && strings.Contains(err.Error(), "token count exceeds the maximum") {
+			return backoff.Permanent(err)
+		}
 		return err
 	}); err != nil {
 		return nil, skerr.Wrap(err)

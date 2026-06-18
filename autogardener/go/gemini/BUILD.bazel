@@ -21,6 +21,7 @@ go_library(
         "//task_driver/go/display",
         "//task_driver/go/td",
         "//task_scheduler/go/types",
+        "@com_github_cenkalti_backoff//:backoff",
         "@com_github_invopop_jsonschema//:jsonschema",
         "@com_github_mark3labs_mcp_go//mcp",
         "@com_google_cloud_go_storage//:storage",
