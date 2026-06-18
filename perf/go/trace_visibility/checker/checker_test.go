@@ -31,12 +31,13 @@ func TestCheck_Success(t *testing.T) {
 	store := &store_mocks.Store{}
 	store.On("GetAll", mock.Anything).Return(dbConfigs, nil)
 	store.On("Set", mock.Anything, "bot=builder2").Return(nil).Once()
+	store.On("Delete", mock.Anything, "bot=extra-builder").Return(nil).Once()
 
 	checker := NewChecker(store, provider)
-	addedCount, extraCount, err := checker.Check(ctx)
+	addedCount, removedCount, err := checker.Check(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 1, addedCount, "Expected 1 rule to be added")
-	assert.Equal(t, 1, extraCount, "Expected 1 extra rule to be found")
+	assert.Equal(t, 1, removedCount, "Expected 1 extra rule to be deleted")
 
 	store.AssertExpectations(t)
 	provider.AssertExpectations(t)
@@ -55,10 +56,10 @@ func TestCheck_RemediationFailure(t *testing.T) {
 	store.On("Set", mock.Anything, "bot=builder2").Return(fmt.Errorf("database down")).Once()
 
 	checker := NewChecker(store, provider)
-	addedCount, extraCount, err := checker.Check(ctx)
+	addedCount, removedCount, err := checker.Check(ctx)
 	require.NoError(t, err) // The check itself finishes successfully, logging remediation error
 	assert.Equal(t, 0, addedCount, "Expected 0 rules to be added since DB save failed")
-	assert.Equal(t, 0, extraCount, "Expected 0 extra rules to be found")
+	assert.Equal(t, 0, removedCount, "Expected 0 extra rules to be deleted")
 
 	store.AssertExpectations(t)
 	provider.AssertExpectations(t)

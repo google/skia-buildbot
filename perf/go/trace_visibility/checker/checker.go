@@ -38,7 +38,7 @@ func extractRulePrefix(rule string) string {
 //
 // Returns:
 //   - addedCount (int): Number of missing expected rules that were newly saved to the database.
-//   - extraCount (int): Number of extra rules found in the database that are not expected.
+//   - removedCount (int): Number of extra rules found in the database that were deleted.
 //   - error: An error if the check operation failed.
 func (c *Checker) Check(ctx context.Context) (int, int, error) {
 	sklog.Info("Starting check and sync of visibility rules...")
@@ -81,7 +81,7 @@ func (c *Checker) Check(ctx context.Context) (int, int, error) {
 
 	extraByPrefixCount := make(map[string]int)
 	allPrefixes := make(map[string]bool)
-	extraCount := 0
+	removedCount := 0
 	for rule := range expectedRules {
 		allPrefixes[extractRulePrefix(rule)] = true
 	}
@@ -91,12 +91,15 @@ func (c *Checker) Check(ctx context.Context) (int, int, error) {
 		allPrefixes[rulePrefix] = true
 
 		if !expectedRules[rule] {
-			// Auto-remediate extra rule
-			// TODO(sergeirudenkov): The promoter does not yet know how to demote/revert public traces
-			// when their rule is deleted. This will be handled in a separate CL.
-			sklog.Warningf("Outdated extra rule %q found in database that is not in expected provider configs", rule)
+			// Delete the rule row from the configuration store.
+			// Note: We will not perform auto demotion of the actual traces in the TraceParams table
+			// because demoting traces can break historical public links (e.g. in Buganizer).
+			if err := c.store.Delete(ctx, rule); err != nil {
+				sklog.Errorf("Failed to delete outdated rule %q: %s", rule, err)
+			} else {
+				removedCount++
+			}
 			extraByPrefixCount[rulePrefix]++
-			extraCount++
 		}
 	}
 
@@ -108,5 +111,5 @@ func (c *Checker) Check(ctx context.Context) (int, int, error) {
 		metrics2.GetInt64Metric("perf_visibility_rules_diff", tagsMissing).Update(int64(missingByPrefixCount[prefix]))
 	}
 
-	return addedCount, extraCount, nil
+	return addedCount, removedCount, nil
 }

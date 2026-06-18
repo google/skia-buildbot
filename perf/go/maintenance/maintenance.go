@@ -229,13 +229,12 @@ func startVisibilityChecker(ctx context.Context, instanceConfig *config.Instance
 		util.RepeatCtx(ctx, visibilityCheckPeriod, func(ctx context.Context) {
 			checkCtx, cancel := context.WithTimeout(ctx, visibilityCheckTimeout)
 			defer cancel()
-			added, _, err := visibilityChecker.Check(checkCtx)
+			added, removed, err := visibilityChecker.Check(checkCtx)
 			if err != nil {
 				sklog.Errorf("Failed to run visibility checker: %s", err)
 			}
 			metrics2.GetCounter("perf_visibility_checker_added_count", nil).Inc(int64(added))
-			// TODO(sergeirudenkov): Increment a removed metric here once the checker implements auto-remediation.
-			// Check() currently returns the absolute count of extra rules, not the removed count.
+			metrics2.GetCounter("perf_visibility_checker_removed_count", nil).Inc(int64(removed))
 		})
 	}()
 }
