@@ -48,7 +48,39 @@ module.exports = {
     {
       files: ['perf/**/*-sk.ts', 'perf/**/*.css.ts'],
       customSyntax: 'postcss-lit',
-      rules: {},
+      rules: {
+        // Hardcoded colors prevent light/dark theming. Use theme vars instead.
+        'color-no-hex': true,
+        'color-named': 'never',
+        'function-disallowed-list': ['rgb', 'rgba', 'hsl', 'hsla'],
+      },
+    },
+    {
+      // -- Gradual Color Migration Exceptions --
+      // Components currently containing raw color fallbacks or hardcoded colors.
+      // Remove files from this list as their color formatting is migrated.
+      files: [
+        'perf/modules/explore-multi-v2-sk/explore-multi-v2-sk.ts',
+        'perf/modules/explore-multi-v2-sk/explore-toolbar-sk.ts',
+        'perf/modules/explore-multi-v2-sk/help-hub-sk.ts',
+        'perf/modules/explore-multi-v2-sk/interactive-tour-sk.ts',
+        'perf/modules/explore-multi-v2-sk/multi-select-sk.ts',
+        'perf/modules/explore-multi-v2-sk/plot-summary-v2-sk.ts',
+        'perf/modules/explore-multi-v2-sk/query-bar-sk.ts',
+        'perf/modules/explore-multi-v2-sk/trace-chart-sk.ts',
+        'perf/modules/explore-multi-v2-sk/trace-chart-tooltip-sk.ts',
+        'perf/modules/gemini-side-panel-sk/gemini-side-panel-sk.ts',
+        'perf/modules/plot-google-chart-sk/drag-to-zoom-box-sk.ts',
+        'perf/modules/plot-google-chart-sk/plot-google-chart-sk.ts',
+        'perf/modules/plot-google-chart-sk/side-panel-sk.ts',
+        'perf/modules/user-issue-sk/user-issue-sk.ts',
+      ],
+      customSyntax: 'postcss-lit',
+      rules: {
+        'color-no-hex': null,
+        'color-named': null,
+        'function-disallowed-list': null,
+      },
     },
   ],
 };

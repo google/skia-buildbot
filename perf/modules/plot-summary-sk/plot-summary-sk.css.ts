@@ -5,7 +5,7 @@ export const style = css`
     --md-elevation-level: 1;
     --md-outlined-icon-button-container-shape: 6px;
     --md-outlined-icon-button-icon-size: 24px;
-    --sk-summary-highlight: var(--md-sys-color-primary-container, #ced0ce);
+    --sk-summary-highlight: var(--md-sys-color-primary-container);
 
     display: flex;
     position: relative;
@@ -60,7 +60,7 @@ export const style = css`
     width: 20px;
     aspect-ratio: 1;
 
-    --c: no-repeat linear-gradient(var(--md-sys-color-on-surface, black) 0 0);
+    --c: no-repeat linear-gradient(var(--md-sys-color-on-surface) 0 0);
 
     background:
       var(--c) 0% 50%,
