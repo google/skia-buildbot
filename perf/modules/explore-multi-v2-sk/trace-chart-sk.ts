@@ -149,6 +149,29 @@ export class TraceChartSk extends LitElement {
 
   private _sortedXValues: number[] = [];
 
+  // Resolved styles to avoid layout thrashing in draw calls
+  private _textColor = '#f8fafc';
+
+  private _textColorSecondary = '#94a3b8';
+
+  private _borderColor = 'rgba(255, 255, 255, 0.05)';
+
+  private _gridColor = 'rgba(255, 255, 255, 0.05)';
+
+  private _selectionFill = 'rgba(26, 115, 232, 0.1)';
+
+  private _selectionStroke = 'rgba(26, 115, 232, 0.8)';
+
+  private _measurementFill = 'rgba(249, 171, 0, 0.1)';
+
+  private _measurementStroke = 'rgba(249, 171, 0, 0.8)';
+
+  private _tooltipBg = 'rgba(15, 23, 42, 0.9)';
+
+  private _tooltipText = 'rgba(255, 255, 255, 0.9)';
+
+  private _crosshairStroke = 'rgba(255, 255, 255, 0.4)';
+
   @property({ type: String }) selectedSubrepo: string = 'none';
 
   @property({ type: String }) user_id = '';
@@ -263,6 +286,7 @@ export class TraceChartSk extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._resizeObserver = new ResizeObserver(() => {
+      this._updateStyles();
       this._drawBackground();
       this._drawForeground();
     });
@@ -451,7 +475,38 @@ export class TraceChartSk extends LitElement {
     }
   }
 
+  private _updateStyles() {
+    const style = window.getComputedStyle(this);
+    this._textColor = style.getPropertyValue('--on-surface').trim() || '#f8fafc';
+    this._textColorSecondary = style.getPropertyValue('--on-surface-variant').trim() || '#94a3b8';
+    this._borderColor = style.getPropertyValue('--outline').trim() || 'rgba(255, 255, 255, 0.05)';
+    this._gridColor =
+      style.getPropertyValue('--outline-variant').trim() || 'rgba(255, 255, 255, 0.05)';
+    this._selectionFill =
+      style.getPropertyValue('--selection-fill').trim() || 'rgba(26, 115, 232, 0.1)';
+    this._selectionStroke =
+      style.getPropertyValue('--selection-stroke').trim() || 'rgba(26, 115, 232, 0.8)';
+    this._measurementFill =
+      style.getPropertyValue('--measurement-fill').trim() || 'rgba(249, 171, 0, 0.1)';
+    this._measurementStroke =
+      style.getPropertyValue('--measurement-stroke').trim() || 'rgba(249, 171, 0, 0.8)';
+    this._tooltipBg =
+      style.getPropertyValue('--tooltip-background').trim() || 'rgba(15, 23, 42, 0.9)';
+    this._tooltipText =
+      style.getPropertyValue('--tooltip-text').trim() || 'rgba(255, 255, 255, 0.9)';
+    this._crosshairStroke =
+      style.getPropertyValue('--crosshair-stroke').trim() || 'rgba(255, 255, 255, 0.4)';
+  }
+
   updated(changedProperties: PropertyValues) {
+    const pointerProperties = ['_mousePos', '_hoveredPoint', '_measureState', 'globalHoverX'];
+    const nonPointerPropsChanged = Array.from(changedProperties.keys()).some(
+      (key) => !pointerProperties.includes(key as string)
+    );
+    if (nonPointerPropsChanged) {
+      this._updateStyles();
+    }
+
     let needsBackgroundRedraw = false;
     let needsForegroundRedraw = false;
 
@@ -466,6 +521,8 @@ export class TraceChartSk extends LitElement {
       changedProperties.has('viewportMaxX') ||
       changedProperties.has('_viewportMinX') ||
       changedProperties.has('_viewportMaxX') ||
+      changedProperties.has('_viewportMinY') ||
+      changedProperties.has('_viewportMaxY') ||
       changedProperties.has('selectedSubrepo') ||
       changedProperties.has('evenXAxisSpacing')
     ) {
@@ -584,12 +641,10 @@ export class TraceChartSk extends LitElement {
     this._canvasWidth = width;
     const height = rect.height || this.canvasHeight;
 
-    const style = window.getComputedStyle(this);
-    const textColor = style.getPropertyValue('--on-surface').trim() || '#f8fafc';
-    const textColorSecondary = style.getPropertyValue('--on-surface-variant').trim() || '#94a3b8';
-    const borderColor = style.getPropertyValue('--outline').trim() || 'rgba(255, 255, 255, 0.1)';
-    const gridColor =
-      style.getPropertyValue('--outline-variant').trim() || 'rgba(255, 255, 255, 0.05)';
+    const textColor = this._textColor;
+    const textColorSecondary = this._textColorSecondary;
+    const borderColor = this._borderColor;
+    const gridColor = this._gridColor;
 
     const hasTraces =
       (this.series && this.series.length > 0) ||
@@ -1188,6 +1243,14 @@ export class TraceChartSk extends LitElement {
 
     if (!this._processedSeries || this._processedSeries.length === 0) return;
 
+    const selectionFill = this._selectionFill;
+    const selectionStroke = this._selectionStroke;
+    const measurementFill = this._measurementFill;
+    const measurementStroke = this._measurementStroke;
+    const tooltipBg = this._tooltipBg;
+    const tooltipText = this._tooltipText;
+    const crosshairStroke = this._crosshairStroke;
+
     const { padding, graphWidth, graphHeight, minX, mapX, unmapX, unmapY, globalMinX } =
       this._getChartBoundsAndMapping(rect);
     if (minX === Infinity || globalMinX === Infinity) return;
@@ -1236,7 +1299,7 @@ export class TraceChartSk extends LitElement {
         y <= padding.top + graphHeight
       ) {
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.strokeStyle = crosshairStroke;
         ctx.lineWidth = 0.5;
         ctx.setLineDash([4, 4]);
 
@@ -1270,10 +1333,10 @@ export class TraceChartSk extends LitElement {
         const labelYStr = this._formatYValue(value);
         ctx.font = '10px "Inter", sans-serif';
         const textWidthY = ctx.measureText(labelYStr).width;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.fillStyle = tooltipBg;
         const labelXPos = padding.left - textWidthY - 8;
         ctx.fillRect(labelXPos, y - 9, textWidthY + 6, 18);
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = tooltipText;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.fillText(labelYStr, padding.left - 5, y);
@@ -1283,13 +1346,13 @@ export class TraceChartSk extends LitElement {
           : Math.round(unmapX(x));
         const labelXStr = commit.toString();
         const textWidthX = ctx.measureText(labelXStr).width;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.fillStyle = tooltipBg;
         const labelYPos = padding.top + graphHeight + 4;
         ctx.fillRect(x - textWidthX / 2 - 4, labelYPos, textWidthX + 8, 18);
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = tooltipText;
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.fillText(labelXStr, x, labelYPos + 2);
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelXStr, x, labelYPos + 9);
       }
     }
 
@@ -1303,8 +1366,8 @@ export class TraceChartSk extends LitElement {
       const rectY = Math.min(boxStartY, boxCurrentY);
       const rectH = Math.abs(boxStartY - boxCurrentY);
 
-      ctx.fillStyle = 'rgba(249, 171, 0, 0.1)';
-      ctx.strokeStyle = 'rgba(249, 171, 0, 0.8)';
+      ctx.fillStyle = measurementFill;
+      ctx.strokeStyle = measurementStroke;
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.fillRect(padding.left, rectY, graphWidth, rectH);
@@ -1324,7 +1387,9 @@ export class TraceChartSk extends LitElement {
       const labelText = `ΔY: ${diff > 0 ? '+' : ''}${this._formatYValue(diff)}${pctStr}`;
 
       ctx.font = '12px sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = tooltipText;
       const textWidth = ctx.measureText(labelText).width;
 
       let labelX = currentX + 10;
@@ -1338,12 +1403,12 @@ export class TraceChartSk extends LitElement {
       }
 
       // Draw text background
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.fillStyle = tooltipBg;
       ctx.fillRect(labelX - 4, labelY - 12, textWidth + 8, 16);
-      ctx.strokeStyle = 'rgba(249, 171, 0, 0.8)';
+      ctx.strokeStyle = measurementStroke;
       ctx.strokeRect(labelX - 4, labelY - 12, textWidth + 8, 16);
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fillStyle = tooltipText;
       ctx.fillText(labelText, labelX, labelY);
     }
 
@@ -1375,8 +1440,8 @@ export class TraceChartSk extends LitElement {
         rectH = Math.min(padding.top + graphHeight, y2) - rectY;
       }
 
-      ctx.fillStyle = 'rgba(26, 115, 232, 0.1)';
-      ctx.strokeStyle = 'rgba(26, 115, 232, 0.8)';
+      ctx.fillStyle = selectionFill;
+      ctx.strokeStyle = selectionStroke;
       ctx.lineWidth = 1;
       if (rectW > 0 && rectH > 0) {
         ctx.fillRect(rectX, rectY, rectW, rectH);
@@ -1391,14 +1456,16 @@ export class TraceChartSk extends LitElement {
         const drawLabelX = (px: number, val: number) => {
           const label = Math.round(val).toString();
           ctx.font = '11px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
           const textWidth = ctx.measureText(label).width;
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+          ctx.fillStyle = tooltipBg;
           const labelY = padding.top + graphHeight + 4;
           ctx.fillRect(px - textWidth / 2 - 4, labelY, textWidth + 8, 18);
-          ctx.fillStyle = '#fff';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          ctx.fillText(label, px, labelY + 2);
+          ctx.strokeStyle = selectionStroke;
+          ctx.strokeRect(px - textWidth / 2 - 4, labelY, textWidth + 8, 18);
+          ctx.fillStyle = tooltipText;
+          ctx.fillText(label, px, labelY + 9);
         };
 
         drawLabelX(startX, startVal);
@@ -1941,6 +2008,19 @@ export class TraceChartSk extends LitElement {
       box-shadow: none;
       color: var(--on-surface, #f8fafc);
       border-bottom: 1px solid var(--outline, rgb(255 255 255 / 5%));
+
+      /* Selection Overlay */
+      --selection-fill: color-mix(in srgb, var(--primary, #1a73e8) 10%, transparent);
+      --selection-stroke: color-mix(in srgb, var(--primary, #1a73e8) 80%, transparent);
+
+      /* Measurement (Delta Y) Overlay */
+      --measurement-fill: rgb(249 171 0 / 10%);
+      --measurement-stroke: rgb(249 171 0 / 80%);
+
+      /* Tooltip and Label Chips */
+      --tooltip-background: rgb(15 23 42 / 90%);
+      --tooltip-text: rgb(255 255 255 / 90%);
+      --crosshair-stroke: color-mix(in srgb, var(--on-surface, #f8fafc) 40%, transparent);
     }
 
     .header {

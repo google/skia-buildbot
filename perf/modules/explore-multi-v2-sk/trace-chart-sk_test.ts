@@ -60,10 +60,10 @@ describe('trace-chart-sk', () => {
     };
 
     try {
-      (element as any)['_processedSeries'] = [
+      element.series = [
         { id: 'test', color: '#fff', rows: [{ commit_number: 1, val: 1, createdat: 1 }] },
       ];
-      (element as any)['_drawBackground']();
+      await element.updateComplete;
 
       expect(called).to.be.true;
     } finally {
