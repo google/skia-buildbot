@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/progress"
+	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -28,6 +29,9 @@ const (
 
 // DataFrameBuilder is an interface for things that construct DataFrames.
 type DataFrameBuilder interface {
+	// GetTraceStore returns the underlying TraceStore.
+	GetTraceStore() tracestore.TraceStore
+
 	// NewFromQueryAndRange returns a populated DataFrame of the traces that match
 	// the given time range [begin, end) and the passed in query, or a non-nil
 	// error if the traces can't be retrieved. The 'progress' callback is called

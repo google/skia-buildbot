@@ -10,6 +10,7 @@ go_library(
         "//go/query",
         "//perf/go/dataframe",
         "//perf/go/progress",
+        "//perf/go/tracestore",
         "@com_github_stretchr_testify//mock",
     ],
 )

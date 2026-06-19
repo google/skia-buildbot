@@ -107,6 +107,11 @@ func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceSt
 	}
 }
 
+// GetTraceStore implements DataFrameBuilder.
+func (b *builder) GetTraceStore() tracestore.TraceStore {
+	return b.store
+}
+
 // fromIndexRange returns the headers and indices for all the commits
 // between beginIndex and endIndex inclusive.
 func fromIndexRange(ctx context.Context, git perfgit.Git, beginIndex, endIndex types.CommitNumber) ([]*dataframe.ColumnHeader, []types.CommitNumber, int, error) {
