@@ -409,7 +409,7 @@ describe('ReportPageSk', () => {
       fetchMock.post('/_/anomalies/group_report', {
         anomaly_list: anomalies,
         timerange_map: timerangeMap,
-        selected_keys: ['0', '1'],
+        selected_keys: [],
       });
 
       await initializeElement();
@@ -554,6 +554,52 @@ describe('ReportPageSk', () => {
 
       window.history.replaceState({}, '', originalSearch);
       isV2Stub.restore();
+    });
+
+    it('populates queries in explore-multi-v2-sk when loaded with anomalyIDs and v2=true', async () => {
+      const originalSearch = window.location.search;
+      window.history.replaceState({}, '', '?anomalyIDs=0&v2=true');
+
+      // Mock the Web Worker and its static assets to avoid real network fetch requests
+      (window as any).WORKER_URL =
+        'data:application/javascript,self.postMessage({ type: "LOADED" }); self.onmessage = (e) => { if (e.data.type === "INIT") { self.postMessage({ type: "READY" }); } };';
+      fetchMock.get('glob:*/filter.worker.js', 'self.postMessage({ type: "LOADED" });');
+      fetchMock.get('glob:*/meta.json', { version: 'test-version' });
+      fetchMock.get('glob:*/filter.wasm', new ArrayBuffer(0));
+      fetchMock.get('glob:*/params.json', {});
+      fetchMock.get('glob:*/traces.json', new ArrayBuffer(0));
+
+      const anomaly = createMockAnomaly(0);
+      anomaly.test_path = ',master=m1,bot=b1,benchmark=bench1,test=t1';
+      const timerangeMap = { '0': createMockTimerange() };
+
+      fetchMock.post('/_/anomalies/group_report', {
+        anomaly_list: [anomaly],
+        timerange_map: timerangeMap,
+        selected_keys: [],
+      });
+
+      element = factory();
+      const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
+      sinon.stub(table, 'populateTable').resolves();
+      sinon.stub(table, 'checkSelectedAnomalies');
+
+      await fetchMock.flush(true);
+      // Wait for async fetch anomalies promise chain to resolve and render the child
+      await waitUntil(() => element.querySelector('explore-multi-v2-sk') !== null, 5000);
+
+      const multiExplore = element.querySelector('explore-multi-v2-sk') as any;
+      assert.isNotNull(multiExplore, 'explore-multi-v2-sk should be rendered');
+
+      const expectedQuery = {
+        master: ['m1'],
+        bot: ['b1'],
+        benchmark: ['bench1'],
+        test: ['t1'],
+      };
+      assert.deepEqual(multiExplore.queries, [expectedQuery]);
+
+      window.history.replaceState({}, '', originalSearch);
     });
 
     describe('Split keys logic for V2 Dashboard', () => {

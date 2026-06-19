@@ -109,7 +109,9 @@ export class ReportPageSk extends ElementSk {
 
   private graphList: GraphListSk | null = null;
 
-  private _currentlyLoading: string = '';
+  private _currentlyLoading: string = 'Loading configuration...';
+
+  private _initialized = false;
 
   private _allGraphsLoaded: boolean = false;
 
@@ -248,9 +250,10 @@ export class ReportPageSk extends ElementSk {
     this.pageLoadStart = performance.now();
     super.connectedCallback();
     this.updatePageTitle();
-    if (this._currentlyLoading !== '' || this._allGraphsLoaded) {
+    if (this._initialized || this._allGraphsLoaded) {
       return;
     }
+    this._initialized = true;
     this._connected = true;
     upgradeProperty(this, 'commitList');
     this._render();
@@ -350,6 +353,9 @@ export class ReportPageSk extends ElementSk {
     const selected = this.findRequestedAnomalies();
     if (selected.length > 0) {
       this.anomaliesTable!.checkSelectedAnomalies(selected);
+      selected.forEach((anomaly) => {
+        this.anomalyTracker.getAnomaly(anomaly.id)!.checked = true;
+      });
     } else if (urlParams.has('sid')) {
       telemetry.increaseCounter(CountMetric.SIDRequiringActionTaken, {
         module: 'report-page-sk',
