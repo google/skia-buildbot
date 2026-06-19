@@ -14,6 +14,7 @@ import {
 } from './chart-logic';
 import { calculateFetchRequests } from './fetch-logic';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
+import { UNSET_TIME } from '../const/const';
 import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { makeKey } from '../paramtools';
@@ -253,9 +254,9 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _showAllTraces = false;
 
-  @property({ type: Number }) begin = -1;
+  @property({ type: Number }) begin = UNSET_TIME;
 
-  @property({ type: Number }) end = -1;
+  @property({ type: Number }) end = UNSET_TIME;
 
   @state() private _user = '';
 
@@ -1087,11 +1088,11 @@ export class ExploreMultiV2Sk extends LitElement {
    * Resolves and calculates the final begin and end Unix timestamps for data fetching.
    *
    * Calculations performed:
-   * 1. Both begin & end provided (begin !== -1 && end !== -1):
+   * 1. Both begin & end provided (begin !== UNSET_TIME && end !== UNSET_TIME):
    *    - Uses them exactly as-is.
-   * 2. Only begin provided (begin !== -1):
+   * 2. Only begin provided (begin !== UNSET_TIME):
    *    - Calculates `end = begin + defaultRange`. If in future, caps at `now`.
-   * 3. Only end provided (end !== -1):
+   * 3. Only end provided (end !== UNSET_TIME):
    *    - Calculates `begin = end - defaultRange`.
    * 4. Neither provided (initial load):
    *    - Calculates `end = now` and `begin = now - defaultRange`.
@@ -1117,8 +1118,8 @@ export class ExploreMultiV2Sk extends LitElement {
     let begin = this.begin;
     let end = this.end;
 
-    const beginProvided = begin !== -1;
-    const endProvided = end !== -1;
+    const beginProvided = begin !== UNSET_TIME;
+    const endProvided = end !== UNSET_TIME;
 
     if (beginProvided || endProvided) {
       if (!beginProvided) {
@@ -1411,8 +1412,8 @@ export class ExploreMultiV2Sk extends LitElement {
   private _onResetZoom() {
     this.viewportMinX = null;
     this.viewportMaxX = null;
-    this.begin = -1;
-    this.end = -1;
+    this.begin = UNSET_TIME;
+    this.end = UNSET_TIME;
     this._resolveTimeRange();
     this._updateSeriesData([]);
     this._loadedBounds = {};
@@ -1479,7 +1480,7 @@ export class ExploreMultiV2Sk extends LitElement {
   private _translateCommitToTimestamp(commitNumber: number): number {
     if (!this._seriesData || this._seriesData.length === 0) {
       console.log('[_translateCommitToTimestamp] Series data is empty');
-      return -1;
+      return UNSET_TIME;
     }
 
     // Find the series with the maximum number of rows (most complete history)
@@ -1494,7 +1495,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
     if (!series) {
       console.log('[_translateCommitToTimestamp] No series with rows found');
-      return -1;
+      return UNSET_TIME;
     }
 
     const rows = series.rows;
@@ -1502,7 +1503,7 @@ export class ExploreMultiV2Sk extends LitElement {
       if (commitNumber >= 0 && commitNumber < rows.length) {
         return rows[commitNumber].createdat;
       }
-      return -1;
+      return UNSET_TIME;
     }
 
     let low = 0;
@@ -1552,11 +1553,11 @@ export class ExploreMultiV2Sk extends LitElement {
       const beginTime = this._translateCommitToTimestamp(Math.floor(minCommit));
       const endTime = this._translateCommitToTimestamp(Math.ceil(maxCommit));
       let changed = false;
-      if (beginTime !== -1 && beginTime !== this.begin) {
+      if (beginTime !== UNSET_TIME && beginTime !== this.begin) {
         this.begin = beginTime;
         changed = true;
       }
-      if (endTime !== -1 && endTime !== this.end) {
+      if (endTime !== UNSET_TIME && endTime !== this.end) {
         this.end = endTime;
         changed = true;
       }
@@ -1596,11 +1597,11 @@ export class ExploreMultiV2Sk extends LitElement {
       const beginTime = this._translateCommitToTimestamp(Math.floor(begin));
       const endTime = this._translateCommitToTimestamp(Math.ceil(end));
       let changed = false;
-      if (beginTime !== -1 && beginTime !== this.begin) {
+      if (beginTime !== UNSET_TIME && beginTime !== this.begin) {
         this.begin = beginTime;
         changed = true;
       }
-      if (endTime !== -1 && endTime !== this.end) {
+      if (endTime !== UNSET_TIME && endTime !== this.end) {
         this.end = endTime;
         changed = true;
       }
@@ -1889,10 +1890,10 @@ export class ExploreMultiV2Sk extends LitElement {
     if (this.dateMode) {
       urlParams.set('dateAxis', 'true');
     }
-    if (this.begin && this.begin !== -1) {
+    if (this.begin && this.begin !== UNSET_TIME) {
       urlParams.set('begin', this.begin.toString());
     }
-    if (this.end && this.end !== -1) {
+    if (this.end && this.end !== UNSET_TIME) {
       urlParams.set('end', this.end.toString());
     }
 

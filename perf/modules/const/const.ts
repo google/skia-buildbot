@@ -11,3 +11,5 @@
 export const MISSING_DATA_SENTINEL = 1e32;
 
 export const MISSING_VALUE_SENTINEL = '__missing__';
+
+export const UNSET_TIME = -1;

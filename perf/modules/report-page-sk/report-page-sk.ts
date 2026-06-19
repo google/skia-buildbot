@@ -23,6 +23,7 @@ import '../../../elements-sk/modules/icons/camera-roll-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
 import { CountMetric, SummaryMetric, telemetry } from '../telemetry/telemetry';
 import { TrimHash } from '../common/commit';
+import { UNSET_TIME } from '../const/const';
 
 const weekInSeconds = 7 * 24 * 60 * 60;
 
@@ -134,9 +135,9 @@ export class ReportPageSk extends ElementSk {
 
   private _splitKeysV2: Set<string> = new Set();
 
-  private _beginV2: number = -1;
+  private _beginV2: number = UNSET_TIME;
 
-  private _endV2: number = -1;
+  private _endV2: number = UNSET_TIME;
 
   private _highlightAnomaliesV2: string[] = [];
 
@@ -523,8 +524,8 @@ export class ReportPageSk extends ElementSk {
       this._splitKeysV2 = new Set();
       this._viewportMinXV2 = null;
       this._viewportMaxXV2 = null;
-      this._beginV2 = -1;
-      this._endV2 = -1;
+      this._beginV2 = UNSET_TIME;
+      this._endV2 = UNSET_TIME;
       this._render();
       return;
     }
@@ -643,12 +644,12 @@ export class ReportPageSk extends ElementSk {
       if (minBegin !== Infinity) {
         this._beginV2 = minBegin - weekInSeconds;
       } else {
-        this._beginV2 = -1;
+        this._beginV2 = UNSET_TIME;
       }
       if (maxEnd !== -Infinity) {
         this._endV2 = maxEnd + weekInSeconds;
       } else {
-        this._endV2 = -1;
+        this._endV2 = UNSET_TIME;
       }
     }
 

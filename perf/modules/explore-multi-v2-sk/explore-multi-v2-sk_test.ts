@@ -1,5 +1,6 @@
 import './explore-multi-v2-sk';
 import { ExploreMultiV2Sk } from './explore-multi-v2-sk';
+import { UNSET_TIME } from '../const/const';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataService } from '../data-service';
@@ -190,14 +191,14 @@ describe('explore-multi-v2-sk', () => {
   });
 
   it('immediately writes back resolved default bounds to keep state deterministic', () => {
-    (element as any).begin = -1;
-    (element as any).end = -1;
+    (element as any).begin = UNSET_TIME;
+    (element as any).end = UNSET_TIME;
 
     const range = (element as any)._resolveTimeRange();
     expect((element as any).begin).to.equal(range.begin);
     expect((element as any).end).to.equal(range.end);
-    expect((element as any).begin).to.not.equal(-1);
-    expect((element as any).end).to.not.equal(-1);
+    expect((element as any).begin).to.not.equal(UNSET_TIME);
+    expect((element as any).end).to.not.equal(UNSET_TIME);
   });
 
   it('syncs dateMode to URL', async () => {

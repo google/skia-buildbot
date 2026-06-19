@@ -34,6 +34,7 @@ sk_element(
         ":help-hub-sk_ts_lib",
         ":interactive-tour-sk_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-v2-sk.ts",
@@ -222,6 +223,7 @@ karma_test(
         "//:node_modules/@types/sinon",
         "//:node_modules/chai",
         "//:node_modules/sinon",
+        "//perf/modules/const:const_ts_lib",
         "//perf/modules/data-service:index_ts_lib",
     ],
 )

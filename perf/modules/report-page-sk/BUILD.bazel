@@ -33,6 +33,7 @@ sk_element(
         "//perf/modules/telemetry:telemetry_ts_lib",
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//perf/modules/common:commit_ts_lib",
+        "//perf/modules/const:const_ts_lib",
     ],
     ts_srcs = [
         "report-page-sk.ts",
@@ -73,6 +74,7 @@ karma_test(
         "//:node_modules/sinon",
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/anomalies-table-sk",
+        "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
 )

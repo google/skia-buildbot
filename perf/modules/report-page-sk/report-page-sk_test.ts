@@ -2,6 +2,7 @@ import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
 import sinon from 'sinon';
 import { ReportPageSk } from './report-page-sk';
+import { UNSET_TIME } from '../const/const';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { Anomaly, Timerange } from '../json';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
@@ -669,12 +670,12 @@ describe('ReportPageSk', () => {
         assert.strictEqual(element['_endV2'], 3500 + 7 * 24 * 60 * 60);
       });
 
-      it('initializes begin and end to -1', () => {
-        assert.strictEqual(element['_beginV2'], -1);
-        assert.strictEqual(element['_endV2'], -1);
+      it('initializes begin and end to UNSET_TIME', () => {
+        assert.strictEqual(element['_beginV2'], UNSET_TIME);
+        assert.strictEqual(element['_endV2'], UNSET_TIME);
       });
 
-      it('sets begin and end to -1 when no anomalies are selected', () => {
+      it('sets begin and end to UNSET_TIME when no anomalies are selected', () => {
         // Set them to some valid values first
         element['_beginV2'] = 1000;
         element['_endV2'] = 2000;
@@ -683,8 +684,8 @@ describe('ReportPageSk', () => {
         element['anomalyTracker'].load([], {}, []);
         element['updateMultiExploreStateV2']();
 
-        assert.strictEqual(element['_beginV2'], -1);
-        assert.strictEqual(element['_endV2'], -1);
+        assert.strictEqual(element['_beginV2'], UNSET_TIME);
+        assert.strictEqual(element['_endV2'], UNSET_TIME);
       });
     });
   });
