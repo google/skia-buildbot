@@ -134,9 +134,9 @@ export class ReportPageSk extends ElementSk {
 
   private _splitKeysV2: Set<string> = new Set();
 
-  private _beginV2: number | null = null;
+  private _beginV2: number = -1;
 
-  private _endV2: number | null = null;
+  private _endV2: number = -1;
 
   private _highlightAnomaliesV2: string[] = [];
 
@@ -523,8 +523,8 @@ export class ReportPageSk extends ElementSk {
       this._splitKeysV2 = new Set();
       this._viewportMinXV2 = null;
       this._viewportMaxXV2 = null;
-      this._beginV2 = null;
-      this._endV2 = null;
+      this._beginV2 = -1;
+      this._endV2 = -1;
       this._render();
       return;
     }
@@ -612,8 +612,10 @@ export class ReportPageSk extends ElementSk {
 
         // Calculate min/max begin/end timestamps
         const timerange = this.anomalyTracker.getAnomaly(anomaly.id)!.timerange;
-        if (timerange.begin < minBegin) minBegin = timerange.begin;
-        if (timerange.end > maxEnd) maxEnd = timerange.end;
+        if (timerange) {
+          if (timerange.begin < minBegin) minBegin = timerange.begin;
+          if (timerange.end > maxEnd) maxEnd = timerange.end;
+        }
       });
 
       const specificKeys = new Set<string>();
@@ -640,9 +642,13 @@ export class ReportPageSk extends ElementSk {
 
       if (minBegin !== Infinity) {
         this._beginV2 = minBegin - weekInSeconds;
+      } else {
+        this._beginV2 = -1;
       }
       if (maxEnd !== -Infinity) {
         this._endV2 = maxEnd + weekInSeconds;
+      } else {
+        this._endV2 = -1;
       }
     }
 

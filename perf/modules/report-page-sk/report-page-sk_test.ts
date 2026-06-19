@@ -668,6 +668,24 @@ describe('ReportPageSk', () => {
         assert.strictEqual(element['_beginV2'], 1500 - 7 * 24 * 60 * 60);
         assert.strictEqual(element['_endV2'], 3500 + 7 * 24 * 60 * 60);
       });
+
+      it('initializes begin and end to -1', () => {
+        assert.strictEqual(element['_beginV2'], -1);
+        assert.strictEqual(element['_endV2'], -1);
+      });
+
+      it('sets begin and end to -1 when no anomalies are selected', () => {
+        // Set them to some valid values first
+        element['_beginV2'] = 1000;
+        element['_endV2'] = 2000;
+
+        // Force update with empty selection
+        element['anomalyTracker'].load([], {}, []);
+        element['updateMultiExploreStateV2']();
+
+        assert.strictEqual(element['_beginV2'], -1);
+        assert.strictEqual(element['_endV2'], -1);
+      });
     });
   });
 
