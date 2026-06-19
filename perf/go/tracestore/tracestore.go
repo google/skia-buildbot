@@ -66,6 +66,10 @@ type TraceStore interface {
 	// all traces that match the given query.
 	QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query, cache *tracecache.TraceCache) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error)
 
+	// QueryLastNPoints returns the last N data points for the given trace IDs
+	// ending at the given commit number.
+	QueryLastNPoints(ctx context.Context, traceIDs []string, n int, endCommit types.CommitNumber) (map[string]types.Trace, map[string][]types.CommitNumber, error)
+
 	// QueryTracesIDOnly returns a stream of ParamSets that match the
 	// given query.
 	// TODO(jcgregorio) Change to just return count and ParamSet.

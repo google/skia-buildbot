@@ -920,3 +920,51 @@ func TestVisibilityDirectLookup_ShowOnlyPublicTraces_BypassesBlocked(t *testing.
 		assert.NotContains(t, err.Error(), "Unauthorized or invalid trace key")
 	}
 }
+
+func TestQueryLastNPoints(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t)
+
+	keys := []string{
+		",arch=x86,config=8888,",
+		",arch=x86,config=565,",
+	}
+
+	t.Run("Query last 2 points ending at commit 8.", func(t *testing.T) {
+		traces, commits, err := s.QueryLastNPoints(ctx, keys, 2, 8)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]types.Trace{
+			",arch=x86,config=8888,": {2.5, 3.5},
+			",arch=x86,config=565,":  {3.3, 4.3},
+		}, traces)
+		assert.Equal(t, map[string][]types.CommitNumber{
+			",arch=x86,config=8888,": {3, 8},
+			",arch=x86,config=565,":  {3, 8},
+		}, commits)
+	})
+
+	t.Run("Query last 2 points ending at commit 7 (should exclude commit 8).", func(t *testing.T) {
+		traces, commits, err := s.QueryLastNPoints(ctx, keys, 2, 7)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]types.Trace{
+			",arch=x86,config=8888,": {1.5, 2.5},
+			",arch=x86,config=565,":  {2.3, 3.3},
+		}, traces)
+		assert.Equal(t, map[string][]types.CommitNumber{
+			",arch=x86,config=8888,": {1, 3},
+			",arch=x86,config=565,":  {1, 3},
+		}, commits)
+	})
+
+	t.Run("Query last 5 points ending at commit 8 (only 3 points exist).", func(t *testing.T) {
+		traces, commits, err := s.QueryLastNPoints(ctx, keys, 5, 8)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]types.Trace{
+			",arch=x86,config=8888,": {1.5, 2.5, 3.5},
+			",arch=x86,config=565,":  {2.3, 3.3, 4.3},
+		}, traces)
+		assert.Equal(t, map[string][]types.CommitNumber{
+			",arch=x86,config=8888,": {1, 3, 8},
+			",arch=x86,config=565,":  {1, 3, 8},
+		}, commits)
+	})
+}

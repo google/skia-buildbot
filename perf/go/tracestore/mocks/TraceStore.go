@@ -238,6 +238,45 @@ func (_m *TraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) in
 	return r0
 }
 
+// QueryLastNPoints provides a mock function with given fields: ctx, traceIDs, n, endCommit
+func (_m *TraceStore) QueryLastNPoints(ctx context.Context, traceIDs []string, n int, endCommit types.CommitNumber) (map[string]types.Trace, map[string][]types.CommitNumber, error) {
+	ret := _m.Called(ctx, traceIDs, n, endCommit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for QueryLastNPoints")
+	}
+
+	var r0 map[string]types.Trace
+	var r1 map[string][]types.CommitNumber
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int, types.CommitNumber) (map[string]types.Trace, map[string][]types.CommitNumber, error)); ok {
+		return rf(ctx, traceIDs, n, endCommit)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int, types.CommitNumber) map[string]types.Trace); ok {
+		r0 = rf(ctx, traceIDs, n, endCommit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]types.Trace)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string, int, types.CommitNumber) map[string][]types.CommitNumber); ok {
+		r1 = rf(ctx, traceIDs, n, endCommit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(map[string][]types.CommitNumber)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, []string, int, types.CommitNumber) error); ok {
+		r2 = rf(ctx, traceIDs, n, endCommit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // QueryTraces provides a mock function with given fields: ctx, tileNumber, q, cache
 func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query, cache *tracecache.TraceCache) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error) {
 	ret := _m.Called(ctx, tileNumber, q, cache)

@@ -98,6 +98,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"text/template"
@@ -186,6 +187,7 @@ const (
 	getSource
 	getSources
 	readTraces
+	readLastNTraces
 	getLastNSources
 	deleteCommit
 	countCommitInCommitNumberRange
@@ -380,6 +382,24 @@ var statements = map[statement]string{
 		WHERE
 			commit_number = $1
 		`,
+	readLastNTraces: `
+        SELECT
+            t.trace_id,
+            ARRAY(
+                SELECT val FROM TraceValues
+                WHERE trace_id = t.trace_id AND commit_number <= $2
+                ORDER BY commit_number DESC
+                LIMIT $3
+            ) as values,
+            ARRAY(
+                SELECT commit_number FROM TraceValues
+                WHERE trace_id = t.trace_id AND commit_number <= $2
+                ORDER BY commit_number DESC
+                LIMIT $3
+            ) as commits
+        FROM
+            unnest($1::bytea[]) as t(trace_id)
+        `,
 }
 
 type timeProvider func() time.Time
@@ -874,6 +894,126 @@ func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames
 	close(traceNamesChannel)
 
 	return s.readTracesByChannelForCommitRange(ctx, traceNamesChannel, beginCommit, endCommit)
+}
+
+// QueryLastNPoints implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) QueryLastNPoints(ctx context.Context, traceNames []string, n int, endCommit types.CommitNumber) (map[string]types.Trace, map[string][]types.CommitNumber, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryLastNPoints")
+	defer span.End()
+	defer timer.New("QueryLastNPoints").Stop()
+
+	traceIdToNameMap, traceIDsForQuery := s.translateTraceNamesToIds(traceNames)
+	if len(traceIDsForQuery) == 0 {
+		return map[string]types.Trace{}, map[string][]types.CommitNumber{}, nil
+	}
+
+	// Results, protected by mutex.
+	var mutex sync.Mutex
+	resTraces := map[string]types.Trace{}
+	resCommits := map[string][]types.CommitNumber{}
+
+	// Initialize maps.
+	for _, name := range traceIdToNameMap {
+		resTraces[name] = vec32.New(0)
+		resCommits[name] = []types.CommitNumber{}
+	}
+
+	// Iterate over the traceIDs in chunks and query the database in parallel.
+	err := util.ChunkIterParallelPool(ctx, len(traceIDsForQuery), s.queryTracesChunkSize, s.queryTracesPoolSize, func(ctx context.Context, startIdx, endIdx int) error {
+		chunk := traceIDsForQuery[startIdx:endIdx]
+
+		// Execute the query.
+		queryCtx, querySpan := trace.StartSpan(ctx, "sqltracestore.QueryLastNPoints.Chunk.ExecuteSQLQuery")
+
+		rows, err := s.db.Query(queryCtx, s.statements[readLastNTraces], chunk, endCommit, n)
+		querySpan.End()
+		if err != nil {
+			return skerr.Wrapf(err, "SQL: %q", s.statements[readLastNTraces])
+		}
+		defer rows.Close()
+
+		localTraces, localCommits, err := readRowsFromreadLastNTraces(rows, traceIdToNameMap)
+		if err != nil {
+			return err
+		}
+
+		mutex.Lock()
+		defer mutex.Unlock()
+
+		for traceName, vals := range localTraces {
+			resTraces[traceName] = vals
+			resCommits[traceName] = localCommits[traceName]
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		span.SetStatus(trace.Status{
+			Code:    trace.StatusCodeInternal,
+			Message: err.Error(),
+		})
+		return nil, nil, skerr.Wrap(err)
+	}
+
+	return resTraces, resCommits, nil
+}
+
+func readRowsFromreadLastNTraces(rows pgx.Rows, traceIdToNameMap map[types.TraceIDForSQLInBytes]string) (map[string]types.Trace, map[string][]types.CommitNumber, error) {
+	localTraces := map[string]types.Trace{}
+	localCommits := map[string][]types.CommitNumber{}
+
+	var traceIDArray types.TraceIDForSQLInBytes
+	for rows.Next() {
+		var traceIDInBytes []byte
+		var vals []float32
+		var commits []int64
+
+		if err := rows.Scan(&traceIDInBytes, &vals, &commits); err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+
+		copy(traceIDArray[:], traceIDInBytes)
+		traceName := traceIdToNameMap[traceIDArray]
+
+		// Reverse to chronological order - we used order by desc in the sql.
+		slices.Reverse(vals)
+		slices.Reverse(commits)
+
+		localTraces[traceName] = vals
+
+		commitNumbers := make([]types.CommitNumber, len(commits))
+		for i, c := range commits {
+			commitNumbers[i] = types.CommitNumber(c)
+		}
+		localCommits[traceName] = commitNumbers
+	}
+	if err := rows.Err(); err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	return localTraces, localCommits, nil
+}
+
+// translateTraceNamesToIds, given a list of traceNames,
+// filters out corp-only traces in a public setting,
+// and returns a list of traceIDs, plus a mapping traceID->traceName
+func (s *SQLTraceStore) translateTraceNamesToIds(traceNames []string) (map[types.TraceIDForSQLInBytes]string, [][]byte) {
+	traceNameMap := map[types.TraceIDForSQLInBytes]string{}
+	traceIDsForQuery := [][]byte{}
+
+	for _, traceName := range traceNames {
+		if s.inMemoryTraceParams.ShowOnlyPublicTraces() && !s.inMemoryTraceParams.TraceAccessAllowed(traceName) {
+			continue
+		}
+		if !query.IsValid(traceName) {
+			sklog.Errorf("Invalid trace name: %q", traceName)
+			continue
+		}
+		traceIDBytes := types.TraceIDForSQLInBytesFromTraceName(traceName)
+		traceNameMap[traceIDBytes] = traceName
+		traceIDsForQuery = append(traceIDsForQuery, traceIDBytes[:])
+	}
+	return traceNameMap, traceIDsForQuery
 }
 
 // readTracesByChannelForCommitRange reads the traceNames from a channel so we
