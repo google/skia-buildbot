@@ -116,8 +116,8 @@ func NewClient(ctx context.Context, project, location, cheapModel, expensiveMode
 		location:         location,
 		cheapModel:       cheapModel,
 		expensiveModel:   expensiveModel,
-		cheapModelRL:     utils.NewRateLimiter(cheapRPM, cheapTPM),
-		expensiveModelRL: utils.NewRateLimiter(expensiveRPM, expensiveTPM),
+		cheapModelRL:     utils.NewRateLimiter(cheapRPM, cheapTPM, cheapModel),
+		expensiveModelRL: utils.NewRateLimiter(expensiveRPM, expensiveTPM, expensiveModel),
 		mcpClient:        mcpClient,
 		project:          project,
 		gcs:              gcs,
@@ -422,7 +422,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 	backoffOp := fmt.Sprintf("SendMessage/%s", debugObjectPath)
 	if err := utils.DoBackoff(backoffOp, func() error {
 		parts := []genai.Part{{Text: prompt}}
-		if err := rl.Wait(ctx, model, c.client, chat.History(false), parts); err != nil {
+		if err := rl.Wait(ctx, c.client, chat.History(false), parts); err != nil {
 			return skerr.Wrap(err)
 		}
 		resp, err = chat.SendMessage(ctx, parts...)
@@ -478,7 +478,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 			})
 		}
 		if err := utils.DoBackoff(backoffOp, func() error {
-			if err := rl.Wait(ctx, model, c.client, chat.History(false), toolResponses); err != nil {
+			if err := rl.Wait(ctx, c.client, chat.History(false), toolResponses); err != nil {
 				return skerr.Wrap(err)
 			}
 			resp, err = chat.SendMessage(ctx, toolResponses...)
@@ -499,7 +499,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 		// call with the JSON config.
 		history := chat.History(false)
 		// No new parts, just asking for the final structured output based on history.
-		if err := rl.Wait(ctx, model, c.client, history, nil); err != nil {
+		if err := rl.Wait(ctx, c.client, history, nil); err != nil {
 			return skerr.Wrap(err)
 		}
 		resp, err = c.client.Models.GenerateContent(ctx, model, history, finalConfig)

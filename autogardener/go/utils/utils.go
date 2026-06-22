@@ -36,18 +36,24 @@ func extractErrorMessage(err error) string {
 }
 
 type RateLimiter struct {
+	model          string
 	requestLimiter *rate.Limiter
+	requestCounter metrics2.Counter
 	tokenLimiter   *rate.Limiter
+	tokenCounter   metrics2.Counter
 }
 
-func NewRateLimiter(rpm, tpm int) *RateLimiter {
+func NewRateLimiter(rpm, tpm int, model string) *RateLimiter {
 	return &RateLimiter{
+		model:          model,
 		requestLimiter: rate.NewLimiter(rate.Limit(float64(rpm)/60.0), rpm),
+		requestCounter: metrics2.GetCounter("gemini-request-count", map[string]string{"model": model}),
 		tokenLimiter:   rate.NewLimiter(rate.Limit(float64(tpm)/60.0), tpm),
+		tokenCounter:   metrics2.GetCounter("gemini-token-count", map[string]string{"model": model}),
 	}
 }
 
-func (l *RateLimiter) Wait(ctx context.Context, model string, client *genai.Client, history []*genai.Content, parts []genai.Part) error {
+func (l *RateLimiter) Wait(ctx context.Context, client *genai.Client, history []*genai.Content, parts []genai.Part) error {
 	if err := l.requestLimiter.Wait(ctx); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -59,7 +65,7 @@ func (l *RateLimiter) Wait(ctx context.Context, model string, client *genai.Clie
 	contents := append(history, &genai.Content{
 		Parts: contentParts,
 	})
-	resp, err := client.Models.CountTokens(ctx, model, contents, nil)
+	resp, err := client.Models.CountTokens(ctx, l.model, contents, nil)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
