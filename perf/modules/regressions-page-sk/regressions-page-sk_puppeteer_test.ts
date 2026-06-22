@@ -71,14 +71,14 @@ describe('regressions-page-sk', () => {
   });
 
   describe('anomalies list', () => {
-    it('sheriff config 1: All anomalies are triaged!', async () => {
+    it('sheriff config 1: No anomalies to triage. (If you expect anomalies, make sure you are logged in.)', async () => {
       // https://screenshot.googleplex.com/3c9AgSN3MQKUtLo
       await regressionsPageSkPO.selectSheriff('Sheriff Config 1');
       const selector = 'anomalies-table-sk h1[id^="clear-msg-"]';
       await testBed.page.waitForSelector(selector, { visible: true });
       const clearMsg = await testBed.page.$(selector);
       expect(await (await clearMsg!.getProperty('innerText')).jsonValue()).to.equal(
-        'All anomalies are triaged!'
+        'No anomalies to triage. (If you expect anomalies, make sure you are logged in.)'
       );
     });
 

@@ -567,7 +567,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       </div>
       <keyboard-shortcuts-help-sk .handler=${this}></keyboard-shortcuts-help-sk>
       <h1 id="clear-msg-${this.uniqueId}" ?hidden=${this.anomalyList.length > 0 || this.loading}>
-        All anomalies are triaged!
+        No anomalies to triage. (If you expect anomalies, make sure you are logged in.)
       </h1>
     `;
   }
