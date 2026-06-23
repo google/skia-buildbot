@@ -72,5 +72,7 @@ func (l *RateLimiter) Wait(ctx context.Context, client *genai.Client, history []
 	if err := l.tokenLimiter.WaitN(ctx, int(resp.TotalTokens)); err != nil {
 		return skerr.Wrap(err)
 	}
+	l.requestCounter.Inc(1)
+	l.tokenCounter.Inc(int64(resp.TotalTokens))
 	return nil
 }
