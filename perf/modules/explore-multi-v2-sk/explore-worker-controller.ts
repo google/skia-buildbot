@@ -26,7 +26,12 @@ export class ExploreWorkerController {
   public init() {
     try {
       console.log('WorkerController: Creating Web Worker');
-      const workerUrl = (window as any).WORKER_URL || '/dist/explore-multi-v2-sk/filter.worker.js';
+      let workerUrl = (window as any).WORKER_URL || '/dist/explore-multi-v2-sk/filter.worker.js';
+      const version = (window as any).perf?.app_version;
+      if (version && !workerUrl.startsWith('data:')) {
+        const separator = workerUrl.includes('?') ? '&' : '?';
+        workerUrl = `${workerUrl}${separator}v=${version}`;
+      }
 
       const setupWorker = (w: Worker) => {
         this.worker = w;
