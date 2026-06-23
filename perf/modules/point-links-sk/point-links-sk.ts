@@ -48,6 +48,18 @@ export interface CommitLinks {
   fetched?: boolean;
 }
 
+export function sanitizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url, window.location.href);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return url;
+    }
+  } catch (e) {
+    console.log(`sanitize url error: ${e}`);
+  }
+  return '#';
+}
+
 export class PointLinksSk extends LitElement {
   protected createRenderRoot() {
     return this;
@@ -92,16 +104,27 @@ export class PointLinksSk extends LitElement {
       .replace('Trace Iteration', 'Trace')
       .replace('Device fingerprint', 'Fingerprint')
       .replace('Profiling Traces and Test Artifacts', 'Artifacts');
-    let linkText = this.displayTexts![key] || 'Link';
+    let linkText = this.displayTexts![key];
+    let href = link;
+
+    const mdLinkRegex = /^\[(.*?)\]\((.*?)\)$/;
+    const match = link.match(mdLinkRegex);
     // This is a specific change for just v8.
     if (keyText === 'V8') {
       const isRange = await this.isRange(link);
       if (!isRange && linkText.includes(' - ')) {
         linkText = linkText.split(' - ')[1];
       }
+    } else {
+      if (match) {
+        href = match[2];
+      }
+      if (!linkText) {
+        linkText = 'Link';
+      }
     }
     const htmlUrl = html`<a
-      href="${link}"
+      href="${sanitizeUrl(href)}"
       title="${linkText}"
       style="cursor: pointer;"
       target="_blank"
@@ -110,7 +133,7 @@ export class PointLinksSk extends LitElement {
     // generate text contents
     return html` <li>
       <span id="tooltip-key">${keyText}</span>
-      <span id="tooltip-text"> ${link.startsWith('http') ? htmlUrl : link} </span>
+      <span id="tooltip-text"> ${href.startsWith('http') ? htmlUrl : link} </span>
     </li>`;
   }
 

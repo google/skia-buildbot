@@ -1,7 +1,7 @@
 import './index';
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { CommitLinks, PointLinksSk } from './point-links-sk';
+import { CommitLinks, PointLinksSk, sanitizeUrl } from './point-links-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { CommitNumber } from '../json';
@@ -398,6 +398,70 @@ describe('point-links-sk', () => {
         []
       );
       assert.deepEqual(expectedLinks, element.displayUrls);
+    });
+
+    it('renders markdown links correctly', async () => {
+      const keysForCommitRange = [''];
+      const keysForUsefulLinks = ['Benchmark Config'];
+      const returnLinks = {
+        'Benchmark Config':
+          '[Benchmark config](https://chrome-internal.googlesource.com/v8/v8-perf/+/f885626a1c24339760cf4fe96c3d5f4b1ef93048/benchmarks/JetStream/JetStream2.json)',
+      };
+      fetchMock.post('/_/links/', {
+        version: 1,
+        links: returnLinks,
+      });
+
+      const currentCommitId = CommitNumber(4);
+      const prevCommitId = CommitNumber(3);
+
+      await element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks,
+        []
+      );
+
+      // Wait for LitElement rendering and 'until' directive to resolve.
+      await element.updateComplete;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const keyEl = element.querySelector('#tooltip-key');
+      const textEl = element.querySelector('#tooltip-text');
+      assert.isNotNull(keyEl);
+      assert.isNotNull(textEl);
+      assert.equal(keyEl!.textContent?.trim(), 'Benchmark Config');
+
+      const linkEl = textEl!.querySelector('a');
+      assert.isNotNull(linkEl);
+      assert.equal(
+        linkEl!.getAttribute('href'),
+        'https://chrome-internal.googlesource.com/v8/v8-perf/+/f885626a1c24339760cf4fe96c3d5f4b1ef93048/benchmarks/JetStream/JetStream2.json'
+      );
+      assert.equal(linkEl!.textContent?.trim(), 'Link');
+    });
+  });
+
+  describe('sanitizeUrl', () => {
+    it('allows safe http/https URLs', () => {
+      assert.equal(sanitizeUrl('http://example.com'), 'http://example.com');
+      assert.equal(
+        sanitizeUrl('https://example.com/foo?bar=baz'),
+        'https://example.com/foo?bar=baz'
+      );
+    });
+
+    it('allows relative URLs', () => {
+      assert.equal(sanitizeUrl('/foo/bar'), '/foo/bar');
+      assert.equal(sanitizeUrl('baz'), 'baz');
+    });
+
+    it('blocks unsafe protocols', () => {
+      assert.equal(sanitizeUrl('javascript:alert(1)'), '#');
+      assert.equal(sanitizeUrl('data:text/html,<html>'), '#');
+      assert.equal(sanitizeUrl('vbscript:msgbox'), '#');
     });
   });
 });
