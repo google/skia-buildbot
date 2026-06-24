@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -48,15 +47,15 @@ func NewRateLimiter(rpm, tpm int, model string) *RateLimiter {
 	return &RateLimiter{
 		model:          model,
 		requestLimiter: rate.NewLimiter(rate.Limit(float64(rpm)/60.0), rpm),
-		requestCounter: metrics2.GetCounter("gemini-request-count", map[string]string{"model": model}),
+		requestCounter: metrics2.GetCounter("gemini_request_count", map[string]string{"model": model}),
 		tokenLimiter:   rate.NewLimiter(rate.Limit(float64(tpm)/60.0), tpm),
-		tokenCounter:   metrics2.GetCounter("gemini-token-count", map[string]string{"model": model}),
+		tokenCounter:   metrics2.GetCounter("gemini_token_count", map[string]string{"model": model}),
 	}
 }
 
 // Wait for the given request to be able to run. Returns the estimated token
 // count for the request.
-func (l *RateLimiter) Wait(ctx context.Context, client *genai.Client, history []*genai.Content, parts []genai.Part, config *genai.GenerateContentConfig) (int32, error) {
+func (l *RateLimiter) Wait(ctx context.Context, client *genai.Client, history []*genai.Content, parts []genai.Part) (int32, error) {
 	if err := l.requestLimiter.Wait(ctx); err != nil {
 		return 0, skerr.Wrap(err)
 	}
@@ -68,11 +67,6 @@ func (l *RateLimiter) Wait(ctx context.Context, client *genai.Client, history []
 	contents := append(history, &genai.Content{
 		Parts: contentParts,
 	})
-	configJSON, err := json.Marshal(config)
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	contents = append(contents, genai.NewContentFromBytes(configJSON, "application/json", genai.RoleUser))
 	resp, err := client.Models.CountTokens(ctx, l.model, contents, nil)
 	if err != nil {
 		return 0, skerr.Wrap(err)
@@ -85,13 +79,22 @@ func (l *RateLimiter) Wait(ctx context.Context, client *genai.Client, history []
 	return resp.TotalTokens, nil
 }
 
-func (l *RateLimiter) WaitTokens(ctx context.Context, tokens int32) error {
+// RecordResponseTokens runs after a given request runs. It initiates a Wait()
+// which does not block the current goroutine but ensures that the response
+// tokens are accounted for.
+func (l *RateLimiter) RecordResponseTokens(ctx context.Context, tokens int32) error {
 	if tokens <= 0 {
+		sklog.Warningf("RecordResponseTokens called with non-positive token count %d", tokens)
 		return nil
 	}
-	if err := l.tokenLimiter.WaitN(ctx, int(tokens)); err != nil {
-		return skerr.Wrap(err)
-	}
 	l.tokenCounter.Inc(int64(tokens))
+
+	// Call WaitN in a goroutine to ensure that the response tokens are
+	// accounted for when triggering future requests, but to avoid blocking the
+	// current goroutine.
+	go func() {
+		_ = l.tokenLimiter.WaitN(ctx, int(tokens))
+	}()
+
 	return nil
 }

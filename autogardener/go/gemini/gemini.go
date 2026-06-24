@@ -279,7 +279,7 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
 		mcp.GetLogLinesTool(logsByStep),
 	}, allowedTools)
 	var res types.TaskSummary
-	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, fmt.Sprintf("GetTaskSummary/%s", task.Id), &res); err != nil {
+	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, "GetTaskSummary", fmt.Sprintf("GetTaskSummary/%s", task.Id), &res); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &res, nil
@@ -388,12 +388,12 @@ func (c *clientImpl) fetchStepLogs(ctx context.Context, tool string, toolArgs ma
 
 // generateWithBackoffAndRateLimiting calls the given function inside a
 // backoff+retry loop
-func (c *clientImpl) generateWithBackoffAndRateLimiting(ctx context.Context, opName string, rl *utils.RateLimiter, config *genai.GenerateContentConfig, history []*genai.Content, parts []genai.Part, fn func() (*genai.GenerateContentResponse, error)) (*genai.GenerateContentResponse, error) {
+func (c *clientImpl) generateWithBackoffAndRateLimiting(ctx context.Context, opName string, rl *utils.RateLimiter, history []*genai.Content, parts []genai.Part, fn func() (*genai.GenerateContentResponse, error)) (*genai.GenerateContentResponse, error) {
 	var resp *genai.GenerateContentResponse
 	err := utils.DoBackoff(opName, func() error {
 		// Estimate the tokens used by the prompt and rate-limit ourselves to
 		// prevent exceeding quota.
-		estTokens, err := rl.Wait(ctx, c.client, history, parts, config)
+		estTokens, err := rl.Wait(ctx, c.client, history, parts)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
@@ -403,12 +403,32 @@ func (c *clientImpl) generateWithBackoffAndRateLimiting(ctx context.Context, opN
 		}
 		// The response also counts against our quota. We'll rate-limit ourselves
 		// again to ensure that we stay under quota.
-		if resp != nil && resp.UsageMetadata != nil {
-			// Use the difference between our estimated prompt token usage and the
-			// actual total token usage for the request and response, in case we
-			// estimated incorrectly.
-			if err := rl.WaitTokens(ctx, resp.UsageMetadata.TotalTokenCount-estTokens); err != nil {
-				return skerr.Wrap(err)
+		if resp != nil {
+			if resp.UsageMetadata != nil {
+				sklog.Debugf(`Token Usage for %q:
+Prompt: %d (actual) - %d (estimated) = %d (diff)
+Cached:     %d
+Candidates: %d
+Thoughts:   %d
+Tool Usage: %d
+Total:      %d
+`,
+					opName,
+					resp.UsageMetadata.PromptTokenCount, estTokens, resp.UsageMetadata.PromptTokenCount-estTokens,
+					resp.UsageMetadata.CachedContentTokenCount,
+					resp.UsageMetadata.CandidatesTokenCount,
+					resp.UsageMetadata.ThoughtsTokenCount,
+					resp.UsageMetadata.ToolUsePromptTokenCount,
+					resp.UsageMetadata.TotalTokenCount,
+				)
+				// Use the difference between our estimated prompt token usage and the
+				// actual total token usage for the request and response, in case we
+				// estimated incorrectly.
+				if err := rl.RecordResponseTokens(ctx, resp.UsageMetadata.TotalTokenCount-estTokens); err != nil {
+					return skerr.Wrap(err)
+				}
+			} else {
+				sklog.Warningf("resp.UsageMetadata is nil!")
 			}
 		}
 		return err
@@ -416,7 +436,10 @@ func (c *clientImpl) generateWithBackoffAndRateLimiting(ctx context.Context, opN
 	return resp, skerr.Wrap(err)
 }
 
-func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *utils.RateLimiter, mcpClient mcp.MCPClient, debugObjectPath string, result interface{}) (rvErr error) {
+func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *utils.RateLimiter, mcpClient mcp.MCPClient, opName, debugObjectPath string, result interface{}) (rvErr error) {
+	metrics2.GetCounter("autogardener_generate_count", map[string]string{"op": opName}).Inc(1)
+	requestCounter := metrics2.GetCounter("autogardener_generate_request_count", map[string]string{"op": opName})
+
 	// Gemini doesn't use MCP tools directly. Rather, it returns requests to use
 	// tools as part of its response, expecting to see the results of those tool
 	// calls in our next message. Therefore, we need to repeatedly send messages
@@ -448,9 +471,9 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 		return skerr.Wrap(err)
 	}
 
-	backoffOp := fmt.Sprintf("SendMessage/%s", debugObjectPath)
 	parts := []genai.Part{{Text: prompt}}
-	resp, err := c.generateWithBackoffAndRateLimiting(ctx, backoffOp, rl, config, chat.History(false), parts, func() (*genai.GenerateContentResponse, error) {
+	resp, err := c.generateWithBackoffAndRateLimiting(ctx, opName, rl, chat.History(false), parts, func() (*genai.GenerateContentResponse, error) {
+		requestCounter.Inc(1)
 		return chat.SendMessage(ctx, parts...)
 	})
 	if err != nil {
@@ -501,7 +524,8 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 				Result: sb.String(),
 			})
 		}
-		resp, err = c.generateWithBackoffAndRateLimiting(ctx, backoffOp, rl, config, chat.History(false), toolResponses, func() (*genai.GenerateContentResponse, error) {
+		resp, err = c.generateWithBackoffAndRateLimiting(ctx, opName, rl, chat.History(false), toolResponses, func() (*genai.GenerateContentResponse, error) {
+			requestCounter.Inc(1)
 			return chat.SendMessage(ctx, toolResponses...)
 		})
 		if err != nil {
@@ -516,7 +540,8 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 		ResponseJsonSchema: jsonschema.Reflect(result),
 	}
 	// No new parts, just asking for the final structured output based on history.
-	resp, err = c.generateWithBackoffAndRateLimiting(ctx, backoffOp, rl, finalConfig, chat.History(false), nil, func() (*genai.GenerateContentResponse, error) {
+	resp, err = c.generateWithBackoffAndRateLimiting(ctx, opName, rl, chat.History(false), nil, func() (*genai.GenerateContentResponse, error) {
+		requestCounter.Inc(1)
 		return c.client.Models.GenerateContent(ctx, model, chat.History(false), finalConfig)
 	})
 	if err != nil {
