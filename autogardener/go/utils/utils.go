@@ -53,11 +53,9 @@ func NewRateLimiter(rpm, tpm int, model string) *RateLimiter {
 	}
 }
 
-// Wait for the given request to be able to run. Returns the estimated token
-// count for the request.
-func (l *RateLimiter) Wait(ctx context.Context, client *genai.Client, history []*genai.Content, parts []genai.Part, config *genai.GenerateContentConfig) (int32, error) {
+func (l *RateLimiter) Wait(ctx context.Context, client *genai.Client, history []*genai.Content, parts []genai.Part) error {
 	if err := l.requestLimiter.Wait(ctx); err != nil {
-		return 0, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 	contentParts := make([]*genai.Part, 0, len(parts))
 	for _, p := range parts {
@@ -67,29 +65,14 @@ func (l *RateLimiter) Wait(ctx context.Context, client *genai.Client, history []
 	contents := append(history, &genai.Content{
 		Parts: contentParts,
 	})
-	resp, err := client.Models.CountTokens(ctx, l.model, contents, &genai.CountTokensConfig{
-		HTTPOptions:       config.HTTPOptions,
-		SystemInstruction: config.SystemInstruction,
-		Tools:             config.Tools,
-	})
+	resp, err := client.Models.CountTokens(ctx, l.model, contents, nil)
 	if err != nil {
-		return 0, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 	if err := l.tokenLimiter.WaitN(ctx, int(resp.TotalTokens)); err != nil {
-		return resp.TotalTokens, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 	l.requestCounter.Inc(1)
 	l.tokenCounter.Inc(int64(resp.TotalTokens))
-	return resp.TotalTokens, nil
-}
-
-func (l *RateLimiter) WaitTokens(ctx context.Context, tokens int32) error {
-	if tokens <= 0 {
-		return nil
-	}
-	if err := l.tokenLimiter.WaitN(ctx, int(tokens)); err != nil {
-		return skerr.Wrap(err)
-	}
-	l.tokenCounter.Inc(int64(tokens))
 	return nil
 }
