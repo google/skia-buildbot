@@ -36,7 +36,7 @@
         <mat-card-title>Benchmark Configuration</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <div>
+        <div class="field-container">
           <mat-form-field matTooltip="The swarming bot configuration on which the benchmark will be executed.">
             <mat-label>Bot</mat-label>
             <input matInput [formControlName]="Field.Bot" placeholder="e.g. win-11-perf" required [matAutocomplete]="auto" />
@@ -52,9 +52,12 @@
               <mat-error>Please select a bot from the list of available configurations</mat-error>
             }
           </mat-form-field>
+          @if (loading.bots()) {
+            <mat-progress-bar mode="indeterminate" class="field-progress-bar"></mat-progress-bar>
+          }
         </div>
 
-        <div>
+        <div class="field-container">
           <mat-form-field matTooltip="The performance benchmark suite to execute (e.g. speedometer3, jetstream2).">
             <mat-label>Benchmark</mat-label>
             <input matInput [formControlName]="Field.Benchmark" placeholder="e.g. speedometer3.1.crossbench" required [matAutocomplete]="autoBenchmark" />
@@ -70,9 +73,12 @@
               <mat-error>Please select a benchmark from the list of available suites</mat-error>
             }
           </mat-form-field>
+          @if (loading.benchmarks()) {
+            <mat-progress-bar mode="indeterminate" class="field-progress-bar"></mat-progress-bar>
+          }
         </div>
 
-        <div>
+        <div class="field-container">
           <mat-form-field matTooltip="The specific story or sub-test within the benchmark suite to execute.">
             <mat-label>Story</mat-label>
             <input matInput [formControlName]="Field.Story" placeholder="e.g. Speedometer3" [matAutocomplete]="autoStory" />
@@ -83,9 +89,12 @@
             </mat-autocomplete>
             <mat-error>Story is required</mat-error>
           </mat-form-field>
+          @if (loading.stories()) {
+            <mat-progress-bar mode="indeterminate" class="field-progress-bar"></mat-progress-bar>
+          }
         </div>
 
-        <div>
+        <div class="field-container">
           <mat-form-field matTooltip="A comma-separated list of tags to filter and run a subset of benchmark stories.">
             <mat-label>Story tags (optional)</mat-label>
             <input matInput [formControlName]="Field.StoryTags" placeholder="e.g. all, infinite_scroll" [matAutocomplete]="autoStoryTags" />
@@ -95,6 +104,9 @@
               }
             </mat-autocomplete>
           </mat-form-field>
+          @if (loading.storyTags()) {
+            <mat-progress-bar mode="indeterminate" class="field-progress-bar"></mat-progress-bar>
+          }
         </div>
       </mat-card-content>
     </mat-card>
@@ -104,7 +116,7 @@
         <mat-card-title>Baseline</mat-card-title>
       </mat-card-header>
       <mat-card-content [formGroupName]="Variant.Baseline">
-        <div>
+        <div class="field-container">
           <mat-form-field matTooltip="The git commit hash, revision, or HEAD to use as the baseline.">
             <mat-label>Commit</mat-label>
             <input matInput [formControlName]="Field.Commit" placeholder="e.g. abcd1234 or HEAD" required [matAutocomplete]="autoBaselineCommit" />
@@ -133,9 +145,17 @@
               <mat-error>Invalid commit</mat-error>
             }
           </mat-form-field>
+          @if (loading.recentBuilds()) {
+            <mat-progress-bar mode="indeterminate" class="field-progress-bar"></mat-progress-bar>
+          }
         </div>
 
-        @if (baselineCommitInfo()) {
+        @if (loading.baselineCommit()) {
+          <div class="loading-info">
+            <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+            <span>Fetching commit details...</span>
+          </div>
+        } @else if (baselineCommitInfo()) {
           <div class="commit-info">
             <div>
               <a [href]="baselineCommitInfo().url" target="_blank">{{ baselineCommitInfo().gitHash.substring(0, 10) }}</a>
@@ -172,7 +192,12 @@
             </mat-form-field>
           </div>
 
-          @if (baselinePatchInfo()) {
+          @if (loading.baselinePatch()) {
+            <div class="loading-info">
+              <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+              <span>Fetching patch details...</span>
+            </div>
+          } @else if (baselinePatchInfo()) {
             <div class="commit-info">
               <div>
                 <a [href]="getPatchUrl(baselinePatchInfo())" target="_blank">
@@ -247,7 +272,12 @@
           </mat-form-field>
         </div>
 
-        @if (experimentPatchInfo()) {
+        @if (loading.experimentPatch()) {
+          <div class="loading-info">
+            <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+            <span>Fetching patch details...</span>
+          </div>
+        } @else if (experimentPatchInfo()) {
           <div class="commit-info">
             <div>
               <a [href]="getPatchUrl(experimentPatchInfo())" target="_blank">
@@ -271,7 +301,7 @@
             </mat-panel-title>
           </mat-expansion-panel-header>
 
-          <div>
+          <div class="field-container">
             <mat-form-field matTooltip="The git commit hash, revision, or HEAD to use as the experiment base.
             If left blank, it defaults to the baseline commit.">
               <mat-label>Commit (optional)</mat-label>
@@ -298,9 +328,17 @@
                 <mat-error>Invalid commit</mat-error>
               }
             </mat-form-field>
+            @if (loading.recentBuilds()) {
+              <mat-progress-bar mode="indeterminate" class="field-progress-bar"></mat-progress-bar>
+            }
           </div>
 
-          @if (experimentCommitInfo()) {
+          @if (loading.experimentCommit()) {
+            <div class="loading-info">
+              <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+              <span>Fetching commit details...</span>
+            </div>
+          } @else if (experimentCommitInfo()) {
             <div class="commit-info">
               <div>
                 <a [href]="experimentCommitInfo().url" target="_blank">{{ experimentCommitInfo().gitHash.substring(0, 10) }}</a>

@@ -318,8 +318,11 @@ describe('NewJobComponent', () => {
     const component = createComponent(gateway);
 
     component.ngOnInit();
+    assert.isTrue(component.loading.bots());
+
     tick();
 
+    assert.isFalse(component.loading.bots());
     assert.deepEqual(component.bots(), ['bot1', 'bot2']);
     assert.deepEqual(component.filteredBots(), ['bot1', 'bot2']);
   }));
@@ -376,8 +379,11 @@ describe('NewJobComponent', () => {
     const component = createComponent(gateway);
 
     component.ngOnInit();
+    assert.isTrue(component.loading.benchmarks());
+
     tick();
 
+    assert.isFalse(component.loading.benchmarks());
     assert.deepEqual(component.benchmarks(), ['bench1', 'bench2']);
     assert.deepEqual(component.filteredBenchmarks(), ['bench1', 'bench2']);
   }));
@@ -439,8 +445,13 @@ describe('NewJobComponent', () => {
     tick();
 
     component.jobForm.get(Field.Benchmark)?.setValue('speedometer3');
+    assert.isTrue(component.loading.stories());
+    assert.isTrue(component.loading.storyTags());
+
     tick();
 
+    assert.isFalse(component.loading.stories());
+    assert.isFalse(component.loading.storyTags());
     assert.isTrue(gateway.GetBenchmark.calledWith({ benchmark: 'speedometer3' }));
     assert.deepEqual(component.stories(), ['story1', 'story2']);
     assert.deepEqual(component.storyTags(), ['tag1']);
@@ -556,6 +567,61 @@ describe('NewJobComponent', () => {
     assert.deepEqual(component.filteredStoryTags(), ['tag1', 'another-tag']);
   }));
 
+  it('should discard benchmark details if the benchmark changes while loading', fakeAsync(() => {
+    let resolveBenchmark1: (value: any) => void;
+    const promise1 = new Promise((r) => {
+      resolveBenchmark1 = r;
+    });
+    let resolveBenchmark2: (value: any) => void;
+    const promise2 = new Promise((r) => {
+      resolveBenchmark2 = r;
+    });
+
+    const gateway = {
+      ListBenchmarks: sinon.stub().resolves({ benchmarks: ['bench-a', 'bench-b'] }),
+      GetBenchmark: sinon.stub().onFirstCall().returns(promise1).onSecondCall().returns(promise2),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    // 1. Select bench-a
+    component.jobForm.get(Field.Benchmark)?.setValue('bench-a');
+    assert.isTrue(component.loading.stories());
+    assert.isTrue(component.loading.storyTags());
+
+    // 2. Select bench-b
+    component.jobForm.get(Field.Benchmark)?.setValue('bench-b');
+    assert.isTrue(component.loading.stories());
+    assert.isTrue(component.loading.storyTags());
+
+    // 3. Resolve first request (bench-a)
+    resolveBenchmark1!({
+      stories: ['story-a'],
+      storyTags: ['tag-a'],
+      benchmark: 'bench-a',
+    });
+    tick();
+
+    // Should be discarded
+    assert.deepEqual(component.stories(), []);
+    assert.deepEqual(component.storyTags(), []);
+    assert.isTrue(component.loading.stories());
+
+    // 4. Resolve second request (bench-b)
+    resolveBenchmark2!({
+      stories: ['story-b'],
+      storyTags: ['tag-b'],
+      benchmark: 'bench-b',
+    });
+    tick();
+
+    // Should be applied
+    assert.deepEqual(component.stories(), ['story-b']);
+    assert.deepEqual(component.storyTags(), ['tag-b']);
+    assert.isFalse(component.loading.stories());
+  }));
+
   it('should filter baseline and experiment commits based on input query', fakeAsync(() => {
     const component = createComponent();
     const builds: BuildInfo[] = [
@@ -637,19 +703,25 @@ describe('NewJobComponent', () => {
       { gitHash: 'commit2', buildNumber: 2, created: '2026-06-11T14:23:10Z' },
       { gitHash: 'commit1', buildNumber: 1, created: '2026-06-11T14:28:34Z' },
     ];
+    let resolveRecentBuilds: (value: any) => void;
+    const recentBuildsPromise = new Promise((r) => {
+      resolveRecentBuilds = r;
+    });
     const gateway = {
       ListBotConfigurations: sinon.stub().resolves({ configurations: ['linux-perf'] }),
-      ListRecentBuilds: sinon.stub().resolves({
-        builds: rawCommits,
-      }),
+      ListRecentBuilds: sinon.stub().returns(recentBuildsPromise),
     };
     const component = createComponent(gateway);
     component.ngOnInit();
     tick();
 
     component.jobForm.get(Field.Bot)?.setValue('linux-perf');
+    assert.isTrue(component.loading.recentBuilds());
+
+    resolveRecentBuilds!({ builds: rawCommits });
     tick();
 
+    assert.isFalse(component.loading.recentBuilds());
     assert.isTrue(gateway.ListRecentBuilds.calledWith({ configuration: 'linux-perf' }));
     assert.deepEqual(component.recentBuilds(), expectedCommits);
   }));
@@ -687,6 +759,60 @@ describe('NewJobComponent', () => {
     assert.equal(component.jobForm.get([Variant.Experiment, Field.Commit])?.value, '');
   }));
 
+  it('should discard recent builds if the bot changes while loading', fakeAsync(() => {
+    let resolveRecentBuilds1: (value: any) => void;
+    const promise1 = new Promise((r) => {
+      resolveRecentBuilds1 = r;
+    });
+    let resolveRecentBuilds2: (value: any) => void;
+    const promise2 = new Promise((r) => {
+      resolveRecentBuilds2 = r;
+    });
+
+    const gateway = {
+      ListBotConfigurations: sinon.stub().resolves({ configurations: ['bot-a', 'bot-b'] }),
+      ListRecentBuilds: sinon
+        .stub()
+        .onFirstCall()
+        .returns(promise1)
+        .onSecondCall()
+        .returns(promise2),
+    };
+    const component = createComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    // 1. Select bot-a
+    component.jobForm.get(Field.Bot)?.setValue('bot-a');
+    assert.isTrue(component.loading.recentBuilds());
+
+    // 2. Select bot-b
+    component.jobForm.get(Field.Bot)?.setValue('bot-b');
+    assert.isTrue(component.loading.recentBuilds());
+
+    // 3. Resolve the first request (for bot-a)
+    resolveRecentBuilds1!({
+      builds: [{ gitHash: 'hash-a', buildNumber: 1, created: '2026-06-11T14:28:34Z' }],
+    });
+    tick();
+
+    // The results of bot-a should be discarded because current is bot-b
+    assert.deepEqual(component.recentBuilds(), []);
+    assert.isTrue(component.loading.recentBuilds());
+
+    // 4. Resolve the second request (for bot-b)
+    resolveRecentBuilds2!({
+      builds: [{ gitHash: 'hash-b', buildNumber: 2, created: '2026-06-11T14:28:34Z' }],
+    });
+    tick();
+
+    // The results of bot-b should be applied
+    assert.deepEqual(component.recentBuilds(), [
+      { gitHash: 'hash-b', buildNumber: 2, created: '2026-06-11T14:28:34Z' },
+    ]);
+    assert.isFalse(component.loading.recentBuilds());
+  }));
+
   it('should fetch commit info and clear error on successful GetCommit', fakeAsync(() => {
     const mockCommitResponse = {
       repository: 'chromium',
@@ -701,8 +827,12 @@ describe('NewJobComponent', () => {
       reviewUrl: 'http://review',
       changeId: 'I1234',
     };
+    let resolveCommit: (value: any) => void;
+    const commitPromise = new Promise((r) => {
+      resolveCommit = r;
+    });
     const gateway = {
-      GetCommit: sinon.stub().resolves(mockCommitResponse),
+      GetCommit: sinon.stub().returns(commitPromise),
     };
     const component = createComponent(gateway);
     component.ngOnInit();
@@ -710,8 +840,15 @@ describe('NewJobComponent', () => {
 
     const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
     baselineCommit.setValue('abcdef0123456789abcdef0123456789abcdef01');
-    tick(INPUT_DEBOUNCE_TIME_MS);
+    assert.isFalse(component.loading.baselineCommit());
 
+    tick(INPUT_DEBOUNCE_TIME_MS);
+    assert.isTrue(component.loading.baselineCommit());
+
+    resolveCommit!(mockCommitResponse);
+    tick();
+
+    assert.isFalse(component.loading.baselineCommit());
     assert.isTrue(
       gateway.GetCommit.calledWith({ commit: 'abcdef0123456789abcdef0123456789abcdef01' })
     );
@@ -720,8 +857,12 @@ describe('NewJobComponent', () => {
   }));
 
   it('should set invalidCommit error and clear commit info on failed GetCommit', fakeAsync(() => {
+    let rejectCommit: (err: any) => void;
+    const commitPromise = new Promise((_, r) => {
+      rejectCommit = r;
+    });
     const gateway = {
-      GetCommit: sinon.stub().rejects(new Error('Commit not found')),
+      GetCommit: sinon.stub().returns(commitPromise),
     };
     const component = createComponent(gateway);
     component.ngOnInit();
@@ -729,8 +870,15 @@ describe('NewJobComponent', () => {
 
     const baselineCommit = component.jobForm.get([Variant.Baseline, Field.Commit])!;
     baselineCommit.setValue('abcdef0123456789abcdef0123456789abcdef01');
-    tick(INPUT_DEBOUNCE_TIME_MS);
+    assert.isFalse(component.loading.baselineCommit());
 
+    tick(INPUT_DEBOUNCE_TIME_MS);
+    assert.isTrue(component.loading.baselineCommit());
+
+    rejectCommit!(new Error('Commit not found'));
+    tick();
+
+    assert.isFalse(component.loading.baselineCommit());
     assert.isTrue(
       gateway.GetCommit.calledWith({ commit: 'abcdef0123456789abcdef0123456789abcdef01' })
     );
@@ -1134,8 +1282,12 @@ describe('NewJobComponent', () => {
         subject: 'Commit message',
         created: '2026-01-01 00:00:00.000000',
       };
+      let resolvePatch: (value: any) => void;
+      const patchPromise = new Promise((r) => {
+        resolvePatch = r;
+      });
       const gateway = {
-        GetPatch: sinon.stub().resolves(mockPatchResponse),
+        GetPatch: sinon.stub().returns(patchPromise),
       };
       const component = createComponent(gateway);
       component.ngOnInit();
@@ -1143,8 +1295,15 @@ describe('NewJobComponent', () => {
 
       const baselinePatch = component.jobForm.get([Variant.Baseline, Field.Patch])!;
       baselinePatch.setValue('123456/3');
-      tick(INPUT_DEBOUNCE_TIME_MS);
+      assert.isFalse(component.loading.baselinePatch());
 
+      tick(INPUT_DEBOUNCE_TIME_MS);
+      assert.isTrue(component.loading.baselinePatch());
+
+      resolvePatch!(mockPatchResponse);
+      tick();
+
+      assert.isFalse(component.loading.baselinePatch());
       assert.isTrue(
         gateway.GetPatch.calledWith({
           host: 'https://chromium-review.googlesource.com',
@@ -1161,8 +1320,12 @@ describe('NewJobComponent', () => {
     }));
 
     it('should set invalidPatch error and clear patch info on failed GetPatch', fakeAsync(() => {
+      let rejectPatch: (err: any) => void;
+      const patchPromise = new Promise((_, r) => {
+        rejectPatch = r;
+      });
       const gateway = {
-        GetPatch: sinon.stub().rejects(new Error('Patch not found')),
+        GetPatch: sinon.stub().returns(patchPromise),
       };
       const component = createComponent(gateway);
       component.ngOnInit();
@@ -1170,8 +1333,15 @@ describe('NewJobComponent', () => {
 
       const baselinePatch = component.jobForm.get([Variant.Baseline, Field.Patch])!;
       baselinePatch.setValue('123456');
-      tick(INPUT_DEBOUNCE_TIME_MS);
+      assert.isFalse(component.loading.baselinePatch());
 
+      tick(INPUT_DEBOUNCE_TIME_MS);
+      assert.isTrue(component.loading.baselinePatch());
+
+      rejectPatch!(new Error('Patch not found'));
+      tick();
+
+      assert.isFalse(component.loading.baselinePatch());
       assert.isTrue(
         gateway.GetPatch.calledWith({
           host: 'https://chromium-review.googlesource.com',

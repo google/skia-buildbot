@@ -34,6 +34,23 @@ mat-form-field {
   width: 100%;
 }
 
+/* Displays field progress bars in the fields. */
+.field-container {
+  position: relative;
+}
+
+.field-progress-bar {
+  position: absolute;
+  bottom: 20px;
+}
+
+/* Configures commit info and patch info loading indicators and messages. */
+.loading-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Formats adjacent form fields in a horizontal row. */
 .fields-row {
   display: flex;

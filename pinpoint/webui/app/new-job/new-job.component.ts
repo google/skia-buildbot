@@ -29,6 +29,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { GatewayService } from '../gateway/gateway.service';
 import { parsePatch } from './patch-parser';
@@ -105,6 +106,7 @@ interface PatchInfo {
     MatTooltipModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatAutocompleteModule,
   ],
   templateUrl: './new-job.component.html',
@@ -199,28 +201,48 @@ export class NewJobComponent implements OnInit {
     this.fuzzyMatch(this.experimentCommitQuery(), CommitOption.Head)
   );
 
+  readonly loading = {
+    bots: signal(false),
+    benchmarks: signal(false),
+    stories: signal(false),
+    storyTags: signal(false),
+    recentBuilds: signal(false),
+    baselineCommit: signal(false),
+    baselinePatch: signal(false),
+    experimentCommit: signal(false),
+    experimentPatch: signal(false),
+  };
+
   constructor() {
     effect(() => {
-      const builds = this.recentBuilds();
-      const baselineCommitControl = this.jobForm.get([Variant.Baseline, Field.Commit])!;
-      this.resolveRecentCommit(builds, baselineCommitControl, this.baselineCommitInfo);
+      this.resolveRecentCommit(
+        this.recentBuilds(),
+        this.jobForm.get([Variant.Baseline, Field.Commit])!,
+        this.baselineCommitInfo,
+        this.loading.baselineCommit
+      );
 
-      const experimentCommitControl = this.jobForm.get([Variant.Experiment, Field.Commit])!;
-      this.resolveRecentCommit(builds, experimentCommitControl, this.experimentCommitInfo);
+      this.resolveRecentCommit(
+        this.recentBuilds(),
+        this.jobForm.get([Variant.Experiment, Field.Commit])!,
+        this.experimentCommitInfo,
+        this.loading.experimentCommit
+      );
     });
   }
 
   private resolveRecentCommit(
     builds: BuildInfo[],
     control: AbstractControl,
-    commitInfoSignal: WritableSignal<GetCommitResponse | null>
+    commitInfoSignal: WritableSignal<GetCommitResponse | null>,
+    loadingSignal: WritableSignal<boolean>
   ) {
     if (control.value.trim().toLowerCase() !== CommitOption.Recent.toLowerCase()) {
       return;
     }
 
     if (builds.length > 0) {
-      this.fetchCommitInfo(control, builds[0].gitHash, commitInfoSignal);
+      this.fetchCommitInfo(control, builds[0].gitHash, commitInfoSignal, loadingSignal);
     } else {
       commitInfoSignal.set(null);
       this.clearControlError(control, 'invalidCommit');
@@ -237,59 +259,84 @@ export class NewJobComponent implements OnInit {
   }
 
   private async loadBots() {
+    this.loading.bots.set(true);
     try {
       const response = await this.gatewayService.ListBotConfigurations({});
       this.bots.set(response.configurations.sort());
       this.jobForm.get(Field.Bot)?.updateValueAndValidity();
     } catch (error) {
       console.error('Failed to fetch bots: ', error);
+    } finally {
+      this.loading.bots.set(false);
     }
   }
 
   private async loadBenchmarks() {
+    this.loading.benchmarks.set(true);
     try {
       const response = await this.gatewayService.ListBenchmarks({});
       this.benchmarks.set(response.benchmarks.sort());
       this.jobForm.get(Field.Benchmark)?.updateValueAndValidity();
     } catch (error) {
       console.error('Failed to fetch benchmarks: ', error);
+    } finally {
+      this.loading.benchmarks.set(false);
     }
   }
 
   private setupBenchmarkChangeListener() {
     this.jobForm.get(Field.Benchmark)?.valueChanges.subscribe((benchmark) => {
-      this.stories.set([]);
-      this.storyTags.set([]);
-      if (this.benchmarks().includes(benchmark)) {
-        this.loadBenchmarkDetails(benchmark);
-      } else {
-        this.jobForm.get(Field.Story)?.setValue('');
-        this.jobForm.get(Field.StoryTags)?.setValue('');
-      }
+      this.loadBenchmarkDetails(benchmark);
     });
   }
 
   private setupBotChangeListener() {
     this.jobForm.get(Field.Bot)?.valueChanges.subscribe((bot) => {
-      this.recentBuilds.set([]);
-      if (this.bots().includes(bot)) {
-        this.loadRecentBuilds(bot);
-      }
+      this.loadRecentBuilds(bot);
     });
   }
 
   private async loadRecentBuilds(bot: string) {
+    this.recentBuilds.set([]);
+    if (!this.bots().includes(bot)) {
+      this.loading.recentBuilds.set(false);
+      return;
+    }
+
+    this.loading.recentBuilds.set(true);
     try {
       const response = await this.gatewayService.ListRecentBuilds({ configuration: bot });
-      this.recentBuilds.set(response.builds.sort((a, b) => b.buildNumber - a.buildNumber));
+      if (this.jobForm.get(Field.Bot)?.value === bot) {
+        this.recentBuilds.set(response.builds.sort((a, b) => b.buildNumber - a.buildNumber));
+      }
     } catch (error) {
       console.error('Failed to fetch recent builds: ', error);
+    } finally {
+      if (this.jobForm.get(Field.Bot)?.value === bot) {
+        this.loading.recentBuilds.set(false);
+      }
     }
   }
 
   private async loadBenchmarkDetails(benchmark: string) {
+    this.stories.set([]);
+    this.storyTags.set([]);
+    if (!this.benchmarks().includes(benchmark)) {
+      this.jobForm.get(Field.Story)?.setValue('');
+      this.jobForm.get(Field.StoryTags)?.setValue('');
+      this.loading.stories.set(false);
+      this.loading.storyTags.set(false);
+      return;
+    }
+
+    this.loading.stories.set(true);
+    this.loading.storyTags.set(true);
     try {
       const response = await this.gatewayService.GetBenchmark({ benchmark });
+      if (this.jobForm.get(Field.Benchmark)?.value !== benchmark) {
+        return;
+      }
+
       this.stories.set(response.stories);
       this.storyTags.set(response.storyTags);
 
@@ -304,6 +351,11 @@ export class NewJobComponent implements OnInit {
       }
     } catch (error) {
       console.error('Failed to fetch benchmark details: ', error);
+    } finally {
+      if (this.jobForm.get(Field.Benchmark)?.value === benchmark) {
+        this.loading.stories.set(false);
+        this.loading.storyTags.set(false);
+      }
     }
   }
 
@@ -439,13 +491,22 @@ export class NewJobComponent implements OnInit {
   }
 
   private setupCommitChangeListeners() {
-    this.setupCommitListener([Variant.Baseline, Field.Commit], this.baselineCommitInfo);
-    this.setupCommitListener([Variant.Experiment, Field.Commit], this.experimentCommitInfo);
+    this.setupCommitListener(
+      [Variant.Baseline, Field.Commit],
+      this.baselineCommitInfo,
+      this.loading.baselineCommit
+    );
+    this.setupCommitListener(
+      [Variant.Experiment, Field.Commit],
+      this.experimentCommitInfo,
+      this.loading.experimentCommit
+    );
   }
 
   private setupCommitListener(
     name: string[],
-    commitInfoSignal: WritableSignal<GetCommitResponse | null>
+    commitInfoSignal: WritableSignal<GetCommitResponse | null>,
+    loadingSignal: WritableSignal<boolean>
   ) {
     const control = this.jobForm.get(name)!;
 
@@ -453,6 +514,7 @@ export class NewJobComponent implements OnInit {
     control.valueChanges.subscribe(() => {
       commitInfoSignal.set(null);
       this.clearControlError(control, 'invalidCommit');
+      loadingSignal.set(false);
     });
 
     // Delay the backend query while the user might be typing.
@@ -474,16 +536,18 @@ export class NewJobComponent implements OnInit {
         commit = CommitOption.Head;
       }
 
-      this.fetchCommitInfo(control, commit, commitInfoSignal);
+      this.fetchCommitInfo(control, commit, commitInfoSignal, loadingSignal);
     });
   }
 
   private async fetchCommitInfo(
     control: AbstractControl,
     commit: string,
-    commitInfoSignal: WritableSignal<GetCommitResponse | null>
+    commitInfoSignal: WritableSignal<GetCommitResponse | null>,
+    loadingSignal: WritableSignal<boolean>
   ) {
     const previousValue = control.value;
+    loadingSignal.set(true);
     try {
       const resp = await this.gatewayService.GetCommit({ commit });
       if (control.value === previousValue) {
@@ -495,6 +559,10 @@ export class NewJobComponent implements OnInit {
         console.error(`Failed to fetch commit info for ${commit}: `, error);
         commitInfoSignal.set(null);
         control.setErrors({ ...control.errors, invalidCommit: true });
+      }
+    } finally {
+      if (control.value === previousValue) {
+        loadingSignal.set(false);
       }
     }
   }
@@ -508,17 +576,30 @@ export class NewJobComponent implements OnInit {
   }
 
   private setupPatchChangeListeners() {
-    this.setupPatchListener([Variant.Baseline, Field.Patch], this.baselinePatchInfo);
-    this.setupPatchListener([Variant.Experiment, Field.Patch], this.experimentPatchInfo);
+    this.setupPatchListener(
+      [Variant.Baseline, Field.Patch],
+      this.baselinePatchInfo,
+      this.loading.baselinePatch
+    );
+    this.setupPatchListener(
+      [Variant.Experiment, Field.Patch],
+      this.experimentPatchInfo,
+      this.loading.experimentPatch
+    );
   }
 
-  private setupPatchListener(name: string[], patchInfoSignal: WritableSignal<PatchInfo | null>) {
+  private setupPatchListener(
+    name: string[],
+    patchInfoSignal: WritableSignal<PatchInfo | null>,
+    loadingSignal: WritableSignal<boolean>
+  ) {
     const control = this.jobForm.get(name)!;
 
     // Clear patch details and errors immediately after the value changes.
     control.valueChanges.subscribe(() => {
       patchInfoSignal.set(null);
       this.clearControlError(control, 'invalidPatch');
+      loadingSignal.set(false);
     });
 
     // Delay the backend query while the user might be typing.
@@ -529,6 +610,7 @@ export class NewJobComponent implements OnInit {
           return;
         }
         const previousValue = control.value;
+        loadingSignal.set(true);
         try {
           const parsedPatch = parsePatch(value);
           const patch = await this.gatewayService.GetPatch(parsedPatch);
@@ -550,6 +632,10 @@ export class NewJobComponent implements OnInit {
               ...control.errors,
               invalidPatch: 'Failed to fetch patch details from Gerrit.',
             });
+          }
+        } finally {
+          if (control.value === previousValue) {
+            loadingSignal.set(false);
           }
         }
       });
