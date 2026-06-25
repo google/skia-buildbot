@@ -50,7 +50,7 @@ func GetLogLinesTool(logsByStep map[string][]string) *PseudoTool {
 		Type: genai.TypeObject,
 		Properties: map[string]*genai.Schema{
 			keyStep: {
-				Description: "Name of the step whose logs should be retrieved. Not used for raw swarming tasks.",
+				Description: "Log stream or step ID whose logs should be retrieved. Not used for raw swarming tasks.",
 				Type:        genai.TypeString,
 			},
 			keyStartIndex: {

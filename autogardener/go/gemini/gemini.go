@@ -182,19 +182,24 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 				continue
 			}
 			failedStepNames = append(failedStepNames, s.Name)
-			lines, err := c.fetchRecipeStepLogs(ctx, taskSteps.SwarmingTaskID, s.StdoutStream)
-			if err != nil {
-				sklog.Warningf("Failed to fetch recipe step logs for %s: %s", s.Name, err)
-				continue
+			for _, logStream := range []string{s.StdoutStream, s.StderrStream} {
+				if logStream == "" {
+					continue
+				}
+				lines, err := c.fetchRecipeStepLogs(ctx, taskSteps.SwarmingTaskID, logStream)
+				if err != nil {
+					sklog.Warningf("Failed to fetch recipe step logs for %s: %s", s.Name, err)
+					continue
+				}
+				snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd, maxLogSnippetLength, maxLogSnippetCount))
+				if strings.TrimSpace(snippet) == "" {
+					snippet = "(step has no log output)"
+				} else {
+					anyFailedStepHasLogs = true
+				}
+				logSnippets = append(logSnippets, fmt.Sprintf("## Log stream %q for failed recipe step %q\n\n%s\n", logStream, s.Name, snippet))
+				logsByStep[logStream] = lines
 			}
-			snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd, maxLogSnippetLength, maxLogSnippetCount))
-			if strings.TrimSpace(snippet) == "" {
-				snippet = "(step has no log output)"
-			} else {
-				anyFailedStepHasLogs = true
-			}
-			logSnippets = append(logSnippets, fmt.Sprintf("## Log for failed recipe step %q\n\n%s\n", s.Name, snippet))
-			logsByStep[s.Name] = lines
 		}
 		taskStepsStr = taskSteps.String()
 	} else if taskSteps.TaskDriver != nil {
@@ -219,8 +224,8 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 			} else {
 				anyFailedStepHasLogs = true
 			}
-			logSnippets = append(logSnippets, fmt.Sprintf("## Log for failed task driver step %q\n\n%s\n", s.Id, snippet))
-			logsByStep[s.Name] = lines
+			logSnippets = append(logSnippets, fmt.Sprintf("## Log for failed task driver step %q (ID %s)\n\n%s\n", s.Name, s.Id, snippet))
+			logsByStep[s.Id] = lines
 		}
 		taskStepsStr = taskSteps.String()
 	} else if taskSteps.SwarmingTaskLogs != "" {
