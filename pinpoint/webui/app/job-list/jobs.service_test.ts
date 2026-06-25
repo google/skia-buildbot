@@ -1,5 +1,8 @@
+import 'zone.js';
+import 'zone.js/testing';
 import '@angular/compiler';
 import { Injector, runInInjectionContext } from '@angular/core';
+import { fakeAsync, tick } from '@angular/core/testing';
 import { JobsService } from './jobs.service';
 import { SettingsService } from '../settings/settings.service';
 import { GatewayService } from '../gateway/gateway.service';
@@ -272,6 +275,117 @@ describe('JobsService', () => {
 
       assert.isTrue(setShowOnlyUserJobsSpy.calledOnceWithExactly(false));
     });
+
+    it('should handle quick toggle of showOnlyUserJobs correctly and avoid race conditions', fakeAsync(() => {
+      let queryResolve1: (val: any) => void = () => {};
+      let queryResolve2: (val: any) => void = () => {};
+      const queryPromise1 = new Promise((resolve) => {
+        queryResolve1 = resolve;
+      });
+      const queryPromise2 = new Promise((resolve) => {
+        queryResolve2 = resolve;
+      });
+
+      let queryCallCount = 0;
+      const gateway = {
+        QueryJobList: sinon.stub().callsFake(async (_: any) => {
+          queryCallCount++;
+          if (queryCallCount === 1) {
+            await queryPromise1;
+            return {
+              jobs: [{ jobId: 'user_job_1', user: 'somebody@google.com' } as any],
+              pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
+            };
+          } else {
+            await queryPromise2;
+            return {
+              jobs: [{ jobId: 'all_job_1', user: 'other@google.com' } as any],
+              pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
+            };
+          }
+        }),
+        GetUserInfo: async () => ({ email: 'somebody@google.com' }),
+      };
+      const service = createService(gateway);
+
+      // Trigger first load (default my jobs, showOnlyUserJobs is true by default)
+      service.loadJobs();
+
+      // Flush microtasks to allow the first loadJobs to pass updateUserEmail and call QueryJobList
+      tick();
+
+      // Immediately trigger second load by switching to all jobs
+      service.setShowOnlyUserJobs(false);
+
+      // Flush microtasks to allow the second loadJobs to call QueryJobList
+      tick();
+
+      // Now both should be in-flight.
+      assert.equal(queryCallCount, 2, 'Both queries should be in-flight');
+
+      // Resolve the second one (all jobs) first.
+      queryResolve2(null);
+      tick();
+
+      // Resolve the first one (my jobs).
+      queryResolve1(null);
+      tick();
+
+      // The final state should represent the last requested state (all jobs)
+      assert.equal(service.jobs().length, 1);
+      assert.equal(service.jobs()[0].jobId, 'all_job_1');
+      assert.isFalse(service.showOnlyUserJobs());
+    }));
+
+    it('should handle quick toggle of showOnlyUserJobs correctly resolving my jobs first', fakeAsync(() => {
+      let queryResolve1: (val: any) => void = () => {};
+      let queryResolve2: (val: any) => void = () => {};
+      const queryPromise1 = new Promise((resolve) => {
+        queryResolve1 = resolve;
+      });
+      const queryPromise2 = new Promise((resolve) => {
+        queryResolve2 = resolve;
+      });
+
+      let queryCallCount = 0;
+      const gateway = {
+        QueryJobList: sinon.stub().callsFake(async (_: any) => {
+          queryCallCount++;
+          if (queryCallCount === 1) {
+            await queryPromise1;
+            return {
+              jobs: [{ jobId: 'user_job_1', user: 'somebody@google.com' } as any],
+              pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
+            };
+          } else {
+            await queryPromise2;
+            return {
+              jobs: [{ jobId: 'all_job_1', user: 'other@google.com' } as any],
+              pagination: { nextCursor: '', prevCursor: '', hasPrev: false, hasNext: false },
+            };
+          }
+        }),
+        GetUserInfo: async () => ({ email: 'somebody@google.com' }),
+      };
+      const service = createService(gateway);
+
+      service.loadJobs();
+      tick();
+
+      service.setShowOnlyUserJobs(false);
+      tick();
+
+      // Reversed resolution order in comparison to the previous test.
+      queryResolve2(null);
+      tick();
+      queryResolve1(null);
+      tick();
+
+      // The final state should represent the last requested state (all jobs)
+      assert.equal(service.jobs().length, 1);
+      assert.equal(service.jobs()[0].jobId, 'all_job_1');
+      assert.isFalse(service.showOnlyUserJobs());
+    }));
   });
 
   describe('cancelJob', () => {

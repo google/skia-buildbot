@@ -1,12 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { GatewayService } from '../gateway/gateway.service';
-import {
-  JobSummary,
-  Pagination,
-  JobType,
-  GetUserInfoResponse,
-  JobStatus,
-} from '../gateway/gateway';
+import { JobSummary, Pagination, JobType, JobStatus } from '../gateway/gateway';
 import { SettingsService } from '../settings/settings.service';
 
 @Injectable({
@@ -43,15 +37,24 @@ export class JobsService {
 
   readonly userEmail = this._userEmail.asReadonly();
 
+  // Tracks the current active session. Changed whenever the query filters
+  // change (e.g. toggling showOnlyUserJobs), which invalidates previous requests.
+  private currentSessionId = 0;
+
   async setShowOnlyUserJobs(showOnlyUserJobs: boolean) {
     if (this._showOnlyUserJobs() === showOnlyUserJobs) {
       return;
     }
+
     this._showOnlyUserJobs.set(showOnlyUserJobs);
     this.settingsService.setShowOnlyUserJobs(showOnlyUserJobs);
     this._jobs.set([]);
     this.pagination = undefined;
     this.pageIndex = 0;
+
+    this.currentSessionId++;
+    this._loading.set(false);
+
     await this.loadJobs();
   }
 
@@ -60,15 +63,8 @@ export class JobsService {
       return;
     }
 
-    const userInfoFuture = this.gatewayService.GetUserInfo({});
-    if (this._showOnlyUserJobs()) {
-      const response = await userInfoFuture;
-      this._userEmail.set(response.email);
-    } else {
-      userInfoFuture.then((response: GetUserInfoResponse) => {
-        this._userEmail.set(response.email);
-      });
-    }
+    const response = await this.gatewayService.GetUserInfo({});
+    this._userEmail.set(response.email);
   }
 
   async loadJobs() {
@@ -76,6 +72,7 @@ export class JobsService {
       return;
     }
 
+    const sessionId = this.currentSessionId;
     this._loading.set(true);
     this._error.set(null);
 
@@ -93,19 +90,23 @@ export class JobsService {
             prevCursor: '',
           },
         });
-        this.pagination = response.pagination;
 
-        if (this._jobs().length === 0) {
-          this._jobs.set(response.jobs);
-        } else {
-          this._jobs.update((existing) => [...existing, ...response.jobs]);
+        if (this.currentSessionId !== sessionId) {
+          break;
         }
+
+        this.pagination = response.pagination;
+        this._jobs.update((existing) => [...existing, ...response.jobs]);
       }
     } catch (err: any) {
-      console.error('Failed to load jobs:', err);
-      this._error.set(err?.message || 'An unexpected error occurred.');
+      if (this.currentSessionId === sessionId) {
+        console.error('Failed to load jobs:', err);
+        this._error.set(err?.message || 'An unexpected error occurred.');
+      }
     } finally {
-      this._loading.set(false);
+      if (this.currentSessionId === sessionId) {
+        this._loading.set(false);
+      }
     }
   }
 
