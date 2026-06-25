@@ -168,6 +168,8 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 	var allowedTools []string
 	var taskStepsStr string
 	var logSnippets []string
+	var failedStepNames []string
+	anyFailedStepHasLogs := false
 	logsByStep := map[string][]string{}
 	if taskSteps.Recipe != nil {
 		allowedTools = append(allowedTools, "get_recipe_step_logs")
@@ -179,12 +181,18 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 			if s.Name == "" {
 				continue
 			}
+			failedStepNames = append(failedStepNames, s.Name)
 			lines, err := c.fetchRecipeStepLogs(ctx, taskSteps.SwarmingTaskID, s.StdoutStream)
 			if err != nil {
 				sklog.Warningf("Failed to fetch recipe step logs for %s: %s", s.Name, err)
 				continue
 			}
 			snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd, maxLogSnippetLength, maxLogSnippetCount))
+			if strings.TrimSpace(snippet) == "" {
+				snippet = "(step has no log output)"
+			} else {
+				anyFailedStepHasLogs = true
+			}
 			logSnippets = append(logSnippets, fmt.Sprintf("## Log for failed recipe step %q\n\n%s\n", s.Name, snippet))
 			logsByStep[s.Name] = lines
 		}
@@ -194,17 +202,31 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 		prunedTaskDriver, failedSteps := pruneSuccessfulTaskDriverSteps(taskSteps.TaskDriver.StepDisplay)
 		taskSteps.TaskDriver.StepDisplay = prunedTaskDriver
 		for _, s := range failedSteps {
+			// The root step has an empty ID. Its logs may contain output from
+			// any/all steps, so they aren't really useful.
+			if s.Id == "" {
+				continue
+			}
+			failedStepNames = append(failedStepNames, s.Name)
 			lines, err := c.fetchTaskDriverStepLogs(ctx, task.Id, s.Id)
 			if err != nil {
-				sklog.Warningf("Failed to fetch task driver step logs for %s: %s", s.Name, err)
+				sklog.Warningf("Failed to fetch task driver step logs for %s: %s", s.Id, err)
 				continue
 			}
 			snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd, maxLogSnippetLength, maxLogSnippetCount))
-			logSnippets = append(logSnippets, fmt.Sprintf("## Log for failed task driver step %q\n\n%s\n", s.Name, snippet))
+			if strings.TrimSpace(snippet) == "" {
+				snippet = "(step has no log output)"
+			} else {
+				anyFailedStepHasLogs = true
+			}
+			logSnippets = append(logSnippets, fmt.Sprintf("## Log for failed task driver step %q\n\n%s\n", s.Id, snippet))
 			logsByStep[s.Name] = lines
 		}
 		taskStepsStr = taskSteps.String()
 	} else if taskSteps.SwarmingTaskLogs != "" {
+		if strings.TrimSpace(taskSteps.SwarmingTaskLogs) != "" {
+			anyFailedStepHasLogs = true
+		}
 		lines := strings.Split(taskSteps.SwarmingTaskLogs, "\n")
 		snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd, maxLogSnippetLength, maxLogSnippetCount))
 		logSnippets = append(logSnippets, fmt.Sprintf("## Raw Swarming Task Log Snippet\n\n%s\n", snippet))
@@ -212,10 +234,21 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 		logsByStep[""] = lines
 	}
 
-	snippetsStr := strings.Join(logSnippets, "\n")
-	if snippetsStr == "" {
-		snippetsStr = "(No log snippets could be retrieved automatically.)"
+	// Shortcut: if there are no logs for any failed step, the agent doesn't
+	// have enough to work with. We'll just list any failed steps and skip the
+	// Gemini round-trip altogether.
+	if !anyFailedStepHasLogs {
+		analysis := fmt.Sprintf("Task State: %s\nSwarming Task State: %s", task.Status, taskSteps.SwarmingTaskState)
+		if len(failedStepNames) > 0 {
+			analysis += fmt.Sprintf("\nThe following steps failed with no logs:\n- %s", strings.Join(failedStepNames, "\n- "))
+		}
+		return &types.TaskSummary{
+			ErrorMessage: "",
+			Analysis:     analysis,
+		}, nil
 	}
+
+	snippetsStr := strings.Join(logSnippets, "\n")
 
 	const promptTmpl = generalPromptHeader + `# Task: Extract the error message for failed task "%s"
 
@@ -271,6 +304,11 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
      restating your conclusion. The error message will be included in the
      "ErrorMessage" section of the response, so do not include it in your
      analysis.
+   - Do NOT summarize or describe the error in the "ErrorMessage" section. You
+     may truncate, remove irrelevant lines, and trim unnecessary whitespace, but
+	 the actual error MUST be presented exactly as it appears in the logs. If
+	 there is no error message, leave that section empty. Save your summary for
+	 the "Analysis" section.
    - If you suspect a problem with the machine which ran the task, include the
      bot ID in your analysis.
 `
@@ -481,6 +519,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 	}
 
 	for {
+		debug.ChatHistory = chat.History(false)
 		debug.TotalTokens += resp.UsageMetadata.TotalTokenCount
 		functionCalls := resp.FunctionCalls()
 		if len(functionCalls) == 0 {
@@ -616,6 +655,7 @@ type DebugInfo struct {
 	TotalTokens int32                        `json:"tokensUsed"`
 	Result      string                       `json:"result"`
 	Error       string                       `json:"error"`
+	ChatHistory []*genai.Content             `json:"chatHistory"`
 }
 
 type DebugInfo_ToolCall struct {
