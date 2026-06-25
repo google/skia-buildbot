@@ -31,6 +31,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { GatewayService } from '../gateway/gateway.service';
+import { parsePatch } from './patch-parser';
 import {
   CreateTryJobRequest,
   VariantConfig,
@@ -81,6 +82,15 @@ const variantGroupConfig = (isExperiment: boolean) => ({
   [Field.BenchmarkRunnerArgs]: [''],
 });
 
+interface PatchInfo {
+  host: string;
+  change: number;
+  patchset?: number;
+  project: string;
+  author: string;
+  subject: string;
+}
+
 @Component({
   selector: 'app-new-job',
   standalone: true,
@@ -130,6 +140,10 @@ export class NewJobComponent implements OnInit {
   baselineCommitInfo = signal<GetCommitResponse | null>(null);
 
   experimentCommitInfo = signal<GetCommitResponse | null>(null);
+
+  baselinePatchInfo = signal<PatchInfo | null>(null);
+
+  experimentPatchInfo = signal<PatchInfo | null>(null);
 
   jobForm: FormGroup = this.formBuilder.group({
     [Field.JobName]: [''],
@@ -209,7 +223,7 @@ export class NewJobComponent implements OnInit {
       this.fetchCommitInfo(control, builds[0].gitHash, commitInfoSignal);
     } else {
       commitInfoSignal.set(null);
-      this.clearCommitError(control);
+      this.clearControlError(control, 'invalidCommit');
     }
   }
 
@@ -219,6 +233,7 @@ export class NewJobComponent implements OnInit {
     this.setupBenchmarkChangeListener();
     this.setupBotChangeListener();
     this.setupCommitChangeListeners();
+    this.setupPatchChangeListeners();
   }
 
   private async loadBots() {
@@ -323,6 +338,24 @@ export class NewJobComponent implements OnInit {
       experimentCommitControl.setErrors({ ...experimentCommitControl.errors, invalidCommit: true });
     }
 
+    const baselinePatch = this.baselinePatchInfo();
+    const baselinePatchControl = this.jobForm.get([Variant.Baseline, Field.Patch])!;
+    if (baselinePatchControl.value && !baselinePatch) {
+      baselinePatchControl.setErrors({
+        ...baselinePatchControl.errors,
+        invalidPatch: 'Baseline patch is not empty but no patch details fetched.',
+      });
+    }
+
+    const experimentPatch = this.experimentPatchInfo();
+    const experimentPatchControl = this.jobForm.get([Variant.Experiment, Field.Patch])!;
+    if (experimentPatchControl.value && !experimentPatch) {
+      experimentPatchControl.setErrors({
+        ...experimentPatchControl.errors,
+        invalidPatch: 'Experiment patch is not empty but no patch details fetched.',
+      });
+    }
+
     if (this.jobForm.invalid) {
       this.jobForm.markAllAsTouched();
       return;
@@ -339,11 +372,17 @@ export class NewJobComponent implements OnInit {
       story: form[Field.Story],
       storyTags: form[Field.StoryTags] || '',
       attemptCount: Number(form[Field.Attempts]),
-      base: this.getVariantConfig({ ...form[Variant.Baseline], commit: baselineCommit }),
-      experiment: this.getVariantConfig({
-        ...form[Variant.Experiment],
-        commit: experimentCommit || baselineCommit,
-      }),
+      base: {
+        ...this.getVariantConfig({ ...form[Variant.Baseline], commit: baselineCommit }),
+        patch: this.getPatchUrl(this.baselinePatchInfo()),
+      },
+      experiment: {
+        ...this.getVariantConfig({
+          ...form[Variant.Experiment],
+          commit: experimentCommit || baselineCommit,
+        }),
+        patch: this.getPatchUrl(this.experimentPatchInfo()),
+      },
       bugId: form[Field.BugId] ? Number(form[Field.BugId]) : undefined,
       jobName: form[Field.JobName] || '',
       // Let the backend to set the current user email.
@@ -379,6 +418,22 @@ export class NewJobComponent implements OnInit {
     return reviewUrl.split('/').at(-1) ?? '';
   }
 
+  getPatchUrl(info: PatchInfo | null): string {
+    if (!info) {
+      return '';
+    }
+
+    let url = `${info.host}/c/${info.project}/+/${info.change}`;
+    if (info.patchset) {
+      url += `/${info.patchset}`;
+    }
+    return url;
+  }
+
+  baselinePanelError(): boolean {
+    return this.jobForm.get([Variant.Baseline, Field.Patch])!.invalid;
+  }
+
   experimentPanelError(): boolean {
     return this.jobForm.get([Variant.Experiment, Field.Commit])!.invalid;
   }
@@ -397,7 +452,7 @@ export class NewJobComponent implements OnInit {
     // Clear commit details and errors immediately after the value changes.
     control.valueChanges.subscribe(() => {
       commitInfoSignal.set(null);
-      this.clearCommitError(control);
+      this.clearControlError(control, 'invalidCommit');
     });
 
     // Delay the backend query while the user might be typing.
@@ -428,15 +483,15 @@ export class NewJobComponent implements OnInit {
     commit: string,
     commitInfoSignal: WritableSignal<GetCommitResponse | null>
   ) {
-    const previsousValue = control.value;
+    const previousValue = control.value;
     try {
       const resp = await this.gatewayService.GetCommit({ commit });
-      if (control.value === previsousValue) {
+      if (control.value === previousValue) {
         commitInfoSignal.set(resp);
-        this.clearCommitError(control);
+        this.clearControlError(control, 'invalidCommit');
       }
     } catch (error) {
-      if (control.value === previsousValue) {
+      if (control.value === previousValue) {
         console.error(`Failed to fetch commit info for ${commit}: `, error);
         commitInfoSignal.set(null);
         control.setErrors({ ...control.errors, invalidCommit: true });
@@ -444,12 +499,66 @@ export class NewJobComponent implements OnInit {
     }
   }
 
-  private clearCommitError(control: AbstractControl) {
+  private clearControlError(control: AbstractControl, errorKey: string) {
     const errors = control.errors;
     if (errors) {
-      delete errors['invalidCommit'];
+      delete errors[errorKey];
       control.setErrors(Object.keys(errors).length ? errors : null);
     }
+  }
+
+  private setupPatchChangeListeners() {
+    this.setupPatchListener([Variant.Baseline, Field.Patch], this.baselinePatchInfo);
+    this.setupPatchListener([Variant.Experiment, Field.Patch], this.experimentPatchInfo);
+  }
+
+  private setupPatchListener(name: string[], patchInfoSignal: WritableSignal<PatchInfo | null>) {
+    const control = this.jobForm.get(name)!;
+
+    // Clear patch details and errors immediately after the value changes.
+    control.valueChanges.subscribe(() => {
+      patchInfoSignal.set(null);
+      this.clearControlError(control, 'invalidPatch');
+    });
+
+    // Delay the backend query while the user might be typing.
+    control.valueChanges
+      .pipe(debounceTime(INPUT_DEBOUNCE_TIME_MS))
+      .subscribe(async (value: string) => {
+        if (!value) {
+          return;
+        }
+        const previousValue = control.value;
+        try {
+          const parsedPatch = parsePatch(value);
+          const patch = await this.gatewayService.GetPatch(parsedPatch);
+          if (control.value === previousValue) {
+            const patchInfo: PatchInfo = {
+              ...patch,
+              // Override patchset with the entered patchset because the server
+              // may return the latest patchset.
+              patchset: parsedPatch.patchset,
+            };
+            patchInfoSignal.set(patchInfo);
+            this.clearControlError(control, 'invalidPatch');
+          }
+        } catch (error: any) {
+          if (control.value === previousValue) {
+            console.error(`Failed to fetch patch info for ${value}`, error);
+            patchInfoSignal.set(null);
+            control.setErrors({
+              ...control.errors,
+              invalidPatch: 'Failed to fetch patch details from Gerrit.',
+            });
+          }
+        }
+      });
+  }
+
+  getPatchErrorMessage(variant: Variant): string {
+    const control = this.jobForm.get([variant, Field.Patch]);
+    const errMsg = control?.getError('invalidPatch');
+    return typeof errMsg === 'string' ? errMsg : 'Invalid patch';
   }
 
   private filterValuesByInput(input: Signal<string>, values: Signal<string[]>): Signal<string[]> {

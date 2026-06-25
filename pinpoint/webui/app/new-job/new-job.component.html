@@ -152,7 +152,12 @@
 
         <mat-expansion-panel class="mat-elevation-z0">
           <mat-expansion-panel-header>
-            <mat-panel-title>Advanced Options</mat-panel-title>
+            <mat-panel-title [class.error-panel-title]="baselinePanelError()">
+              @if (baselinePanelError()) {
+                <mat-icon>error</mat-icon>
+              }
+              Advanced Options
+            </mat-panel-title>
           </mat-expansion-panel-header>
 
           <div>
@@ -160,9 +165,26 @@
             review URL to apply as a patch to the baseline build.">
               <mat-label>Patch (optional)</mat-label>
               <input matInput [formControlName]="Field.Patch"
-              placeholder="e.g. 12345, crrev.com/c/12345, or https://chromium-review.git.corp.google.com/c/chromium/src/+/12345" />
+              placeholder="e.g. 12345, 12345/6, crrev/12345, or full URL" />
+              @if (jobForm.get([Variant.Baseline, Field.Patch])?.hasError('invalidPatch')) {
+                <mat-error>{{ getPatchErrorMessage(Variant.Baseline) }}</mat-error>
+              }
             </mat-form-field>
           </div>
+
+          @if (baselinePatchInfo()) {
+            <div class="commit-info">
+              <div>
+                <a [href]="getPatchUrl(baselinePatchInfo())" target="_blank">
+                  {{ baselinePatchInfo()!.change }}@if (baselinePatchInfo()!.patchset) {/{{ baselinePatchInfo()!.patchset }}}
+                </a>
+                {{ baselinePatchInfo()!.author }}
+              </div>
+              <div>
+                {{ baselinePatchInfo()!.subject }}
+              </div>
+            </div>
+          }
 
           <div>
             <mat-form-field matTooltip="Extra command line arguments to pass directly to the benchmark runner execution.">
@@ -218,9 +240,26 @@
           containing the experiment changes to test against the baseline.">
             <mat-label>Patch (optional)</mat-label>
             <input matInput [formControlName]="Field.Patch"
-            placeholder="e.g. 12345, crrev.com/c/12345, or https://chromium-review.git.corp.google.com/c/chromium/src/+/12345" />
+            placeholder="e.g. 12345, 12345/6, crrev/12345, or full URL" />
+            @if (jobForm.get([Variant.Experiment, Field.Patch])?.hasError('invalidPatch')) {
+              <mat-error>{{ getPatchErrorMessage(Variant.Experiment) }}</mat-error>
+            }
           </mat-form-field>
         </div>
+
+        @if (experimentPatchInfo()) {
+          <div class="commit-info">
+            <div>
+              <a [href]="getPatchUrl(experimentPatchInfo())" target="_blank">
+                {{ experimentPatchInfo()!.change }}@if (experimentPatchInfo()!.patchset) {/{{ experimentPatchInfo()!.patchset }}}
+              </a>
+              {{ experimentPatchInfo()!.author }}
+            </div>
+            <div>
+              {{ experimentPatchInfo()!.subject }}
+            </div>
+          </div>
+        }
 
         <mat-expansion-panel class="mat-elevation-z0">
           <mat-expansion-panel-header>

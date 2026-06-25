@@ -255,6 +255,34 @@ export interface GetCommitResponse {
   changeId: string;
 }
 
+/** Request message to get information about a Gerrit patch. */
+export interface GetPatchRequest {
+  /** The Gerrit host URL (e.g. "https://chromium-review.googlesource.com"). */
+  host: string;
+  /** The Gerrit change number (e.g. 5582697). */
+  change: number;
+  /** The optional patchset number. If not specified, the latest patchset is used. */
+  patchset?: number | undefined;
+}
+
+/** Response message containing patch details. */
+export interface GetPatchResponse {
+  /** The Gerrit host URL (e.g. "https://chromium-review.googlesource.com"). */
+  host: string;
+  /** The Gerrit change number (e.g. 5582697). */
+  change: number;
+  /** The patchset number or the latest patchset. */
+  patchset: number;
+  /** The Gerrit project name (e.g. "chromium/src"). */
+  project: string;
+  /** The author's email address. */
+  author: string;
+  /** The subject line of the change (first line of commit message). */
+  subject: string;
+  /** The creation time of the patchset. */
+  created: string | undefined;
+}
+
 /** Service definition for Pinpoint Gateway API. */
 export interface PinpointGateway {
   /** Queries a list of jobs based on filters and pagination options. */
@@ -273,4 +301,6 @@ export interface PinpointGateway {
   ListRecentBuilds(request: ListRecentBuildsRequest): Promise<ListRecentBuildsResponse>;
   /** Retrieves details of a git commit. */
   GetCommit(request: GetCommitRequest): Promise<GetCommitResponse>;
+  /** Retrieves details of a Gerrit patch. */
+  GetPatch(request: GetPatchRequest): Promise<GetPatchResponse>;
 }

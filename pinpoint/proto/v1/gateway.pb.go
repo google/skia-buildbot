@@ -1470,6 +1470,170 @@ func (x *GetCommitResponse) GetChangeId() string {
 	return ""
 }
 
+// Request message to get information about a Gerrit patch.
+type GetPatchRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The Gerrit host URL (e.g. "https://chromium-review.googlesource.com").
+	Host string `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
+	// The Gerrit change number (e.g. 5582697).
+	Change int64 `protobuf:"varint,2,opt,name=change,proto3" json:"change,omitempty"`
+	// The optional patchset number. If not specified, the latest patchset is used.
+	Patchset      *int64 `protobuf:"varint,3,opt,name=patchset,proto3,oneof" json:"patchset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPatchRequest) Reset() {
+	*x = GetPatchRequest{}
+	mi := &file_gateway_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPatchRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPatchRequest) ProtoMessage() {}
+
+func (x *GetPatchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPatchRequest.ProtoReflect.Descriptor instead.
+func (*GetPatchRequest) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetPatchRequest) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *GetPatchRequest) GetChange() int64 {
+	if x != nil {
+		return x.Change
+	}
+	return 0
+}
+
+func (x *GetPatchRequest) GetPatchset() int64 {
+	if x != nil && x.Patchset != nil {
+		return *x.Patchset
+	}
+	return 0
+}
+
+// Response message containing patch details.
+type GetPatchResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The Gerrit host URL (e.g. "https://chromium-review.googlesource.com").
+	Host string `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
+	// The Gerrit change number (e.g. 5582697).
+	Change int64 `protobuf:"varint,2,opt,name=change,proto3" json:"change,omitempty"`
+	// The patchset number or the latest patchset.
+	Patchset int64 `protobuf:"varint,3,opt,name=patchset,proto3" json:"patchset,omitempty"`
+	// The Gerrit project name (e.g. "chromium/src").
+	Project string `protobuf:"bytes,4,opt,name=project,proto3" json:"project,omitempty"`
+	// The author's email address.
+	Author string `protobuf:"bytes,5,opt,name=author,proto3" json:"author,omitempty"`
+	// The subject line of the change (first line of commit message).
+	Subject string `protobuf:"bytes,6,opt,name=subject,proto3" json:"subject,omitempty"`
+	// The creation time of the patchset.
+	Created       *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created,proto3" json:"created,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPatchResponse) Reset() {
+	*x = GetPatchResponse{}
+	mi := &file_gateway_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPatchResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPatchResponse) ProtoMessage() {}
+
+func (x *GetPatchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPatchResponse.ProtoReflect.Descriptor instead.
+func (*GetPatchResponse) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetPatchResponse) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *GetPatchResponse) GetChange() int64 {
+	if x != nil {
+		return x.Change
+	}
+	return 0
+}
+
+func (x *GetPatchResponse) GetPatchset() int64 {
+	if x != nil {
+		return x.Patchset
+	}
+	return 0
+}
+
+func (x *GetPatchResponse) GetProject() string {
+	if x != nil {
+		return x.Project
+	}
+	return ""
+}
+
+func (x *GetPatchResponse) GetAuthor() string {
+	if x != nil {
+		return x.Author
+	}
+	return ""
+}
+
+func (x *GetPatchResponse) GetSubject() string {
+	if x != nil {
+		return x.Subject
+	}
+	return ""
+}
+
+func (x *GetPatchResponse) GetCreated() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Created
+	}
+	return nil
+}
+
 var File_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_proto_rawDesc = "" +
@@ -1586,7 +1750,20 @@ const file_gateway_proto_rawDesc = "" +
 	"\n" +
 	"review_url\x18\n" +
 	" \x01(\tR\treviewUrl\x12\x1b\n" +
-	"\tchange_id\x18\v \x01(\tR\bchangeId*J\n" +
+	"\tchange_id\x18\v \x01(\tR\bchangeId\"\x86\x01\n" +
+	"\x0fGetPatchRequest\x12\x1b\n" +
+	"\x04host\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x04host\x12\x1f\n" +
+	"\x06change\x18\x02 \x01(\x03B\a\xfaB\x04\"\x02 \x00R\x06change\x12(\n" +
+	"\bpatchset\x18\x03 \x01(\x03B\a\xfaB\x04\"\x02 \x00H\x00R\bpatchset\x88\x01\x01B\v\n" +
+	"\t_patchset\"\xdc\x01\n" +
+	"\x10GetPatchResponse\x12\x12\n" +
+	"\x04host\x18\x01 \x01(\tR\x04host\x12\x16\n" +
+	"\x06change\x18\x02 \x01(\x03R\x06change\x12\x1a\n" +
+	"\bpatchset\x18\x03 \x01(\x03R\bpatchset\x12\x18\n" +
+	"\aproject\x18\x04 \x01(\tR\aproject\x12\x16\n" +
+	"\x06author\x18\x05 \x01(\tR\x06author\x12\x18\n" +
+	"\asubject\x18\x06 \x01(\tR\asubject\x124\n" +
+	"\acreated\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\acreated*J\n" +
 	"\aJobType\x12\x18\n" +
 	"\x14JOB_TYPE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fJOB_TYPE_TRY\x10\x01\x12\x13\n" +
@@ -1597,7 +1774,7 @@ const file_gateway_proto_rawDesc = "" +
 	"\x12JOB_STATUS_RUNNING\x10\x02\x12\x18\n" +
 	"\x14JOB_STATUS_COMPLETED\x10\x03\x12\x15\n" +
 	"\x11JOB_STATUS_FAILED\x10\x04\x12\x18\n" +
-	"\x14JOB_STATUS_CANCELLED\x10\x052\x8a\b\n" +
+	"\x14JOB_STATUS_CANCELLED\x10\x052\xef\b\n" +
 	"\x0fPinpointGateway\x12n\n" +
 	"\fQueryJobList\x12 .pinpoint.v1.QueryJobListRequest\x1a!.pinpoint.v1.QueryJobListResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/jobs\x12k\n" +
 	"\vGetUserInfo\x12\x1f.pinpoint.v1.GetUserInfoRequest\x1a .pinpoint.v1.GetUserInfoResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/user\x12m\n" +
@@ -1606,7 +1783,8 @@ const file_gateway_proto_rawDesc = "" +
 	"\x0eListBenchmarks\x12\".pinpoint.v1.ListBenchmarksRequest\x1a#.pinpoint.v1.ListBenchmarksResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/pinpoint/v1/benchmarks\x12\x8c\x01\n" +
 	"\fGetBenchmark\x12$.pinpoint.v1.GetBenchmarkInfoRequest\x1a%.pinpoint.v1.GetBenchmarkInfoResponse\"/\x82\xd3\xe4\x93\x02)\x12'/pinpoint/v1/benchmark-info/{benchmark}\x12\x93\x01\n" +
 	"\x10ListRecentBuilds\x12$.pinpoint.v1.ListRecentBuildsRequest\x1a%.pinpoint.v1.ListRecentBuildsResponse\"2\x82\xd3\xe4\x93\x02,\x12*/pinpoint/v1/recent-builds/{configuration}\x12p\n" +
-	"\tGetCommit\x12\x1d.pinpoint.v1.GetCommitRequest\x1a\x1e.pinpoint.v1.GetCommitResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/pinpoint/v1/commit/{commit}B0Z.go.skia.org/infra/pinpoint/proto/v1;pinpointpbb\x06proto3"
+	"\tGetCommit\x12\x1d.pinpoint.v1.GetCommitRequest\x1a\x1e.pinpoint.v1.GetCommitResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/pinpoint/v1/commit/{commit}\x12c\n" +
+	"\bGetPatch\x12\x1c.pinpoint.v1.GetPatchRequest\x1a\x1d.pinpoint.v1.GetPatchResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/pinpoint/v1/patchB0Z.go.skia.org/infra/pinpoint/proto/v1;pinpointpbb\x06proto3"
 
 var (
 	file_gateway_proto_rawDescOnce sync.Once
@@ -1621,7 +1799,7 @@ func file_gateway_proto_rawDescGZIP() []byte {
 }
 
 var file_gateway_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_gateway_proto_goTypes = []any{
 	(JobType)(0),                          // 0: pinpoint.v1.JobType
 	(JobStatus)(0),                        // 1: pinpoint.v1.JobStatus
@@ -1646,7 +1824,9 @@ var file_gateway_proto_goTypes = []any{
 	(*ListRecentBuildsResponse)(nil),      // 20: pinpoint.v1.ListRecentBuildsResponse
 	(*GetCommitRequest)(nil),              // 21: pinpoint.v1.GetCommitRequest
 	(*GetCommitResponse)(nil),             // 22: pinpoint.v1.GetCommitResponse
-	(*timestamppb.Timestamp)(nil),         // 23: google.protobuf.Timestamp
+	(*GetPatchRequest)(nil),               // 23: pinpoint.v1.GetPatchRequest
+	(*GetPatchResponse)(nil),              // 24: pinpoint.v1.GetPatchResponse
+	(*timestamppb.Timestamp)(nil),         // 25: google.protobuf.Timestamp
 }
 var file_gateway_proto_depIdxs = []int32{
 	0,  // 0: pinpoint.v1.QueryJobListRequest.job_type:type_name -> pinpoint.v1.JobType
@@ -1654,34 +1834,37 @@ var file_gateway_proto_depIdxs = []int32{
 	5,  // 2: pinpoint.v1.QueryJobListResponse.jobs:type_name -> pinpoint.v1.JobSummary
 	2,  // 3: pinpoint.v1.QueryJobListResponse.pagination:type_name -> pinpoint.v1.Pagination
 	0,  // 4: pinpoint.v1.JobSummary.job_type:type_name -> pinpoint.v1.JobType
-	23, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
+	25, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
 	1,  // 6: pinpoint.v1.JobSummary.job_status:type_name -> pinpoint.v1.JobStatus
 	8,  // 7: pinpoint.v1.VariantConfig.extra_args:type_name -> pinpoint.v1.ExtraArgs
 	9,  // 8: pinpoint.v1.CreateTryJobRequest.base:type_name -> pinpoint.v1.VariantConfig
 	9,  // 9: pinpoint.v1.CreateTryJobRequest.experiment:type_name -> pinpoint.v1.VariantConfig
-	23, // 10: pinpoint.v1.BuildInfo.created:type_name -> google.protobuf.Timestamp
+	25, // 10: pinpoint.v1.BuildInfo.created:type_name -> google.protobuf.Timestamp
 	19, // 11: pinpoint.v1.ListRecentBuildsResponse.builds:type_name -> pinpoint.v1.BuildInfo
-	3,  // 12: pinpoint.v1.PinpointGateway.QueryJobList:input_type -> pinpoint.v1.QueryJobListRequest
-	6,  // 13: pinpoint.v1.PinpointGateway.GetUserInfo:input_type -> pinpoint.v1.GetUserInfoRequest
-	10, // 14: pinpoint.v1.PinpointGateway.CreateTryJob:input_type -> pinpoint.v1.CreateTryJobRequest
-	12, // 15: pinpoint.v1.PinpointGateway.ListBotConfigurations:input_type -> pinpoint.v1.ListBotConfigurationsRequest
-	14, // 16: pinpoint.v1.PinpointGateway.ListBenchmarks:input_type -> pinpoint.v1.ListBenchmarksRequest
-	16, // 17: pinpoint.v1.PinpointGateway.GetBenchmark:input_type -> pinpoint.v1.GetBenchmarkInfoRequest
-	18, // 18: pinpoint.v1.PinpointGateway.ListRecentBuilds:input_type -> pinpoint.v1.ListRecentBuildsRequest
-	21, // 19: pinpoint.v1.PinpointGateway.GetCommit:input_type -> pinpoint.v1.GetCommitRequest
-	4,  // 20: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
-	7,  // 21: pinpoint.v1.PinpointGateway.GetUserInfo:output_type -> pinpoint.v1.GetUserInfoResponse
-	11, // 22: pinpoint.v1.PinpointGateway.CreateTryJob:output_type -> pinpoint.v1.CreateJobResponse
-	13, // 23: pinpoint.v1.PinpointGateway.ListBotConfigurations:output_type -> pinpoint.v1.ListBotConfigurationsResponse
-	15, // 24: pinpoint.v1.PinpointGateway.ListBenchmarks:output_type -> pinpoint.v1.ListBenchmarksResponse
-	17, // 25: pinpoint.v1.PinpointGateway.GetBenchmark:output_type -> pinpoint.v1.GetBenchmarkInfoResponse
-	20, // 26: pinpoint.v1.PinpointGateway.ListRecentBuilds:output_type -> pinpoint.v1.ListRecentBuildsResponse
-	22, // 27: pinpoint.v1.PinpointGateway.GetCommit:output_type -> pinpoint.v1.GetCommitResponse
-	20, // [20:28] is the sub-list for method output_type
-	12, // [12:20] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	25, // 12: pinpoint.v1.GetPatchResponse.created:type_name -> google.protobuf.Timestamp
+	3,  // 13: pinpoint.v1.PinpointGateway.QueryJobList:input_type -> pinpoint.v1.QueryJobListRequest
+	6,  // 14: pinpoint.v1.PinpointGateway.GetUserInfo:input_type -> pinpoint.v1.GetUserInfoRequest
+	10, // 15: pinpoint.v1.PinpointGateway.CreateTryJob:input_type -> pinpoint.v1.CreateTryJobRequest
+	12, // 16: pinpoint.v1.PinpointGateway.ListBotConfigurations:input_type -> pinpoint.v1.ListBotConfigurationsRequest
+	14, // 17: pinpoint.v1.PinpointGateway.ListBenchmarks:input_type -> pinpoint.v1.ListBenchmarksRequest
+	16, // 18: pinpoint.v1.PinpointGateway.GetBenchmark:input_type -> pinpoint.v1.GetBenchmarkInfoRequest
+	18, // 19: pinpoint.v1.PinpointGateway.ListRecentBuilds:input_type -> pinpoint.v1.ListRecentBuildsRequest
+	21, // 20: pinpoint.v1.PinpointGateway.GetCommit:input_type -> pinpoint.v1.GetCommitRequest
+	23, // 21: pinpoint.v1.PinpointGateway.GetPatch:input_type -> pinpoint.v1.GetPatchRequest
+	4,  // 22: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
+	7,  // 23: pinpoint.v1.PinpointGateway.GetUserInfo:output_type -> pinpoint.v1.GetUserInfoResponse
+	11, // 24: pinpoint.v1.PinpointGateway.CreateTryJob:output_type -> pinpoint.v1.CreateJobResponse
+	13, // 25: pinpoint.v1.PinpointGateway.ListBotConfigurations:output_type -> pinpoint.v1.ListBotConfigurationsResponse
+	15, // 26: pinpoint.v1.PinpointGateway.ListBenchmarks:output_type -> pinpoint.v1.ListBenchmarksResponse
+	17, // 27: pinpoint.v1.PinpointGateway.GetBenchmark:output_type -> pinpoint.v1.GetBenchmarkInfoResponse
+	20, // 28: pinpoint.v1.PinpointGateway.ListRecentBuilds:output_type -> pinpoint.v1.ListRecentBuildsResponse
+	22, // 29: pinpoint.v1.PinpointGateway.GetCommit:output_type -> pinpoint.v1.GetCommitResponse
+	24, // 30: pinpoint.v1.PinpointGateway.GetPatch:output_type -> pinpoint.v1.GetPatchResponse
+	22, // [22:31] is the sub-list for method output_type
+	13, // [13:22] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_gateway_proto_init() }
@@ -1692,13 +1875,14 @@ func file_gateway_proto_init() {
 	file_gateway_proto_msgTypes[0].OneofWrappers = []any{}
 	file_gateway_proto_msgTypes[3].OneofWrappers = []any{}
 	file_gateway_proto_msgTypes[8].OneofWrappers = []any{}
+	file_gateway_proto_msgTypes[21].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_proto_rawDesc), len(file_gateway_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   21,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

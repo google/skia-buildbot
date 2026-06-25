@@ -242,6 +242,42 @@ message GetCommitResponse {
   string change_id = 11;
 }
 
+// Request message to get information about a Gerrit patch.
+message GetPatchRequest {
+  // The Gerrit host URL (e.g. "https://chromium-review.googlesource.com").
+  string host = 1 [(validate.rules).string = {min_len: 1}];
+
+  // The Gerrit change number (e.g. 5582697).
+  int64 change = 2 [(validate.rules).int64 = {gt: 0}];
+
+  // The optional patchset number. If not specified, the latest patchset is used.
+  optional int64 patchset = 3 [(validate.rules).int64 = {gt: 0}];
+}
+
+// Response message containing patch details.
+message GetPatchResponse {
+  // The Gerrit host URL (e.g. "https://chromium-review.googlesource.com").
+  string host = 1;
+
+  // The Gerrit change number (e.g. 5582697).
+  int64 change = 2;
+
+  // The patchset number or the latest patchset.
+  int64 patchset = 3;
+
+  // The Gerrit project name (e.g. "chromium/src").
+  string project = 4;
+
+  // The author's email address.
+  string author = 5;
+
+  // The subject line of the change (first line of commit message).
+  string subject = 6;
+
+  // The creation time of the patchset.
+  google.protobuf.Timestamp created = 7;
+}
+
 // Service definition for Pinpoint Gateway API.
 service PinpointGateway {
   // Queries a list of jobs based on filters and pagination options.
@@ -298,6 +334,13 @@ service PinpointGateway {
   rpc GetCommit(GetCommitRequest) returns (GetCommitResponse) {
     option (google.api.http) = {
       get: "/pinpoint/v1/commit/{commit}"
+    };
+  }
+
+  // Retrieves details of a Gerrit patch.
+  rpc GetPatch(GetPatchRequest) returns (GetPatchResponse) {
+    option (google.api.http) = {
+      get: "/pinpoint/v1/patch"
     };
   }
 }

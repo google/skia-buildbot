@@ -28,6 +28,7 @@ const (
 	PinpointGateway_GetBenchmark_FullMethodName          = "/pinpoint.v1.PinpointGateway/GetBenchmark"
 	PinpointGateway_ListRecentBuilds_FullMethodName      = "/pinpoint.v1.PinpointGateway/ListRecentBuilds"
 	PinpointGateway_GetCommit_FullMethodName             = "/pinpoint.v1.PinpointGateway/GetCommit"
+	PinpointGateway_GetPatch_FullMethodName              = "/pinpoint.v1.PinpointGateway/GetPatch"
 )
 
 // PinpointGatewayClient is the client API for PinpointGateway service.
@@ -52,6 +53,8 @@ type PinpointGatewayClient interface {
 	ListRecentBuilds(ctx context.Context, in *ListRecentBuildsRequest, opts ...grpc.CallOption) (*ListRecentBuildsResponse, error)
 	// Retrieves details of a git commit.
 	GetCommit(ctx context.Context, in *GetCommitRequest, opts ...grpc.CallOption) (*GetCommitResponse, error)
+	// Retrieves details of a Gerrit patch.
+	GetPatch(ctx context.Context, in *GetPatchRequest, opts ...grpc.CallOption) (*GetPatchResponse, error)
 }
 
 type pinpointGatewayClient struct {
@@ -142,6 +145,16 @@ func (c *pinpointGatewayClient) GetCommit(ctx context.Context, in *GetCommitRequ
 	return out, nil
 }
 
+func (c *pinpointGatewayClient) GetPatch(ctx context.Context, in *GetPatchRequest, opts ...grpc.CallOption) (*GetPatchResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPatchResponse)
+	err := c.cc.Invoke(ctx, PinpointGateway_GetPatch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PinpointGatewayServer is the server API for PinpointGateway service.
 // All implementations must embed UnimplementedPinpointGatewayServer
 // for forward compatibility.
@@ -164,6 +177,8 @@ type PinpointGatewayServer interface {
 	ListRecentBuilds(context.Context, *ListRecentBuildsRequest) (*ListRecentBuildsResponse, error)
 	// Retrieves details of a git commit.
 	GetCommit(context.Context, *GetCommitRequest) (*GetCommitResponse, error)
+	// Retrieves details of a Gerrit patch.
+	GetPatch(context.Context, *GetPatchRequest) (*GetPatchResponse, error)
 	mustEmbedUnimplementedPinpointGatewayServer()
 }
 
@@ -197,6 +212,9 @@ func (UnimplementedPinpointGatewayServer) ListRecentBuilds(context.Context, *Lis
 }
 func (UnimplementedPinpointGatewayServer) GetCommit(context.Context, *GetCommitRequest) (*GetCommitResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCommit not implemented")
+}
+func (UnimplementedPinpointGatewayServer) GetPatch(context.Context, *GetPatchRequest) (*GetPatchResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPatch not implemented")
 }
 func (UnimplementedPinpointGatewayServer) mustEmbedUnimplementedPinpointGatewayServer() {}
 func (UnimplementedPinpointGatewayServer) testEmbeddedByValue()                         {}
@@ -363,6 +381,24 @@ func _PinpointGateway_GetCommit_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PinpointGateway_GetPatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointGatewayServer).GetPatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PinpointGateway_GetPatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointGatewayServer).GetPatch(ctx, req.(*GetPatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PinpointGateway_ServiceDesc is the grpc.ServiceDesc for PinpointGateway service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -401,6 +437,10 @@ var PinpointGateway_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCommit",
 			Handler:    _PinpointGateway_GetCommit_Handler,
+		},
+		{
+			MethodName: "GetPatch",
+			Handler:    _PinpointGateway_GetPatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

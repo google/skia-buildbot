@@ -12,7 +12,7 @@ import {
   INPUT_DEBOUNCE_TIME_MS,
 } from './new-job.component';
 import { GatewayService } from '../gateway/gateway.service';
-import { BuildInfo } from '../gateway/gateway';
+import { BuildInfo, CreateTryJobRequest } from '../gateway/gateway';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 
@@ -49,6 +49,15 @@ describe('NewJobComponent', () => {
         commitPosition: 0,
         reviewUrl: '',
         changeId: '',
+      }),
+      GetPatch: async () => ({
+        host: '',
+        change: 0,
+        patchset: 0,
+        project: '',
+        author: '',
+        subject: '',
+        created: '',
       }),
     };
     const gateway = { ...defaultGateway, ...mockGateway };
@@ -181,6 +190,86 @@ describe('NewJobComponent', () => {
     assert.equal(component.createdJobId(), 'job_12345');
     assert.equal(component.errorMessage(), '');
     assert.isTrue(gateway.CreateTryJob.calledOnce);
+  }));
+
+  it('should submit try job with resolved patch URLs', fakeAsync(() => {
+    const gateway = {
+      CreateTryJob: sinon.stub().resolves({ jobId: 'job_12345' }),
+      ListBotConfigurations: sinon.stub().resolves({ configurations: ['linux-perf'] }),
+      ListBenchmarks: sinon.stub().resolves(['speedometer']),
+      GetPatch: sinon.stub(),
+    };
+    gateway.GetPatch.withArgs({
+      host: 'https://chromium-review.googlesource.com',
+      change: 12345,
+    }).resolves({
+      host: 'https://chromium-review.googlesource.com',
+      project: 'chromium/src',
+      change: 12345,
+      patchset: 2,
+      author: 'author',
+      created: '',
+      subject: 'subject',
+    });
+    gateway.GetPatch.withArgs({
+      host: 'https://chromium-review.googlesource.com',
+      change: 67890,
+    }).resolves({
+      host: 'https://chromium-review.googlesource.com',
+      project: 'chromium/src',
+      change: 67890,
+      patchset: 1,
+      author: 'author',
+      created: '',
+      subject: 'subject',
+    });
+
+    const component = createValidComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    component.jobForm.get([Variant.Baseline, Field.Patch])?.setValue('12345');
+    component.jobForm.get([Variant.Experiment, Field.Patch])?.setValue('67890');
+
+    tick(INPUT_DEBOUNCE_TIME_MS);
+
+    component.submitJob();
+    tick();
+
+    assert.isTrue(gateway.CreateTryJob.calledOnce);
+    const expectedRequest: CreateTryJobRequest = {
+      benchmark: 'speedometer',
+      configuration: 'linux-perf',
+      story: 'Speedometer3',
+      storyTags: '',
+      attemptCount: 30,
+      base: {
+        commit: 'abcd1234',
+        patch: 'https://chromium-review.googlesource.com/c/chromium/src/+/12345',
+        extraArgs: {
+          benchmarkRunnerArgs: '',
+          extraBrowserArgs: '',
+          jsFlags: '',
+          enableFeatures: '',
+          disableFeatures: '',
+        },
+      },
+      experiment: {
+        commit: 'abcd1234',
+        patch: 'https://chromium-review.googlesource.com/c/chromium/src/+/67890',
+        extraArgs: {
+          benchmarkRunnerArgs: '',
+          extraBrowserArgs: '',
+          jsFlags: '',
+          enableFeatures: '',
+          disableFeatures: '',
+        },
+      },
+      bugId: undefined,
+      jobName: '',
+      user: '',
+    };
+    assert.deepEqual(gateway.CreateTryJob.firstCall.args[0], expectedRequest);
   }));
 
   it('should handle submit job failure', fakeAsync(() => {
@@ -860,6 +949,62 @@ describe('NewJobComponent', () => {
     assert.isTrue(gateway.CreateTryJob.calledOnce);
   }));
 
+  it('should block submission if baseline patch is entered but info is not yet fetched', fakeAsync(() => {
+    const gateway = {
+      CreateTryJob: sinon.stub().resolves({ jobId: '12345' }),
+      GetPatch: sinon.stub().resolves({ change: 12345, patchset: 1 }),
+      ListBotConfigurations: sinon.stub().resolves({ configurations: ['linux-perf'] }),
+      ListBenchmarks: sinon.stub().resolves(['speedometer']),
+    };
+    const component = createValidComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const baselinePatch = component.jobForm.get([Variant.Baseline, Field.Patch])!;
+    baselinePatch.setValue('12345');
+
+    component.submitJob();
+    tick();
+
+    assert.isFalse(gateway.CreateTryJob.called);
+    assert.isTrue(baselinePatch.hasError('invalidPatch'));
+
+    tick(INPUT_DEBOUNCE_TIME_MS);
+    assert.isFalse(baselinePatch.hasError('invalidPatch'));
+
+    component.submitJob();
+    tick();
+    assert.isTrue(gateway.CreateTryJob.calledOnce);
+  }));
+
+  it('should block submission if experiment patch is entered but info is not yet fetched', fakeAsync(() => {
+    const gateway = {
+      CreateTryJob: sinon.stub().resolves({ jobId: '12345' }),
+      GetPatch: sinon.stub().resolves({ change: 12345, patchset: 1 }),
+      ListBotConfigurations: sinon.stub().resolves({ configurations: ['linux-perf'] }),
+      ListBenchmarks: sinon.stub().resolves(['speedometer']),
+    };
+    const component = createValidComponent(gateway);
+    component.ngOnInit();
+    tick();
+
+    const experimentPatch = component.jobForm.get([Variant.Experiment, Field.Patch])!;
+    experimentPatch.setValue('12345');
+
+    component.submitJob();
+    tick();
+
+    assert.isFalse(gateway.CreateTryJob.called);
+    assert.isTrue(experimentPatch.hasError('invalidPatch'));
+
+    tick(INPUT_DEBOUNCE_TIME_MS);
+    assert.isFalse(experimentPatch.hasError('invalidPatch'));
+
+    component.submitJob();
+    tick();
+    assert.isTrue(gateway.CreateTryJob.calledOnce);
+  }));
+
   it('should fetch commit info for recent build when commit field is set to Recent', fakeAsync(() => {
     const mockCommitResponse = {
       repository: 'chromium',
@@ -922,6 +1067,20 @@ describe('NewJobComponent', () => {
     assert.deepEqual(component.baselineCommitInfo(), mockCommitResponse);
   }));
 
+  describe('baselinePanelError', () => {
+    it('should return false if baseline patch has no error', () => {
+      const component = createComponent();
+      assert.isFalse(component.baselinePanelError());
+    });
+
+    it('should return true if baseline patch has invalidPatch error', () => {
+      const component = createComponent();
+      const baselinePatch = component.jobForm.get([Variant.Baseline, Field.Patch])!;
+      baselinePatch.setErrors({ invalidPatch: true });
+      assert.isTrue(component.baselinePanelError());
+    });
+  });
+
   describe('experimentPanelError', () => {
     it('should return false if experiment commit has no error', () => {
       const component = createComponent();
@@ -962,5 +1121,109 @@ describe('NewJobComponent', () => {
 
       assert.isFalse(preventDefaultSpy.called);
     });
+  });
+
+  describe('GetPatch tests', () => {
+    it('should fetch patch info and clear error on successful GetPatch', fakeAsync(() => {
+      const mockPatchResponse = {
+        host: 'https://chromium-review.googlesource.com',
+        change: 123456,
+        patchset: 3,
+        project: 'chromium/src',
+        author: 'somebody@google.com',
+        subject: 'Commit message',
+        created: '2026-01-01 00:00:00.000000',
+      };
+      const gateway = {
+        GetPatch: sinon.stub().resolves(mockPatchResponse),
+      };
+      const component = createComponent(gateway);
+      component.ngOnInit();
+      tick();
+
+      const baselinePatch = component.jobForm.get([Variant.Baseline, Field.Patch])!;
+      baselinePatch.setValue('123456/3');
+      tick(INPUT_DEBOUNCE_TIME_MS);
+
+      assert.isTrue(
+        gateway.GetPatch.calledWith({
+          host: 'https://chromium-review.googlesource.com',
+          change: 123456,
+          patchset: 3,
+        })
+      );
+      assert.deepEqual(component.baselinePatchInfo(), mockPatchResponse);
+      assert.isFalse(baselinePatch.hasError('invalidPatch'));
+      assert.equal(
+        component.getPatchUrl(component.baselinePatchInfo()),
+        'https://chromium-review.googlesource.com/c/chromium/src/+/123456/3'
+      );
+    }));
+
+    it('should set invalidPatch error and clear patch info on failed GetPatch', fakeAsync(() => {
+      const gateway = {
+        GetPatch: sinon.stub().rejects(new Error('Patch not found')),
+      };
+      const component = createComponent(gateway);
+      component.ngOnInit();
+      tick();
+
+      const baselinePatch = component.jobForm.get([Variant.Baseline, Field.Patch])!;
+      baselinePatch.setValue('123456');
+      tick(INPUT_DEBOUNCE_TIME_MS);
+
+      assert.isTrue(
+        gateway.GetPatch.calledWith({
+          host: 'https://chromium-review.googlesource.com',
+          change: 123456,
+        })
+      );
+      assert.isNull(component.baselinePatchInfo());
+      assert.isTrue(baselinePatch.hasError('invalidPatch'));
+    }));
+
+    it('should set invalidPatch error if patch is not parsable', fakeAsync(() => {
+      const gateway = {
+        GetPatch: sinon.stub().resolves({}),
+      };
+      const component = createComponent(gateway);
+      component.ngOnInit();
+      tick();
+
+      const baselinePatch = component.jobForm.get([Variant.Baseline, Field.Patch])!;
+      baselinePatch.setValue('not-a-patch');
+      tick(INPUT_DEBOUNCE_TIME_MS);
+
+      assert.isTrue(gateway.GetPatch.notCalled);
+      assert.isNull(component.baselinePatchInfo());
+      assert.isTrue(baselinePatch.hasError('invalidPatch'));
+    }));
+
+    it('should debounce GetPatch calls', fakeAsync(() => {
+      const gateway = {
+        GetPatch: sinon.stub().resolves({}),
+      };
+      const component = createComponent(gateway);
+      component.ngOnInit();
+      tick();
+
+      const baselinePatch = component.jobForm.get([Variant.Baseline, Field.Patch])!;
+      baselinePatch.setValue('123456');
+      tick(INPUT_DEBOUNCE_TIME_MS / 2);
+
+      assert.isFalse(gateway.GetPatch.called);
+
+      baselinePatch.setValue('123456/2');
+      tick(INPUT_DEBOUNCE_TIME_MS);
+
+      assert.isTrue(gateway.GetPatch.calledOnce);
+      assert.isTrue(
+        gateway.GetPatch.calledWith({
+          host: 'https://chromium-review.googlesource.com',
+          change: 123456,
+          patchset: 2,
+        })
+      );
+    }));
   });
 });

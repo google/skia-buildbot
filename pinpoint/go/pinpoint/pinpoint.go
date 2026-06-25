@@ -2,14 +2,25 @@ package pinpoint
 
 import (
 	"context"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 
+	"golang.org/x/oauth2/google"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/pinpoint/internal"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 type Client struct {
-	legacyClient *internal.LegacyClient
+	legacyClient     *internal.LegacyClient
+	gerritHttpClient *http.Client
 }
 
 // New returns a new PinpointClient instance.
@@ -18,7 +29,16 @@ func New(ctx context.Context) (*Client, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return &Client{legacyClient: legacyClient}, nil
+	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create Gerrit token source")
+	}
+	gerritHttpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
+
+	return &Client{
+		legacyClient:     legacyClient,
+		gerritHttpClient: gerritHttpClient,
+	}, nil
 }
 
 // CreateTryJob calls the legacy pinpoint API to create a try job.
@@ -128,4 +148,73 @@ func (c *Client) GetCommit(
 		return nil, skerr.Wrap(err)
 	}
 	return resp, nil
+}
+
+// GetPatch retrieves details of a Gerrit patch.
+func (c *Client) GetPatch(
+	ctx context.Context,
+	req *pb.GetPatchRequest,
+) (*pb.GetPatchResponse, error) {
+	if !isValidGerritHost(req.Host) {
+		return nil, skerr.Fmt("Invalid or untrusted Gerrit host: %s", req.Host)
+	}
+
+	gclient, err := gerrit.NewGerrit(req.Host, c.gerritHttpClient)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create Gerrit client for %s", req.Host)
+	}
+
+	changeInfo, err := gclient.GetChange(ctx, strconv.FormatInt(req.Change, 10))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to get change %d from Gerrit", req.Change)
+	}
+
+	targetRevision, err := getTargetRevision(changeInfo, req.Patchset)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &pb.GetPatchResponse{
+		Host:     req.Host,
+		Change:   req.Change,
+		Patchset: targetRevision.Number,
+		Project:  changeInfo.Project,
+		Author:   changeInfo.Owner.Email,
+		Subject:  changeInfo.Subject,
+		Created:  timestamppb.New(targetRevision.Created),
+	}, nil
+}
+
+func isValidGerritHost(host string) bool {
+	u, err := url.Parse(host)
+	if err != nil {
+		return false
+	}
+	if u.Scheme != "https" {
+		return false
+	}
+	return strings.HasSuffix(u.Hostname(), ".googlesource.com") ||
+		strings.HasSuffix(u.Hostname(), ".git.corp.google.com")
+}
+
+func getTargetRevision(changeInfo *gerrit.ChangeInfo, patchset *int64) (*gerrit.Revision, error) {
+	if len(changeInfo.Revisions) == 0 {
+		return nil, skerr.Fmt("No patchsets found in change %d", changeInfo.Issue)
+	}
+
+	if patchset != nil {
+		for _, rev := range changeInfo.Revisions {
+			if rev.Number == *patchset {
+				return rev, nil
+			}
+		}
+		return nil, skerr.Fmt("Patchset %d not found in change %d", *patchset, changeInfo.Issue)
+	}
+
+	var targetRevision *gerrit.Revision
+	for _, rev := range changeInfo.Revisions {
+		if targetRevision == nil || rev.Number > targetRevision.Number {
+			targetRevision = rev
+		}
+	}
+	return targetRevision, nil
 }

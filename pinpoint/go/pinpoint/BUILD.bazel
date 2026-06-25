@@ -11,22 +11,32 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/pinpoint",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/auth",
+        "//go/gerrit",
+        "//go/httputils",
         "//go/skerr",
         "//pinpoint/go/pinpoint/internal",
         "//pinpoint/proto/v1:proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
         "@org_golang_google_grpc//metadata",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
 go_test(
     name = "pinpoint_test",
-    srcs = ["gateway_test.go"],
+    srcs = [
+        "gateway_test.go",
+        "pinpoint_test.go",
+    ],
     embed = [":pinpoint"],
     deps = [
+        "//go/mockhttpclient",
         "//pinpoint/proto/v1:proto",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_grpc//metadata",
+        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )

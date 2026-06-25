@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
@@ -75,6 +77,7 @@ type mockPinpointClient struct {
 	getBenchmarkInfoFunc      func(ctx context.Context, benchmark string) (*BenchmarkInfo, error)
 	listRecentBuildsFunc      func(ctx context.Context, configuration string) ([]*pb.BuildInfo, error)
 	getCommitFunc             func(ctx context.Context, commit string) (*pb.GetCommitResponse, error)
+	getPatchFunc              func(ctx context.Context, req *pb.GetPatchRequest) (*pb.GetPatchResponse, error)
 }
 
 func (m *mockPinpointClient) QueryJobList(
@@ -111,23 +114,42 @@ func (m *mockPinpointClient) ListBenchmarks(ctx context.Context) ([]string, erro
 	return nil, nil
 }
 
-func (m *mockPinpointClient) GetBenchmarkInfo(ctx context.Context, benchmark string) (*BenchmarkInfo, error) {
+func (m *mockPinpointClient) GetBenchmarkInfo(
+	ctx context.Context,
+	benchmark string,
+) (*BenchmarkInfo, error) {
 	if m.getBenchmarkInfoFunc != nil {
 		return m.getBenchmarkInfoFunc(ctx, benchmark)
 	}
 	return nil, nil
 }
 
-func (m *mockPinpointClient) ListRecentBuilds(ctx context.Context, configuration string) ([]*pb.BuildInfo, error) {
+func (m *mockPinpointClient) ListRecentBuilds(
+	ctx context.Context,
+	configuration string,
+) ([]*pb.BuildInfo, error) {
 	if m.listRecentBuildsFunc != nil {
 		return m.listRecentBuildsFunc(ctx, configuration)
 	}
 	return nil, nil
 }
 
-func (m *mockPinpointClient) GetCommit(ctx context.Context, commit string) (*pb.GetCommitResponse, error) {
+func (m *mockPinpointClient) GetCommit(
+	ctx context.Context,
+	commit string,
+) (*pb.GetCommitResponse, error) {
 	if m.getCommitFunc != nil {
 		return m.getCommitFunc(ctx, commit)
+	}
+	return nil, nil
+}
+
+func (m *mockPinpointClient) GetPatch(
+	ctx context.Context,
+	req *pb.GetPatchRequest,
+) (*pb.GetPatchResponse, error) {
+	if m.getPatchFunc != nil {
+		return m.getPatchFunc(ctx, req)
 	}
 	return nil, nil
 }
@@ -214,7 +236,10 @@ func TestListBotConfigurations(t *testing.T) {
 		}
 		srv := &gatewayServer{client: client}
 
-		resp, err := srv.ListBotConfigurations(context.Background(), &pb.ListBotConfigurationsRequest{})
+		resp, err := srv.ListBotConfigurations(
+			context.Background(),
+			&pb.ListBotConfigurationsRequest{},
+		)
 		require.NoError(t, err)
 		assert.Equal(t, expectedBots, resp.Configurations)
 	})
@@ -227,7 +252,10 @@ func TestListBotConfigurations(t *testing.T) {
 		}
 		srv := &gatewayServer{client: client}
 
-		resp, err := srv.ListBotConfigurations(context.Background(), &pb.ListBotConfigurationsRequest{})
+		resp, err := srv.ListBotConfigurations(
+			context.Background(),
+			&pb.ListBotConfigurationsRequest{},
+		)
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Contains(t, err.Error(), "failed to list bots")
@@ -280,7 +308,10 @@ func TestGetBenchmarkEndpoint(t *testing.T) {
 		}
 		srv := &gatewayServer{client: client}
 
-		resp, err := srv.GetBenchmark(context.Background(), &pb.GetBenchmarkInfoRequest{Benchmark: "speedometer3"})
+		resp, err := srv.GetBenchmark(
+			context.Background(),
+			&pb.GetBenchmarkInfoRequest{Benchmark: "speedometer3"},
+		)
 		require.NoError(t, err)
 		assert.Equal(t, expectedStories, resp.Stories)
 		assert.Equal(t, expectedTags, resp.StoryTags)
@@ -295,7 +326,10 @@ func TestGetBenchmarkEndpoint(t *testing.T) {
 		}
 		srv := &gatewayServer{client: client}
 
-		resp, err := srv.GetBenchmark(context.Background(), &pb.GetBenchmarkInfoRequest{Benchmark: "speedometer3"})
+		resp, err := srv.GetBenchmark(
+			context.Background(),
+			&pb.GetBenchmarkInfoRequest{Benchmark: "speedometer3"},
+		)
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Contains(t, err.Error(), "failed to get benchmark")
@@ -316,7 +350,10 @@ func TestListRecentCommits(t *testing.T) {
 		}
 		srv := &gatewayServer{client: client}
 
-		resp, err := srv.ListRecentBuilds(context.Background(), &pb.ListRecentBuildsRequest{Configuration: "win-11-perf"})
+		resp, err := srv.ListRecentBuilds(
+			context.Background(),
+			&pb.ListRecentBuildsRequest{Configuration: "win-11-perf"},
+		)
 		require.NoError(t, err)
 		assert.Equal(t, expectedCommits, resp.Builds)
 	})
@@ -329,7 +366,10 @@ func TestListRecentCommits(t *testing.T) {
 		}
 		srv := &gatewayServer{client: client}
 
-		resp, err := srv.ListRecentBuilds(context.Background(), &pb.ListRecentBuildsRequest{Configuration: "win-11-perf"})
+		resp, err := srv.ListRecentBuilds(
+			context.Background(),
+			&pb.ListRecentBuildsRequest{Configuration: "win-11-perf"},
+		)
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Contains(t, err.Error(), "failed to list recent builds")
@@ -380,5 +420,54 @@ func TestGetCommitGateway(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Contains(t, err.Error(), "failed to get commit info")
+	})
+}
+
+func TestGetPatchGateway(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		expectedResp := &pb.GetPatchResponse{
+			Host:     "https://chromium-review.googlesource.com",
+			Change:   5582697,
+			Patchset: 3,
+			Project:  "chromium/src",
+			Author:   "author@chromium.org",
+			Subject:  "Commit message",
+			Created:  timestamppb.New(time.Date(2026, 6, 12, 12, 58, 40, 0, time.UTC)),
+		}
+		client := &mockPinpointClient{
+			getPatchFunc: func(ctx context.Context, req *pb.GetPatchRequest) (*pb.GetPatchResponse, error) {
+				assert.Equal(t, "https://chromium-review.googlesource.com", req.Host)
+				assert.Equal(t, int64(5582697), req.Change)
+				assert.Equal(t, int64(3), *req.Patchset)
+				return expectedResp, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		patchset := int64(3)
+		resp, err := srv.GetPatch(context.Background(), &pb.GetPatchRequest{
+			Host:     "https://chromium-review.googlesource.com",
+			Change:   5582697,
+			Patchset: &patchset,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, expectedResp, resp)
+	})
+
+	t.Run("client returns error", func(t *testing.T) {
+		client := &mockPinpointClient{
+			getPatchFunc: func(ctx context.Context, req *pb.GetPatchRequest) (*pb.GetPatchResponse, error) {
+				return nil, errors.New("failed to get patch info")
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.GetPatch(context.Background(), &pb.GetPatchRequest{
+			Host:   "https://chromium-review.googlesource.com",
+			Change: 5582697,
+		})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "failed to get patch info")
 	})
 }
