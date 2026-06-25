@@ -24,3 +24,5 @@ _bazel*/**
 *.html
 **/*.bazel
 **/*.bzl
+// Generated from pinpoint/proto/v1/gateway.proto
+pinpoint/webui/app/gateway/gateway.ts
