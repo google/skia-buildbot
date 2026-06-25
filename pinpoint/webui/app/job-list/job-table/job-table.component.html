@@ -130,10 +130,14 @@
   </table>
 
   @if (error()) {
-    <mat-error class="error-message">
+    <mat-error class="message">
       <mat-icon>error</mat-icon>
       <span>{{ error() }}</span>
     </mat-error>
+  } @else if (!loading() && jobs().length === 0) {
+    <div class="message">
+      <span>No jobs found</span>
+    </div>
   }
 </div>
 

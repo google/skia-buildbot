@@ -164,6 +164,26 @@ describe('JobsService', () => {
     assert.isFalse(service.loading());
   });
 
+  it('should stop querying when the first query returns no jobs', async () => {
+    let queryCount = 0;
+    const gateway = {
+      QueryJobList: async () => {
+        queryCount++;
+        return {
+          jobs: [],
+          pagination: { nextCursor: '', prevCursor: '', hasNext: false },
+        };
+      },
+    };
+    const service = createService(gateway);
+
+    await service.maybeFetchMore(0, 1);
+
+    assert.equal(queryCount, 1);
+    assert.equal(service.jobs().length, 0);
+    assert.isFalse(service.loading());
+  });
+
   it('should do nothing if maybeFetchMore is called while loading is true', async () => {
     let queryCount = 0;
     const gateway = {

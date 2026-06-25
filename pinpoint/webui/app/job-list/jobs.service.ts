@@ -107,7 +107,7 @@ export class JobsService {
     const jobsToReserve = 100;
     const needJobs = jobsBuffer < jobsToReserve;
 
-    const hasNext = this._jobs().length === 0 || this.pagination?.hasNext === true;
+    const hasNext = this.pagination === undefined || this.pagination?.hasNext === true;
     return needJobs && hasNext;
   }
 

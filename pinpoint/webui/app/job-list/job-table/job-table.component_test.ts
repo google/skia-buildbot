@@ -69,6 +69,21 @@ describe('JobTableComponent', () => {
     assert.equal(component.jobs()[0].jobId, '123456');
   }));
 
+  it('should have empty jobs list when no jobs are returned', fakeAsync(() => {
+    const component = createComponent({
+      QueryJobList: async () => ({
+        jobs: [],
+        pagination: { nextCursor: '', prevCursor: '' },
+      }),
+    });
+    component.ngOnInit();
+    tick();
+
+    assert.isFalse(component.loading());
+    assert.isNull(component.error());
+    assert.equal(component.jobs().length, 0);
+  }));
+
   it('should handle query failures and set error signal', fakeAsync(() => {
     const testError = new Error('Failed to query');
     const component = createComponent({

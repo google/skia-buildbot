@@ -21,9 +21,9 @@
 }
 
 /*
- * Displays an error message in the center of the table.
+ * Displays an error message or empty table message in the center of the table.
  */
-.error-message {
+.message {
   display: flex;
   justify-content: center;
   padding: 8px;
@@ -48,7 +48,7 @@ table.mat-mdc-table {
   line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
-  word-break: break-word;
+  overflow-wrap: break-word;
   max-width: 100%;
 }
 
@@ -58,15 +58,19 @@ table.mat-mdc-table {
 td.mat-column-name {
   max-width: 750px;
 }
+
 td.mat-column-benchmark {
   max-width: 350px;
 }
+
 td.mat-column-configuration {
   max-width: 250px;
 }
+
 td.mat-column-story {
   max-width: 250px;
 }
+
 td.mat-column-user {
   max-width: 250px;
 }
