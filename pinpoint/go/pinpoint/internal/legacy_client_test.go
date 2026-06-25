@@ -183,6 +183,10 @@ func setupTestMocks(t *testing.T, handler http.HandlerFunc) *LegacyClient {
 		listBenchmarksFailed:       metrics2.GetCounter("pinpoint_list_benchmarks_failed"),
 		getBenchmarkCalled:         metrics2.GetCounter("pinpoint_get_benchmark_called"),
 		getBenchmarkFailed:         metrics2.GetCounter("pinpoint_get_benchmark_failed"),
+		listRecentBuildsCalled:     metrics2.GetCounter("pinpoint_list_recent_builds_called"),
+		listRecentBuildsFailed:     metrics2.GetCounter("pinpoint_list_recent_builds_failed"),
+		cancelJobCalled:            metrics2.GetCounter("pinpoint_cancel_job_called"),
+		cancelJobFailed:            metrics2.GetCounter("pinpoint_cancel_job_failed"),
 	}
 
 	return pc
@@ -1405,5 +1409,91 @@ func TestGetCommit(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Internal Server Error")
 		assert.Nil(t, resp)
+	})
+}
+
+func TestCancelJob(t *testing.T) {
+	t.Run("Returns success on matching job id and cancelled state", func(t *testing.T) {
+		expectedResponse := []byte(`{
+			"job_id": "job-123",
+			"state": "Cancelled"
+		}`)
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodPost, r.Method)
+			assert.Equal(t, "/api/job/cancel", r.URL.Path)
+			assert.Equal(t, "job-123", r.URL.Query().Get("job_id"))
+			assert.Equal(t, DefaultCancellationReason, r.URL.Query().Get("reason"))
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(expectedResponse)
+		})
+
+		resp, err := pc.CancelJob(context.Background(), &pb.CancelPinpointJobRequest{
+			JobId: "job-123",
+		})
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+
+	t.Run("Returns error on mismatched job id", func(t *testing.T) {
+		expectedResponse := []byte(`{
+			"job_id": "job-456",
+			"state": "Cancelled"
+		}`)
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(expectedResponse)
+		})
+
+		resp, err := pc.CancelJob(context.Background(), &pb.CancelPinpointJobRequest{
+			JobId: "job-123",
+		})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "Mismatched Job ID")
+	})
+
+	t.Run("Returns error on non-cancelled state", func(t *testing.T) {
+		expectedResponse := []byte(`{
+			"job_id": "job-123",
+			"state": "Running"
+		}`)
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(expectedResponse)
+		})
+
+		resp, err := pc.CancelJob(context.Background(), &pb.CancelPinpointJobRequest{
+			JobId: "job-123",
+		})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "Unexpected job state")
+	})
+
+	t.Run("Returns error on missing JobId in request", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			t.Fail() // should not make any HTTP requests
+		})
+
+		resp, err := pc.CancelJob(context.Background(), &pb.CancelPinpointJobRequest{
+			JobId: "",
+		})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "JobId must be specified")
+	})
+
+	t.Run("Returns error on HTTP request failure", func(t *testing.T) {
+		pc := setupTestMocks(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error": "Failed to cancel"}`))
+		})
+
+		resp, err := pc.CancelJob(context.Background(), &pb.CancelPinpointJobRequest{
+			JobId: "job-123",
+		})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "Failed to cancel")
 	})
 }

@@ -112,7 +112,19 @@
         {{ getColumnLabel(JobTableColumn.JobStatus) }}
       </th>
       <td mat-cell *matCellDef="let job">
-        {{ jobStatusToLabel(job.jobStatus) }}
+        <div class="status-cell-container">
+          {{ jobStatusToLabel(job.jobStatus) }}
+          @if (isCancellable(job)) {
+            <button
+              mat-icon-button
+              class="cancel-button"
+              (click)="openCancelDialog(job); $event.stopPropagation()"
+              aria-label="Cancel job"
+              title="Cancel Job">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </div>
       </td>
     </ng-container>
 

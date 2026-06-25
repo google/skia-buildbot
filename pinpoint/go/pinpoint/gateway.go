@@ -21,6 +21,7 @@ type pinpointClient interface {
 	ListRecentBuilds(ctx context.Context, configuration string) ([]*pb.BuildInfo, error)
 	GetCommit(ctx context.Context, commit string) (*pb.GetCommitResponse, error)
 	GetPatch(ctx context.Context, req *pb.GetPatchRequest) (*pb.GetPatchResponse, error)
+	CancelJob(ctx context.Context, req *pb.CancelPinpointJobRequest) (*pb.CancelPinpointJobResponse, error)
 }
 
 type gatewayServer struct {
@@ -174,6 +175,17 @@ func (s *gatewayServer) GetPatch(
 	resp, err := s.client.GetPatch(ctx, req)
 	if err != nil {
 		return nil, skerr.Unwrap(err)
+	}
+	return resp, nil
+}
+
+func (s *gatewayServer) CancelJob(
+	ctx context.Context,
+	req *pb.CancelPinpointJobRequest,
+) (*pb.CancelPinpointJobResponse, error) {
+	resp, err := s.client.CancelJob(ctx, req)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
 	return resp, nil
 }

@@ -78,6 +78,7 @@ type mockPinpointClient struct {
 	listRecentBuildsFunc      func(ctx context.Context, configuration string) ([]*pb.BuildInfo, error)
 	getCommitFunc             func(ctx context.Context, commit string) (*pb.GetCommitResponse, error)
 	getPatchFunc              func(ctx context.Context, req *pb.GetPatchRequest) (*pb.GetPatchResponse, error)
+	cancelJobFunc             func(ctx context.Context, req *pb.CancelPinpointJobRequest) (*pb.CancelPinpointJobResponse, error)
 }
 
 func (m *mockPinpointClient) QueryJobList(
@@ -150,6 +151,16 @@ func (m *mockPinpointClient) GetPatch(
 ) (*pb.GetPatchResponse, error) {
 	if m.getPatchFunc != nil {
 		return m.getPatchFunc(ctx, req)
+	}
+	return nil, nil
+}
+
+func (m *mockPinpointClient) CancelJob(
+	ctx context.Context,
+	req *pb.CancelPinpointJobRequest,
+) (*pb.CancelPinpointJobResponse, error) {
+	if m.cancelJobFunc != nil {
+		return m.cancelJobFunc(ctx, req)
 	}
 	return nil, nil
 }
@@ -469,5 +480,39 @@ func TestGetPatchGateway(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Contains(t, err.Error(), "failed to get patch info")
+	})
+}
+
+func TestCancelJob(t *testing.T) {
+	t.Run("successful cancel", func(t *testing.T) {
+		client := &mockPinpointClient{
+			cancelJobFunc: func(ctx context.Context, req *pb.CancelPinpointJobRequest) (*pb.CancelPinpointJobResponse, error) {
+				assert.Equal(t, "job-123", req.JobId)
+				return &pb.CancelPinpointJobResponse{}, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.CancelJob(context.Background(), &pb.CancelPinpointJobRequest{
+			JobId: "job-123",
+		})
+		require.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+
+	t.Run("client returns error", func(t *testing.T) {
+		client := &mockPinpointClient{
+			cancelJobFunc: func(ctx context.Context, req *pb.CancelPinpointJobRequest) (*pb.CancelPinpointJobResponse, error) {
+				return nil, errors.New("failed to cancel job")
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		resp, err := srv.CancelJob(context.Background(), &pb.CancelPinpointJobRequest{
+			JobId: "job-123",
+		})
+		require.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "failed to cancel job")
 	})
 }

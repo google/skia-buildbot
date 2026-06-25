@@ -1634,6 +1634,89 @@ func (x *GetPatchResponse) GetCreated() *timestamppb.Timestamp {
 	return nil
 }
 
+// Request message to cancel a running Pinpoint job.
+type CancelPinpointJobRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The unique identifier of the Pinpoint job to cancel.
+	JobId         string `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelPinpointJobRequest) Reset() {
+	*x = CancelPinpointJobRequest{}
+	mi := &file_gateway_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelPinpointJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelPinpointJobRequest) ProtoMessage() {}
+
+func (x *CancelPinpointJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelPinpointJobRequest.ProtoReflect.Descriptor instead.
+func (*CancelPinpointJobRequest) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CancelPinpointJobRequest) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+// Response message returned after a job cancellation request.
+type CancelPinpointJobResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelPinpointJobResponse) Reset() {
+	*x = CancelPinpointJobResponse{}
+	mi := &file_gateway_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelPinpointJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelPinpointJobResponse) ProtoMessage() {}
+
+func (x *CancelPinpointJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelPinpointJobResponse.ProtoReflect.Descriptor instead.
+func (*CancelPinpointJobResponse) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{24}
+}
+
 var File_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_proto_rawDesc = "" +
@@ -1763,7 +1846,10 @@ const file_gateway_proto_rawDesc = "" +
 	"\aproject\x18\x04 \x01(\tR\aproject\x12\x16\n" +
 	"\x06author\x18\x05 \x01(\tR\x06author\x12\x18\n" +
 	"\asubject\x18\x06 \x01(\tR\asubject\x124\n" +
-	"\acreated\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\acreated*J\n" +
+	"\acreated\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\acreated\":\n" +
+	"\x18CancelPinpointJobRequest\x12\x1e\n" +
+	"\x06job_id\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\x05jobId\"\x1b\n" +
+	"\x19CancelPinpointJobResponse*J\n" +
 	"\aJobType\x12\x18\n" +
 	"\x14JOB_TYPE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fJOB_TYPE_TRY\x10\x01\x12\x13\n" +
@@ -1774,11 +1860,12 @@ const file_gateway_proto_rawDesc = "" +
 	"\x12JOB_STATUS_RUNNING\x10\x02\x12\x18\n" +
 	"\x14JOB_STATUS_COMPLETED\x10\x03\x12\x15\n" +
 	"\x11JOB_STATUS_FAILED\x10\x04\x12\x18\n" +
-	"\x14JOB_STATUS_CANCELLED\x10\x052\xef\b\n" +
+	"\x14JOB_STATUS_CANCELLED\x10\x052\xef\t\n" +
 	"\x0fPinpointGateway\x12n\n" +
 	"\fQueryJobList\x12 .pinpoint.v1.QueryJobListRequest\x1a!.pinpoint.v1.QueryJobListResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/jobs\x12k\n" +
 	"\vGetUserInfo\x12\x1f.pinpoint.v1.GetUserInfoRequest\x1a .pinpoint.v1.GetUserInfoResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/pinpoint/v1/user\x12m\n" +
-	"\fCreateTryJob\x12 .pinpoint.v1.CreateTryJobRequest\x1a\x1e.pinpoint.v1.CreateJobResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/pinpoint/v1/new\x12\x97\x01\n" +
+	"\fCreateTryJob\x12 .pinpoint.v1.CreateTryJobRequest\x1a\x1e.pinpoint.v1.CreateJobResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/pinpoint/v1/new\x12~\n" +
+	"\tCancelJob\x12%.pinpoint.v1.CancelPinpointJobRequest\x1a&.pinpoint.v1.CancelPinpointJobResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/pinpoint/v1/job/cancel\x12\x97\x01\n" +
 	"\x15ListBotConfigurations\x12).pinpoint.v1.ListBotConfigurationsRequest\x1a*.pinpoint.v1.ListBotConfigurationsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/pinpoint/v1/bot-configurations\x12z\n" +
 	"\x0eListBenchmarks\x12\".pinpoint.v1.ListBenchmarksRequest\x1a#.pinpoint.v1.ListBenchmarksResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/pinpoint/v1/benchmarks\x12\x8c\x01\n" +
 	"\fGetBenchmark\x12$.pinpoint.v1.GetBenchmarkInfoRequest\x1a%.pinpoint.v1.GetBenchmarkInfoResponse\"/\x82\xd3\xe4\x93\x02)\x12'/pinpoint/v1/benchmark-info/{benchmark}\x12\x93\x01\n" +
@@ -1799,7 +1886,7 @@ func file_gateway_proto_rawDescGZIP() []byte {
 }
 
 var file_gateway_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_gateway_proto_goTypes = []any{
 	(JobType)(0),                          // 0: pinpoint.v1.JobType
 	(JobStatus)(0),                        // 1: pinpoint.v1.JobStatus
@@ -1826,7 +1913,9 @@ var file_gateway_proto_goTypes = []any{
 	(*GetCommitResponse)(nil),             // 22: pinpoint.v1.GetCommitResponse
 	(*GetPatchRequest)(nil),               // 23: pinpoint.v1.GetPatchRequest
 	(*GetPatchResponse)(nil),              // 24: pinpoint.v1.GetPatchResponse
-	(*timestamppb.Timestamp)(nil),         // 25: google.protobuf.Timestamp
+	(*CancelPinpointJobRequest)(nil),      // 25: pinpoint.v1.CancelPinpointJobRequest
+	(*CancelPinpointJobResponse)(nil),     // 26: pinpoint.v1.CancelPinpointJobResponse
+	(*timestamppb.Timestamp)(nil),         // 27: google.protobuf.Timestamp
 }
 var file_gateway_proto_depIdxs = []int32{
 	0,  // 0: pinpoint.v1.QueryJobListRequest.job_type:type_name -> pinpoint.v1.JobType
@@ -1834,34 +1923,36 @@ var file_gateway_proto_depIdxs = []int32{
 	5,  // 2: pinpoint.v1.QueryJobListResponse.jobs:type_name -> pinpoint.v1.JobSummary
 	2,  // 3: pinpoint.v1.QueryJobListResponse.pagination:type_name -> pinpoint.v1.Pagination
 	0,  // 4: pinpoint.v1.JobSummary.job_type:type_name -> pinpoint.v1.JobType
-	25, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
+	27, // 5: pinpoint.v1.JobSummary.created:type_name -> google.protobuf.Timestamp
 	1,  // 6: pinpoint.v1.JobSummary.job_status:type_name -> pinpoint.v1.JobStatus
 	8,  // 7: pinpoint.v1.VariantConfig.extra_args:type_name -> pinpoint.v1.ExtraArgs
 	9,  // 8: pinpoint.v1.CreateTryJobRequest.base:type_name -> pinpoint.v1.VariantConfig
 	9,  // 9: pinpoint.v1.CreateTryJobRequest.experiment:type_name -> pinpoint.v1.VariantConfig
-	25, // 10: pinpoint.v1.BuildInfo.created:type_name -> google.protobuf.Timestamp
+	27, // 10: pinpoint.v1.BuildInfo.created:type_name -> google.protobuf.Timestamp
 	19, // 11: pinpoint.v1.ListRecentBuildsResponse.builds:type_name -> pinpoint.v1.BuildInfo
-	25, // 12: pinpoint.v1.GetPatchResponse.created:type_name -> google.protobuf.Timestamp
+	27, // 12: pinpoint.v1.GetPatchResponse.created:type_name -> google.protobuf.Timestamp
 	3,  // 13: pinpoint.v1.PinpointGateway.QueryJobList:input_type -> pinpoint.v1.QueryJobListRequest
 	6,  // 14: pinpoint.v1.PinpointGateway.GetUserInfo:input_type -> pinpoint.v1.GetUserInfoRequest
 	10, // 15: pinpoint.v1.PinpointGateway.CreateTryJob:input_type -> pinpoint.v1.CreateTryJobRequest
-	12, // 16: pinpoint.v1.PinpointGateway.ListBotConfigurations:input_type -> pinpoint.v1.ListBotConfigurationsRequest
-	14, // 17: pinpoint.v1.PinpointGateway.ListBenchmarks:input_type -> pinpoint.v1.ListBenchmarksRequest
-	16, // 18: pinpoint.v1.PinpointGateway.GetBenchmark:input_type -> pinpoint.v1.GetBenchmarkInfoRequest
-	18, // 19: pinpoint.v1.PinpointGateway.ListRecentBuilds:input_type -> pinpoint.v1.ListRecentBuildsRequest
-	21, // 20: pinpoint.v1.PinpointGateway.GetCommit:input_type -> pinpoint.v1.GetCommitRequest
-	23, // 21: pinpoint.v1.PinpointGateway.GetPatch:input_type -> pinpoint.v1.GetPatchRequest
-	4,  // 22: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
-	7,  // 23: pinpoint.v1.PinpointGateway.GetUserInfo:output_type -> pinpoint.v1.GetUserInfoResponse
-	11, // 24: pinpoint.v1.PinpointGateway.CreateTryJob:output_type -> pinpoint.v1.CreateJobResponse
-	13, // 25: pinpoint.v1.PinpointGateway.ListBotConfigurations:output_type -> pinpoint.v1.ListBotConfigurationsResponse
-	15, // 26: pinpoint.v1.PinpointGateway.ListBenchmarks:output_type -> pinpoint.v1.ListBenchmarksResponse
-	17, // 27: pinpoint.v1.PinpointGateway.GetBenchmark:output_type -> pinpoint.v1.GetBenchmarkInfoResponse
-	20, // 28: pinpoint.v1.PinpointGateway.ListRecentBuilds:output_type -> pinpoint.v1.ListRecentBuildsResponse
-	22, // 29: pinpoint.v1.PinpointGateway.GetCommit:output_type -> pinpoint.v1.GetCommitResponse
-	24, // 30: pinpoint.v1.PinpointGateway.GetPatch:output_type -> pinpoint.v1.GetPatchResponse
-	22, // [22:31] is the sub-list for method output_type
-	13, // [13:22] is the sub-list for method input_type
+	25, // 16: pinpoint.v1.PinpointGateway.CancelJob:input_type -> pinpoint.v1.CancelPinpointJobRequest
+	12, // 17: pinpoint.v1.PinpointGateway.ListBotConfigurations:input_type -> pinpoint.v1.ListBotConfigurationsRequest
+	14, // 18: pinpoint.v1.PinpointGateway.ListBenchmarks:input_type -> pinpoint.v1.ListBenchmarksRequest
+	16, // 19: pinpoint.v1.PinpointGateway.GetBenchmark:input_type -> pinpoint.v1.GetBenchmarkInfoRequest
+	18, // 20: pinpoint.v1.PinpointGateway.ListRecentBuilds:input_type -> pinpoint.v1.ListRecentBuildsRequest
+	21, // 21: pinpoint.v1.PinpointGateway.GetCommit:input_type -> pinpoint.v1.GetCommitRequest
+	23, // 22: pinpoint.v1.PinpointGateway.GetPatch:input_type -> pinpoint.v1.GetPatchRequest
+	4,  // 23: pinpoint.v1.PinpointGateway.QueryJobList:output_type -> pinpoint.v1.QueryJobListResponse
+	7,  // 24: pinpoint.v1.PinpointGateway.GetUserInfo:output_type -> pinpoint.v1.GetUserInfoResponse
+	11, // 25: pinpoint.v1.PinpointGateway.CreateTryJob:output_type -> pinpoint.v1.CreateJobResponse
+	26, // 26: pinpoint.v1.PinpointGateway.CancelJob:output_type -> pinpoint.v1.CancelPinpointJobResponse
+	13, // 27: pinpoint.v1.PinpointGateway.ListBotConfigurations:output_type -> pinpoint.v1.ListBotConfigurationsResponse
+	15, // 28: pinpoint.v1.PinpointGateway.ListBenchmarks:output_type -> pinpoint.v1.ListBenchmarksResponse
+	17, // 29: pinpoint.v1.PinpointGateway.GetBenchmark:output_type -> pinpoint.v1.GetBenchmarkInfoResponse
+	20, // 30: pinpoint.v1.PinpointGateway.ListRecentBuilds:output_type -> pinpoint.v1.ListRecentBuildsResponse
+	22, // 31: pinpoint.v1.PinpointGateway.GetCommit:output_type -> pinpoint.v1.GetCommitResponse
+	24, // 32: pinpoint.v1.PinpointGateway.GetPatch:output_type -> pinpoint.v1.GetPatchResponse
+	23, // [23:33] is the sub-list for method output_type
+	13, // [13:23] is the sub-list for method input_type
 	13, // [13:13] is the sub-list for extension type_name
 	13, // [13:13] is the sub-list for extension extendee
 	0,  // [0:13] is the sub-list for field type_name
@@ -1882,7 +1973,7 @@ func file_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_proto_rawDesc), len(file_gateway_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   23,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

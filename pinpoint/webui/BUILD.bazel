@@ -48,6 +48,7 @@ js_run_binary(
         "//:node_modules/rxjs",
         "//:node_modules/tslib",
         "//pinpoint/webui/app:srcs",
+        "//pinpoint/webui/app/cancel-job-dialog:srcs",
         "//pinpoint/webui/app/gateway:srcs",
         "//pinpoint/webui/app/header:srcs",
         "//pinpoint/webui/app/job-list:srcs",

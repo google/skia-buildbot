@@ -273,4 +273,49 @@ describe('JobsService', () => {
       assert.isTrue(setShowOnlyUserJobsSpy.calledOnceWithExactly(false));
     });
   });
+
+  describe('cancelJob', () => {
+    it('should call gatewayService.CancelJob and update the status of the specified job in the list', async () => {
+      const cancelJobSpy = sinon.spy(async (_req: any) => ({}));
+      const service = createService({ CancelJob: cancelJobSpy });
+      await service.loadJobs();
+
+      assert.equal(service.jobs().length, 1);
+      assert.equal(service.jobs()[0].jobId, '123456');
+      assert.equal(service.jobs()[0].jobStatus, JobStatus.JOB_STATUS_COMPLETED);
+
+      await service.cancelJob('123456');
+
+      assert.isTrue(
+        cancelJobSpy.calledOnceWithExactly({
+          jobId: '123456',
+        })
+      );
+      assert.equal(service.jobs()[0].jobStatus, JobStatus.JOB_STATUS_CANCELLED);
+    });
+
+    it('should propagate error if gatewayService.CancelJob fails', async () => {
+      const errorMsg = 'Failed to cancel job from backend';
+      const service = createService({
+        CancelJob: async () => {
+          throw new Error(errorMsg);
+        },
+      });
+      await service.loadJobs();
+
+      assert.equal(service.jobs().length, 1);
+      assert.equal(service.jobs()[0].jobStatus, JobStatus.JOB_STATUS_COMPLETED);
+
+      try {
+        await service.cancelJob('123456');
+        assert.fail('Should have thrown an error');
+      } catch (err: any) {
+        assert.equal(err.message, errorMsg);
+      }
+
+      // The status should not be updated to Cancelled if the call failed.
+      assert.equal(service.jobs()[0].jobStatus, JobStatus.JOB_STATUS_COMPLETED);
+      assert.equal(service.error(), errorMsg);
+    });
+  });
 });

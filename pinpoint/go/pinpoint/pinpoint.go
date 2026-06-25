@@ -184,6 +184,19 @@ func (c *Client) GetPatch(
 	}, nil
 }
 
+// CancelJob cancels a Pinpoint job.
+func (c *Client) CancelJob(
+	ctx context.Context,
+	req *pb.CancelPinpointJobRequest,
+) (*pb.CancelPinpointJobResponse, error) {
+	// TODO(b/527775939): Verify the user is the job owner.
+	resp, err := c.legacyClient.CancelJob(ctx, req)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp, nil
+}
+
 func isValidGerritHost(host string) bool {
 	u, err := url.Parse(host)
 	if err != nil {

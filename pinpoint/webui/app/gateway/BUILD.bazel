@@ -12,7 +12,9 @@ copy_to_bin(
 
 ts_library(
     name = "gateway_ts_lib",
-    srcs = ["gateway.ts"],
+    srcs = [
+        "gateway.ts",
+    ],
     tsconfig = "//pinpoint/webui:ts_config_lib",
     visibility = ["//visibility:public"],
 )

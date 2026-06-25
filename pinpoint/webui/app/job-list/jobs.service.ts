@@ -1,6 +1,12 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { GatewayService } from '../gateway/gateway.service';
-import { JobSummary, Pagination, JobType, GetUserInfoResponse } from '../gateway/gateway';
+import {
+  JobSummary,
+  Pagination,
+  JobType,
+  GetUserInfoResponse,
+  JobStatus,
+} from '../gateway/gateway';
 import { SettingsService } from '../settings/settings.service';
 
 @Injectable({
@@ -33,7 +39,9 @@ export class JobsService {
 
   private pagination: Pagination | undefined = undefined;
 
-  private userEmail = '';
+  private _userEmail = signal<string>('');
+
+  readonly userEmail = this._userEmail.asReadonly();
 
   async setShowOnlyUserJobs(showOnlyUserJobs: boolean) {
     if (this._showOnlyUserJobs() === showOnlyUserJobs) {
@@ -48,17 +56,17 @@ export class JobsService {
   }
 
   private async updateUserEmail(): Promise<void> {
-    if (this.userEmail) {
+    if (this.userEmail()) {
       return;
     }
 
     const userInfoFuture = this.gatewayService.GetUserInfo({});
     if (this._showOnlyUserJobs()) {
       const response = await userInfoFuture;
-      this.userEmail = response.email;
+      this._userEmail.set(response.email);
     } else {
       userInfoFuture.then((response: GetUserInfoResponse) => {
-        this.userEmail = response.email;
+        this._userEmail.set(response.email);
       });
     }
   }
@@ -77,7 +85,7 @@ export class JobsService {
       while (this.needMoreJobs()) {
         // TODO(b/511988008): Make "user", "configuration", "jobType" fields optional.
         const response = await this.gatewayService.QueryJobList({
-          user: this._showOnlyUserJobs() ? this.userEmail : '',
+          user: this.showOnlyUserJobs() ? this.userEmail() : '',
           configuration: '',
           jobType: JobType.JOB_TYPE_UNSPECIFIED,
           pagination: {
@@ -115,5 +123,22 @@ export class JobsService {
     this.pageIndex = pageIndex;
     this.pageSize = pageSize;
     await this.loadJobs();
+  }
+
+  async cancelJob(jobId: string): Promise<void> {
+    try {
+      await this.gatewayService.CancelJob({
+        jobId: jobId,
+      });
+      this._jobs.update((jobs) =>
+        jobs.map((job) =>
+          job.jobId === jobId ? { ...job, jobStatus: JobStatus.JOB_STATUS_CANCELLED } : job
+        )
+      );
+    } catch (err: any) {
+      console.error('Failed to cancel job:', err);
+      this._error.set(err?.message || 'Failed to cancel job.');
+      throw err;
+    }
   }
 }

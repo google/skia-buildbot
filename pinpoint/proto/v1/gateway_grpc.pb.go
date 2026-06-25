@@ -23,6 +23,7 @@ const (
 	PinpointGateway_QueryJobList_FullMethodName          = "/pinpoint.v1.PinpointGateway/QueryJobList"
 	PinpointGateway_GetUserInfo_FullMethodName           = "/pinpoint.v1.PinpointGateway/GetUserInfo"
 	PinpointGateway_CreateTryJob_FullMethodName          = "/pinpoint.v1.PinpointGateway/CreateTryJob"
+	PinpointGateway_CancelJob_FullMethodName             = "/pinpoint.v1.PinpointGateway/CancelJob"
 	PinpointGateway_ListBotConfigurations_FullMethodName = "/pinpoint.v1.PinpointGateway/ListBotConfigurations"
 	PinpointGateway_ListBenchmarks_FullMethodName        = "/pinpoint.v1.PinpointGateway/ListBenchmarks"
 	PinpointGateway_GetBenchmark_FullMethodName          = "/pinpoint.v1.PinpointGateway/GetBenchmark"
@@ -43,6 +44,8 @@ type PinpointGatewayClient interface {
 	GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
 	// Creates a new Pinpoint try job.
 	CreateTryJob(ctx context.Context, in *CreateTryJobRequest, opts ...grpc.CallOption) (*CreateJobResponse, error)
+	// Cancels a Pinpoint job.
+	CancelJob(ctx context.Context, in *CancelPinpointJobRequest, opts ...grpc.CallOption) (*CancelPinpointJobResponse, error)
 	// Lists all available bots.
 	ListBotConfigurations(ctx context.Context, in *ListBotConfigurationsRequest, opts ...grpc.CallOption) (*ListBotConfigurationsResponse, error)
 	// Lists all available benchmarks.
@@ -89,6 +92,16 @@ func (c *pinpointGatewayClient) CreateTryJob(ctx context.Context, in *CreateTryJ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateJobResponse)
 	err := c.cc.Invoke(ctx, PinpointGateway_CreateTryJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pinpointGatewayClient) CancelJob(ctx context.Context, in *CancelPinpointJobRequest, opts ...grpc.CallOption) (*CancelPinpointJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelPinpointJobResponse)
+	err := c.cc.Invoke(ctx, PinpointGateway_CancelJob_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -167,6 +180,8 @@ type PinpointGatewayServer interface {
 	GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error)
 	// Creates a new Pinpoint try job.
 	CreateTryJob(context.Context, *CreateTryJobRequest) (*CreateJobResponse, error)
+	// Cancels a Pinpoint job.
+	CancelJob(context.Context, *CancelPinpointJobRequest) (*CancelPinpointJobResponse, error)
 	// Lists all available bots.
 	ListBotConfigurations(context.Context, *ListBotConfigurationsRequest) (*ListBotConfigurationsResponse, error)
 	// Lists all available benchmarks.
@@ -197,6 +212,9 @@ func (UnimplementedPinpointGatewayServer) GetUserInfo(context.Context, *GetUserI
 }
 func (UnimplementedPinpointGatewayServer) CreateTryJob(context.Context, *CreateTryJobRequest) (*CreateJobResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateTryJob not implemented")
+}
+func (UnimplementedPinpointGatewayServer) CancelJob(context.Context, *CancelPinpointJobRequest) (*CancelPinpointJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelJob not implemented")
 }
 func (UnimplementedPinpointGatewayServer) ListBotConfigurations(context.Context, *ListBotConfigurationsRequest) (*ListBotConfigurationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBotConfigurations not implemented")
@@ -287,6 +305,24 @@ func _PinpointGateway_CreateTryJob_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PinpointGatewayServer).CreateTryJob(ctx, req.(*CreateTryJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PinpointGateway_CancelJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelPinpointJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointGatewayServer).CancelJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PinpointGateway_CancelJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointGatewayServer).CancelJob(ctx, req.(*CancelPinpointJobRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -417,6 +453,10 @@ var PinpointGateway_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTryJob",
 			Handler:    _PinpointGateway_CreateTryJob_Handler,
+		},
+		{
+			MethodName: "CancelJob",
+			Handler:    _PinpointGateway_CancelJob_Handler,
 		},
 		{
 			MethodName: "ListBotConfigurations",

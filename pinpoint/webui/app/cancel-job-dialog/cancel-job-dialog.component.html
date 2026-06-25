@@ -1,0 +1,29 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon>warning_amber</mat-icon>
+  Confirm Cancellation
+</h2>
+
+<mat-dialog-content>
+  <p>Are you sure you want to cancel job
+    <strong>"{{ data.jobName || data.jobId }}"</strong>?</p>
+  <p class="warning-text">This action cannot be undone.</p>
+
+  @if (error()) {
+    <div class="error-message">
+      <mat-icon>error</mat-icon>
+      <span>{{ error() }}</span>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-stroked-button [disabled]="loading()" (click)="onDismiss()">Keep Job</button>
+  <button mat-flat-button color="warn" [disabled]="loading()" (click)="onConfirm()">
+    <span class="button-content">
+      Cancel Job
+      @if (loading()) {
+        <mat-progress-spinner mode="indeterminate" diameter="18"></mat-progress-spinner>
+      }
+    </span>
+  </button>
+</mat-dialog-actions>

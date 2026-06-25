@@ -4,10 +4,13 @@ import '@angular/compiler';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { JobTableComponent } from './job-table.component';
+import { CancelJobDialogComponent } from '../../cancel-job-dialog/cancel-job-dialog.component';
+
 import { JobTableColumnsService, JobTableColumn } from '../job-table-columns.service';
 import { GatewayService } from '../../gateway/gateway.service';
 import { JobType, JobStatus } from '../../gateway/gateway';
 import { JobsService } from '../jobs.service';
+import { MatDialog } from '@angular/material/dialog';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 
@@ -28,7 +31,10 @@ describe('JobTableComponent', () => {
     TestBed.resetTestingModule();
   });
 
-  function createComponent(mockGateway?: Partial<GatewayService>): JobTableComponent {
+  function createComponent(
+    mockGateway?: Partial<GatewayService>,
+    mockDialog?: any
+  ): JobTableComponent {
     const defaultGateway: Partial<GatewayService> = {
       QueryJobList: async () => ({
         jobs: [
@@ -52,8 +58,13 @@ describe('JobTableComponent', () => {
       }),
     };
     const gateway = { ...defaultGateway, ...mockGateway };
+    const dialog = mockDialog || { open: () => {} };
     TestBed.configureTestingModule({
-      providers: [{ provide: GatewayService, useValue: gateway }, JobsService],
+      providers: [
+        { provide: GatewayService, useValue: gateway },
+        { provide: MatDialog, useValue: dialog },
+        JobsService,
+      ],
     });
     return TestBed.runInInjectionContext(() => new JobTableComponent());
   }
@@ -223,5 +234,62 @@ describe('JobTableComponent', () => {
       assert.equal(component.dataSource.sortingDataAccessor(job, JobTableColumn.Name), 'job_1');
       assert.equal(component.dataSource.sortingDataAccessor(job, JobTableColumn.Benchmark), 'b');
     });
+  });
+
+  describe('isCancellable', () => {
+    it('should return true only for queued or running jobs created by the current user', fakeAsync(() => {
+      const component = createComponent();
+      component.ngOnInit();
+      tick(); // Let user email resolve to 'test@google.com'
+
+      const createMockJob = (status: JobStatus, user = 'test@google.com') => ({
+        jobId: '1',
+        name: 'job_1',
+        benchmark: 'b',
+        configuration: 'c',
+        story: 's',
+        jobType: JobType.JOB_TYPE_TRY,
+        user,
+        created: '2026-05-20T12:00:00Z',
+        jobStatus: status,
+      });
+
+      // Status checks for the owner (test@google.com)
+      assert.isTrue(component.isCancellable(createMockJob(JobStatus.JOB_STATUS_QUEUED)));
+      assert.isTrue(component.isCancellable(createMockJob(JobStatus.JOB_STATUS_RUNNING)));
+      assert.isFalse(component.isCancellable(createMockJob(JobStatus.JOB_STATUS_COMPLETED)));
+      assert.isFalse(component.isCancellable(createMockJob(JobStatus.JOB_STATUS_FAILED)));
+      assert.isFalse(component.isCancellable(createMockJob(JobStatus.JOB_STATUS_CANCELLED)));
+
+      // Ownership checks (other@google.com)
+      assert.isFalse(
+        component.isCancellable(createMockJob(JobStatus.JOB_STATUS_QUEUED, 'other@google.com'))
+      );
+      assert.isFalse(
+        component.isCancellable(createMockJob(JobStatus.JOB_STATUS_RUNNING, 'other@google.com'))
+      );
+    }));
+  });
+
+  describe('openCancelDialog', () => {
+    it('should open the CancelJobDialogComponent with the job data', fakeAsync(() => {
+      const mockDialog = {
+        open: sinon.stub(),
+      };
+
+      const component = createComponent(undefined, mockDialog);
+      component.ngOnInit();
+      tick();
+
+      const job = component.jobs()[0];
+      assert.isDefined(job, 'Job should be loaded');
+      component.openCancelDialog(job);
+
+      assert.isTrue(
+        mockDialog.open.calledOnceWithExactly(CancelJobDialogComponent, {
+          data: { jobId: job.jobId, jobName: job.name },
+        })
+      );
+    }));
   });
 });

@@ -33,6 +33,8 @@ const (
 	pinpointLegacyConfigURL       = pinpointLegacyBaseURL + "/api/config"
 	pinpointLegacyBuildsURL       = pinpointLegacyBaseURL + "/api/builds"
 	pinpointLegacyCommitURL       = pinpointLegacyBaseURL + "/api/commit"
+	pinpointLegacyCancelJobURL    = pinpointLegacyBaseURL + "/api/job/cancel"
+	DefaultCancellationReason     = "No reason provided"
 	contentType                   = "application/json"
 	tryJobComparisonMode          = "try"
 	chromeperfLegacyBaseURL       = "https://chromeperf.appspot.com"
@@ -83,6 +85,8 @@ type LegacyClient struct {
 	getBenchmarkFailed         metrics2.Counter
 	listRecentBuildsCalled     metrics2.Counter
 	listRecentBuildsFailed     metrics2.Counter
+	cancelJobCalled            metrics2.Counter
+	cancelJobFailed            metrics2.Counter
 }
 
 // New returns a new LegacyClient instance.
@@ -116,6 +120,8 @@ func NewLegacyClient(ctx context.Context) (*LegacyClient, error) {
 		getBenchmarkFailed:         metrics2.GetCounter("pinpoint_get_benchmark_failed"),
 		listRecentBuildsCalled:     metrics2.GetCounter("pinpoint_list_recent_builds_called"),
 		listRecentBuildsFailed:     metrics2.GetCounter("pinpoint_list_recent_builds_failed"),
+		cancelJobCalled:            metrics2.GetCounter("pinpoint_cancel_job_called"),
+		cancelJobFailed:            metrics2.GetCounter("pinpoint_cancel_job_failed"),
 	}, nil
 }
 
@@ -816,4 +822,47 @@ func (pc *LegacyClient) GetCommit(
 	}
 
 	return &commitResp, nil
+}
+
+// CancelJob calls the legacy Pinpoint API to cancel a job.
+func (pc *LegacyClient) CancelJob(
+	ctx context.Context,
+	req *pb.CancelPinpointJobRequest,
+) (resp *pb.CancelPinpointJobResponse, err error) {
+	pc.cancelJobCalled.Inc(1)
+	defer func() { trackError(pc.cancelJobFailed, err) }()
+
+	if req.JobId == "" {
+		return nil, skerr.Fmt("JobId must be specified but is empty.")
+	}
+
+	params := url.Values{}
+	params.Set("job_id", req.JobId)
+	params.Set("reason", DefaultCancellationReason)
+
+	requestURL := fmt.Sprintf("%s?%s", pinpointLegacyCancelJobURL, params.Encode())
+	httpResp, err := pc.doPostRequest(ctx, requestURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	body, err := pc.readResponseBody(httpResp)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	var legacyResp struct {
+		JobID string `json:"job_id"`
+		State string `json:"state"`
+	}
+	if err = json.Unmarshal(body, &legacyResp); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse pinpoint cancel response body.")
+	}
+	if legacyResp.JobID != req.JobId {
+		return nil, skerr.Fmt("Mismatched Job ID in legacy cancel response: requested %q but got %q", req.JobId, legacyResp.JobID)
+	}
+	if parseJobStatus(legacyResp.State) != pb.JobStatus_JOB_STATUS_CANCELLED {
+		return nil, skerr.Fmt("Unexpected job state in legacy cancel response: expected %q but got %q", "Cancelled", legacyResp.State)
+	}
+	return &pb.CancelPinpointJobResponse{}, nil
 }

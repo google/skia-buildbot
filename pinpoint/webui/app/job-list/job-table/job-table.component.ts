@@ -8,10 +8,12 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CdkDragDrop, CdkDrag, CdkDropList } from '@angular/cdk/drag-drop';
 import { JobTableColumnsService, JobTableColumn } from '../job-table-columns.service';
 import { JobSummary, JobType, JobStatus } from '../../gateway/gateway';
 import { JobsService } from '../jobs.service';
+import { CancelJobDialogComponent } from '../../cancel-job-dialog/cancel-job-dialog.component';
 
 @Component({
   selector: 'app-job-table',
@@ -25,6 +27,7 @@ import { JobsService } from '../jobs.service';
     MatPaginatorModule,
     MatFormFieldModule,
     MatSortModule,
+    MatDialogModule,
     DatePipe,
     CdkDrag,
     CdkDropList,
@@ -46,6 +49,8 @@ export class JobTableComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<JobSummary>([]);
 
   private columnsService = inject(JobTableColumnsService);
+
+  private dialog = inject(MatDialog);
 
   get displayedColumns(): string[] {
     return this.columnsService.displayedColumns();
@@ -134,5 +139,19 @@ export class JobTableComponent implements OnInit, AfterViewInit {
         console.error('Unknown job type:', jobType);
         return '-';
     }
+  }
+
+  isCancellable(job: JobSummary): boolean {
+    const cancellableStatus = [JobStatus.JOB_STATUS_QUEUED, JobStatus.JOB_STATUS_RUNNING].includes(
+      job.jobStatus
+    );
+    const isOwner = job.user === this.jobsService.userEmail();
+    return isOwner && cancellableStatus;
+  }
+
+  openCancelDialog(job: JobSummary) {
+    this.dialog.open(CancelJobDialogComponent, {
+      data: { jobId: job.jobId, jobName: job.name },
+    });
   }
 }

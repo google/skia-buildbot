@@ -21,6 +21,8 @@ import {
   GetCommitResponse,
   GetPatchRequest,
   GetPatchResponse,
+  CancelPinpointJobRequest,
+  CancelPinpointJobResponse,
 } from './gateway';
 
 const HTTP_QUERY_TIMEOUT_MS = 10000;
@@ -66,6 +68,10 @@ export class GatewayService implements PinpointGateway {
 
   CreateTryJob(request: CreateTryJobRequest): Promise<CreateJobResponse> {
     return this.post('/pinpoint/v1/new', request);
+  }
+
+  CancelJob(request: CancelPinpointJobRequest): Promise<CancelPinpointJobResponse> {
+    return this.post('/pinpoint/v1/job/cancel', request);
   }
 
   ListBotConfigurations(

@@ -4,36 +4,31 @@ load("//infra-sk:index.bzl", "karma_test", "ts_library")
 copy_to_bin(
     name = "srcs",
     srcs = [
-        "job-table.component.css",
-        "job-table.component.html",
-        "job-table.component.ts",
+        "cancel-job-dialog.component.css",
+        "cancel-job-dialog.component.html",
+        "cancel-job-dialog.component.ts",
     ],
     visibility = ["//pinpoint/webui:__pkg__"],
 )
 
 ts_library(
-    name = "job-table.component_ts_lib",
-    srcs = ["job-table.component.ts"],
+    name = "cancel-job-dialog.component_ts_lib",
+    srcs = ["cancel-job-dialog.component.ts"],
     tsconfig = "//pinpoint/webui:ts_config_lib",
     visibility = ["//visibility:public"],
     deps = [
-        "//:node_modules/@angular/cdk",
-        "//:node_modules/@angular/common",
         "//:node_modules/@angular/core",
         "//:node_modules/@angular/material",
-        "//pinpoint/webui/app/cancel-job-dialog:cancel-job-dialog.component_ts_lib",
-        "//pinpoint/webui/app/gateway:gateway_ts_lib",
-        "//pinpoint/webui/app/job-list:job-table-columns.service_ts_lib",
         "//pinpoint/webui/app/job-list:jobs.service_ts_lib",
     ],
 )
 
 karma_test(
-    name = "job-table.component_test",
-    src = "job-table.component_test.ts",
+    name = "cancel-job-dialog.component_test",
+    src = "cancel-job-dialog.component_test.ts",
     tsconfig = "//pinpoint/webui:ts_config_test",
     deps = [
-        ":job-table.component_ts_lib",
+        ":cancel-job-dialog.component_ts_lib",
         "//:node_modules/@angular/compiler",
         "//:node_modules/@angular/core",
         "//:node_modules/@angular/material",
@@ -43,10 +38,6 @@ karma_test(
         "//:node_modules/chai",
         "//:node_modules/sinon",
         "//:node_modules/zone.js",
-        "//pinpoint/webui/app/cancel-job-dialog:cancel-job-dialog.component_ts_lib",
-        "//pinpoint/webui/app/gateway:gateway.service_ts_lib",
-        "//pinpoint/webui/app/gateway:gateway_ts_lib",
-        "//pinpoint/webui/app/job-list:job-table-columns.service_ts_lib",
         "//pinpoint/webui/app/job-list:jobs.service_ts_lib",
     ],
 )

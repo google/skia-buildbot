@@ -278,6 +278,16 @@ message GetPatchResponse {
   google.protobuf.Timestamp created = 7;
 }
 
+// Request message to cancel a running Pinpoint job.
+message CancelPinpointJobRequest {
+  // The unique identifier of the Pinpoint job to cancel.
+  string job_id = 1 [(validate.rules).string = {min_len: 1}];
+}
+
+// Response message returned after a job cancellation request.
+message CancelPinpointJobResponse {
+}
+
 // Service definition for Pinpoint Gateway API.
 service PinpointGateway {
   // Queries a list of jobs based on filters and pagination options.
@@ -298,6 +308,14 @@ service PinpointGateway {
   rpc CreateTryJob(CreateTryJobRequest) returns (CreateJobResponse) {
     option (google.api.http) = {
       post: "/pinpoint/v1/new"
+      body: "*"
+    };
+  }
+
+  // Cancels a Pinpoint job.
+  rpc CancelJob(CancelPinpointJobRequest) returns (CancelPinpointJobResponse) {
+    option (google.api.http) = {
+      post: "/pinpoint/v1/job/cancel"
       body: "*"
     };
   }

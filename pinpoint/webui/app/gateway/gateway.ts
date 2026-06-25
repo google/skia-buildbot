@@ -283,6 +283,16 @@ export interface GetPatchResponse {
   created: string | undefined;
 }
 
+/** Request message to cancel a running Pinpoint job. */
+export interface CancelPinpointJobRequest {
+  /** The unique identifier of the Pinpoint job to cancel. */
+  jobId: string;
+}
+
+/** Response message returned after a job cancellation request. */
+export interface CancelPinpointJobResponse {
+}
+
 /** Service definition for Pinpoint Gateway API. */
 export interface PinpointGateway {
   /** Queries a list of jobs based on filters and pagination options. */
@@ -291,6 +301,8 @@ export interface PinpointGateway {
   GetUserInfo(request: GetUserInfoRequest): Promise<GetUserInfoResponse>;
   /** Creates a new Pinpoint try job. */
   CreateTryJob(request: CreateTryJobRequest): Promise<CreateJobResponse>;
+  /** Cancels a Pinpoint job. */
+  CancelJob(request: CancelPinpointJobRequest): Promise<CancelPinpointJobResponse>;
   /** Lists all available bots. */
   ListBotConfigurations(request: ListBotConfigurationsRequest): Promise<ListBotConfigurationsResponse>;
   /** Lists all available benchmarks. */
