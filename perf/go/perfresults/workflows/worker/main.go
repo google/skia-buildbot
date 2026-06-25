@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"os/user"
 
 	"go.skia.org/infra/go/common"
@@ -48,7 +49,12 @@ func main() {
 	}
 	defer c.Close()
 
-	w := worker.New(c, *taskQueue, worker.Options{})
+	workerOpts := worker.Options{}
+	if buildID := os.Getenv("TEMPORAL_WORKER_BUILD_ID"); buildID != "" {
+		workerOpts.BuildID = buildID
+		workerOpts.UseBuildIDForVersioning = true
+	}
+	w := worker.New(c, *taskQueue, workerOpts)
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
