@@ -12,6 +12,7 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
@@ -79,6 +80,7 @@ func Command() []*cli.Command {
 	bucketFlag := "bucket"
 	issueFlag := "issue"
 	patchSetFlag := "patchset"
+	waitFlag := "wait"
 	return []*cli.Command{
 		{
 			Name:        "try",
@@ -118,9 +120,14 @@ func Command() []*cli.Command {
 					Value: 0,
 					Usage: "Retrieve try jobs for this patch set instead of the most recent.",
 				},
+				&cli.BoolFlag{
+					Name:  waitFlag,
+					Value: false,
+					Usage: "Wait for all try jobs to finish before exiting.",
+				},
 			},
 			Action: func(ctx *cli.Context) error {
-				return tryResults(ctx.Context, ctx.Int64(issueFlag), ctx.Int64(patchSetFlag))
+				return tryResults(ctx.Context, ctx.Int64(issueFlag), ctx.Int64(patchSetFlag), ctx.Bool(waitFlag))
 			},
 		},
 	}
@@ -333,7 +340,7 @@ func getLocalIssueProperties(ctx context.Context) (*issueProperties, error) {
 	return &props, nil
 }
 
-func tryResults(ctx context.Context, issue, patchset int64) error {
+func tryResults(ctx context.Context, issue, patchset int64, wait bool) error {
 	// Set up HTTP client.
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
@@ -366,18 +373,46 @@ func tryResults(ctx context.Context, issue, patchset int64) error {
 		patchsets := ci.GetPatchsetIDs()
 		patchset = patchsets[len(patchsets)-1]
 	}
-
-	// Retrieve Buildbucket builds for the issue+patchset.
 	bbClient := buildbucket.NewClient(httpClient)
-	builds, err := bbClient.GetTrybotsForCL(ctx, issue, patchset, gerritURL, nil)
+
+	// Print output.
+	output, done, err := formatTryResults(ctx, bbClient, issue, patchset, gerritURL)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	_, _ = fmt.Print(output)
+
+	// Wait if necessary.
+	for wait && !done {
+		eraseLines := len(strings.Split(output, "\n"))
+		eraseStr := fmt.Sprintf("\033[%dA\033[J", eraseLines) // Move cursor up N lines and clear everything after.
+		time.Sleep(10 * time.Second)
+		output, done, err = formatTryResults(ctx, bbClient, issue, patchset, gerritURL)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		_, _ = fmt.Print(eraseStr)
+		_, _ = fmt.Print(output)
+	}
+
+	return nil
+}
+
+func formatTryResults(ctx context.Context, bbClient *buildbucket.Client, issue, patchset int64, gerritURL string) (string, bool, error) {
+	// Retrieve Buildbucket builds for the issue+patchset.
+	builds, err := bbClient.GetTrybotsForCL(ctx, issue, patchset, gerritURL, nil)
+	if err != nil {
+		return "", false, skerr.Wrap(err)
+	}
 
 	// Group by status.
+	done := true
 	buildsByStatus := map[buildbucketpb.Status][]*buildbucketpb.Build{}
 	for _, build := range builds {
 		buildsByStatus[build.Status] = append(buildsByStatus[build.Status], build)
+		if build.Status&buildbucketpb.Status_ENDED_MASK == 0 {
+			done = false
+		}
 	}
 	statuses := make([]buildbucketpb.Status, 0, len(buildsByStatus))
 	for status := range buildsByStatus {
@@ -385,19 +420,20 @@ func tryResults(ctx context.Context, issue, patchset int64) error {
 	}
 	slices.Sort(statuses)
 
-	// Print results.
-	fmt.Printf("Patchset %d:\n", patchset)
+	// Format results.
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "Patchset %d:\n", patchset)
 	for _, s := range statuses {
-		colorLogf(s, "  %s:\n", s.String())
+		colorLogf(&sb, s, "  %s:\n", s.String())
 		for _, build := range builds {
-			colorLogf(s, "    %s: %s\n", build.Builder.Builder, jobURLForBuild(build))
+			colorLogf(&sb, s, "    %s: %s\n", build.Builder.Builder, jobURLForBuild(build))
 		}
 	}
-	return nil
+	return sb.String(), done, nil
 }
 
-func colorLogf(status buildbucketpb.Status, format string, a ...interface{}) {
-	_, _ = getColor(status).Printf(format, a...)
+func colorLogf(w io.Writer, status buildbucketpb.Status, format string, a ...interface{}) {
+	_, _ = getColor(status).Fprintf(w, format, a...)
 }
 
 var statusToColor = map[buildbucketpb.Status]*color.Color{
