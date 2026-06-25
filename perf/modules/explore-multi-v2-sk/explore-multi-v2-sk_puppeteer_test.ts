@@ -971,4 +971,79 @@ describe('explore-multi-v2-sk', () => {
     expect(regressions[101]).to.not.be.undefined;
     expect(regressions[100]).to.be.undefined;
   });
+
+  it('should support arbitrary pill selection and copying via keyboard shortcuts', async () => {
+    const page = testBed.page;
+
+    // Set up query and options so pills render
+    await page.evaluate(async () => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      explore.queries = [{ benchmark: ['v8'], bot: ['MacM1'] }];
+      explore._optionsByKeyPerQuery = [
+        {
+          benchmark: [{ value: 'v8', count: 1 }],
+          bot: [{ value: 'MacM1', count: 1 }],
+        },
+      ];
+      await explore.updateComplete;
+
+      const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
+      queryBar.availableParams = [
+        { key: 'benchmark', value: 'v8', count: 1 },
+        { key: 'bot', value: 'MacM1', count: 1 },
+      ];
+      await queryBar.updateComplete;
+    });
+
+    // Verify both pills exist and are NOT highlighted initially
+    let pillHighlightStates = await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
+      const pills = queryBar.shadowRoot.querySelectorAll('explore-multi-v2-select-sk');
+      return Array.from(pills).map((p: any) => p.isHighlighted);
+    });
+    expect(pillHighlightStates).to.deep.equal([false, false]);
+
+    // Simulate Ctrl+Click on the first pill inside the page
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
+      const firstPill = queryBar.shadowRoot.querySelectorAll('explore-multi-v2-select-sk')[0];
+      firstPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+    });
+
+    // Verify first pill is highlighted, second is not
+    pillHighlightStates = await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
+      const pills = queryBar.shadowRoot.querySelectorAll('explore-multi-v2-select-sk');
+      return Array.from(pills).map((p: any) => p.isHighlighted);
+    });
+    expect(pillHighlightStates).to.deep.equal([true, false]);
+
+    // Verify dropdown is NOT open
+    const isDropdownOpen = await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
+      return queryBar._openPillIndex !== null;
+    });
+    expect(isDropdownOpen).to.be.false;
+
+    // Now simulate a normal click on the second pill
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
+      const secondPill = queryBar.shadowRoot.querySelectorAll('explore-multi-v2-select-sk')[1];
+      secondPill.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    // Verify selection is cleared
+    pillHighlightStates = await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore.shadowRoot.querySelector('query-bar-sk') as any;
+      const pills = queryBar.shadowRoot.querySelectorAll('explore-multi-v2-select-sk');
+      return Array.from(pills).map((p: any) => p.isHighlighted);
+    });
+    expect(pillHighlightStates).to.deep.equal([false, false]);
+  });
 });

@@ -79,7 +79,7 @@ export class ExploreMultiV2SkPO extends PageObject {
         multiSelect = queryBar.shadowRoot.querySelector('explore-multi-v2-select-sk');
       }
       if (!multiSelect) throw new Error('explore-multi-v2-select-sk not found');
-      multiSelect._isOpen = true;
+      multiSelect.isOpen = true;
 
       // Wait for options to be populated and the button to render
       const maxAttempts = 20;

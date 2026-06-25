@@ -13,6 +13,46 @@ import {
   MultiSelectReplaceEventDetail,
 } from './multi-select-sk';
 
+interface PillRect {
+  index: number;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+function calculatePillFocusIndex(
+  clientX: number,
+  clientY: number,
+  containerRect: DOMRect | undefined,
+  pillRects: PillRect[]
+): number {
+  const isAbove = containerRect && clientY < containerRect.top;
+
+  if (isAbove) {
+    return 0;
+  } else {
+    let lastPillInRow: PillRect | null = null;
+    for (const pr of pillRects) {
+      if (clientY >= pr.top && clientY <= pr.bottom) {
+        lastPillInRow = pr;
+        if (clientX <= pr.right) {
+          return pr.index;
+        }
+      }
+    }
+
+    if (lastPillInRow) {
+      return lastPillInRow.index;
+    }
+
+    if (pillRects.length > 0) {
+      return pillRects[pillRects.length - 1].index;
+    }
+  }
+  return -1;
+}
+
 export interface Suggestion {
   params: { key: string; value: string; count?: number }[];
   score: number;
@@ -46,6 +86,10 @@ export interface QueryDiffBaseEventDetail {
 
 @customElement('query-bar-sk')
 export class QueryBarSk extends LitElement {
+  private static readonly DRAG_THRESHOLD_PX = 5;
+
+  public pendingPillSelection: string | null = null;
+
   @property({ type: Object }) query: Record<string, string[]> = {};
 
   @property({ type: Array }) availableParams: { key: string; value: string; count?: number }[] = [];
@@ -73,6 +117,34 @@ export class QueryBarSk extends LitElement {
   @state() private _isLoadingSuggestions = false;
 
   @state() private _selectedCategory: string | null = null;
+
+  @state() private _selectionAnchor: number | null = null;
+
+  @state() private _selectionFocus: number | null = null;
+
+  @state() private _isDragging = false;
+
+  @state() private _dragStartPos: { x: number; y: number } | null = null;
+
+  @state() private _startedInInput = false;
+
+  @state() private _pillRects: PillRect[] = [];
+
+  @state() private _canSelectPills = false;
+
+  @state() private _openPillIndex: number | null = null;
+
+  @state() private _selectedPills: Set<number> = new Set();
+
+  private _isToTheLeft = false;
+
+  private _savedEnd = 0;
+
+  private _currentMouseX = 0;
+
+  private _currentMouseY = 0;
+
+  private _hasDragged = false;
 
   @query('.query-input') private _inputElement?: HTMLInputElement;
 
@@ -256,10 +328,12 @@ export class QueryBarSk extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     document.addEventListener('mousedown', this._handleClickOutside);
+    document.addEventListener('selectionchange', this._handleSelectionChange);
   }
 
   disconnectedCallback() {
     document.removeEventListener('mousedown', this._handleClickOutside);
+    document.removeEventListener('selectionchange', this._handleSelectionChange);
     super.disconnectedCallback();
   }
 
@@ -512,9 +586,224 @@ export class QueryBarSk extends LitElement {
     // Rely on worker-provided counts
   }
 
+  private _isPillHighlighted(idx: number): boolean {
+    return this._selectedPills.has(idx);
+  }
+
+  private _handlePillClick(e: MouseEvent, idx: number) {
+    // Always stop propagation to prevent focusing the input and opening query bar suggestions
+    e.stopPropagation();
+
+    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+      e.preventDefault();
+
+      if (e.shiftKey && this._selectionAnchor !== null) {
+        // Shift+Click: select range from anchor to clicked idx
+        const start = Math.min(this._selectionAnchor, idx);
+        const end = Math.max(this._selectionAnchor, idx);
+        const newSelection = new Set<number>();
+        for (let i = start; i <= end; i++) {
+          newSelection.add(i);
+        }
+        this._selectedPills = newSelection;
+        this._selectionFocus = idx;
+      } else {
+        // Ctrl+Click or Cmd+Click: toggle individual pill
+        const newSelection = new Set(this._selectedPills);
+        if (newSelection.has(idx)) {
+          newSelection.delete(idx);
+        } else {
+          newSelection.add(idx);
+        }
+        this._selectedPills = newSelection;
+        this._selectionAnchor = idx;
+        this._selectionFocus = idx;
+      }
+      this._inputElement?.focus();
+    } else {
+      // Normal click: clear selection, let the pill handle its own click (open dropdown)
+      this._selectedPills = new Set();
+      this._selectionAnchor = null;
+      this._selectionFocus = null;
+    }
+  }
+
+  private _handlePointerDownInput(e: PointerEvent) {
+    this._isDragging = true;
+    this._dragStartPos = { x: e.clientX, y: e.clientY };
+    this._startedInInput = true;
+
+    const target = e.currentTarget as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+
+    const pills = this.renderRoot.querySelectorAll('explore-multi-v2-select-sk');
+    const rects: PillRect[] = [];
+    pills.forEach((pill) => {
+      const index = parseInt(pill.getAttribute('data-index') || '-1');
+      const rect = pill.getBoundingClientRect();
+      if (index !== -1) {
+        rects.push({
+          index,
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+        });
+      }
+    });
+    this._pillRects = rects;
+  }
+
+  private _handlePointerMoveInput(e: PointerEvent) {
+    if (this._startedInInput && this._isDragging && this._dragStartPos) {
+      this._currentMouseX = e.clientX;
+      this._currentMouseY = e.clientY;
+
+      const dx = e.clientX - this._dragStartPos.x;
+      const distance = Math.abs(dx);
+
+      if (distance > QueryBarSk.DRAG_THRESHOLD_PX) {
+        this._hasDragged = true;
+        const keys = this._sortKeys(Object.keys(this.query));
+
+        const inputEl = e.currentTarget as HTMLElement;
+        const rect = inputEl.getBoundingClientRect();
+        const isHorizontallyOutsideLeft = e.clientX < rect.left;
+
+        const wasToTheLeft = this._isToTheLeft;
+        this._isToTheLeft = isHorizontallyOutsideLeft;
+
+        const textField = inputEl as any;
+        const selectionStart = textField.selectionStart ?? 0;
+        const selectionEnd = textField.selectionEnd ?? 0;
+
+        if (!wasToTheLeft && isHorizontallyOutsideLeft) {
+          if (selectionStart === 0) {
+            this._canSelectPills = true;
+            this._savedEnd = selectionEnd;
+          }
+        }
+
+        let focusIndex = -1;
+        if (this._canSelectPills) {
+          const anchorIndex = keys.length - 1;
+          this._selectionAnchor = anchorIndex;
+
+          const containerRect = this.renderRoot
+            .querySelector('.query-bar-container')
+            ?.getBoundingClientRect();
+          focusIndex = calculatePillFocusIndex(
+            e.clientX,
+            e.clientY,
+            containerRect,
+            this._pillRects
+          );
+
+          if (focusIndex !== -1) {
+            this._selectionFocus = focusIndex;
+            const start = Math.min(this._selectionAnchor, focusIndex);
+            const end = Math.max(this._selectionAnchor, focusIndex);
+            const newSelection = new Set<number>();
+            for (let i = start; i <= end; i++) {
+              newSelection.add(i);
+            }
+            this._selectedPills = newSelection;
+          } else {
+            this._selectionAnchor = null;
+            this._selectionFocus = null;
+            this._selectedPills = new Set();
+          }
+        }
+      }
+    }
+  }
+
+  private _handlePointerUpInput(e: PointerEvent) {
+    if (this._isDragging) {
+      this._isDragging = false;
+      this._dragStartPos = null;
+      this._startedInInput = false;
+      this._canSelectPills = false;
+
+      const target = e.currentTarget as HTMLElement;
+      target.releasePointerCapture(e.pointerId);
+    }
+  }
+
+  private _handleSelectionChange = () => {
+    const activeEl = this.shadowRoot?.activeElement;
+    if (activeEl === this._inputElement) {
+      const textField = this._inputElement as any;
+      const start = textField.selectionStart || 0;
+      const end = textField.selectionEnd || 0;
+
+      if (start > 0 || (start === end && textField.value !== '')) {
+        this._canSelectPills = false;
+        this._selectionAnchor = null;
+        this._selectionFocus = null;
+        this._selectedPills = new Set();
+      }
+    }
+  };
+
+  private _handleFocusOutContainer(e: FocusEvent) {
+    const currentTarget = e.currentTarget as HTMLElement;
+    if (!currentTarget.contains(e.relatedTarget as Node)) {
+      this._selectionAnchor = null;
+      this._selectionFocus = null;
+      this._canSelectPills = false;
+      this._selectedPills = new Set();
+    }
+  }
+
+  _focusInput() {
+    this._inputElement?.focus();
+  }
+
+  private _handlePasteEvent(e: ClipboardEvent) {
+    if (
+      this._inputValue === '' ||
+      (this._selectionAnchor !== null && this._selectionFocus !== null)
+    ) {
+      e.preventDefault();
+      const text = e.clipboardData?.getData('text') || '';
+      this._handlePaste(text);
+    }
+  }
+
+  private _handlePaste(text: string) {
+    const tokens = text.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+    tokens.forEach((token) => {
+      const eqIdx = token.indexOf('=');
+      if (eqIdx !== -1) {
+        const key = token.substring(0, eqIdx);
+        const val = token.substring(eqIdx + 1);
+        if (key && val) {
+          const vals = val.match(/(?:[^,"]+|"[^"]*")+/g) || [];
+          vals.forEach((v) => {
+            const cleanedVal = v.replace(/^"|"$/g, '');
+            this._dispatchEvent('add-query', { key, value: cleanedVal });
+          });
+        }
+      }
+    });
+  }
+
   private _handleFocus() {
     this._isOpen = true;
     this._updateSuggestions();
+
+    if (this.pendingPillSelection) {
+      const keys = this._sortKeys(Object.keys(this.query));
+      const idx = keys.indexOf(this.pendingPillSelection);
+      if (idx !== -1) {
+        this._selectionAnchor = idx;
+        this._selectionFocus = idx;
+        this._selectedPills = new Set([idx]);
+        this._canSelectPills = true;
+      }
+      this.pendingPillSelection = null;
+    }
   }
 
   private _handleInputChange(e: InputEvent) {
@@ -539,32 +828,229 @@ export class QueryBarSk extends LitElement {
   }
 
   private _handleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      this._focusedIndex = (this._focusedIndex + 1) % (this._suggestions.length || 1);
-      this._scrollFocusedIntoView();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      this._focusedIndex =
-        (this._focusedIndex - 1 + (this._suggestions.length || 1)) %
-        (this._suggestions.length || 1);
-      this._scrollFocusedIntoView();
+    const keys = this._sortKeys(Object.keys(this.query));
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      this._handleArrowUpDown(e, keys);
     } else if (e.key === 'Enter') {
+      this._handleEnter(e);
+    } else if (e.key === 'Escape') {
+      this._handleEscape();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      this._handleArrowLeftRight(e, keys);
+    } else if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+      this._handleSelectAll(e, keys);
+    } else if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+      this._handleCopy(e, keys);
+    } else if (e.key === 'x' && (e.ctrlKey || e.metaKey)) {
+      this._handleCut(e, keys);
+    } else if (e.key === 'Backspace' || e.key === 'Delete') {
+      this._handleBackspaceDelete(e, keys);
+    } else {
+      this._handleDefaultKey(e, keys);
+    }
+  }
+
+  private _handleArrowUpDown(e: KeyboardEvent, keys: string[]) {
+    e.preventDefault();
+    const isDown = e.key === 'ArrowDown';
+    if (this._isOpen && this._suggestions.length > 0) {
+      const step = isDown ? 1 : -1;
+      this._focusedIndex =
+        (this._focusedIndex + step + this._suggestions.length) % this._suggestions.length;
+      this._scrollFocusedIntoView();
+    } else if (!this._isOpen) {
+      const root = this.getRootNode() as ParentNode;
+      const bars = Array.from(root.querySelectorAll('query-bar-sk'));
+      const idx = bars.indexOf(this);
+      if (idx !== -1) {
+        const step = isDown ? 1 : -1;
+        const nextIdx = (idx + step + bars.length) % bars.length;
+        const nextBar = bars[nextIdx] as QueryBarSk;
+
+        if (this._selectionAnchor !== null && this._selectionAnchor === this._selectionFocus) {
+          nextBar.pendingPillSelection = keys[this._selectionAnchor];
+        }
+
+        nextBar._focusInput();
+      }
+    }
+  }
+
+  private _handleEnter(e: KeyboardEvent) {
+    e.preventDefault();
+    if (this._isOpen && this._suggestions.length > 0) {
+      const item = this._suggestions[this._focusedIndex];
+      if (item) {
+        this._handleSelect(item);
+      }
+    } else if (
+      this._selectionAnchor !== null &&
+      this._selectionAnchor === this._selectionFocus &&
+      (this._inputValue === '' ||
+        this._inputElement?.selectionStart === this._inputElement?.selectionEnd)
+    ) {
+      this._openPillIndex = this._selectionFocus;
+    }
+  }
+
+  private _handleEscape() {
+    this._isOpen = false;
+    this._selectionAnchor = null;
+    this._selectionFocus = null;
+    this._selectedPills = new Set();
+  }
+
+  private _handleArrowLeftRight(e: KeyboardEvent, keys: string[]) {
+    const isRight = e.key === 'ArrowRight';
+    const isLeft = e.key === 'ArrowLeft';
+    const selectionStart = this._inputElement?.selectionStart ?? 0;
+
+    const isPillFocused = this._selectionAnchor !== null && this._selectionFocus !== null;
+    const canNavigate =
+      this._inputValue === '' || (isLeft && selectionStart === 0) || (isRight && isPillFocused);
+
+    if (!canNavigate) return;
+
+    e.preventDefault();
+    if (keys.length === 0) return;
+
+    let nextFocus = this._selectionFocus;
+    if (nextFocus === null) {
+      if (isRight) return;
+      nextFocus = keys.length - 1;
+    } else {
+      const step = isRight ? 1 : -1;
+      nextFocus = Math.max(0, Math.min(keys.length, nextFocus + step));
+    }
+
+    if (nextFocus === keys.length) {
+      this._selectionAnchor = null;
+      this._selectionFocus = null;
+      this._selectedPills = new Set();
+      this._inputElement?.focus();
+    } else {
+      this._selectionFocus = nextFocus;
+      if (!e.shiftKey) {
+        this._selectionAnchor = nextFocus;
+        this._selectedPills = new Set([nextFocus]);
+      } else {
+        if (this._selectionAnchor === null) {
+          this._selectionAnchor = keys.length - 1;
+        }
+        const start = Math.min(this._selectionAnchor, nextFocus);
+        const end = Math.max(this._selectionAnchor, nextFocus);
+        const newSelection = new Set<number>();
+        for (let i = start; i <= end; i++) {
+          newSelection.add(i);
+        }
+        this._selectedPills = newSelection;
+      }
+    }
+  }
+
+  private _handleSelectAll(e: KeyboardEvent, keys: string[]) {
+    e.preventDefault();
+    if (keys.length > 0) {
+      this._selectionAnchor = keys.length - 1;
+      this._selectionFocus = 0;
+      const newSelection = new Set<number>();
+      for (let i = 0; i < keys.length; i++) {
+        newSelection.add(i);
+      }
+      this._selectedPills = newSelection;
+    }
+    this._inputElement?.select();
+  }
+
+  private _handleCopy(e: KeyboardEvent, keys: string[]) {
+    if (this._selectedPills.size > 0) {
       e.preventDefault();
-      if (this._isOpen && this._suggestions.length > 0) {
-        const item = this._suggestions[this._focusedIndex];
-        if (item) {
-          this._handleSelect(item);
+      const selectedKeys = keys.filter((_, idx) => this._selectedPills.has(idx));
+      let text = selectedKeys
+        .map((k) => {
+          const values = (this.query[k] || []).map((v) => (v.includes(' ') ? `"${v}"` : v));
+          return `${k}=${values.join(',')}`;
+        })
+        .join(' ');
+
+      const textSelectionStart = this._inputElement?.selectionStart ?? 0;
+      const textSelectionEnd = this._inputElement?.selectionEnd ?? 0;
+      if (textSelectionStart !== textSelectionEnd && this._inputValue !== '') {
+        const selectedText = this._inputValue.substring(textSelectionStart, textSelectionEnd);
+        if (text && selectedText) {
+          text += ' ' + selectedText;
+        } else if (selectedText) {
+          text = selectedText;
         }
       }
-    } else if (e.key === 'Backspace' && this._inputValue === '') {
-      const keys = Object.keys(this.query);
-      if (keys.length > 0) {
-        const lastKey = keys[keys.length - 1];
-        this._dispatchEvent('remove-key', { key: lastKey });
+
+      navigator.clipboard.writeText(text);
+    }
+  }
+
+  private _handleCut(e: KeyboardEvent, keys: string[]) {
+    if (this._selectedPills.size > 0) {
+      this._handleCopy(e, keys);
+
+      const textSelectionStart = this._inputElement?.selectionStart ?? 0;
+      const textSelectionEnd = this._inputElement?.selectionEnd ?? 0;
+      if (textSelectionStart !== textSelectionEnd && this._inputValue !== '') {
+        this._inputValue =
+          this._inputValue.substring(0, textSelectionStart) +
+          this._inputValue.substring(textSelectionEnd);
       }
-    } else if (e.key === 'Escape') {
-      this._isOpen = false;
+
+      const selectedKeys = keys.filter((_, idx) => this._selectedPills.has(idx));
+      selectedKeys.forEach((k) => this._dispatchEvent('remove-key', { key: k }));
+      this._selectionAnchor = null;
+      this._selectionFocus = null;
+      this._selectedPills = new Set();
+    }
+  }
+
+  private _handleBackspaceDelete(e: KeyboardEvent, keys: string[]) {
+    const hasSelection = this._selectedPills.size > 0;
+
+    if (hasSelection) {
+      e.preventDefault();
+      const selectedKeys = keys.filter((_, idx) => this._selectedPills.has(idx));
+      selectedKeys.forEach((k) => this._dispatchEvent('remove-key', { key: k }));
+      this._selectionAnchor = null;
+      this._selectionFocus = null;
+      this._selectedPills = new Set();
+    } else if (e.key === 'Backspace' && this._inputValue === '' && keys.length > 0) {
+      e.preventDefault();
+      const lastKey = keys[keys.length - 1];
+      this._dispatchEvent('remove-key', { key: lastKey });
+    }
+  }
+
+  private _handleDefaultKey(e: KeyboardEvent, keys: string[]) {
+    if (this._selectionAnchor !== null && this._selectionFocus !== null) {
+      const isModifier = e.ctrlKey || e.metaKey || e.altKey;
+      const isNavigation = [
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown',
+        'Home',
+        'End',
+      ].includes(e.key);
+      const isSelection = ['Shift', 'Control', 'Alt', 'Meta'].includes(e.key);
+
+      if (!isModifier && !isNavigation && !isSelection && e.key.length === 1) {
+        e.preventDefault();
+        const selectedKeys = keys.filter((_, idx) => this._selectedPills.has(idx));
+        selectedKeys.forEach((k) => this._dispatchEvent('remove-key', { key: k }));
+        this._selectionAnchor = null;
+        this._selectionFocus = null;
+        this._selectedPills = new Set();
+
+        this._inputValue = this._inputValue + e.key;
+        this._isOpen = true;
+        this._updateSuggestions();
+      }
     }
   }
 
@@ -637,28 +1123,44 @@ export class QueryBarSk extends LitElement {
 
   render() {
     return html`
-      <div class="query-bar-container" @click=${() => this._inputElement?.focus()}>
+      <div
+        class="query-bar-container"
+        @click=${() => this._inputElement?.focus()}
+        @focusout=${this._handleFocusOutContainer}>
         <div class="query-pills">
           ${repeat(
             this._sortKeys(Object.keys(this.query)).map(
-              (key) => [key, this.query[key]] as [string, string[]]
+              (key, idx) => [key, this.query[key], idx] as [string, string[], number]
             ),
             ([key]) => key,
-            ([key, values]) => {
+            ([key, values, idx]) => {
               const options = this.optionsByKey[key] || [];
               const sortedOptions = this._sortOptions(options, values);
               return html`
                 <explore-multi-v2-select-sk
-                  @click=${(e: Event) => e.stopPropagation()}
+                  @click=${(e: MouseEvent) => this._handlePillClick(e, idx)}
+                  data-index=${idx}
                   .label=${key}
                   .variant=${'pill'}
                   .options=${sortedOptions}
                   .selected=${values}
                   .isSplit=${this.splitKeys.has(key)}
+                  .isHighlighted=${this._isPillHighlighted(idx)}
+                  .isOpen=${idx === this._openPillIndex}
                   .showSplitButton=${true}
                   .showDiffButton=${true}
                   @open=${() => {
+                    this._openPillIndex = idx;
                     void this._handleMultiSelectOpen(key);
+                  }}
+                  @close=${() => {
+                    this._openPillIndex = null;
+                  }}
+                  @close-with-esc=${() => {
+                    this._selectionAnchor = idx;
+                    this._selectionFocus = idx;
+                    this._openPillIndex = null;
+                    this._inputElement?.focus();
                   }}
                   @selection-change=${(e: CustomEvent<MultiSelectSelectionEventDetail>) =>
                     this._handlePillChange(key, e.detail.value)}
@@ -687,6 +1189,10 @@ export class QueryBarSk extends LitElement {
               @input=${this._handleInputChange}
               @keydown=${this._handleKeyDown}
               @focus=${this._handleFocus}
+              @pointerdown=${this._handlePointerDownInput}
+              @pointermove=${this._handlePointerMoveInput}
+              @pointerup=${this._handlePointerUpInput}
+              @paste=${this._handlePasteEvent}
               placeholder=${this._getPlaceholderTip()}
               @click=${(e: Event) => e.stopPropagation()}></md-outlined-text-field>
             ${this._isLoadingSuggestions ? html`<div class="input-spinner"></div>` : ''}

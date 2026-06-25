@@ -34,7 +34,28 @@ export class MultiSelectSk extends LitElement {
 
   @property({ type: Boolean }) showSplitButton = false;
 
-  @state() private _isOpen = false;
+  @property({ type: Boolean }) isHighlighted = false;
+
+  private _isOpen = false;
+
+  @property({ type: Boolean })
+  get isOpen() {
+    return this._isOpen;
+  }
+
+  set isOpen(val: boolean) {
+    const oldVal = this._isOpen;
+    if (val !== oldVal) {
+      this._isOpen = val;
+      this.requestUpdate('isOpen', oldVal);
+      if (val) {
+        this._focusedIndex = 0;
+        this._searchTerm = '';
+        this._initialSelected = new Set(this.selected);
+        this._hasClickedDuringGlob = false;
+      }
+    }
+  }
 
   @state() private _searchTerm = '';
 
@@ -113,6 +134,18 @@ export class MultiSelectSk extends LitElement {
     .multiselect-trigger.pill:hover {
       background-color: color-mix(in srgb, var(--on-surface) 20%, transparent);
       border-color: var(--md-sys-color-outline);
+    }
+
+    .multiselect-container.pill.highlighted .multiselect-trigger {
+      background-color: var(--md-sys-color-secondary-container);
+      color: var(--md-sys-color-on-secondary-container);
+      border-color: var(--md-sys-color-secondary-container);
+    }
+
+    .multiselect-container.pill.highlighted .pill-key,
+    .multiselect-container.pill.highlighted .pill-remove {
+      color: var(--md-sys-color-on-secondary-container);
+      opacity: 0.8;
     }
 
     .multiselect-trigger.open {
@@ -420,8 +453,9 @@ export class MultiSelectSk extends LitElement {
   }
 
   private _handleClickOutside = (e: MouseEvent) => {
-    if (this._isOpen && !e.composedPath().includes(this)) {
-      this._isOpen = false;
+    if (this.isOpen && !e.composedPath().includes(this)) {
+      this.isOpen = false;
+      this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
     }
   };
 
@@ -445,18 +479,23 @@ export class MultiSelectSk extends LitElement {
     }
   }
 
-  private _toggleOpen() {
+  private _toggleOpen(e?: Event) {
+    if (e && e instanceof MouseEvent && (e.ctrlKey || e.metaKey || e.shiftKey)) {
+      return;
+    }
     if (this.options.length <= 1 && this.variant !== 'pill') return;
-    this._isOpen = !this._isOpen;
+    this.isOpen = !this.isOpen;
 
-    if (this._isOpen) {
-      this._focusedIndex = 0;
-      this._searchTerm = '';
-      this._initialSelected = new Set(this.selected);
-      this._hasClickedDuringGlob = false;
-
+    if (this.isOpen) {
       this.dispatchEvent(
         new CustomEvent('open', {
+          bubbles: true,
+          composed: true,
+        })
+      );
+    } else {
+      this.dispatchEvent(
+        new CustomEvent('close', {
           bubbles: true,
           composed: true,
         })
@@ -578,10 +617,10 @@ export class MultiSelectSk extends LitElement {
   }
 
   private _handleKeyDown(e: KeyboardEvent) {
-    if (!this._isOpen) {
+    if (!this.isOpen) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
         e.preventDefault();
-        this._isOpen = true;
+        this.isOpen = true;
       }
       return;
     }
@@ -620,21 +659,26 @@ export class MultiSelectSk extends LitElement {
               composed: true,
             })
           );
-          this._isOpen = false;
+          this.isOpen = false;
+          this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
           return;
         }
 
         if (this._focusedIndex >= 0 && this._focusedIndex < filtered.length) {
           this._handleToggle(filtered[this._focusedIndex].value);
         }
-        this._isOpen = false;
+        this.isOpen = false;
+        this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
         break;
       case 'Escape':
         e.preventDefault();
-        this._isOpen = false;
+        this.dispatchEvent(new CustomEvent('close-with-esc', { bubbles: true, composed: true }));
+        this.isOpen = false;
+        this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
         break;
       case 'Tab':
-        this._isOpen = false;
+        this.isOpen = false;
+        this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
         break;
     }
   }
@@ -686,7 +730,7 @@ export class MultiSelectSk extends LitElement {
     return html`
       <div
         class="${this.variant === 'pill'
-          ? 'multiselect-container pill'
+          ? `multiselect-container pill ${this.isHighlighted ? 'highlighted' : ''}`
           : 'multiselect-container default'}">
         ${this.variant === 'default'
           ? html`<label class="multiselect-label">${this.label}</label>`
@@ -795,7 +839,10 @@ export class MultiSelectSk extends LitElement {
                                           composed: true,
                                         })
                                       );
-                                      this._isOpen = false;
+                                      this.isOpen = false;
+                                      this.dispatchEvent(
+                                        new CustomEvent('close', { bubbles: true, composed: true })
+                                      );
                                     }}
                                     title="Set as Diff Base">
                                     Diff
@@ -816,7 +863,10 @@ export class MultiSelectSk extends LitElement {
                             this.dispatchEvent(
                               new CustomEvent('split', { bubbles: true, composed: true })
                             );
-                            this._isOpen = false;
+                            this.isOpen = false;
+                            this.dispatchEvent(
+                              new CustomEvent('close', { bubbles: true, composed: true })
+                            );
                           }}>
                           ${this.isSplit ? `Stop Splitting` : `Split by ${this.label}`}
                         </button>

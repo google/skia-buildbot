@@ -207,4 +207,261 @@ describe('query-bar-sk', () => {
     cloneBtn.click();
     expect(cloneClicked).to.be.true;
   });
+
+  describe('pill selection and clipboard actions', () => {
+    beforeEach(async () => {
+      element.query = { benchmark: ['v8'], bot: ['MacM1'] };
+      element.optionsByKey = {
+        benchmark: [{ value: 'v8', count: 1 }],
+        bot: [{ value: 'MacM1', count: 1 }],
+      };
+      await element.updateComplete;
+    });
+
+    it('toggles selection on Ctrl+Click and does not open dropdown', async () => {
+      const pills = element.shadowRoot!.querySelectorAll('explore-multi-v2-select-sk');
+      expect(pills.length).to.equal(2);
+
+      const firstPill = pills[0] as any;
+      const secondPill = pills[1] as any;
+
+      // Initially no pills are highlighted
+      expect(firstPill.isHighlighted).to.be.false;
+      expect(secondPill.isHighlighted).to.be.false;
+
+      // Ctrl+Click first pill
+      firstPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      await element.updateComplete;
+
+      // First pill should be highlighted, second should not
+      expect(firstPill.isHighlighted).to.be.true;
+      expect(secondPill.isHighlighted).to.be.false;
+      expect((element as any)['_openPillIndex']).to.be.null;
+
+      // Ctrl+Click first pill again to toggle off
+      firstPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      await element.updateComplete;
+
+      expect(firstPill.isHighlighted).to.be.false;
+    });
+
+    it('clears selection and opens dropdown on normal click', async () => {
+      const pills = element.shadowRoot!.querySelectorAll('explore-multi-v2-select-sk');
+      const firstPill = pills[0] as any;
+
+      // Highlight first pill via Ctrl+Click
+      firstPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      await element.updateComplete;
+      expect(firstPill.isHighlighted).to.be.true;
+
+      // Normal click first pill
+      firstPill.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await element.updateComplete;
+
+      // Highlight should be cleared
+      expect(firstPill.isHighlighted).to.be.false;
+      expect((element as any)['_selectedPills'].size).to.equal(0);
+    });
+
+    it('supports Shift+Click range selection', async () => {
+      const pills = element.shadowRoot!.querySelectorAll('explore-multi-v2-select-sk');
+      const firstPill = pills[0] as any;
+      const secondPill = pills[1] as any;
+
+      // Set anchor by Ctrl+Clicking first pill
+      firstPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      await element.updateComplete;
+
+      // Shift+Click second pill
+      secondPill.dispatchEvent(new MouseEvent('click', { shiftKey: true, bubbles: true }));
+      await element.updateComplete;
+
+      // Both should be highlighted
+      expect(firstPill.isHighlighted).to.be.true;
+      expect(secondPill.isHighlighted).to.be.true;
+    });
+
+    it('copies selected pills to clipboard on Ctrl+C', async () => {
+      const pills = element.shadowRoot!.querySelectorAll('explore-multi-v2-select-sk');
+      const firstPill = pills[0] as any;
+      const secondPill = pills[1] as any;
+
+      // Select first and second pills
+      firstPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      secondPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      await element.updateComplete;
+
+      // Mock clipboard using Object.defineProperty to bypass read-only TS and runtime checks
+      let copiedText = '';
+      const originalClipboard = navigator.clipboard;
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: async (text: string) => {
+            copiedText = text;
+          },
+        },
+        configurable: true,
+      });
+
+      // Dispatch Ctrl+C on input (since focus returns to input after Ctrl+Click)
+      const input = element.shadowRoot!.querySelector('.query-input') as HTMLElement;
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, bubbles: true }));
+
+      expect(copiedText).to.equal('benchmark=v8 bot=MacM1');
+
+      // Restore clipboard
+      Object.defineProperty(navigator, 'clipboard', {
+        value: originalClipboard,
+        configurable: true,
+      });
+    });
+
+    it('cuts selected pills to clipboard and deletes them on Ctrl+X', async () => {
+      const pills = element.shadowRoot!.querySelectorAll('explore-multi-v2-select-sk');
+      const firstPill = pills[0] as any;
+
+      // Select first pill
+      firstPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      await element.updateComplete;
+
+      // Mock clipboard
+      let copiedText = '';
+      const originalClipboard = navigator.clipboard;
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: async (text: string) => {
+            copiedText = text;
+          },
+        },
+        configurable: true,
+      });
+
+      let removedKey = '';
+      element.addEventListener('remove-key', (e: any) => {
+        removedKey = e.detail.key;
+      });
+
+      // Dispatch Ctrl+X on input
+      const input = element.shadowRoot!.querySelector('.query-input') as HTMLElement;
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'x', ctrlKey: true, bubbles: true }));
+
+      expect(copiedText).to.equal('benchmark=v8');
+      expect(removedKey).to.equal('benchmark');
+
+      // Restore clipboard
+      Object.defineProperty(navigator, 'clipboard', {
+        value: originalClipboard,
+        configurable: true,
+      });
+    });
+
+    it('cuts selected pills and text to clipboard and clears them on Ctrl+X', async () => {
+      const pills = element.shadowRoot!.querySelectorAll('explore-multi-v2-select-sk');
+      const firstPill = pills[0] as any;
+
+      // Select first pill
+      firstPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      await element.updateComplete;
+
+      // Type some text
+      const input = element.shadowRoot!.querySelector('.query-input') as HTMLInputElement;
+      input.value = 'some text';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      await element.updateComplete;
+
+      // Select the text
+      input.setSelectionRange(0, 9);
+      document.dispatchEvent(new Event('selectionchange', { bubbles: true }));
+
+      // Mock clipboard
+      let copiedText = '';
+      const originalClipboard = navigator.clipboard;
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: async (text: string) => {
+            copiedText = text;
+          },
+        },
+        configurable: true,
+      });
+
+      let removedKey = '';
+      element.addEventListener('remove-key', (e: any) => {
+        removedKey = e.detail.key;
+      });
+
+      // Dispatch Ctrl+X on input
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'x', ctrlKey: true, bubbles: true }));
+
+      expect(copiedText).to.equal('benchmark=v8 some text');
+      expect(removedKey).to.equal('benchmark');
+      expect((element as any)['_inputValue']).to.equal('');
+
+      // Restore clipboard
+      Object.defineProperty(navigator, 'clipboard', {
+        value: originalClipboard,
+        configurable: true,
+      });
+    });
+
+    it('pastes query string and dispatches add-query events via paste event', async () => {
+      const addedQueries: { key: string; value: string }[] = [];
+      element.addEventListener('add-query', (e: any) => {
+        addedQueries.push({ key: e.detail.key, value: e.detail.value });
+      });
+
+      // Create a paste event with custom clipboardData
+      const pasteData = 'os=Android device=Pixel6';
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData('text', pasteData);
+
+      const pasteEvent = new ClipboardEvent('paste', {
+        bubbles: true,
+        cancelable: true,
+        clipboardData: dataTransfer,
+      });
+
+      // Dispatch paste on input
+      const input = element.shadowRoot!.querySelector('.query-input') as HTMLElement;
+      input.dispatchEvent(pasteEvent);
+
+      await element.updateComplete;
+
+      expect(addedQueries).to.have.lengthOf(2);
+      expect(addedQueries[0]).to.deep.equal({ key: 'os', value: 'Android' });
+      expect(addedQueries[1]).to.deep.equal({ key: 'device', value: 'Pixel6' });
+    });
+
+    it('deletes selected pills on Backspace', async () => {
+      const pills = element.shadowRoot!.querySelectorAll('explore-multi-v2-select-sk');
+      const firstPill = pills[0] as any;
+
+      // Select first pill
+      firstPill.dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      await element.updateComplete;
+
+      let removedKey = '';
+      element.addEventListener('remove-key', (e: any) => {
+        removedKey = e.detail.key;
+      });
+
+      // Dispatch Backspace on input
+      const input = element.shadowRoot!.querySelector('.query-input') as HTMLElement;
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));
+
+      expect(removedKey).to.equal('benchmark');
+    });
+
+    it('selects all pills on Ctrl+A', async () => {
+      const pills = element.shadowRoot!.querySelectorAll('explore-multi-v2-select-sk');
+
+      // Dispatch Ctrl+A on input
+      const input = element.shadowRoot!.querySelector('.query-input') as HTMLElement;
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', ctrlKey: true, bubbles: true }));
+      await element.updateComplete;
+
+      expect((pills[0] as any).isHighlighted).to.be.true;
+      expect((pills[1] as any).isHighlighted).to.be.true;
+    });
+  });
 });

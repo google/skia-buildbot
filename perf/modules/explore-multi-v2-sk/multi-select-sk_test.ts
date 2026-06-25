@@ -16,7 +16,7 @@ describe('multi-select-sk', () => {
   });
 
   it('uses native input for the search input', async () => {
-    element['_isOpen'] = true;
+    element.isOpen = true;
     await element.updateComplete;
     const input = element.shadowRoot!.querySelectorAll('input[placeholder="Search..."]');
     expect(input.length).to.be.greaterThan(0);
@@ -26,7 +26,7 @@ describe('multi-select-sk', () => {
     element.label = 'test-key';
     element.options = [{ value: 'value1', count: 10 }];
     element.showDiffButton = true;
-    element['_isOpen'] = true;
+    element.isOpen = true;
     await element.updateComplete;
 
     let eventDetail: any = null;
@@ -43,7 +43,7 @@ describe('multi-select-sk', () => {
 
   it('emits split event when Split button is clicked', async () => {
     element.showSplitButton = true;
-    element['_isOpen'] = true;
+    element.isOpen = true;
     await element.updateComplete;
 
     let eventEmitted = false;
@@ -60,7 +60,7 @@ describe('multi-select-sk', () => {
 
   it('toggles selection when option is clicked', async () => {
     element.options = [{ value: 'value1', count: 10 }];
-    element['_isOpen'] = true;
+    element.isOpen = true;
     await element.updateComplete;
 
     let eventDetail: any = null;
@@ -77,7 +77,7 @@ describe('multi-select-sk', () => {
 
   it('toggles selection when checkmark is clicked', async () => {
     element.options = [{ value: 'value1', count: 10 }];
-    element['_isOpen'] = true;
+    element.isOpen = true;
     await element.updateComplete;
 
     let eventDetail: any = null;
