@@ -615,7 +615,7 @@ describe('ReportPageSk', () => {
         sinon.stub(element as any, 'isV2Enabled').get(() => true);
       });
 
-      it('splits only by specific subtest keys when they vary, and ignores base keys', () => {
+      it('does not split by default even if keys vary', () => {
         const anomaly1 = createMockAnomaly(0);
         anomaly1.test_path = ',master=m1,bot=b1,benchmark=bench1,test=t1,subtest_1=s1';
         const anomaly2 = createMockAnomaly(1);
@@ -630,43 +630,98 @@ describe('ReportPageSk', () => {
 
         element['updateMultiExploreStateV2']();
 
-        assert.deepEqual(element['_splitKeysV2'], new Set(['subtest_1']));
+        assert.deepEqual(element['_splitKeysV2'], new Set());
+      });
+    });
+
+    describe('Default parameter selection for V2 Dashboard', () => {
+      beforeEach(async () => {
+        fetchMock.post('/_/anomalies/group_report', {
+          anomaly_list: [],
+          timerange_map: {},
+          selected_keys: [],
+        });
+        await initializeElement();
+        await fetchMock.flush(true);
+
+        sinon.stub(element as any, 'isV2Enabled').get(() => true);
+
+        // Set up some mock defaults
+        element['defaults'] = {
+          default_param_selections: {
+            stat: ['value'],
+            status: ['active'],
+          },
+        };
       });
 
-      it('falls back to varying base keys when no subtest keys vary', () => {
-        const anomaly1 = createMockAnomaly(0);
-        anomaly1.test_path = ',master=m1,bot=b1,benchmark=bench1,test=t1';
-        const anomaly2 = createMockAnomaly(1);
-        anomaly2.test_path = ',master=m2,bot=b1,benchmark=bench1,test=t1';
+      it('applies defaults to empty query when no anomalies are selected', () => {
+        element['updateMultiExploreStateV2']();
+        assert.deepEqual(element['_queriesV2'], [
+          {
+            stat: ['value'],
+            status: ['active'],
+          },
+        ]);
+      });
+
+      it('applies defaults to anomaly queries, preserving anomaly values', () => {
+        const anomaly = createMockAnomaly(0);
+        anomaly.test_path = ',master=m1,bot=b1,stat=other_value';
 
         const timerangeMap = {
           '0': createMockTimerange(),
-          '1': createMockTimerange(),
         };
 
-        element['anomalyTracker'].load([anomaly1, anomaly2], timerangeMap, ['0', '1']);
+        element['anomalyTracker'].load([anomaly], timerangeMap, ['0']);
 
         element['updateMultiExploreStateV2']();
 
-        assert.deepEqual(element['_splitKeysV2'], new Set(['master']));
+        assert.deepEqual(element['_queriesV2'], [
+          {
+            master: ['m1'],
+            bot: ['b1'],
+            stat: ['other_value'],
+            status: ['active'],
+          },
+        ]);
       });
 
-      it('never splits by unit, stat, or improvement_dir', () => {
-        const anomaly1 = createMockAnomaly(0);
-        anomaly1.test_path = ',unit=u1,stat=s1,improvement_dir=d1,bot=b1';
-        const anomaly2 = createMockAnomaly(1);
-        anomaly2.test_path = ',unit=u2,stat=s2,improvement_dir=d2,bot=b1';
+      it('applies defaults when toggling anomalies', () => {
+        // Start with empty (which has defaults)
+        element['updateMultiExploreStateV2']();
+
+        const anomaly = createMockAnomaly(0);
+        anomaly.test_path = ',master=m1,bot=b1';
 
         const timerangeMap = {
           '0': createMockTimerange(),
-          '1': createMockTimerange(),
         };
+        element['anomalyTracker'].load([anomaly], timerangeMap, []);
 
-        element['anomalyTracker'].load([anomaly1, anomaly2], timerangeMap, ['0', '1']);
+        // Toggle on
+        element['anomalyTracker'].getAnomaly(anomaly.id)!.checked = true;
+        element['updateMultiExploreStateV2']([anomaly], true);
 
-        element['updateMultiExploreStateV2']();
+        assert.deepEqual(element['_queriesV2'], [
+          {
+            master: ['m1'],
+            bot: ['b1'],
+            stat: ['value'],
+            status: ['active'],
+          },
+        ]);
 
-        assert.deepEqual(element['_splitKeysV2'], new Set<string>());
+        // Toggle off
+        element['anomalyTracker'].getAnomaly(anomaly.id)!.checked = false;
+        element['updateMultiExploreStateV2']([anomaly], false);
+
+        assert.deepEqual(element['_queriesV2'], [
+          {
+            stat: ['value'],
+            status: ['active'],
+          },
+        ]);
       });
     });
 

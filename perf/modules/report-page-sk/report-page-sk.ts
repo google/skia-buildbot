@@ -520,13 +520,49 @@ export class ReportPageSk extends ElementSk {
     return this.traceFormatter!.formatParamSet(path);
   }
 
+  private applyDefaultsToParamSet(query: Record<string, string[]>): Record<string, string[]> {
+    const defaultParams = this.defaults?.default_param_selections;
+    if (!defaultParams) {
+      return query;
+    }
+
+    const result = { ...query };
+    for (const [key, val] of Object.entries(defaultParams)) {
+      if (window.perf?.remove_default_stat_value && key === 'stat') {
+        continue;
+      }
+      if (!Object.keys(result).includes(key) && val !== null) {
+        result[key] = [...val];
+      }
+    }
+    return result;
+  }
+
+  private getSortedQueryString(query: Record<string, string[]>): string {
+    const sortedQuery: Record<string, string[]> = {};
+    Object.keys(query)
+      .sort()
+      .forEach((key) => {
+        sortedQuery[key] = [...query[key]].sort();
+      });
+    return JSON.stringify(sortedQuery);
+  }
+
+  private isEmptyWithDefaults(
+    query: Record<string, string[]>,
+    defaultQuery?: Record<string, string[]>
+  ): boolean {
+    const defaults = defaultQuery || this.applyDefaultsToParamSet({});
+    return this.getSortedQueryString(query) === this.getSortedQueryString(defaults);
+  }
+
   private updateMultiExploreStateV2(toggledAnomalies?: Anomaly[], checked?: boolean): void {
     if (!this.isV2Enabled) return;
 
     const selectedAnomalies = this.anomalyTracker.getSelectedAnomalies();
     this._highlightAnomaliesV2 = selectedAnomalies.map((a) => a.id);
     if (selectedAnomalies.length === 0) {
-      this._queriesV2 = [{}];
+      this._queriesV2 = [this.applyDefaultsToParamSet({})];
       this._splitKeysV2 = new Set();
       this._viewportMinXV2 = null;
       this._viewportMaxXV2 = null;
@@ -540,18 +576,23 @@ export class ReportPageSk extends ElementSk {
 
     // --- Update _queriesV2 ---
     if (toggledAnomalies !== undefined && checked !== undefined) {
-      let currentQueries = multiExplore ? multiExplore.queries || [{}] : this._queriesV2;
+      const defaultQuery = this.applyDefaultsToParamSet({});
+      let currentQueries = multiExplore ? multiExplore.queries || [defaultQuery] : this._queriesV2;
       toggledAnomalies.forEach((toggledAnomaly) => {
-        const anomalyQuery = this.parseAnomalyPathToParamSet(toggledAnomaly.test_path);
-        const anomalyQueryStr = JSON.stringify(anomalyQuery);
+        let anomalyQuery = this.parseAnomalyPathToParamSet(toggledAnomaly.test_path);
+        anomalyQuery = this.applyDefaultsToParamSet(anomalyQuery);
+        const anomalyQueryStr = this.getSortedQueryString(anomalyQuery);
 
         if (checked) {
           // Append if not already exists
           const exists = currentQueries.some(
-            (q: Record<string, string[]>) => JSON.stringify(q) === anomalyQueryStr
+            (q: Record<string, string[]>) => this.getSortedQueryString(q) === anomalyQueryStr
           );
           if (!exists) {
-            if (currentQueries.length === 1 && Object.keys(currentQueries[0]).length === 0) {
+            if (
+              currentQueries.length === 1 &&
+              this.isEmptyWithDefaults(currentQueries[0], defaultQuery)
+            ) {
               currentQueries = [anomalyQuery];
             } else {
               currentQueries = [...currentQueries, anomalyQuery];
@@ -560,29 +601,24 @@ export class ReportPageSk extends ElementSk {
         } else {
           // Remove matching query
           currentQueries = currentQueries.filter(
-            (q: Record<string, string[]>) => JSON.stringify(q) !== anomalyQueryStr
+            (q: Record<string, string[]>) => this.getSortedQueryString(q) !== anomalyQueryStr
           );
         }
       });
       if (currentQueries.length === 0) {
-        currentQueries = [{}];
+        currentQueries = [this.applyDefaultsToParamSet({})];
       }
       this._queriesV2 = currentQueries;
     } else {
       // Full regeneration (initial load or when no specific toggled anomalies are provided)
       this._queriesV2 = selectedAnomalies.map((anomaly) => {
-        return this.parseAnomalyPathToParamSet(anomaly.test_path);
+        return this.applyDefaultsToParamSet(this.parseAnomalyPathToParamSet(anomaly.test_path));
       });
     }
 
     // --- Update _splitKeysV2, _viewportMinXV2, _viewportMaxXV2, _beginV2, _endV2 ---
-    // If the multi-explore component is already rendered and has a meaningful viewport/split state,
-    // we preserve that state.
     const shouldPreserveMultiExploreState =
-      multiExplore &&
-      multiExplore.splitKeys &&
-      multiExplore.splitKeys.size > 0 &&
-      multiExplore.viewportMinX !== null;
+      multiExplore && multiExplore.splitKeys && multiExplore.viewportMinX !== null;
 
     if (shouldPreserveMultiExploreState) {
       this._splitKeysV2 = multiExplore.splitKeys;
@@ -591,28 +627,12 @@ export class ReportPageSk extends ElementSk {
       this._beginV2 = multiExplore.begin;
       this._endV2 = multiExplore.end;
     } else {
-      // Automatically split the charts grid by ALL parameter dimensions that vary across selected anomalies,
-      // and compute global bounding box / bounding timestamps for V2 data loading in the same iteration.
-      const mergedParamSet: Record<string, string[]> = {};
       let minCommit = Infinity;
       let maxCommit = -Infinity;
       let minBegin = Infinity;
       let maxEnd = -Infinity;
 
       selectedAnomalies.forEach((anomaly) => {
-        // Process parameters for split keys
-        const paramSet = this.parseAnomalyPathToParamSet(anomaly.test_path);
-        Object.keys(paramSet).forEach((key) => {
-          if (!mergedParamSet[key]) {
-            mergedParamSet[key] = [];
-          }
-          paramSet[key].forEach((val) => {
-            if (!mergedParamSet[key].includes(val)) {
-              mergedParamSet[key].push(val);
-            }
-          });
-        });
-
         // Compute min/max commit numbers
         if (anomaly.start_revision < minCommit) minCommit = anomaly.start_revision;
         if (anomaly.end_revision > maxCommit) maxCommit = anomaly.end_revision;
@@ -625,24 +645,7 @@ export class ReportPageSk extends ElementSk {
         }
       });
 
-      const specificKeys = new Set<string>();
-      const fallbackKeys = new Set<string>();
-
-      Object.keys(mergedParamSet).forEach((key) => {
-        if (mergedParamSet[key].length > 1) {
-          if (['unit', 'stat', 'improvement_dir'].includes(key)) {
-            // Exclude generic/structural tags
-            return;
-          }
-          if (['master', 'bot', 'benchmark'].includes(key)) {
-            fallbackKeys.add(key);
-          } else {
-            specificKeys.add(key);
-          }
-        }
-      });
-
-      this._splitKeysV2 = specificKeys.size > 0 ? specificKeys : fallbackKeys;
+      this._splitKeysV2 = new Set(); // Remove default splitting
 
       this._viewportMinXV2 = Math.max(0, minCommit - 100);
       this._viewportMaxXV2 = maxCommit + 100;
