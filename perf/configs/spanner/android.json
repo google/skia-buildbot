@@ -85,9 +85,9 @@
         "use_titles": "true"
       },
       "query_commit_chunk_size": 7000,
-      "default_xaxis_domain": "date",
+      "default_xaxis_domain": "commit",
       "default_trigger_priority": {
-        "metric": ["timeNs", "timeToInitialDisplayMs", "frameDurationCpuMs"]
+        "metric": ["timeNs", "timeToFullDisplayMs", "frameDurationCpuMs"]
       },
       "conditional_defaults": [
         {
@@ -96,20 +96,20 @@
             "values": ["timeNs"]
           },
           "apply": [
-            { "param": "stat", "values": ["min"], "select_only_first": true },
-            { "param": "device_name", "values": ["sargo", "mokey"], "select_only_first": true },
-            { "param": "os_version", "values": ["API_31_S", "API_34_U"], "select_only_first": true }
+            { "param": "stat", "values": ["median"], "select_only_first": true },
+            { "param": "device_name", "values": ["oriole", "mokey"], "select_only_first": true },
+            { "param": "os_version", "values": ["API_37_REL", "API_34_U"], "select_only_first": true }
           ]
         },
         {
           "trigger": {
             "param": "metric",
-            "values": ["timeToInitialDisplayMs"]
+            "values": ["timeToFullDisplayMs"]
           },
           "apply": [
             { "param": "stat", "values": ["median"], "select_only_first": true },
-            { "param": "device_name", "values": ["sargo", "mokey"], "select_only_first": true },
-            { "param": "os_version", "values": ["API_31_S", "API_34_U"], "select_only_first": true }
+            { "param": "device_name", "values": ["oriole", "mokey"], "select_only_first": true },
+            { "param": "os_version", "values": ["API_37_REL", "API_34_U"], "select_only_first": true }
           ]
         },
         {
@@ -119,8 +119,8 @@
           },
           "apply": [
             { "param": "stat", "values": ["P50", "P90", "P95", "P99"], "select_only_first": false },
-            { "param": "device_name", "values": ["sargo", "mokey"], "select_only_first": true },
-            { "param": "os_version", "values": ["API_31_S", "API_34_U"], "select_only_first": true }
+            { "param": "device_name", "values": ["oriole", "mokey"], "select_only_first": true },
+            { "param": "os_version", "values": ["API_37_REL", "API_34_U"], "select_only_first": true }
           ]
         }
       ]
