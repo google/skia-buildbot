@@ -534,11 +534,12 @@ ${ele.runningStatus}</pre
         throw new Error(messagesToErrorString(finalProg.messages));
       }
       if (this.mode === 'sheriff') {
-        this.detectedAnomalies = finalProg.results;
+        this.detectedAnomalies = finalProg.results || [];
+        this.runningStatus += `\nFinished. Found ${this.detectedAnomalies.length} anomalies.`;
       } else {
-        this.regressions = finalProg.results;
+        this.regressions = finalProg.results || [];
+        this.runningStatus += `\nFinished. Found ${this.regressions.length} regressions.`;
       }
-      this.runningStatus = '';
     } catch (error) {
       this.catch(error as Error);
     } finally {

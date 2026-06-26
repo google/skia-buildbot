@@ -86,7 +86,7 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 			}
 		}()
 
-		allRegressions := map[types.CommitNumber]*regression.Regression{}
+		allRegressions := map[types.CommitNumber][]*regression.Regression{}
 		totalAlerts := 0
 		alertsProcessed := 0
 
@@ -101,6 +101,7 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 				newReq := regression.NewRegressionDetectionRequest()
 				newReq.Alert = alert
 				newReq.Domain = req.Domain
+				newReq.Progress = req.Progress
 				allAlerts = append(allAlerts, newReq)
 			}
 		}
@@ -172,11 +173,7 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 					req.Progress.Message("Commit", fmt.Sprintf("%d", c.CommitNumber))
 					req.Progress.Message("Details", cr.Message)
 
-					if origReg, ok := allRegressions[c.CommitNumber]; !ok {
-						allRegressions[c.CommitNumber] = reg
-					} else {
-						allRegressions[c.CommitNumber] = origReg.Merge(reg)
-					}
+					allRegressions[c.CommitNumber] = append(allRegressions[c.CommitNumber], reg)
 				}
 				return nil
 			}
@@ -202,31 +199,36 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 				continue
 			}
 
-			reg := allRegressions[commitNumber]
-			if reg != nil && reg.Frame != nil && reg.Frame.DataFrame != nil && len(reg.Frame.DataFrame.TraceSet) == 0 {
-				reg.Frame.DataFrame.TraceSet = types.TraceSet{}
-				if reg.Low != nil && len(reg.Low.Keys) > 0 {
-					for _, key := range reg.Low.Keys {
-						reg.Frame.DataFrame.TraceSet[key] = nil
+			regs := allRegressions[commitNumber]
+			for _, reg := range regs {
+				if reg == nil {
+					continue
+				}
+				if reg.Frame != nil && reg.Frame.DataFrame != nil && len(reg.Frame.DataFrame.TraceSet) == 0 {
+					reg.Frame.DataFrame.TraceSet = types.TraceSet{}
+					if reg.Low != nil && len(reg.Low.Keys) > 0 {
+						for _, key := range reg.Low.Keys {
+							reg.Frame.DataFrame.TraceSet[key] = nil
+						}
+					}
+					if reg.High != nil && len(reg.High.Keys) > 0 {
+						for _, key := range reg.High.Keys {
+							reg.Frame.DataFrame.TraceSet[key] = nil
+						}
 					}
 				}
-				if reg.High != nil && len(reg.High.Keys) > 0 {
-					for _, key := range reg.High.Keys {
-						reg.Frame.DataFrame.TraceSet[key] = nil
-					}
+
+				anomalyMap, err := compat.ConvertRegressionToAnomalies(reg)
+				if err != nil {
+					sklog.Errorf("Failed to convert regression: %v", err)
+					continue
 				}
-			}
 
-			anomalyMap, err := compat.ConvertRegressionToAnomalies(reg)
-			if err != nil {
-				sklog.Errorf("Failed to convert regression: %v", err)
-				continue
-			}
-
-			for _, commitMap := range anomalyMap {
-				for _, anomaly := range commitMap {
-					anomaly.Timestamp = fmt.Sprintf("%d", details.Timestamp)
-					anomalies = append(anomalies, anomaly)
+				for _, commitMap := range anomalyMap {
+					for _, anomaly := range commitMap {
+						anomaly.Timestamp = fmt.Sprintf("%d", details.Timestamp)
+						anomalies = append(anomalies, anomaly)
+					}
 				}
 			}
 		}
