@@ -101,7 +101,7 @@
             },
             {
                 "text": "Pixel 10 (go/cbb-pixel10)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=35&shortcut=27c7605dc23576d7c1ab9a392be48cc3&splitByKeys=benchmark",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=35&shortcut=7118857dadc8a6de3e0856b37b94efc8&splitByKeys=benchmark",
                 "description": "CBB results on Pixel 10"
             },
             {
@@ -126,12 +126,12 @@
             },
             {
                 "text": "Loadline 2 (go/cbb-ll)",
-                "href": "https://chrome-perf.corp.goog/m/?begin=1752000000&end=1798761600&numCommits=20&shortcut=00b2f3a6c365150c327dec898d1a0c50&splitByKeys=bot",
+                "href": "https://chrome-perf.corp.goog/m/?begin=1752000000&end=1798761600&numCommits=20&shortcut=84ec45803be2ac833b6724c19e4c9110&splitByKeys=bot",
                 "description": "CBB Loadline 2 results (Android only)"
             },
             {
                 "text": "Overall results (go/cbb-all)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=880ace70acb132e35be7a6f197a1fc00&splitByKeys=benchmark",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=b32bbebb77650b350f8c723ddd904c41&splitByKeys=benchmark",
                 "description": "CBB results for all benchmarks and platforms"
             }
         ]
