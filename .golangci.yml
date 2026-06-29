@@ -62,7 +62,9 @@ linters:
 
 linters-settings:
   govet:
-    enable-all: true
+    # Use betteralign instead
+    disable:
+      - fieldalignment
 
   gofumpt:
     # Module path which contains the source code being formatted.

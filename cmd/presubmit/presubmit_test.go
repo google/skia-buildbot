@@ -884,7 +884,7 @@ func TestRunGolangCILintForPinpoint(t *testing.T) {
 			{fileName: "pinpoint/README.md"},
 		}
 
-		ok := runGolangCILintForPinpoint(ctx, files, "HEAD~1", false)
+		ok := runGolangCILintForPinpoint(ctx, files, "HEAD~1")
 		assert.True(t, ok)
 	})
 
@@ -904,34 +904,10 @@ func TestRunGolangCILintForPinpoint(t *testing.T) {
 			{fileName: "perf/go/main.go"}, // Should be ignored
 		}
 
-		ok := runGolangCILintForPinpoint(ctx, files, "HEAD~1", false)
+		ok := runGolangCILintForPinpoint(ctx, files, "HEAD~1")
 		assert.True(t, ok)
 
 		// Verify arguments, ensuring perf/go/main.go was filtered out
-		argsFile := filepath.Join(tempDir, "args.txt")
-		argsData, err := os.ReadFile(argsFile)
-		assert.NoError(t, err)
-		expectedArgs := "run --config=mayberemote //:go -- run " + golangci +
-			" run --new-from-rev HEAD~1 --whole-files ./pinpoint/go\n"
-		assert.Equal(t, expectedArgs, string(argsData))
-	})
-
-	t.Run("With fix flag", func(t *testing.T) {
-		tempDir := t.TempDir()
-		mockBazelisk := filepath.Join(tempDir, "bazelisk")
-		script := "#!/bin/sh\necho \"$@\" > \"$(dirname \"$0\")/args.txt\"\nexit 0\n"
-		err := os.WriteFile(mockBazelisk, []byte(script), 0755)
-		assert.NoError(t, err)
-
-		oldPath := os.Getenv("PATH")
-		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
-
-		ctx, _ := captureLogs()
-		files := []fileWithChanges{{fileName: "pinpoint/go/main.go"}}
-
-		ok := runGolangCILintForPinpoint(ctx, files, "HEAD~1", true)
-		assert.True(t, ok)
-
 		argsFile := filepath.Join(tempDir, "args.txt")
 		argsData, err := os.ReadFile(argsFile)
 		assert.NoError(t, err)
@@ -956,10 +932,73 @@ func TestRunGolangCILintForPinpoint(t *testing.T) {
 		ctx, logs := captureLogs()
 		files := []fileWithChanges{{fileName: "pinpoint/go/main.go"}}
 
-		ok := runGolangCILintForPinpoint(ctx, files, "HEAD~1", false)
+		ok := runGolangCILintForPinpoint(ctx, files, "HEAD~1")
 		assert.False(t, ok)
 		assert.Contains(t, logs.String(), "lint error")
 		assert.Contains(t, logs.String(), "golangci-lint failed!")
+	})
+}
+
+func TestRunBetterAlignForPinpoint(t *testing.T) {
+	t.Run("No pinpoint go files - skips execution", func(t *testing.T) {
+		ctx, _ := captureLogs()
+		files := []fileWithChanges{
+			{fileName: "perf/go/main.go"},
+			{fileName: "pinpoint/README.md"},
+		}
+
+		ok := runBetterAlignForPinpoint(ctx, files)
+		assert.True(t, ok)
+	})
+
+	t.Run("Pinpoint go files - success", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		script := "#!/bin/sh\necho \"$@\" > \"$(dirname \"$0\")/args.txt\"\nexit 0\n"
+		err := os.WriteFile(mockBazelisk, []byte(script), 0755)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, _ := captureLogs()
+		files := []fileWithChanges{
+			{fileName: "pinpoint/go/main.go"},
+			{fileName: "perf/go/main.go"}, // Should be ignored
+		}
+
+		ok := runBetterAlignForPinpoint(ctx, files)
+		assert.True(t, ok)
+
+		// Verify arguments, ensuring perf/go/main.go was filtered out
+		argsFile := filepath.Join(tempDir, "args.txt")
+		argsData, err := os.ReadFile(argsFile)
+		assert.NoError(t, err)
+		expectedArgs := "run --config=mayberemote //:go -- run " + betteralign +
+			" -apply ./pinpoint/go\n"
+		assert.Equal(t, expectedArgs, string(argsData))
+	})
+
+	t.Run("Command fails", func(t *testing.T) {
+		tempDir := t.TempDir()
+		mockBazelisk := filepath.Join(tempDir, "bazelisk")
+		err := os.WriteFile(
+			mockBazelisk,
+			[]byte("#!/bin/sh\necho 'betteralign error'\nexit 1\n"),
+			0755,
+		)
+		assert.NoError(t, err)
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, logs := captureLogs()
+		files := []fileWithChanges{{fileName: "pinpoint/go/main.go"}}
+
+		ok := runBetterAlignForPinpoint(ctx, files)
+		assert.False(t, ok)
+		assert.Contains(t, logs.String(), "betteralign error")
+		assert.Contains(t, logs.String(), "betteralign failed!")
 	})
 }
 

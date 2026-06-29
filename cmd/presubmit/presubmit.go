@@ -35,6 +35,7 @@ import (
 const (
 	golangci      = "github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8"
 	workflowCheck = "go.temporal.io/sdk/contrib/tools/workflowcheck@v0.4.0"
+	betteralign   = "github.com/dkorunic/betteralign/cmd/betteralign@v0.13.0"
 )
 
 func main() {
@@ -45,7 +46,6 @@ func main() {
 		verbose  = flag.Bool("verbose", false, "If extra logging is desired")
 		upload   = flag.Bool("upload", false, "If true, this will skip any checks that are not suitable for an upload check (may be the empty set).")
 		commit   = flag.Bool("commit", false, "If true, this will skip any checks that are not suitable for a commit check (may be the empty set).")
-		fix      = flag.Bool("fix", false, "If true, instructs linters to automatically fix issues when possible.")
 	)
 	flag.Parse()
 	ctx := withOutputWriter(context.Background(), os.Stdout)
@@ -140,7 +140,8 @@ func main() {
 	runCheck("BannedGoAPIs", func() bool { return checkBannedGoAPIs(ctx, changedFiles) })
 	runCheck("JSDebugging", func() bool { return checkJSDebugging(ctx, changedFiles) })
 	if !*commit {
-		runCheck("GolangCILintForPinpoint", func() bool { return runGolangCILintForPinpoint(ctx, changedFiles, branchBaseCommit, *fix) })
+		runCheck("GolangCILintForPinpoint", func() bool { return runGolangCILintForPinpoint(ctx, changedFiles, branchBaseCommit) })
+		runCheck("BetterAlignForPinpoint", func() bool { return runBetterAlignForPinpoint(ctx, changedFiles) })
 		runCheck("WorkflowCheck", func() bool { return runWorkflowCheck(ctx, changedFiles, *repoDir) })
 		runCheck("NonASCII", func() bool { return checkNonASCII(ctx, changedFiles) })
 		runCheck("Autoreview", func() bool { return runAutoreview(ctx, branchBaseCommit) })
@@ -573,7 +574,7 @@ func extractChangedAndDeletedFilesCitc(diffOutput string) ([]fileWithChanges, []
 	return changed, deleted
 }
 
-func runGolangCILintForPinpoint(ctx context.Context, files []fileWithChanges, branchBaseCommit string, fix bool) bool {
+func runGolangCILintForPinpoint(ctx context.Context, files []fileWithChanges, branchBaseCommit string) bool {
 	// Collect unique directories of the changed files.
 	// We must pass directories to golangci-lint, not individual files.
 	// Passing individual files breaks the Go package context and causes "undefined type" errors.
@@ -605,10 +606,7 @@ func runGolangCILintForPinpoint(ctx context.Context, files []fileWithChanges, br
 		"--new-from-rev",
 		branchBaseCommit,
 		"--whole-files",
-	}
-
-	if fix {
-		baseArgs = append(baseArgs, "--fix")
+		"--fix",
 	}
 
 	args := append(baseArgs, dirs...)
@@ -616,8 +614,47 @@ func runGolangCILintForPinpoint(ctx context.Context, files []fileWithChanges, br
 	if output, err := cmd.CombinedOutput(); err != nil {
 		log(ctx, string(output))
 		log(ctx, "golangci-lint failed!\n")
-		log(ctx, "To apply fixes automatically (if possible) run:\n")
-		log(ctx, "    bazelisk run //cmd/presubmit -- --fix\n")
+		return false
+	}
+
+	return true
+}
+
+func runBetterAlignForPinpoint(ctx context.Context, files []fileWithChanges) bool {
+	// Collect unique directories of the changed files.
+	// We must pass directories to betteralign, not individual files.
+	dirsMap := make(map[string]bool)
+	for _, f := range files {
+		// Only run the linter for Go files inside the pinpoint directory.
+		if filepath.Ext(f.fileName) == ".go" && strings.HasPrefix(f.fileName, "pinpoint/") {
+			dirsMap["./"+filepath.Dir(f.fileName)] = true
+		}
+	}
+
+	if len(dirsMap) == 0 {
+		return true
+	}
+
+	var dirs []string
+	for d := range dirsMap {
+		dirs = append(dirs, d)
+	}
+
+	baseArgs := []string{
+		"run",
+		"--config=mayberemote",
+		"//:go",
+		"--",
+		"run",
+		betteralign,
+		"-apply",
+	}
+
+	args := append(baseArgs, dirs...)
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		log(ctx, string(output))
+		log(ctx, "betteralign failed!\n")
 		return false
 	}
 
