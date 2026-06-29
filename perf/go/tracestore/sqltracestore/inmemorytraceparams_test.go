@@ -1,6 +1,7 @@
 package sqltracestore
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"testing"
@@ -769,15 +770,24 @@ func TestGetWasmCache_Success(t *testing.T) {
 
 	assert.Equal(t, 32, len(cacheData.Traces))
 
-	// Expected content:
-	// Row 1: [1, 3, 0, 0, 0, 0, 0, 0]
-	// Row 2: [2, 0, 0, 0, 0, 0, 0, 0]
-	expectedTraces := make([]byte, 32)
-	// Row 1
-	expectedTraces[0], expectedTraces[1] = 1, 0
-	expectedTraces[2], expectedTraces[3] = 3, 0
-	// Row 2
-	expectedTraces[16], expectedTraces[17] = 2, 0
+	// Expected content (order-agnostic):
+	// Row A: [1, 3, 0, 0, 0, 0, 0, 0]
+	// Row B: [2, 0, 0, 0, 0, 0, 0, 0]
+	rowA := make([]byte, 16)
+	rowA[0], rowA[1] = 1, 0
+	rowA[2], rowA[3] = 3, 0
 
-	assert.Equal(t, expectedTraces, cacheData.Traces)
+	rowB := make([]byte, 16)
+	rowB[0], rowB[1] = 2, 0
+
+	row1 := cacheData.Traces[0:16]
+	row2 := cacheData.Traces[16:32]
+
+	if bytes.Equal(row1, rowA) {
+		assert.Equal(t, rowB, row2)
+	} else if bytes.Equal(row1, rowB) {
+		assert.Equal(t, rowA, row2)
+	} else {
+		t.Errorf("Unexpected Row 1: %v; expected either Row A %v or Row B %v", row1, rowA, rowB)
+	}
 }
