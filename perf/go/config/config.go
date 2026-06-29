@@ -441,6 +441,10 @@ type AnomalyConfig struct {
 	// This is an experimental flag.
 	UseImprovedAnomalyBoundsRefiner bool `json:"use_improved_anomaly_bounds_refiner,omitempty"`
 
+	// StepFitUnaligned enables unaligned step fitting.
+	// This is an experimental flag.
+	StepFitUnaligned bool `json:"stepfit_unaligned,omitempty"`
+
 	// ProcessAlertConfigsWorkerCount is the number of parallel goroutines that will process alert configs for the incoming event.
 	ProcessAlertConfigsWorkerCount int `json:"process_alert_configs_worker_count,omitempty"`
 

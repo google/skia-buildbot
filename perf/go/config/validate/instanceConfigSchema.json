@@ -14,6 +14,9 @@
         "use_improved_anomaly_bounds_refiner": {
           "type": "boolean"
         },
+        "stepfit_unaligned": {
+          "type": "boolean"
+        },
         "process_alert_configs_worker_count": {
           "type": "integer"
         },
