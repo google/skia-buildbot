@@ -3,10 +3,11 @@ package internal
 import (
 	"time"
 
-	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
+
+	"go.skia.org/infra/pinpoint/go/run_benchmark"
 )
 
 var (

@@ -42,16 +42,16 @@ func FetchBenchmarkJSON(ctx context.Context, c *rbeclient.Client, rootDigest str
 func FetchBenchmarkJSONRaw(ctx context.Context, c *rbeclient.Client, rootDigest string) (map[string][]byte, error) {
 	d, err := digest.NewFromString(rootDigest)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse digest %q: %v", rootDigest, err)
+		return nil, fmt.Errorf("failed to parse digest %q: %w", rootDigest, err)
 	}
 	rootDir := &repb.Directory{}
 	if _, err := c.ReadProto(ctx, d, rootDir); err != nil {
-		return nil, fmt.Errorf("failed to read root directory proto: %v", err)
+		return nil, fmt.Errorf("failed to read root directory proto: %w", err)
 	}
 
 	dirs, err := c.GetDirectoryTree(ctx, d.ToProto())
 	if err != nil {
-		return nil, fmt.Errorf("failed to call GetDirectoryTree: %v", err)
+		return nil, fmt.Errorf("failed to call GetDirectoryTree: %w", err)
 	}
 
 	t := &repb.Tree{
@@ -61,7 +61,7 @@ func FetchBenchmarkJSONRaw(ctx context.Context, c *rbeclient.Client, rootDigest 
 
 	outputs, err := c.FlattenTree(t, "")
 	if err != nil {
-		return nil, fmt.Errorf("failed to call FlattenTree: %v", err)
+		return nil, fmt.Errorf("failed to call FlattenTree: %w", err)
 	}
 
 	ret := make(map[string][]byte)

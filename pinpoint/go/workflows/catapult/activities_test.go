@@ -7,14 +7,15 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/worker"
+
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/sdk/testsuite"
-	"go.temporal.io/sdk/worker"
 
 	_ "embed"
 )

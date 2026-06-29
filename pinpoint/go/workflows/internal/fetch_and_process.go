@@ -6,12 +6,13 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	swarming_proto "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.temporal.io/sdk/workflow"
+	"google.golang.org/api/iterator"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/read_values"
-	"go.temporal.io/sdk/workflow"
-	"google.golang.org/api/iterator"
 )
 
 // CollectAndUploadParams contains required paramers for the CollectAndUploadWorkflow.

@@ -9,10 +9,10 @@ import (
 
 // uploadChromeDataClient implements UploadClient for Chrome.
 type uploadChromeDataClient struct {
+	client    backends.BigQueryClient
 	Project   string
 	DatasetID string
 	TableName string
-	client    backends.BigQueryClient
 }
 
 // newUploadChromeDataClient returns a configured version of uploadChromeDataClient.

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"go.skia.org/infra/pinpoint/go/compare"
 	pinpointpb "go.skia.org/infra/pinpoint/proto/v1"
 )
@@ -51,7 +52,7 @@ func TestBisectGetImprovementDirection_GivenDirection_ReturnsCorrectDirection(t 
 				ImprovementDirection: direction,
 			},
 		}
-		assert.Equal(t, params.GetImprovementDirection(), expected)
+		assert.Equal(t, expected, params.GetImprovementDirection())
 	}
 
 	test("UP", compare.Up)
@@ -88,7 +89,7 @@ func TestPairwiseGetImprovementDirection(t *testing.T) {
 				ImprovementDirection: direction,
 			},
 		}
-		assert.Equal(t, params.GetImprovementDirection(), expected)
+		assert.Equal(t, expected, params.GetImprovementDirection())
 	}
 
 	test("Up", compare.Up)

@@ -3,10 +3,11 @@ package internal
 import (
 	"context"
 
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	"go.temporal.io/sdk/workflow"
 )
 
 const (
@@ -32,7 +33,7 @@ type CombinedResults struct {
 	CommitPairValues CommitPairValues
 }
 
-func GetAllDataForCompareLocalActivity(ctx context.Context, lbr *BisectRun, hbr *BisectRun, chart string) (*CommitPairValues, error) {
+func GetAllDataForCompareLocalActivity(ctx context.Context, lbr, hbr *BisectRun, chart string) (*CommitPairValues, error) {
 	return &CommitPairValues{
 		Lower:  CommitValues{lbr.Build.Commit, lbr.AllValues(chart), lbr.AllErrorValues(chart)},
 		Higher: CommitValues{hbr.Build.Commit, hbr.AllValues(chart), hbr.AllErrorValues(chart)},

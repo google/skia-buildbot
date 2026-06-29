@@ -7,11 +7,12 @@ import (
 
 	"github.com/google/uuid"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	structpb "google.golang.org/protobuf/types/known/structpb"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/workflows"
-	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 const (

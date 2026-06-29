@@ -17,7 +17,7 @@ import (
 )
 
 // MannWhitneyU computes the Mann-Whitney rank test on samples x and y.
-func MannWhitneyU(a []float64, b []float64) float64 {
+func MannWhitneyU(a, b []float64) float64 {
 	// The distribution of U is approximately normal for large samples. This
 	// implementation uses the normal approximation, so it's recommended to have
 	// sample sizes > 20. This version assumes the method = 'asymptotic'.

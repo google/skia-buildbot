@@ -5,8 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/pinpoint/go/compare"
 	"go.temporal.io/sdk/testsuite"
+
+	"go.skia.org/infra/pinpoint/go/compare"
 )
 
 func TestCompareActivity_FunctionalDifferent_ReturnsFunctional(t *testing.T) {

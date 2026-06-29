@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -11,8 +12,9 @@ import (
 
 	"go.temporal.io/sdk/workflow"
 
-	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+
+	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 const (
@@ -36,7 +38,7 @@ func updateStatesWithComparisons(states []*pinpoint_proto.LegacyJobResponse_Stat
 		Next: string(perfResult.Verdict),
 	}
 
-	// everything else inbetween should have prev and next set.
+	// everything else between should have prev and next set.
 	for idx := 1; idx < len(states)-1; idx++ {
 		currState := states[idx]
 		perfResult, err := compare.ComparePerformance(currState.Values, states[idx+1].Values, magnitude, direction)

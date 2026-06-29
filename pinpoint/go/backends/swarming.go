@@ -3,12 +3,13 @@ package backends
 import (
 	"context"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"golang.org/x/oauth2/google"
 

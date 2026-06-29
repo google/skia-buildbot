@@ -3,11 +3,12 @@ package build
 import (
 	"context"
 
+	"golang.org/x/oauth2/google"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/workflows"
-	"golang.org/x/oauth2/google"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 )

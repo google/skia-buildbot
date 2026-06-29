@@ -13,13 +13,14 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/time/rate"
+
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	pinpoint_service "go.skia.org/infra/pinpoint/go/service"
 	jobstore "go.skia.org/infra/pinpoint/go/sql/jobs_store"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 	tpr_client "go.skia.org/infra/temporal/go/client"
-	"golang.org/x/time/rate"
 )
 
 const (
@@ -39,10 +40,10 @@ type BenchmarkConfig struct {
 // Service handles the HTTP endpoints for Pinpoint jobs.
 type Service struct {
 	jobStore         jobstore.JobStore
-	templates        *template.Template
-	benchmarkConfigs []BenchmarkConfig
 	pinpointServer   pb.PinpointServer
 	pinpointHandler  http.Handler
+	templates        *template.Template
+	benchmarkConfigs []BenchmarkConfig
 }
 
 // New creates a new Service.
@@ -54,13 +55,13 @@ func New(ctx context.Context, js jobstore.JobStore, t tpr_client.TemporalProvide
 
 	handler, err := pinpoint_service.NewJSONHandler(context.Background(), s.pinpointServer)
 	if err != nil {
-		return nil, skerr.Fmt("failed to initalize pinpoint service %s.", err)
+		return nil, skerr.Fmt("failed to initialize pinpoint service %s.", err)
 	}
 	s.pinpointHandler = handler
 
 	err = s.loadConfigs()
 	if err != nil {
-		return nil, skerr.Fmt("failed to retreive config contents: %s", err)
+		return nil, skerr.Fmt("failed to retrieve config contents: %s", err)
 	}
 
 	s.loadTemplates(resourceDir)
@@ -195,7 +196,6 @@ func (s *Service) GetJobHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
 		return
 	}
-
 }
 
 // templateHandler returns an http.HandlerFunc that executes the named template.
@@ -308,7 +308,7 @@ func (s *Service) loadTemplates(resourcesDir string) {
 	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseGlob(filepath.Join(resourcesDir, "*.html")))
 }
 
-// loadConfigs loads the values retrived from the JSON file defined in configPath.
+// loadConfigs loads the values retrieved from the JSON file defined in configPath.
 func (s *Service) loadConfigs() error {
 	decoder := json.NewDecoder(bytes.NewReader(benchmarksJSON))
 	err := decoder.Decode(&s.benchmarkConfigs)

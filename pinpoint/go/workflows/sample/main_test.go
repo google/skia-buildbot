@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 

@@ -4,8 +4,9 @@ import (
 	_ "embed"
 	"strings"
 
-	"go.skia.org/infra/go/skerr"
 	"gopkg.in/yaml.v3"
+
+	"go.skia.org/infra/go/skerr"
 )
 
 const performance_test_suite = "performance_test_suite"

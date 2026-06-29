@@ -29,8 +29,11 @@ import (
 
 //go:embed external.json
 var externalBotConfigsJSON []byte
-var externalBotConfigs map[string]BotConfig
-var onceExternal sync.Once
+
+var (
+	externalBotConfigs map[string]BotConfig
+	onceExternal       sync.Once
+)
 
 func getExternalBotConfigs() map[string]BotConfig {
 	onceExternal.Do(func() {
@@ -45,8 +48,11 @@ func getExternalBotConfigs() map[string]BotConfig {
 
 //go:embed internal.json
 var internalBotConfigsJSON []byte
-var allBotConfigs map[string]BotConfig
-var onceAll sync.Once
+
+var (
+	allBotConfigs map[string]BotConfig
+	onceAll       sync.Once
+)
 
 func getAllBotConfigs() map[string]BotConfig {
 	onceAll.Do(func() {
@@ -75,9 +81,6 @@ type BotConfig struct {
 	// Builder refers to the LUCI builder used to build Chrome,
 	// usually a compile builder.
 	Builder string `json:"builder"`
-	// Dimensions are used by Swarming to find the
-	// device pool to test benchmarks
-	Dimensions []map[string]string `json:"dimensions"`
 	// Repo is the repository to run tests on,
 	// typically chromium
 	Repo string `json:"repository"`
@@ -86,6 +89,9 @@ type BotConfig struct {
 	SwarmingServer string `json:"swarming_server"`
 	// Bot is the original key used for this config.
 	Bot string
+	// Dimensions are used by Swarming to find the
+	// device pool to test benchmarks
+	Dimensions []map[string]string `json:"dimensions"`
 }
 
 // GetBotConfig gets the config for a bot. Will only check internal

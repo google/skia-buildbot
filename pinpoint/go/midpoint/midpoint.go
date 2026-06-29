@@ -426,7 +426,7 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 	}
 
 	// No modified deps, so we search midpoint based on the main commit.
-	sklog.Debugf("No ModifiedDeps, searching for midpoint in Chromium betwen %s and %s", startCommit.Main.GitHash, endCommit.Main.GitHash)
+	sklog.Debugf("No ModifiedDeps, searching for midpoint in Chromium between %s and %s", startCommit.Main.GitHash, endCommit.Main.GitHash)
 	midCommit, err := m.findMidCommit(ctx, startCommit.Main, endCommit.Main)
 	if err != nil {
 		return nil, err

@@ -8,11 +8,12 @@ import (
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/clients/build"
 	"go.skia.org/infra/pinpoint/go/workflows"
-	"go.temporal.io/sdk/activity"
-	"go.temporal.io/sdk/workflow"
 )
 
 // BuildWorkflow is a Workflow definition that creates a build artifact.

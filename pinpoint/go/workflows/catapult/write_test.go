@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/skerr"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
@@ -34,14 +35,14 @@ func TestNewCatapultClient_GivenProd_ReturnsProdClient(t *testing.T) {
 	cc, err := NewCatapultClient(context.Background(), true)
 	assert.NoError(t, err)
 	assert.NotNil(t, cc)
-	assert.Equal(t, cc.url, catapultBisectPostUrl)
+	assert.Equal(t, catapultBisectPostUrl, cc.url)
 }
 
 func TestNewCatapultClient_GivenStaging_ReturnsStagingClient(t *testing.T) {
 	cc, err := NewCatapultClient(context.Background(), false)
 	assert.NoError(t, err)
 	assert.NotNil(t, cc)
-	assert.Equal(t, cc.url, catapultStagingPostUrl)
+	assert.Equal(t, catapultStagingPostUrl, cc.url)
 }
 
 func TestWriteBisectToCatapault_GivenValidInput_ReturnsResponse(t *testing.T) {

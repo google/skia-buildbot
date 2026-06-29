@@ -3,10 +3,11 @@ package internal
 import (
 	"context"
 
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/sdk/workflow"
 )
 
 // ReportStatusActivity wraps the call to IssueTracker to report culprits.

@@ -1,10 +1,11 @@
 package internal
 
 import (
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
-	"go.temporal.io/sdk/workflow"
 )
 
 type scheduledRun struct {
@@ -140,7 +141,7 @@ func (br *BisectRun) updateRuns(ctx workflow.Context, cf workflow.ChildWorkflowF
 // nextRunSize returns the expected number of runs.
 //
 // nextRunSize return the bigger number of run if two given runs are not equal; otherwise,
-// it tries to find the next iteration needed for the comparision to be significant.
+// it tries to find the next iteration needed for the comparison to be significant.
 //
 // If minSampleSize is non-zero, it is used for the initial interation; otherwise, it picks
 // up from the predefined number of iterations.

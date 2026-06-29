@@ -6,10 +6,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
-
-	"regexp"
 	"time"
 
 	"go.skia.org/infra/go/gerrit"
@@ -148,7 +147,7 @@ func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildI
 	if isDev {
 		bucket = chromeExperimentBucket
 	}
-	var store, err = NewStore(ctx, bucket, true)
+	store, err := NewStore(ctx, bucket, true)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -157,7 +156,7 @@ func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildI
 	for _, build := range builds {
 		filePath := fmt.Sprintf(cbbRefInfoPath, build.Browser, build.Channel, build.Platform)
 		if store.Exists(filePath) {
-			var content, err = store.GetFileContent(filePath)
+			content, err := store.GetFileContent(filePath)
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
@@ -249,7 +248,7 @@ func waitForSubmitCl(client *gitClient, ci *gerrit.ChangeInfo, builds []BuildInf
 	sklog.Infof("Waiting for CL to be submitted.")
 	start := time.Now()
 	for {
-		if time.Now().Sub(start) > ClSubmissionTimeout {
+		if time.Since(start) > ClSubmissionTimeout {
 			return nil, fmt.Errorf("waitForSubmitCl timeout!")
 		}
 		// Refresh the change info to get the latest CL status.

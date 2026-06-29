@@ -1,11 +1,11 @@
 package internal
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/common"
@@ -205,7 +205,7 @@ func TestGetBotDimensions_GivenValidInput_ShouldReturnBotDimensions(t *testing.T
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := getBotDimension(tt.args.finishedIteration, tt.args.iteration, freeBots)
-			assert.Equal(t, tt.want, got, fmt.Sprintf("Test case %s failed!", tt.name))
+			assert.Equal(t, tt.want, got, "Test case %s failed!", tt.name)
 		})
 	}
 }

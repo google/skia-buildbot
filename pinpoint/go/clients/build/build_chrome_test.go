@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/pinpoint/go/backends/mocks"
@@ -89,7 +90,7 @@ func TestFindBuild_ValidReq_BuildNotFound(t *testing.T) {
 
 	resp, err := client.FindBuild(ctx, req)
 	assert.Nil(t, resp.Response)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 func TestFindBuild_ValidReqWithPatch_BuildNotFound(t *testing.T) {
@@ -118,7 +119,7 @@ func TestFindBuild_ValidReqWithPatch_BuildNotFound(t *testing.T) {
 
 	resp, err := client.FindBuild(ctx, req)
 	assert.Nil(t, resp.Response)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 func TestFindBuild_ValidReq_BuildFound(t *testing.T) {
@@ -143,7 +144,7 @@ func TestFindBuild_ValidReq_BuildFound(t *testing.T) {
 	mockClient.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", "try", "random_hash", mock.Anything, mock.Anything).Return(respBuild, nil)
 
 	resp, err := client.FindBuild(ctx, req)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(12345), resp.BuildID)
 }
 
@@ -214,7 +215,7 @@ func TestCreateStartBuildRequest_NoDeps_ValidResponse(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, DefaultBucket, startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Builder.Bucket)
-	assert.Equal(t, 4, len(startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Properties.Fields))
+	assert.Len(t, startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Properties.Fields, 4)
 	pinpointJobIdTag := startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Tags[0]
 	assert.Equal(t, workflowId, pinpointJobIdTag.Value)
 }
@@ -242,9 +243,9 @@ func TestCreateStartBuildRequest_WithPatch_ValidResponse(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, DefaultBucket, startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Builder.Bucket)
-	assert.Equal(t, 4, len(startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Properties.Fields))
+	assert.Len(t, startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Properties.Fields, 4)
 	pinpointJobIdTag := startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Tags[0]
-	assert.Equal(t, 1, len(startReq.Request.(*buildbucketpb.ScheduleBuildRequest).GerritChanges))
+	assert.Len(t, startReq.Request.(*buildbucketpb.ScheduleBuildRequest).GerritChanges, 1)
 	assert.Equal(t, params.Patch[0], startReq.Request.(*buildbucketpb.ScheduleBuildRequest).GerritChanges[0])
 	assert.Equal(t, workflowId, pinpointJobIdTag.Value)
 }

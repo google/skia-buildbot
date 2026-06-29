@@ -64,7 +64,7 @@ func TestNewCombinedCommit_WithDeps_ReturnCombinedCommit(t *testing.T) {
 
 	cc := common.NewCombinedCommit(main, webrtc, v8)
 	assert.Equal(t, "1", cc.Main.GitHash)
-	assert.Equal(t, 2, len(cc.ModifiedDeps))
+	assert.Len(t, cc.ModifiedDeps, 2)
 }
 
 func TestNewRepo_WithUrl_CreateNewRepo(t *testing.T) {
@@ -116,7 +116,7 @@ deps = {
 	res, err := r.fetchGitDeps(ctx, &pb.Commit{Repository: ChromiumSrcGit, GitHash: gitHash})
 	require.NoError(t, err)
 	// intellij should be missing
-	assert.Equal(t, 3, len(res))
+	assert.Len(t, res, 3)
 	assert.Equal(t, "1", res[v8Url].GitHash)
 	assert.Equal(t, "9dfa55d", res["https://chromium.googlesource.com/deps/lighttpd"].GitHash)
 	assert.Equal(t, "deadbeef", res[webrtcUrl].GitHash)
@@ -142,11 +142,11 @@ deps = {
 
 	m := New(ctx, nil).WithRepo("fake-url", gr)
 	dc, err := m.findDepsCommit(ctx, c, "https://fake-dep.com")
-	require.Nil(t, err, err)
-	require.Equal(t, dc, &pb.Commit{
+	require.NoError(t, err)
+	require.Equal(t, &pb.Commit{
 		GitHash:    "fake-dep-hash",
 		Repository: "https://fake-dep.com",
-	})
+	}, dc)
 }
 
 func TestFindDepsCommit_OnNonExistingRepo_ShouldReturnError(t *testing.T) {

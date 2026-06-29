@@ -6,20 +6,19 @@ import (
 	"context"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
-	"go.skia.org/infra/go/sklog"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v0.beta"
 	grpc_oauth "google.golang.org/grpc/credentials/oauth"
 
+	"go.skia.org/infra/go/sklog"
+
 	"go.skia.org/infra/perf/go/perfresults"
 )
 
-var (
-	scopesForBackends = []string{
-		compute.CloudPlatformScope,
-	}
-)
+var scopesForBackends = []string{
+	compute.CloudPlatformScope,
+}
 
 // CASResultReader is an interface for getting PerfResults for CAS instance and root digest values.
 type CASResultReader func(context.Context, string, string) (map[string]perfresults.PerfResults, error)

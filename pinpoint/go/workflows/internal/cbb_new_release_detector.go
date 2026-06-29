@@ -40,14 +40,15 @@ import (
 
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/digest"
 	repb "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
+	"go.temporal.io/sdk/temporal"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
-	"go.temporal.io/sdk/temporal"
-	"go.temporal.io/sdk/workflow"
 )
 
 // NewReleaseWorkflowTimeout is the overall workflow timeout.
@@ -118,7 +119,7 @@ var edgeConfigs = map[string]int32{
 	"win-arm64-snapdragon-elite-perf-cbb": 4,
 }
 
-// CbbNewReleaseDetectorWorkflow is the most basic Workflow Defintion.
+// CbbNewReleaseDetectorWorkflow is the most basic Workflow Definition.
 func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, error) {
 	ctx = workflow.WithActivityOptions(ctx, releaseDetectorActivityOptions)
 
@@ -290,7 +291,7 @@ func CbbGetBrowserVersionsWorkflow(ctx workflow.Context, browser string) ([]Buil
 	return results, nil
 }
 
-func CollectBrowserVersionsActivity(ctx context.Context, browser string, platform string, cr *CommitRun) ([]BuildInfo, error) {
+func CollectBrowserVersionsActivity(ctx context.Context, browser, platform string, cr *CommitRun) ([]BuildInfo, error) {
 	var results []BuildInfo
 	for _, run := range cr.Runs {
 		clients, err := backends.DialRBECAS(ctx)
@@ -305,12 +306,12 @@ func CollectBrowserVersionsActivity(ctx context.Context, browser string, platfor
 
 		d, err := digest.NewFromString(fmt.Sprintf("%s/%d", run.CAS.Digest.Hash, run.CAS.Digest.SizeBytes))
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse digest %v: %v", run.CAS.Digest, err)
+			return nil, fmt.Errorf("failed to parse digest %v: %w", run.CAS.Digest, err)
 		}
 
 		rootDir := &repb.Directory{}
 		if _, err := cl.ReadProto(ctx, d, rootDir); err != nil {
-			return nil, fmt.Errorf("failed to read root directory proto: %v", err)
+			return nil, fmt.Errorf("failed to read root directory proto: %w", err)
 		}
 
 		var versionFileDigest *repb.Digest
@@ -324,7 +325,7 @@ func CollectBrowserVersionsActivity(ctx context.Context, browser string, platfor
 		}
 		d, err = digest.NewFromString(fmt.Sprintf("%s/%d", versionFileDigest.Hash, versionFileDigest.SizeBytes))
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse digest %v: %v", run.CAS.Digest, err)
+			return nil, fmt.Errorf("failed to parse digest %v: %w", run.CAS.Digest, err)
 		}
 		res, _, err := cl.ReadBlob(ctx, d)
 		if err != nil {

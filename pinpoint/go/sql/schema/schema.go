@@ -21,6 +21,7 @@ type CommitRuns struct {
 
 // AdditionalRequestParametersSchema contains all additional parameters needed for a Job.
 type AdditionalRequestParametersSchema struct {
+	CommitRuns          *CommitRuns `json:"commit_runs,omitempty"`
 	StartCommitGithash  string      `json:"start_commit_githash,omitempty"`
 	EndCommitGithash    string      `json:"end_commit_githash,omitempty"`
 	Story               string      `json:"story,omitempty"`
@@ -32,11 +33,20 @@ type AdditionalRequestParametersSchema struct {
 	BugId               string      `json:"bug_id,omitempty"`
 	Chart               string      `json:"chart,omitempty"`
 	Duration            string      `json:"duration,omitempty"`
-	CommitRuns          *CommitRuns `json:"commit_runs,omitempty"`
 }
 
 // JobSchema represents the SQL schema of the Jobs table in Cloud Spanner.
 type JobSchema struct {
+	// The time in which the Pinpoint workflow began
+	CreatedDate time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
+
+	// AdditionalRequestParameters contains all additional parameters needed for the Try Job,
+	// stored as a JSONB object.
+	AdditionalRequestParameters *AdditionalRequestParametersSchema `sql:"additional_request_parameters JSONB"`
+
+	// MetricSummary holds the charts and results of a Try job, stored as a JSONB object.
+	MetricSummary map[string]*pinpointpb.PairwiseExecution_WilcoxonResult `sql:"metric_summary JSONB"`
+
 	// JobID is a numerical identifier for a specific job.
 	// It's the primary key for the table
 	JobID string `sql:"job_id UUID PRIMARY KEY"`
@@ -61,16 +71,6 @@ type JobSchema struct {
 	// (Also known as bot_configuration or bot_configuration in legacy terminology).
 	BotName string `sql:"bot_name STRING"`
 
-	// AdditionalRequestParameters contains all additonal parameters needed for the Try Job,
-	// stored as a JSONB object.
-	AdditionalRequestParameters *AdditionalRequestParametersSchema `sql:"additional_request_parameters JSONB"`
-
-	// MetricSummary holds the charts and results of a Try job, stored as a JSONB object.
-	MetricSummary map[string]*pinpointpb.PairwiseExecution_WilcoxonResult `sql:"metric_summary JSONB"`
-
 	// Error explaining why workflow failed
 	ErrorMessage string `sql:"error_message STRING"`
-
-	// The time in which the Pinpoint workflow began
-	CreatedDate time.Time `sql:"createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"`
 }

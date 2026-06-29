@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 

@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	moreStat "github.com/aclements/go-moremath/stats"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -126,9 +127,11 @@ func PairwiseWilcoxonSignedRankedTest(x, y []float64, alt Hypothesis, transform 
 			return PairwiseWilcoxonSignedRankedTestResult{}, skerr.Wrapf(err, "error calculating the wilcoxon test for input transformX(%v), transformY(%v), alt(%v)", transformX, transformY, alt)
 		}
 
-		return PairwiseWilcoxonSignedRankedTestResult{Estimate: (math.Exp(res.Estimate) - 1) * 100,
-			LowerCi: (math.Exp(res.LowerCi) - 1) * 100, UpperCi: (math.Exp(res.UpperCi) - 1) * 100,
-			PValue: res.PValue, XMedian: xMedian, YMedian: yMedian}, nil
+		return PairwiseWilcoxonSignedRankedTestResult{
+			Estimate: (math.Exp(res.Estimate) - 1) * 100,
+			LowerCi:  (math.Exp(res.LowerCi) - 1) * 100, UpperCi: (math.Exp(res.UpperCi) - 1) * 100,
+			PValue: res.PValue, XMedian: xMedian, YMedian: yMedian,
+		}, nil
 	}
 
 	res, err := WilcoxonSignedRankedTest(x, y, alt)
@@ -137,13 +140,17 @@ func PairwiseWilcoxonSignedRankedTest(x, y []float64, alt Hypothesis, transform 
 	}
 
 	if transform == NormalizeResult {
-		return PairwiseWilcoxonSignedRankedTestResult{Estimate: res.Estimate / yMedian * 100,
-			LowerCi: res.LowerCi / yMedian * 100, UpperCi: res.UpperCi / yMedian * 100,
-			PValue: res.PValue, XMedian: xMedian, YMedian: yMedian}, nil
+		return PairwiseWilcoxonSignedRankedTestResult{
+			Estimate: res.Estimate / yMedian * 100,
+			LowerCi:  res.LowerCi / yMedian * 100, UpperCi: res.UpperCi / yMedian * 100,
+			PValue: res.PValue, XMedian: xMedian, YMedian: yMedian,
+		}, nil
 	}
 
-	return PairwiseWilcoxonSignedRankedTestResult{Estimate: res.Estimate, LowerCi: res.LowerCi,
-		UpperCi: res.UpperCi, PValue: res.PValue, XMedian: xMedian, YMedian: yMedian}, nil
+	return PairwiseWilcoxonSignedRankedTestResult{
+		Estimate: res.Estimate, LowerCi: res.LowerCi,
+		UpperCi: res.UpperCi, PValue: res.PValue, XMedian: xMedian, YMedian: yMedian,
+	}, nil
 }
 
 // WilcoxonSignedRankedTest conducts WilcoxonSignedRankedTest based on R implementation.

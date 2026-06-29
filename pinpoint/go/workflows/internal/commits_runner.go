@@ -6,6 +6,8 @@ import (
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
@@ -13,11 +15,15 @@ import (
 	"go.skia.org/infra/pinpoint/go/read_values"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/sdk/workflow"
 )
 
 // SingleCommitRunnerParams defines the parameters for SingleCommitRunner workflow.
 type SingleCommitRunnerParams struct {
+	// The commit with optional deps override
+	// Note: This field is only used in bisect
+	// TODO(b/326352320): move CombinedCommit to a common package or rename midpoint
+	CombinedCommit *common.CombinedCommit
+
 	// PinpointJobID is the Job ID to associate with the run.
 	PinpointJobID string
 
@@ -40,10 +46,11 @@ type SingleCommitRunnerParams struct {
 	// If empty, then the original values are returned.
 	AggregationMethod string
 
-	// The commit with optional deps override
-	// Note: This field is only used in bisect
-	// TODO(b/326352320): move CombinedCommit to a common package or rename midpoint
-	CombinedCommit *common.CombinedCommit
+	// Extra arguments to be passed to the benchmark runner.
+	ExtraArgs []string
+
+	// Available bot list
+	BotIds []string
 
 	// The number of benchmark tests to run.
 	// Note the collected sampled values can be more than iterations as each iteration produce
@@ -56,12 +63,6 @@ type SingleCommitRunnerParams struct {
 	// We need this attribute to record the finished number of iterations
 	// Note: This field is only used in bisect
 	FinishedIteration int32
-
-	// Extra arguments to be passed to the benchmark runner.
-	ExtraArgs []string
-
-	// Available bot list
-	BotIds []string
 }
 
 // CommitRun stores benchmark tests runs for a single commit
@@ -239,7 +240,6 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 
 			botDimensions := getBotDimension(sc.FinishedIteration, iteration, sc.BotIds)
 			tr, err := runBenchmark(gCtx, sc.CombinedCommit, b.CAS, sc, botDimensions, iteration)
-
 			if err != nil {
 				ec.Send(gCtx, err)
 				return
@@ -263,7 +263,7 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 	}, nil
 }
 
-func getBotDimension(finishedIteration int32, iteration int32, botIds []string) map[string]string {
+func getBotDimension(finishedIteration, iteration int32, botIds []string) map[string]string {
 	if len(botIds) == 0 {
 		return nil
 	}

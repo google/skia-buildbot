@@ -24,18 +24,18 @@ type JobStoreActivities struct {
 	js jobstore.JobStore
 }
 
-// Store intial job parameters to database.
+// Store initial job parameters to database.
 func (a *JobStoreActivities) AddInitialJob(ctx context.Context, request *pinpointpb.SchedulePairwiseRequest, id string) error {
 	return skerr.Wrap(a.js.AddInitialJob(ctx, request, id))
 }
 
 // UpdateJobStatus updates the status of a job.
-func (a *JobStoreActivities) UpdateJobStatus(ctx context.Context, jobID string, status string, duration int64) error {
+func (a *JobStoreActivities) UpdateJobStatus(ctx context.Context, jobID, status string, duration int64) error {
 	return skerr.Wrap(a.js.UpdateJobStatus(ctx, jobID, status, duration))
 }
 
 // Store error received from pairwise execution.
-func (a *JobStoreActivities) SetErrors(ctx context.Context, jobID string, errMsg string) error {
+func (a *JobStoreActivities) SetErrors(ctx context.Context, jobID, errMsg string) error {
 	var err error
 	if errMsg != "" {
 		err = errors.New(errMsg)

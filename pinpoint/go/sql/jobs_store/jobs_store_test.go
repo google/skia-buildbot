@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/pinpoint/go/common"

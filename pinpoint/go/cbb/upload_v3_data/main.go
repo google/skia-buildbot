@@ -62,7 +62,6 @@ func normalizeChromeVersion(version string) string {
 		parts[3] = parts[3][1:]
 	}
 	return strings.Join(parts, ".")
-
 }
 
 // Mappings of browser versions to commit positions.
@@ -86,6 +85,7 @@ var chromeStableCP = map[string]int{
 	"139.0.7258.68":  1500427,
 	"139.0.7258.128": 1502986,
 }
+
 var chromeStableAndroidCP = map[string]int{
 	"137.0.7151.44":  1475800,
 	"137.0.7151.61":  1475850,
@@ -102,6 +102,7 @@ var chromeStableAndroidCP = map[string]int{
 	"139.0.7258.63":  1500427,
 	"139.0.7258.123": 1502986,
 }
+
 var chromeDevCP = map[string]int{
 	"139.0.7232.3": 1475903,
 	"139.0.7246.0": 1476735,
@@ -114,6 +115,7 @@ var chromeDevCP = map[string]int{
 	"141.0.7354.0": 1501632,
 	"141.0.7354.3": 1501632,
 }
+
 var chromeDevAndroidCP = map[string]int{
 	"139.0.7232.2": 1475903,
 	"139.0.7246.0": 1476735,
@@ -124,22 +126,26 @@ var chromeDevAndroidCP = map[string]int{
 	"141.0.7340.3": 1498865,
 	"141.0.7354.0": 1501632,
 }
+
 var safariStableCP = map[string]int{
 	"18.4 (20621.1.15.11.10)": 1475903,
 	"18.5 (20621.2.5.11.8)":   1488562,
 	"18.6 (20621.3.11.11.3)":  1493855,
 }
+
 var safariTPCP = map[string]int{
 	"26.0 (Release 223, 20622.1.18.11.5)": 1491633,
 	"26.0 (Release 224, 20622.1.20.1)":    1493750,
 	"26.0 (Release 225, 20623.1.1.1)":     1499125,
 }
+
 var EdgeStableCP = map[string]int{
 	"136.0.3240.76":  1475903,
 	"138.0.3351.83":  1488562,
 	"138.0.3351.109": 1495010,
 	"139.0.3405.86":  1500568,
 }
+
 var EdgeDevCP = map[string]int{
 	"138.0.3324.1": 1475903,
 	"140.0.3430.1": 1488562,

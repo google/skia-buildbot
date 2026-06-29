@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/perfresults"
@@ -75,7 +76,7 @@ func DialRBECAS(ctx context.Context, instance string) (*perfCASClient, error) {
 //	values := client.ReadValuesByChart(ctx, benchmark, chart, digests, nil)
 
 // TODO(b/327020123): Migrate CABE backends into pinpoint/go/backends/
-func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark string, chart string, digests []*apipb.CASReference, agg string) (*workflows.TestResults, error) {
+func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark, chart string, digests []*apipb.CASReference, agg string) (*workflows.TestResults, error) {
 	aggMethod, ok := perfresults.AggregationMapping[agg]
 	if !ok && agg != "" {
 		return nil, skerr.Fmt("unsupported aggregation method (%s).", agg)

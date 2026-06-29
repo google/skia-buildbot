@@ -4,14 +4,15 @@ import (
 	"errors"
 	"fmt"
 
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	perf_wf "go.skia.org/infra/perf/go/workflows"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/sdk/workflow"
 )
 
 // CulpritFinderWorkflow confirms if an anomaly is a real regression, finds culprits for the
@@ -106,7 +107,8 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 }
 
 func InvokeCulpritProcessingWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderParams,
-	verified_combined_culprits []*pinpoint_proto.CombinedCommit) error {
+	verified_combined_culprits []*pinpoint_proto.CombinedCommit,
+) error {
 	if verified_combined_culprits == nil || len(verified_combined_culprits) == 0 {
 		sklog.Debug("No verified culprit is found. No need to invoke culprit processing.")
 		return nil
@@ -160,14 +162,12 @@ func verifyCulprits(ctx workflow.Context, be *pinpoint_proto.BisectExecution, cf
 			defer wg.Done()
 
 			exec, err := runCulpritVerification(gCtx, culpritPair, cfp)
-
 			if err != nil {
 				ec.Send(gCtx, err)
 				return
 			}
 			rc.Send(gCtx, exec)
 		})
-
 	}
 
 	wg.Wait(ctx)

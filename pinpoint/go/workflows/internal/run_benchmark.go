@@ -7,13 +7,14 @@ import (
 	"time"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
-	"go.temporal.io/sdk/activity"
-	"go.temporal.io/sdk/workflow"
 )
 
 const maxRetry = 3
@@ -21,12 +22,14 @@ const maxRetry = 3
 // RunBenchmarkParams are the Temporal Workflow params
 // for the RunBenchmarkWorkflow.
 type RunBenchmarkParams struct {
-	// the Pinpoint job id
-	JobID string
 	// the swarming instance and cas digest hash and bytes location for the build
 	BuildCAS *apipb.CASReference
 	// commit hash
 	Commit *common.CombinedCommit
+	// additional dimensions for bot selection
+	Dimensions map[string]string
+	// the Pinpoint job id
+	JobID string
 	// device configuration
 	BotConfig string
 	// benchmark to test
@@ -35,12 +38,6 @@ type RunBenchmarkParams struct {
 	Story string
 	// story tags for the test
 	StoryTags string
-	// additional dimensions for bot selection
-	Dimensions map[string]string
-	// iteration for the benchmark run. A few workflows have multiple iterations of
-	// benchmark runs and this param comes in handy to get additional info of a specific run.
-	// This is for debugging/informational purposes only.
-	IterationIdx int32
 	// Chart is a story histogram in a Benchmark.
 	Chart string
 	// AggregationMethod is method to aggregate sampled values.
@@ -48,11 +45,14 @@ type RunBenchmarkParams struct {
 	AggregationMethod string
 	// Extra arguments to be passed to the benchmark runner.
 	ExtraArgs []string
+	// iteration for the benchmark run. A few workflows have multiple iterations of
+	// benchmark runs and this param comes in handy to get additional info of a specific run.
+	// This is for debugging/informational purposes only.
+	IterationIdx int32
 }
 
 // RunBenchmarkActivity wraps RunBenchmarkWorkflow in Activities
-type RunBenchmarkActivity struct {
-}
+type RunBenchmarkActivity struct{}
 
 // RunBenchmarkWorkflow is a Workflow definition that schedules a single task,
 // polls and retrieves the CAS for the RunBenchmarkParams defined.
@@ -84,7 +84,7 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 	// onto a dead bot, the swarming task will return NO_RESOURCE. In that case, reschedule
 	// the run on any other bot.
 	// TODO(b/346835450): Monitor how often tasks fail with NO_RESOURCE. We want to maintain this
-	// occurence below a threshold i.e. 5%.
+	// occurrence below a threshold i.e. 5%.
 	for attempt := 1; canRetry(state, attempt); attempt++ {
 		if err := workflow.ExecuteActivity(ctx, rba.ScheduleTaskActivity, p).Get(ctx, &taskID); err != nil {
 			logger.Error("Failed to schedule task:", err)
@@ -485,7 +485,7 @@ func (rba *RunBenchmarkActivity) IsTaskPairContinuousActivity(ctx context.Contex
 		return false, skerr.Wrap(err)
 	}
 	// We expect one swarming task between the two time stamps.
-	// If there are < 1 items, then either one task did not start (i.e. no resource) or they occured out of order.
+	// If there are < 1 items, then either one task did not start (i.e. no resource) or they occurred out of order.
 	// More than one implies that a task intercepted task1 and task2.
 	switch len(tasks.Items) {
 	case 0:

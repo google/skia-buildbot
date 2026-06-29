@@ -6,12 +6,13 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/option"
 )
 
 // GCS store info.
@@ -60,7 +61,7 @@ func (s *store) GetFileContent(storeFilePath string) ([]byte, error) {
 }
 
 // WriteFile creates or updates a file in GCS.
-func (s *store) WriteFile(storeFilePath string, content string) error {
+func (s *store) WriteFile(storeFilePath, content string) error {
 	w := s.bucket.Object(storeFilePath).NewWriter(s.ctx)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
 	if strings.HasSuffix(storeFilePath, ".json") {

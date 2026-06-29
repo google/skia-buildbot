@@ -25,12 +25,12 @@ import (
 
 // CbbRunnerParams defines the parameters for CbbRunnerWorkflow.
 type CbbRunnerParams struct {
-	// Name of the device configuration, e.g. "mac-m3-pro-perf-cbb".
-	BotConfig string
-
 	// The commit to run the benchmarks on. For CBB, this should be a commit in
 	// the Chromium main branch, with updated CBB marker file.
 	Commit *common.CombinedCommit
+
+	// Name of the device configuration, e.g. "mac-m3-pro-perf-cbb".
+	BotConfig string
 
 	// Name of the Browser to test. Supports "chrome", "safari", and "edge".
 	Browser string
@@ -39,27 +39,27 @@ type CbbRunnerParams struct {
 	// also support "dev", while Safari also supports "technology-preview".
 	Channel string
 
-	// SkipFinch is a bool flag used to disable certain Finch variation control.
-	// Only used for Chrome on desktop platforms.
-	// For Chrome Dev, it means passing --disable-field-trial-config to Chrome.
-	// For Chrome Stable, it means not using Finch top variations seed file.
-	SkipFinch bool
+	// Name of the Google cloud storage bucket to upload results to.
+	Bucket string
 
 	// The set of benchmarks to run, and the number of iterations for each.
 	// If nil, use default.
 	Benchmarks []BenchmarkRunConfig
 
-	// Name of the Google cloud storage bucket to upload results to.
-	Bucket string
+	// SkipFinch is a bool flag used to disable certain Finch variation control.
+	// Only used for Chrome on desktop platforms.
+	// For Chrome Dev, it means passing --disable-field-trial-config to Chrome.
+	// For Chrome Stable, it means not using Finch top variations seed file.
+	SkipFinch bool
 }
 
 // CbbRunnerError is a custom error type for CbbRunnerWorkflow.
 type CbbRunnerError struct {
+	// SwarmingLinks maps benchmark names to their corresponding swarming task list links.
+	SwarmingLinks       map[string]string
 	Err                 string
 	WorkflowLink        string
 	TotalBenchmarkCount int
-	// SwarmingLinks maps benchmark names to their corresponding swarming task list links.
-	SwarmingLinks map[string]string
 }
 
 func (e *CbbRunnerError) Error() string {
@@ -444,7 +444,7 @@ func getSwarmingLink(ctx workflow.Context, startTime time.Time, jobId string) st
 
 // Taking all swarming task results for one benchmark on one bot config,
 // and convert the results into the format required by the perf dashboard.
-func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark string, bi *browserInfo, skipFinch bool, startTime time.Time, jobId string) *format.Format {
+func formatResult(ctx workflow.Context, cr *CommitRun, bot, benchmark string, bi *browserInfo, skipFinch bool, startTime time.Time, jobId string) *format.Format {
 	// Create a link to the Temporal workflow that is currently running.
 	// This link will be included in the pop-up for the result, to help debugging.
 	workflowLink := getWorkflowLink(ctx)
@@ -529,7 +529,7 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot string, benchmark str
 }
 
 // Activity to upload CBB results to cloud storage, for import into perf dashboard.
-func UploadCbbResultsActivity(ctx context.Context, t time.Time, cbb CbbRunnerParams, benchmark string, results string) (string, error) {
+func UploadCbbResultsActivity(ctx context.Context, t time.Time, cbb CbbRunnerParams, benchmark, results string) (string, error) {
 	if cbb.Bucket == "" {
 		return "", nil
 	}

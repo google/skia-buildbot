@@ -12,12 +12,13 @@ import (
 	"time"
 
 	"go.chromium.org/luci/cipd/client/cipd/pkg"
-	"go.skia.org/infra/go/cipd"
-	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"golang.org/x/net/html"
+
+	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -147,7 +148,7 @@ func prepareCipd(ctx context.Context) (*cipd.Client, string, error) {
 }
 
 // createCipd downloads an STP installation image, and creates a CIPD package form it.
-func createCipd(ctx context.Context, cipdClient *cipd.Client, cipdPath string, url string, refs []string) error {
+func createCipd(ctx context.Context, cipdClient *cipd.Client, cipdPath, url string, refs []string) error {
 	// Create a new temporary directory
 	tmpDir, err := os.MkdirTemp("", "stp")
 	if err != nil {
@@ -243,17 +244,15 @@ func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
 	return ri.release, nil
 }
 
-var (
-	downloadSafariTPActivityOptions = workflow.ActivityOptions{
-		StartToCloseTimeout: 5 * time.Minute,
-		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    15 * time.Second,
-			BackoffCoefficient: 2.0,
-			MaximumInterval:    2 * time.Minute,
-			MaximumAttempts:    1,
-		},
-	}
-)
+var downloadSafariTPActivityOptions = workflow.ActivityOptions{
+	StartToCloseTimeout: 5 * time.Minute,
+	RetryPolicy: &temporal.RetryPolicy{
+		InitialInterval:    15 * time.Second,
+		BackoffCoefficient: 2.0,
+		MaximumInterval:    2 * time.Minute,
+		MaximumAttempts:    1,
+	},
+}
 
 // DownloadSafariTPWorkflow is a Temporal workflow that calls DownloadSafariTPActivity.
 // This workflow is intended for dev testing only, not for production, thus we always pass

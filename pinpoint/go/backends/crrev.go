@@ -7,10 +7,11 @@ import (
 	"io"
 	"net/http"
 
+	"golang.org/x/oauth2/google"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
-	"golang.org/x/oauth2/google"
 )
 
 const (

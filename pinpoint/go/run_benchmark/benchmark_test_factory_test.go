@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetBenchmark_TelemetryTestBuilder_TelemetryTests(t *testing.T) {
-	expect := func(commit, botConfig, browser, benchmark, story, storyTags string, want string) {
+	expect := func(commit, botConfig, browser, benchmark, story, storyTags, want string) {
 		bt, _ := NewBenchmarkTest(commit, botConfig, browser, benchmark, story, storyTags, nil)
 		assert.Equal(t, want, reflect.TypeOf(bt).String())
 	}

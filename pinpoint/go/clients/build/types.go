@@ -18,8 +18,8 @@ type StartBuildResponse struct {
 }
 
 type GetBuildArtifactRequest struct {
-	BuildID int64
 	Target  string
+	BuildID int64
 }
 
 type GetBuildArtifactResponse struct {
@@ -27,6 +27,6 @@ type GetBuildArtifactResponse struct {
 }
 
 type CancelBuildRequest struct {
-	BuildID int64
 	Reason  string
+	BuildID int64
 }

@@ -7,6 +7,13 @@ import (
 	"os/user"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/client"
+	tempotel "go.temporal.io/sdk/contrib/opentelemetry"
+	tempinter "go.temporal.io/sdk/interceptor"
+	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tracing"
@@ -15,12 +22,6 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows/catapult"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	"go.skia.org/infra/temporal/go/metrics"
-	"go.temporal.io/sdk/activity"
-	"go.temporal.io/sdk/client"
-	tempotel "go.temporal.io/sdk/contrib/opentelemetry"
-	tempinter "go.temporal.io/sdk/interceptor"
-	"go.temporal.io/sdk/worker"
-	"go.temporal.io/sdk/workflow"
 )
 
 const appName = "pinpoint-worker"

@@ -6,13 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/workflow"
+
 	perf_workflow "go.skia.org/infra/perf/go/workflows"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/sdk/testsuite"
-	"go.temporal.io/sdk/workflow"
 )
 
 const mockChart = "RunsPerMinute"
@@ -221,7 +222,7 @@ func TestCulpritFinder_CulpritsVerified_ReturnsCulpritsWithCallback(t *testing.T
 	env.AssertExpectations(t)
 }
 
-func mockPinpointCommit(repo string, hash string) *pinpoint_proto.Commit {
+func mockPinpointCommit(repo, hash string) *pinpoint_proto.Commit {
 	return &pinpoint_proto.Commit{
 		Repository: repo,
 		GitHash:    hash,
@@ -234,15 +235,15 @@ func TestFindLastDepCommit_Main(t *testing.T) {
 		Main: c,
 	}
 	last_dep := findLastDepCommit(combined)
-	assert.Equal(t, last_dep.Repository, "repo")
-	assert.Equal(t, last_dep.GitHash, "deadbeef1234")
+	assert.Equal(t, "repo", last_dep.Repository)
+	assert.Equal(t, "deadbeef1234", last_dep.GitHash)
 	combined_2 := &pinpoint_proto.CombinedCommit{
 		Main:         c,
 		ModifiedDeps: []*pinpoint_proto.Commit{},
 	}
 	last_dep_2 := findLastDepCommit(combined_2)
-	assert.Equal(t, last_dep_2.Repository, "repo")
-	assert.Equal(t, last_dep_2.GitHash, "deadbeef1234")
+	assert.Equal(t, "repo", last_dep_2.Repository)
+	assert.Equal(t, "deadbeef1234", last_dep_2.GitHash)
 }
 
 func TestFindLastDepCommit_Deps(t *testing.T) {
@@ -254,6 +255,6 @@ func TestFindLastDepCommit_Deps(t *testing.T) {
 		ModifiedDeps: []*pinpoint_proto.Commit{c2, c3},
 	}
 	last_dep := findLastDepCommit(combined)
-	assert.Equal(t, last_dep.Repository, "repo3")
-	assert.Equal(t, last_dep.GitHash, "bababeef1234")
+	assert.Equal(t, "repo3", last_dep.Repository)
+	assert.Equal(t, "bababeef1234", last_dep.GitHash)
 }

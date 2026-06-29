@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
-	"go.temporal.io/sdk/client"
-	"go.temporal.io/sdk/temporal"
 )
 
 var (

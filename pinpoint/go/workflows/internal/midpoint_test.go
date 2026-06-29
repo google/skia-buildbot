@@ -155,7 +155,7 @@ func TestFindMidCommitActivity_AdjacentMain_MidpointInDep(t *testing.T) {
 	// Main Git Hash should be off of lower, and the first ModifiedDeps entry
 	// should be V8 at N-1
 	assert.Equal(t, NMinusOneChromiumGitHash, actual.Main.GitHash)
-	assert.Equal(t, 1, len(actual.ModifiedDeps))
+	assert.Len(t, actual.ModifiedDeps, 1)
 	modifiedDep := actual.GetLatestModifiedDep()
 	assert.Equal(t, NMinusOneV8GitHash, modifiedDep.GitHash)
 }
@@ -222,7 +222,7 @@ func TestFindMidCommitActivity_LowerNoModifiedDeps_MidpointInDep(t *testing.T) {
 
 	// Main git hash should remain the same
 	assert.Equal(t, lower.Main.GitHash, actual.Main.GitHash)
-	assert.Equal(t, 1, len(actual.ModifiedDeps))
+	assert.Len(t, actual.ModifiedDeps, 1)
 
 	actualModifiedDep := actual.GetLatestModifiedDep()
 	assert.Equal(t, NMinusOneV8GitHash, actualModifiedDep.GitHash)
@@ -265,7 +265,7 @@ func TestFindMidCommitActivity_AdjancentModifiedDeps_MidpointInDep(t *testing.T)
 
 	actual := runFindMidCommitActivity(t, ctx, lower, higher)
 
-	assert.Equal(t, 2, len(actual.ModifiedDeps))
+	assert.Len(t, actual.ModifiedDeps, 2)
 	// first modified dep should be lower of v8
 	actualFirstModifiedDep := actual.ModifiedDeps[0]
 	assert.Equal(t, V8Url, actualFirstModifiedDep.Repository)
@@ -306,7 +306,7 @@ func TestFindMidCommitActivity_AdjancentModifiedDeps_NoMoreMidpoint(t *testing.T
 
 	actual := runFindMidCommitActivity(t, ctx, lower, higher)
 	// response should be equal to lower
-	assert.Equal(t, 1, len(actual.ModifiedDeps))
+	assert.Len(t, actual.ModifiedDeps, 1)
 	latestModifiedDep := actual.GetLatestModifiedDep()
 	assert.Equal(t, V8Url, latestModifiedDep.Repository)
 	assert.Equal(t, NMinusOneV8GitHash, latestModifiedDep.GitHash)

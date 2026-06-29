@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v4"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/pinpoint/go/sql/schema"
@@ -25,11 +26,11 @@ const (
 )
 
 type JobStore interface {
-	// Store intial job parameters to database
+	// Store initial job parameters to database
 	AddInitialJob(ctx context.Context, request *pinpointpb.SchedulePairwiseRequest, id string) error
 
 	// UpdateJobStatus updates the status of a job.
-	UpdateJobStatus(ctx context.Context, jobID string, status string, duration int64) error
+	UpdateJobStatus(ctx context.Context, jobID, status string, duration int64) error
 
 	// Return all elements of a Job
 	GetJob(ctx context.Context, jobID string) (*schema.JobSchema, error)
@@ -149,7 +150,6 @@ func (js *jobStoreImpl) AddInitialJob(ctx context.Context, request *pinpointpb.S
 		additionalParams,
 		jobError,
 	)
-
 	if err != nil {
 		return skerr.Fmt("failed to add job: %w", err)
 	}
@@ -203,8 +203,7 @@ func (js *jobStoreImpl) GetJob(ctx context.Context, jobID string) (*schema.JobSc
 	return &job, nil
 }
 
-func (js *jobStoreImpl) UpdateJobStatus(ctx context.Context, jobID string, status string, workflowDuration int64) error {
-
+func (js *jobStoreImpl) UpdateJobStatus(ctx context.Context, jobID, status string, workflowDuration int64) error {
 	// If not positive, then the job is not complete
 	if workflowDuration <= 0 {
 		query := `UPDATE jobs SET job_status = $2 WHERE job_id = $1`
@@ -295,13 +294,11 @@ func (js *jobStoreImpl) AddCommitRuns(ctx context.Context, jobID string, left, r
 
 	// Commit the transaction
 	return tx.Commit(ctx)
-
 }
 
 // Helper function that retrieves the additional parameters for a given job ID.
 func (js *jobStoreImpl) getAdditionalParams(ctx context.Context, jobID string, tx pgx.Tx,
 ) (*schema.AdditionalRequestParametersSchema, error) {
-
 	var existingParams []byte
 	err := tx.QueryRow(ctx,
 		`SELECT additional_request_parameters FROM jobs WHERE job_id = $1`,
@@ -387,7 +384,7 @@ func (js *jobStoreImpl) ListJobs(ctx context.Context, options ListJobsOptions) (
 
 	rows, err := js.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, skerr.Fmt("failed to query for jobs with specifed options: %s", err)
+		return nil, skerr.Fmt("failed to query for jobs with specified options: %s", err)
 	}
 	defer rows.Close()
 

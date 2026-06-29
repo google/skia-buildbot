@@ -3,9 +3,10 @@ package internal
 import (
 	"context"
 
+	"go.temporal.io/sdk/activity"
+
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/skerr"
-	"go.temporal.io/sdk/activity"
 )
 
 // SendEmailActivity sends an email via LUCI Notify.

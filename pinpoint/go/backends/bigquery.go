@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"cloud.google.com/go/bigquery"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )

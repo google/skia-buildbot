@@ -2,22 +2,25 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
+	"net/http"
 	"os/user"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"encoding/json"
-	"io"
-	"net/http"
-
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
+	"golang.org/x/oauth2/google"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -27,12 +30,10 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/catapult"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
-	"go.temporal.io/sdk/client"
-	"go.temporal.io/sdk/temporal"
-	"golang.org/x/oauth2/google"
+
+	enumspb "go.temporal.io/api/enums/v1"
 
 	pb "go.skia.org/infra/pinpoint/proto/v1"
-	enumspb "go.temporal.io/api/enums/v1"
 )
 
 var (
@@ -537,7 +538,7 @@ func parseGerritURL(gerritURL string) (*pb.GerritChange, error) {
 	project := matches[2]
 	changeID, err := strconv.ParseInt(matches[3], 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse change ID: %v", err)
+		return nil, fmt.Errorf("failed to parse change ID: %w", err)
 	}
 
 	var patchset int64 = 1
@@ -557,9 +558,7 @@ func parseGerritURL(gerritURL string) (*pb.GerritChange, error) {
 }
 
 type catapultJobResponse struct {
-	JobID          string `json:"job_id"`
-	ComparisonMode string `json:"comparison_mode"`
-	Arguments      struct {
+	Arguments struct {
 		ComparisonMode      string      `json:"comparison_mode"`
 		Target              string      `json:"target"`
 		StartGitHash        string      `json:"start_git_hash"`
@@ -577,6 +576,8 @@ type catapultJobResponse struct {
 		InitialAttemptCount interface{} `json:"initial_attempt_count"`
 		Tags                interface{} `json:"tags"`
 	} `json:"arguments"`
+	JobID          string `json:"job_id"`
+	ComparisonMode string `json:"comparison_mode"`
 }
 
 func getAttemptCount(val interface{}) string {

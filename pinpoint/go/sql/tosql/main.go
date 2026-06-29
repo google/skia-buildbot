@@ -25,7 +25,6 @@ type spannerTables struct {
 }
 
 func main() {
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		sklog.Fatalf("Could not get working directory: %s", err)
@@ -43,7 +42,7 @@ func main() {
 		&exporter.SpannerConverter{SkipCreatedAt: true})
 
 	out := filepath.Join(packagePath, outputFileName)
-	err = os.WriteFile(out, []byte(generatedSqlSchema), 0666)
+	err = os.WriteFile(out, []byte(generatedSqlSchema), 0o666)
 	if err != nil {
 		sklog.Fatalf("Could not write SQL to %s: %s", out, err)
 	}

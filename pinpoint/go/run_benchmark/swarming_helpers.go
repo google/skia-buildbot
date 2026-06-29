@@ -7,8 +7,10 @@ import (
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 )
 
-const ExecutionTimeoutSecs = 2700 // 45 min
-const PendingTimeoutSecs = 86400  // 1 day
+const (
+	ExecutionTimeoutSecs = 2700  // 45 min
+	PendingTimeoutSecs   = 86400 // 1 day
+)
 
 func convertDimensions(dimensions []map[string]string) []*apipb.StringPair {
 	// TODO(b/318863812): add mapping from device + benchmark to the specific run test
@@ -40,7 +42,7 @@ func generateProperties(command []string, casRef *apipb.CASReference, dim []*api
 	}
 }
 
-func generateTags(jobID string, hash string, sizeBytes int64) []string {
+func generateTags(jobID, hash string, sizeBytes int64) []string {
 	// TODO(b/318863812): update swarming task tags to more appropriate tags.
 	return []string{
 		fmt.Sprintf("pinpoint_job_id:%s", jobID),

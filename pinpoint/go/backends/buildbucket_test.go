@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"go.chromium.org/luci/grpc/appstatus"
+
 	"go.skia.org/infra/go/buildbucket"
 
 	bpb "go.chromium.org/luci/buildbucket/proto"
@@ -298,7 +299,7 @@ func TestGetBuildFromWaterfall_ExistingMapping_BuildFound(t *testing.T) {
 	ctx := context.Background()
 
 	builder := "Linux Builder Perf"
-	mirror, _ := PinpointWaterfall[builder]
+	mirror := PinpointWaterfall[builder]
 	commit := "12345"
 
 	// must be CI bucket, aka WaterfallBucket

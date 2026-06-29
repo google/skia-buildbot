@@ -5,6 +5,8 @@ import (
 	"time"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
@@ -12,11 +14,12 @@ import (
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/sdk/workflow"
 )
 
 // TestResult represents the columns used by the BQ table.
 type TestResult struct {
+	// CreateTime is when the row data is generated.
+	CreateTime time.Time `bigquery:"create_time"`
 	// WorkflowID is the ID of the Temporal Workflow.
 	WorkflowID string `bigquery:"workflow_id"`
 	// Bot, also referred to as bot_configuration, is usually a bot name.
@@ -37,8 +40,6 @@ type TestResult struct {
 	TaskFailed bool `bigquery:"task_failed"`
 	// PGOEnabled indicates whether PGO was enabled for the Chrome build.
 	PGOEnabled bool `bigquery:"pgo_enabled"`
-	// CreateTime is when the row data is generated.
-	CreateTime time.Time `bigquery:"create_time"`
 }
 
 // TestAndExportParams contains information needed to build a version of Chrome
@@ -52,12 +53,6 @@ type TestAndExportParams struct {
 	Bot string
 	// Git Hash associated with chromium/src to build.
 	GitHash string
-	// Iterations is the number of runs to trigger.
-	// Note: Temporal will struggle and crash with more than 10,000 steps. Each
-	// activity generates 3, so be cautious when running more than 1,000 iterations.
-	// If you need to run more than 1,000, you can run several of these Test
-	// AndExportWorkflows.
-	Iterations int
 	// Project is the Google Cloud Project (ie/ chromeperf), used for creating the
 	// fully qualified BQ table name.
 	Project string
@@ -68,6 +63,12 @@ type TestAndExportParams struct {
 	// {project}.{dataset}.{tableName}. Used for creating the fully qualified BQ
 	// table name.
 	TableName string
+	// Iterations is the number of runs to trigger.
+	// Note: Temporal will struggle and crash with more than 10,000 steps. Each
+	// activity generates 3, so be cautious when running more than 1,000 iterations.
+	// If you need to run more than 1,000, you can run several of these Test
+	// AndExportWorkflows.
+	Iterations int
 }
 
 // processInsertData takes the task IDs and serializes them into TestResult objects,
@@ -144,7 +145,6 @@ func UploadResultsActivity(ctx context.Context, project, dataset, tableName stri
 		DatasetID: dataset,
 		TableName: tableName,
 	})
-
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create upload client")
 	}

@@ -6,15 +6,17 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/skerr"
 	pinpoint_common "go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/temporal/go/common"
-	"go.temporal.io/sdk/workflow"
+
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var benchmarkRunIterations = [...]int32{10, 20, 40, 80, 160}
@@ -28,12 +30,14 @@ func getMaxSampleSize() int32 {
 // It keeps track of all the runs by indexes. The BisectRun will be updated from different
 // future fulfillment. One can wait for a bisect run that's already triggered by a different
 // bisection. This usually happens when the mid commit is computed and the result will be
-// used for comparisions from both sides. This can also happen when one comparision requires
-// more runs, and part of them is already triggered by another comparision.
-type BisectRunIndex int
-type bisectRunTracker struct {
-	runs []*BisectRun
-}
+// used for comparisons from both sides. This can also happen when one comparison requires
+// more runs, and part of them is already triggered by another comparison.
+type (
+	BisectRunIndex   int
+	bisectRunTracker struct {
+		runs []*BisectRun
+	}
+)
 
 func (t *bisectRunTracker) newRun(cc *pinpoint_common.CombinedCommit) (BisectRunIndex, *BisectRun) {
 	r := newBisectRun(cc)
@@ -57,7 +61,7 @@ type CommitRangeTracker struct {
 	Higher BisectRunIndex
 }
 
-// CloneWithHigher clones itself with the overriden higher index.
+// CloneWithHigher clones itself with the overridden higher index.
 func (t CommitRangeTracker) CloneWithHigher(higher BisectRunIndex) CommitRangeTracker {
 	return CommitRangeTracker{
 		Lower:  t.Lower,
@@ -65,7 +69,7 @@ func (t CommitRangeTracker) CloneWithHigher(higher BisectRunIndex) CommitRangeTr
 	}
 }
 
-// CloneWithHigher clones itself with the overriden lower index.
+// CloneWithHigher clones itself with the overridden lower index.
 func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTracker {
 	return CommitRangeTracker{
 		Lower:  lower,
@@ -94,7 +98,7 @@ func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *pinpo
 // When this BisectExecution embeds pinpoint_proto.BisectExecution, it fails to store
 // CommitPairValues and BisectRuns, which are used to curate the information for Catapult
 // Pinpoint.
-// TODO(b/322203189) - This is a temporary solution for backwards compatibilty to the
+// TODO(b/322203189) - This is a temporary solution for backwards compatibility to the
 // Catapult UI and should be removed when the catapult package is deprecated.
 type BisectExecution struct {
 	JobId string
@@ -199,7 +203,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 	}
 
 	// The buffer size should be big enough to process incoming comparisons.
-	// The comparision is usually handled right away in the next Select().
+	// The comparison is usually handled right away in the next Select().
 	// Also, comparisons.Send happens in a goroutine because the receiving happens
 	// in the same thread as Select(), and it needs to be non-blocking.
 	comparisons := workflow.NewBufferedChannel(ctx, 100)

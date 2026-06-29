@@ -44,9 +44,9 @@ func TestGetBotConfig(t *testing.T) {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
 			bot, err := GetBotConfig(test.bot, test.externalOnly)
 			if test.expectedError {
-				assert.NotNil(t, err)
+				assert.Error(t, err)
 			} else {
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				assert.NotEmpty(t, bot.Browser)
 			}
 		})

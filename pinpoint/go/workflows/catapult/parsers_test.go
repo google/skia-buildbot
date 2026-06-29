@@ -11,6 +11,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/pinpoint/go/backends"
@@ -19,8 +22,6 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/sdk/testsuite"
-	"go.temporal.io/sdk/workflow"
 )
 
 //go:embed testdata/main_commit_message.txt
@@ -36,6 +37,7 @@ func TestParseImprovementDirection_Up_0(t *testing.T) {
 func TestParseImprovementDirection_Down_1(t *testing.T) {
 	assert.Equal(t, int32(1), parseImprovementDir(compare.Down))
 }
+
 func TestParseImprovementDirection_UnknownDir_4(t *testing.T) {
 	assert.Equal(t, int32(4), parseImprovementDir(compare.UnknownDir))
 }
@@ -121,13 +123,13 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 	var actual *pinpoint_proto.LegacyJobResponse
 	require.NoError(t, env.GetWorkflowResult(&actual))
 	require.NotNil(t, actual)
-	assert.Equal(t, 1, len(actual.State))
+	assert.Len(t, actual.State, 1)
 	executions := actual.State[0].Attempts[0].Executions
 	// TODO(jeffyoon@) - add checks for execution[0], which is the Build quest detail once Build is appended to CommitRun.
 	testQuestDetail := executions[1].Details
 	assert.Equal(t, botID, testQuestDetail[0].Value)
 	assert.Equal(t, swarmingTaskID, testQuestDetail[1].Value)
-	assert.Equal(t, 1, len(actual.Bots))
+	assert.Len(t, actual.Bots, 1)
 	assert.Equal(t, botID, actual.Bots[0])
 	assert.Equal(t, fmt.Sprintf(casIsolateHashTemplate, "25009b847133c029dc585020ed7b60b6573fe12123559319ea5c04fec3b6e06c", int64(183)), testQuestDetail[2].Value)
 
@@ -181,7 +183,7 @@ func TestParseResultValuesPerCommit_ListOfCombinedResults_MapOfKeysToValues(t *t
 	}
 	res := parseResultValuesPerCommit(comparisons)
 	require.NotNil(t, res)
-	assert.Equal(t, 5, len(res))
+	assert.Len(t, res, 5)
 	// spot checking a few
 	baseCommit := common.NewCombinedCommit(common.NewChromiumCommit("493a946"))
 	assert.Equal(t, 0.0, res[baseCommit.Key()][0])
@@ -394,7 +396,7 @@ func TestParseCommitData_CombinedCommitWithModifiedDeps_Commits(t *testing.T) {
 	require.NoError(t, env.GetWorkflowResult(&actual))
 	require.NotNil(t, actual)
 	require.NotEmpty(t, actual)
-	assert.Equal(t, 2, len(actual))
+	assert.Len(t, actual, 2)
 
 	mainCommit := actual[0]
 	assert.Equal(t, fmt.Sprintf(repositoryUrlTemplate, common.ChromiumSrcGit, chromiumHash), mainCommit.Url)

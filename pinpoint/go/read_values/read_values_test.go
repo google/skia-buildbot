@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+
 	"go.skia.org/infra/perf/go/perfresults"
 )
 
@@ -43,8 +44,7 @@ var testData = map[string]perfresults.PerfResults{
 	},
 }
 
-type mockedProvider struct {
-}
+type mockedProvider struct{}
 
 func (mp mockedProvider) Fetch(ctx context.Context, cas *apipb.CASReference) (map[string]perfresults.PerfResults, error) {
 	return testData, nil
@@ -101,18 +101,18 @@ func TestReadValuesForAllCharts_HappyPath(t *testing.T) {
 	}
 	valuesByChart, err := c.ReadValuesForAllCharts(context.Background(), "rendering.desktop", []*apipb.CASReference{{}}, "")
 	require.NoError(t, err)
-	require.Equal(t, valuesByChart.Values, map[string][]float64{
+	require.Equal(t, map[string][]float64{
 		"thread_total_rendering_cpu_time_per_frame": {12.9322},
 		"tasks_per_frame_browser":                   {0.3917, 0.34},
 		"empty_samples":                             nil,
 		"Compositing.Display.DrawToSwapUs":          {169.9406, 169.9406, 206.3219, 654.8641},
-	})
-	require.Equal(t, valuesByChart.Units, map[string]string{
+	}, valuesByChart.Values)
+	require.Equal(t, map[string]string{
 		"thread_total_rendering_cpu_time_per_frame": "unitless_smallerIsBetter",
 		"tasks_per_frame_browser":                   "unitless_smallerIsBetter",
 		"empty_samples":                             "unitless_smallerIsBetter",
 		"Compositing.Display.DrawToSwapUs":          "unitless_smallerIsBetter",
-	})
+	}, valuesByChart.Units)
 }
 
 func TestAggData_NonBlankData_AggData(t *testing.T) {

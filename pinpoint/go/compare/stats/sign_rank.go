@@ -8,8 +8,8 @@ import (
 
 // dist represents the probability distribution of the sign rank test.
 type dist struct {
-	n   int
 	pmf []float64
+	n   int
 }
 
 // newWilcoxonDistribution is based on scipy: https://github.com/scipy/scipy/blob/main/scipy/stats/_hypotests.py#L600

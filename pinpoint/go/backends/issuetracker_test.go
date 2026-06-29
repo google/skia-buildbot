@@ -70,5 +70,5 @@ yourself so that a sheriff can help diagnose.`
 
 	resp, err := c.fillTemplate(input)
 	assert.NoError(t, err)
-	assert.Equal(t, resp, expectedResp)
+	assert.Equal(t, expectedResp, resp)
 }

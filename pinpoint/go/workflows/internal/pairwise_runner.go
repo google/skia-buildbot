@@ -19,8 +19,6 @@ import (
 
 // PairwiseCommitsRunnerParams defines the parameters for PairwiseCommitsRunner workflow.
 type PairwiseCommitsRunnerParams struct {
-	SingleCommitRunnerParams
-
 	// LeftBuild and RightBuild supplies the CasReference to build.
 	// If provided, skips build step for that commit.
 	// Use either the builds or the commits.
@@ -30,14 +28,16 @@ type PairwiseCommitsRunnerParams struct {
 	// SingleCommitRunnerParams includes a field for only one commit.
 	LeftCommit, RightCommit *common.CombinedCommit
 
-	// The random seed used to generate pairs.
-	Seed int64
-
 	// Specific arguments applied strictly to the left (control) runs.
 	LeftExtraArgs []string
 
 	// Specific arguments applied strictly to the right (experiment) runs.
 	RightExtraArgs []string
+
+	SingleCommitRunnerParams
+
+	// The random seed used to generate pairs.
+	Seed int64
 }
 
 // PairwiseRun is the output of the PairwiseCommitsRunnerWorkflow

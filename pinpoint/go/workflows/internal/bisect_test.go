@@ -7,13 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/sdk/testsuite"
-	"go.temporal.io/sdk/worker"
-	"go.temporal.io/sdk/workflow"
 )
 
 func mockedSingleCommitRun(ctx workflow.Context, p *SingleCommitRunnerParams) (*CommitRun, error) {
@@ -27,7 +28,7 @@ func mockedSingleCommitRun(ctx workflow.Context, p *SingleCommitRunnerParams) (*
 	}, nil
 }
 
-func mockedGetAllDataForCompareLocalActivity(ctx context.Context, lbr *BisectRun, hbr *BisectRun, chart string) (*CommitPairValues, error) {
+func mockedGetAllDataForCompareLocalActivity(ctx context.Context, lbr, hbr *BisectRun, chart string) (*CommitPairValues, error) {
 	return &CommitPairValues{
 		Lower:  CommitValues{lbr.Build.Commit, make([]float64, 0), make([]float64, 0)},
 		Higher: CommitValues{hbr.Build.Commit, make([]float64, 0), make([]float64, 0)},

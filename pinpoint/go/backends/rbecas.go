@@ -6,8 +6,9 @@ package backends
 import (
 	"context"
 
-	"go.skia.org/infra/go/sklog"
 	"google.golang.org/grpc"
+
+	"go.skia.org/infra/go/sklog"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 )
@@ -16,13 +17,11 @@ const (
 	rbeServiceAddress = "remotebuildexecution.googleapis.com:443"
 )
 
-var (
-	casInstances = []string{
-		"projects/chrome-swarming/instances/default_instance",
-		"projects/chromium-swarm/instances/default_instance",
-		"projects/omnibot-swarming-server/instances/default_instance",
-	}
-)
+var casInstances = []string{
+	"projects/chrome-swarming/instances/default_instance",
+	"projects/chromium-swarm/instances/default_instance",
+	"projects/omnibot-swarming-server/instances/default_instance",
+}
 
 // DialRBECAS will attempt to dial a set of RBE-CAS service backends for CABE.
 // We create one Client for each RBE-CAS instance we need to connect to, each

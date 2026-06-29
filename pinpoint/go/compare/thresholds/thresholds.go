@@ -63,7 +63,7 @@ func HighThresholdFunctional(normalized_magnitude float64, sample_size int) (flo
 	return getHighThreshold(highThresholdsFunctional, magnitude_index, sample_size), nil
 }
 
-func getHighThreshold(high_thresholds thresholds, magnitude_index int, sample_size int) float64 {
+func getHighThreshold(high_thresholds thresholds, magnitude_index, sample_size int) float64 {
 	magnitude_index = max(magnitude_index, 0)
 	magnitude_index = min(magnitude_index, len(high_thresholds)-1)
 	sample_size_index := min(sample_size, len(high_thresholds[magnitude_index])) - 1

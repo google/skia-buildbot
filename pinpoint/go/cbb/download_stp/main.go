@@ -20,12 +20,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.skia.org/infra/go/httputils"
 	"golang.org/x/net/html"
+
+	"go.skia.org/infra/go/httputils"
 )
 
-const macosVersion = "macos15"
-const cipdPath = "infra/chromeperf/cbb/safari_technology_preview"
+const (
+	macosVersion = "macos15"
+	cipdPath     = "infra/chromeperf/cbb/safari_technology_preview"
+)
 
 var httpClient = httputils.NewTimeoutClient()
 

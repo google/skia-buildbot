@@ -6,11 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/workflow"
+
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
-	"go.temporal.io/sdk/testsuite"
-	"go.temporal.io/sdk/workflow"
 )
 
 func generateSingleCommitRuns(hash string, count int) *CommitRun {
@@ -44,7 +45,7 @@ func TestBisectRun_ScheduleZeroOrLessRun_ReturnNil(t *testing.T) {
 		require.NoError(t, err)
 		require.EqualValues(t, 0, br.totalScheduledRuns())
 		require.EqualValues(t, 0, br.totalRuns())
-		require.Len(t, br.Runs, 0)
+		require.Empty(t, br.Runs)
 
 		f, err = br.scheduleRuns(ctx, jobID, bp, -1)
 		require.Nil(t, f)
@@ -53,7 +54,7 @@ func TestBisectRun_ScheduleZeroOrLessRun_ReturnNil(t *testing.T) {
 
 		require.EqualValues(t, 0, br.totalScheduledRuns())
 		require.EqualValues(t, 0, br.totalRuns())
-		require.Len(t, br.Runs, 0)
+		require.Empty(t, br.Runs)
 		return nil
 	})
 
@@ -71,7 +72,7 @@ func TestBisectRun_TotalRuns_WithScheduled_ReturnTotal(t *testing.T) {
 
 	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit("fake-hash")))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
-		require.Len(t, br.Runs, 0)
+		require.Empty(t, br.Runs)
 		require.EqualValues(t, 0, br.totalRuns())
 
 		f, err := br.scheduleRuns(ctx, jobID, bp, 10)
