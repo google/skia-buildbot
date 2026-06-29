@@ -244,6 +244,11 @@ type Domain struct {
 	Offset int32 `json:"offset"`
 }
 
+// IsSingleCommitMode returns true if the domain targets a single specific commit offset rather than a range of commits.
+func (d Domain) IsSingleCommitMode() bool {
+	return d.Offset != 0
+}
+
 // ProgressCallback if a func that's called to return information on a currently running process.
 type ProgressCallback func(message string)
 

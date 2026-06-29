@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net/url"
 	"time"
 
@@ -25,6 +26,12 @@ import (
 // ErrInsufficientData is returned by the DataFrameIterator if all the queries
 // compeleted successfully, but there wasn't enough data to continue.
 var ErrInsufficientData = errors.New("insufficient data")
+
+const (
+	// minRadiusRatioForRefinement defines the minimum ratio of data points to radius
+	// required when anomaly bounds refiners are enabled.
+	minRadiusRatioForRefinement = 3.5
+)
 
 // DataFrameIterator is an iterator that produces DataFrames.
 //
@@ -69,8 +76,9 @@ func NewDataFrameIterator(
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	minPoints := int(2*alert.Radius + 1)
 	var df *dataframe.DataFrame
-	if domain.Offset == 0 {
+	if !domain.IsSingleCommitMode() {
 		if anomalyConfig.SettlingTime != 0 {
 			currentTime := now.Now(ctx)
 			latestAllowedPoints := currentTime.Add(-1 * time.Duration(anomalyConfig.SettlingTime))
@@ -100,7 +108,6 @@ func NewDataFrameIterator(
 		// We can get an iterator that returns just a single dataframe by making
 		// sure that the size of the origin dataframe is the same size as the
 		// slicer size, so we set them both to 2*Radius+1.
-		n := int32(2*alert.Radius + 1)
 		// Need to find an End time, which is the commit time of the commit at
 		// Offset+Radius.
 		//
@@ -128,7 +135,7 @@ func NewDataFrameIterator(
 
 			return nil, skerr.Wrapf(err, "Failed to look up CommitNumber of a single cluster request.")
 		}
-		df, err = dfBuilder.NewNFromQuery(ctx, time.Unix(commit.Timestamp, 0), q, n, progress)
+		df, err = dfBuilder.NewNFromQuery(ctx, time.Unix(commit.Timestamp, 0), q, int32(minPoints), progress)
 		if err != nil {
 			if regressionStateCallback != nil {
 				regressionStateCallback("Failed querying the data due to an internal error.")
@@ -136,11 +143,21 @@ func NewDataFrameIterator(
 			return nil, skerr.Wrapf(err, "Failed to build dataframe iterator source dataframe.")
 		}
 	}
-	if len(df.Header) < int(2*alert.Radius+1) {
-		if regressionStateCallback != nil {
-			regressionStateCallback(fmt.Sprintf("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*alert.Radius+1))
+	// For single-commit validation (domain.IsSingleCommitMode() is true), we only query a window of size
+	// 2*Radius+1, so minPoints must stay at 2*Radius+1. We only increase the required
+	// minPoints for refinement/localization when performing continuous detection (!domain.IsSingleCommitMode()).
+	if !domain.IsSingleCommitMode() && (anomalyConfig.UseAnomalyLocalization || anomalyConfig.UseImprovedAnomalyBoundsRefiner) {
+		refinerMinPoints := int(math.Ceil(minRadiusRatioForRefinement * float64(alert.Radius)))
+		if refinerMinPoints > minPoints {
+			minPoints = refinerMinPoints
 		}
-		sklog.Infof("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*alert.Radius+1)
+	}
+
+	if len(df.Header) < minPoints {
+		if regressionStateCallback != nil {
+			regressionStateCallback(fmt.Sprintf("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), minPoints))
+		}
+		sklog.Warningf("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), minPoints)
 		return nil, ErrInsufficientData
 	}
 	// Record the total number of floating point values that were just queried

@@ -49,6 +49,8 @@ go_test(
         "//perf/go/dfbuilder",
         "//perf/go/git",
         "//perf/go/git/gittest",
+        "//perf/go/git/mocks",
+        "//perf/go/git/provider",
         "//perf/go/progress",
         "//perf/go/tracestore",
         "//perf/go/tracestore/sqltracestore",

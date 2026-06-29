@@ -6,16 +6,21 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	dataframe_mocks "go.skia.org/infra/perf/go/dataframe/mocks"
 	"go.skia.org/infra/perf/go/dfbuilder"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
+	git_mocks "go.skia.org/infra/perf/go/git/mocks"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
@@ -219,6 +224,50 @@ func TestNewDataFrameIterator_InsufficientData_ReturnsError(t *testing.T) {
 	require.Equal(t, "Query didn't return enough data points: Got 2. Want 11.", pc.message)
 }
 
+func TestNewDataFrameIterator_RefinerInsufficientData_ReturnsError(t *testing.T) {
+	ctx, dfb, g, _ := newForTest(t)
+
+	// Radius is 20, 3.5 * 20 = 70 points are required.
+	alert := &alerts.Alert{
+		Radius: 20,
+	}
+	domain := types.Domain{
+		End:    gittest.StartTime.Add(8 * time.Minute),
+		N:      50,
+		Offset: 0,
+	}
+	query := "arch=x86"
+	pc := &progressCapture{}
+	anomalyConfig := config.AnomalyConfig{
+		UseAnomalyLocalization: true,
+	}
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, query, domain, alert, anomalyConfig, nil)
+	require.Error(t, err)
+	require.Equal(t, "Query didn't return enough data points: Got 4. Want 70.", pc.message)
+}
+
+func TestNewDataFrameIterator_ImprovedRefinerInsufficientData_ReturnsError(t *testing.T) {
+	ctx, dfb, g, _ := newForTest(t)
+
+	// Radius is 20, 3.5 * 20 = 70 points are required.
+	alert := &alerts.Alert{
+		Radius: 20,
+	}
+	domain := types.Domain{
+		End:    gittest.StartTime.Add(8 * time.Minute),
+		N:      50,
+		Offset: 0,
+	}
+	query := "arch=x86"
+	pc := &progressCapture{}
+	anomalyConfig := config.AnomalyConfig{
+		UseImprovedAnomalyBoundsRefiner: true,
+	}
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, query, domain, alert, anomalyConfig, nil)
+	require.Error(t, err)
+	require.Equal(t, "Query didn't return enough data points: Got 4. Want 70.", pc.message)
+}
+
 func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit(t *testing.T) {
 	ctx, dfb, g, _ := newForTest(t)
 
@@ -375,4 +424,126 @@ func TestNewDataFrameIterator_MultipleDataframesWithSettlingTime_OneFramesOfLeng
 
 	// Only one trace returned.
 	require.False(t, iter.Next())
+}
+
+func TestNewDataFrameIterator_OffsetWithRefiner_Success(t *testing.T) {
+	config.Config = &config.InstanceConfig{}
+	ctx := context.Background()
+	dfb := dataframe_mocks.NewDataFrameBuilder(t)
+	g := git_mocks.NewGit(t)
+
+	// This is an ExactDataframeRequest because Offset != 0.
+	alert := &alerts.Alert{
+		Radius: 10,
+	}
+	domain := types.Domain{
+		N:      21,
+		Offset: 100, // target offset
+	}
+	q := "arch=x86"
+	anomalyConfig := config.AnomalyConfig{
+		UseAnomalyLocalization: true,
+	}
+
+	// 100 + 10 = 110.
+	endCommit := types.CommitNumber(110)
+	fakeCommit := provider.Commit{
+		CommitNumber: endCommit,
+		Timestamp:    1234567890,
+	}
+
+	g.On("CommitFromCommitNumber", testutils.AnyContext, endCommit).Return(fakeCommit, nil).Once()
+
+	// Radius is 10, so minPoints = 2*Radius + 1 = 21 (since Offset != 0, it doesn't get bumped to 35).
+	// dfBuilder should be queried with n = 21.
+	expectedDf := &dataframe.DataFrame{
+		Header: make([]*dataframe.ColumnHeader, 21),
+	}
+	for i := range expectedDf.Header {
+		expectedDf.Header[i] = &dataframe.ColumnHeader{
+			Offset:    types.CommitNumber(100 - 10 + i),
+			Timestamp: dataframe.TimestampSeconds(fakeCommit.Timestamp),
+		}
+	}
+	dfb.On("NewNFromQuery", testutils.AnyContext, time.Unix(fakeCommit.Timestamp, 0), mock.Anything, int32(21), mock.Anything).Return(expectedDf, nil).Once()
+
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert, anomalyConfig, nil)
+	require.NoError(t, err)
+	require.NotNil(t, iter)
+}
+
+func TestNewDataFrameIterator_OffsetZeroWithRefiner_InsufficientData(t *testing.T) {
+	config.Config = &config.InstanceConfig{}
+	ctx := context.Background()
+	dfb := dataframe_mocks.NewDataFrameBuilder(t)
+	g := git_mocks.NewGit(t)
+
+	alert := &alerts.Alert{
+		Radius: 10,
+	}
+	endTime := time.Unix(1234567890, 0)
+	domain := types.Domain{
+		N:      100,
+		Offset: 0,
+		End:    endTime,
+	}
+	q := "arch=x86"
+	anomalyConfig := config.AnomalyConfig{
+		UseAnomalyLocalization: true,
+	}
+
+	// Radius is 10, so minPoints = 3.5 * Radius = 35.
+	// dfBuilder returns a DataFrame with only 21 points.
+	expectedDf := &dataframe.DataFrame{
+		Header: make([]*dataframe.ColumnHeader, 21),
+	}
+	for i := range expectedDf.Header {
+		expectedDf.Header[i] = &dataframe.ColumnHeader{
+			Offset:    types.CommitNumber(i),
+			Timestamp: dataframe.TimestampSeconds(endTime.Unix()),
+		}
+	}
+	dfb.On("NewNFromQuery", testutils.AnyContext, endTime, mock.Anything, int32(100), mock.Anything).Return(expectedDf, nil).Once()
+
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert, anomalyConfig, nil)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInsufficientData)
+}
+
+func TestNewDataFrameIterator_OffsetZeroWithRefiner_Success(t *testing.T) {
+	config.Config = &config.InstanceConfig{}
+	ctx := context.Background()
+	dfb := dataframe_mocks.NewDataFrameBuilder(t)
+	g := git_mocks.NewGit(t)
+
+	alert := &alerts.Alert{
+		Radius: 10,
+	}
+	endTime := time.Unix(1234567890, 0)
+	domain := types.Domain{
+		N:      100,
+		Offset: 0,
+		End:    endTime,
+	}
+	q := "arch=x86"
+	anomalyConfig := config.AnomalyConfig{
+		UseAnomalyLocalization: true,
+	}
+
+	// Radius is 10, so minPoints = 3.5 * Radius = 35.
+	// dfBuilder returns a DataFrame with 35 points.
+	expectedDf := &dataframe.DataFrame{
+		Header: make([]*dataframe.ColumnHeader, 35),
+	}
+	for i := range expectedDf.Header {
+		expectedDf.Header[i] = &dataframe.ColumnHeader{
+			Offset:    types.CommitNumber(i),
+			Timestamp: dataframe.TimestampSeconds(endTime.Unix()),
+		}
+	}
+	dfb.On("NewNFromQuery", testutils.AnyContext, endTime, mock.Anything, int32(100), mock.Anything).Return(expectedDf, nil).Once()
+
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert, anomalyConfig, nil)
+	require.NoError(t, err)
+	require.NotNil(t, iter)
 }

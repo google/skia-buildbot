@@ -164,11 +164,15 @@ func ProcessRegressions(ctx context.Context,
 			if errors.Is(err, context.DeadlineExceeded) {
 				timeoutCounter(req.Alert.DisplayName).Inc(1)
 				sklog.Errorf("NewDataFrameIterator: Failed with timeout. Query: %s, err: %v", req.Query(), err)
-			} else if iteration == ContinueOnError {
-				if !errors.Is(err, dfiter.ErrInsufficientData) {
-					sklog.Warning(err)
-					processErrs = append(processErrs, err)
-				}
+				return err
+			}
+			if errors.Is(err, dfiter.ErrInsufficientData) {
+				sklog.Warningf("Skipping regression detection for %q: %s", req.Query(), err)
+				continue
+			}
+			if iteration == ContinueOnError {
+				sklog.Warning(err)
+				processErrs = append(processErrs, err)
 				continue
 			}
 			return err
@@ -187,6 +191,7 @@ func ProcessRegressions(ctx context.Context,
 			if errors.Is(err, context.DeadlineExceeded) {
 				timeoutCounter(req.Alert.DisplayName).Inc(1)
 				sklog.Errorf("detectionProcess.run: Failed with timeout. Query: %s, err: %v", req.Query(), err)
+				return skerr.Wrapf(err, "Error in ProcessRegressions with Query: %q (Timeout)", req.Query())
 			}
 			wrappedErr := skerr.Wrapf(err, "Error in ProcessRegressions with Query: %q", req.Query())
 			if iteration == ContinueOnError {
