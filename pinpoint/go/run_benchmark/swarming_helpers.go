@@ -57,24 +57,24 @@ func createSwarmingRequest(jobID string, command []string, casRef *apipb.CASRefe
 	}
 	return &apipb.NewTaskRequest{
 		BotPingToleranceSecs: 1200,
-		// EvaluateOnly omitted
+		// EvaluateOnly is omitted
 		Name: taskName,
-		// ParentTaskId omitted
-		// PoolTaskTemplate omitted
+		// ParentTaskId is omitted
+		// PoolTaskTemplate is omitted
 		Priority: 100,
 		// define properties later
 		PubsubTopic: "projects/chromeperf/topics/pinpoint-swarming-updates",
 		// can populate later, see example swarming call log
 		PubsubUserdata: "UNUSED",
 		Realm:          "chrome:pinpoint",
-		// RequestUuid: omitted
-		// Resultdb: omitted
+		// RequestUuid is omitted
+		// Resultdb is omitted
 		ServiceAccount: "chrome-tester@chops-service-accounts.iam.gserviceaccount.com",
 		// define tags later
 		// TaskSlices optional if properties defined
 		User: "Pinpoint",
-		// ForceSendFields: omitted
-		// NullFields: omitted
+		// ForceSendFields is omitted
+		// NullFields is omitted
 		TaskSlices: []*apipb.TaskSlice{
 			{
 				ExpirationSecs: PendingTimeoutSecs,

@@ -13,7 +13,7 @@ func TestKolmogorovSmirnov_Samples_ReturnsExpectedOutput(t *testing.T) {
 			result, err := KolmogorovSmirnov(xData, yData)
 			require.NoError(t, err)
 			if exact {
-				assert.Equal(t, result, expected)
+				assert.InDelta(t, expected, result, 1e-9)
 			} else {
 				// almostExpected criteria is numerical difference
 				// rounded to the 5th difference
@@ -47,8 +47,8 @@ func TestKolmogorovSmirnov_Samples_ReturnsExpectedOutput(t *testing.T) {
 
 func TestKolmogorovSmirnov_EmptyData_ReturnsError(t *testing.T) {
 	_, err := KolmogorovSmirnov([]float64{}, []float64{})
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	_, err = KolmogorovSmirnov(nil, nil)
-	assert.Error(t, err)
+	require.Error(t, err)
 }

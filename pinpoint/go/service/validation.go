@@ -82,8 +82,7 @@ func validatePairwiseRequest(req *pb.SchedulePairwiseRequest) error {
 
 // validateQueryPairwiseRequest returns an error if required params are missing.
 func validateQueryPairwiseRequest(req *pb.QueryPairwiseRequest) error {
-	switch {
-	case req.JobId == "":
+	if req.JobId == "" {
 		return skerr.Fmt("Job ID is undefined")
 	}
 	if _, err := uuid.Parse(req.JobId); err != nil {

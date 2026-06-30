@@ -30,7 +30,7 @@ func unmarshalMockCrrevResp(data string) (*CrrevResponse, error) {
 
 func TestNewCrrevClient_GivenDefaults_ReturnsClient(t *testing.T) {
 	cc, err := NewCrrevClient(context.Background())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, cc)
 }
 

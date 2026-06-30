@@ -19,11 +19,11 @@ package bot_configs
 import (
 	_ "embed"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"maps"
 	"sync"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -113,7 +113,7 @@ func GetBotConfig(bot string, externalOnly bool) (BotConfig, error) {
 		} else {
 			errMsg = fmt.Sprintf("bot %s was not found in internal and external bot configuration data", bot)
 		}
-		return BotConfig{}, errors.New(errMsg)
+		return BotConfig{}, skerr.Fmt("%s", errMsg)
 	}
 	alias := cfg.Alias
 	if alias != "" {
@@ -137,23 +137,23 @@ func GetBotConfig(bot string, externalOnly bool) (BotConfig, error) {
 // - if alias is defined, the no other fields should be defined
 // - if alias is not defined, then all other fields should be defined
 func validate() error {
-	var external map[string]BotConfig
-	var internal map[string]BotConfig
-	var botConfigs map[string]BotConfig
+	var external map[string]*BotConfig
+	var internal map[string]*BotConfig
+	var botConfigs map[string]*BotConfig
 
 	err := json.Unmarshal(externalBotConfigsJSON, &external)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	err = json.Unmarshal(internalBotConfigsJSON, &internal)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	// verify any internal bots are also defined in external
 	for name := range internal {
 		_, ok := external[name]
 		if ok {
-			return fmt.Errorf("%s bot is defined in both internal and external configurations", name)
+			return skerr.Fmt("%s bot is defined in both internal and external configurations", name)
 		}
 	}
 
@@ -163,10 +163,10 @@ func validate() error {
 		if alias != "" {
 			nextBot, ok := external[alias]
 			if !ok {
-				return fmt.Errorf("%s uses alias %s that is not defined in the external configs", name, alias)
+				return skerr.Fmt("%s uses alias %s that is not defined in the external configs", name, alias)
 			}
 			if nextBot.Alias != "" {
-				return fmt.Errorf("%s cannot have nested aliases in bot configurations", name)
+				return skerr.Fmt("%s cannot have nested aliases in bot configurations", name)
 			}
 		}
 	}
@@ -174,40 +174,41 @@ func validate() error {
 	// combine maps and validate each device
 	err = json.Unmarshal(externalBotConfigsJSON, &botConfigs)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	err = json.Unmarshal(internalBotConfigsJSON, &botConfigs)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	for name, bot := range botConfigs {
 		alias := bot.Alias
 		if alias != "" {
 			nextBot, ok := botConfigs[alias]
 			if !ok {
-				return fmt.Errorf("%s uses alias %s that is not defined in either config", name, alias)
+				return skerr.Fmt("%s uses alias %s that is not defined in either config", name, alias)
 			}
 			if nextBot.Alias != "" {
-				return fmt.Errorf("%s cannot have nested aliases in bot configurations", name)
+				return skerr.Fmt("%s cannot have nested aliases in bot configurations", name)
 			}
 			if bot.Browser != "" || bot.Builder != "" || len(bot.Dimensions) > 0 ||
 				bot.Repo != "" || bot.SwarmingServer != "" {
-				return fmt.Errorf("%s defines both an alias and other fields. Do one or the other.", name)
+				return skerr.Fmt("%s defines both an alias and other fields. Do one or the other.", name)
 			}
 			continue
 		}
 
 		// verify bot has all other parameters defined
-		if bot.Browser == "" {
-			return fmt.Errorf("%s is missing browser configs", name)
-		} else if bot.Builder == "" {
-			return fmt.Errorf("%s is missing builder configs", name)
-		} else if len(bot.Dimensions) == 0 {
-			return fmt.Errorf("%s does not have any dimensions", name)
-		} else if bot.Repo == "" {
-			return fmt.Errorf("%s is missing repository configs", name)
-		} else if bot.SwarmingServer == "" {
-			return fmt.Errorf("%s is missing swarming server configs", name)
+		switch {
+		case bot.Browser == "":
+			return skerr.Fmt("%s is missing browser configs", name)
+		case bot.Builder == "":
+			return skerr.Fmt("%s is missing builder configs", name)
+		case len(bot.Dimensions) == 0:
+			return skerr.Fmt("%s does not have any dimensions", name)
+		case bot.Repo == "":
+			return skerr.Fmt("%s is missing repository configs", name)
+		case bot.SwarmingServer == "":
+			return skerr.Fmt("%s is missing swarming server configs", name)
 		}
 	}
 

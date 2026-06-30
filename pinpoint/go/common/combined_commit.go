@@ -113,12 +113,11 @@ func (cc *CombinedCommit) UpsertModifiedDep(commit *pinpoint_proto.Commit) {
 	}
 
 	cc.ModifiedDeps = append(cc.ModifiedDeps, commit)
-	return
 }
 
 // GetLatestModifiedDep returns the most recently added commit.
 func (cc *CombinedCommit) GetLatestModifiedDep() *pinpoint_proto.Commit {
-	if cc.ModifiedDeps == nil || len(cc.ModifiedDeps) == 0 {
+	if len(cc.ModifiedDeps) == 0 {
 		return nil
 	}
 	return cc.ModifiedDeps[len(cc.ModifiedDeps)-1]

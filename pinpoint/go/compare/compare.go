@@ -101,17 +101,14 @@ func median(arr []float64) float64 {
 
 	sort.Float64s(sortedArr)
 
-	var median float64
 	l := len(sortedArr)
 	if l == 0 {
 		return 0
-	} else if l%2 == 0 {
-		median = (sortedArr[l/2-1] + sortedArr[l/2]) / 2
-	} else {
-		median = sortedArr[l/2]
 	}
-
-	return median
+	if l%2 == 0 {
+		return (sortedArr[l/2-1] + sortedArr[l/2]) / 2
+	}
+	return sortedArr[l/2]
 }
 
 func mean(arr []float64) float64 {
@@ -257,24 +254,24 @@ func CompareFunctional(valuesA, valuesB []float64, expectedErrRate float64) (*Co
 	if len(valuesA) == 0 || len(valuesB) == 0 {
 		return &CompareResults{Verdict: ErrorVerdict}, skerr.Fmt("cannot do functional comparison without data. len A %d and len B %d", len(valuesA), len(valuesB))
 	}
-	all_values := append(valuesA, valuesB...)
+	allValues := slices.Concat(valuesA, valuesB)
 	// avgSampleSize refers to the average number of samples between A and B.
 	// The samples may be imbalanced depending on the success of individual runs
-	avgSampleSize := len(all_values) / 2
+	avgSampleSize := len(allValues) / 2
 
 	if expectedErrRate < 0.0 || expectedErrRate > 1.0 {
 		sklog.Warning("Magnitude used in functional analysis was outside of the range of 0 and 1. Switching to default magnitude of 1.0")
 		expectedErrRate = DefaultFunctionalErrRate
 	}
 
-	LowThreshold := thresholds.LowThreshold
-	HighThreshold, err := thresholds.HighThresholdFunctional(expectedErrRate, avgSampleSize)
+	lowThreshold := thresholds.LowThreshold
+	highThreshold, err := thresholds.HighThresholdFunctional(expectedErrRate, avgSampleSize)
 	if err != nil {
 		return &CompareResults{Verdict: ErrorVerdict}, skerr.Wrapf(err, "Could not get functional high threshold")
 	}
 	// functional analysis always assumes the improvement direction is down
 	// i.e. we want future commits to be less flaky and less error prone.
-	return compare(valuesA, valuesB, LowThreshold, HighThreshold, Down)
+	return compare(valuesA, valuesB, lowThreshold, highThreshold, Down)
 }
 
 // ComparePerformance determines if valuesA and valuesB are statistically different,
@@ -300,30 +297,30 @@ func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64, direct
 		}, nil
 	}
 
-	all_values := append(valuesA, valuesB...)
-	sort.Float64s(all_values)
-	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
+	allValues := slices.Concat(valuesA, valuesB)
+	sort.Float64s(allValues)
+	iqr := allValues[len(allValues)*3/4] - allValues[len(allValues)/4]
 	normalizedMagnitude := float64(1.0)
 	if !almostEqual(rawMagnitude, 0.0) {
 		normalizedMagnitude = math.Abs(rawMagnitude / iqr)
 	}
 	// avgSampleSize refers to the average number of samples between A and B.
 	// The samples may be imbalanced depending on the success of individual runs
-	avgSampleSize := len(all_values) / 2
+	avgSampleSize := len(allValues) / 2
 
-	LowThreshold := thresholds.LowThreshold
-	HighThreshold, err := thresholds.HighThresholdPerformance(normalizedMagnitude, avgSampleSize)
+	lowThreshold := thresholds.LowThreshold
+	highThreshold, err := thresholds.HighThresholdPerformance(normalizedMagnitude, avgSampleSize)
 	if err != nil {
 		return &CompareResults{Verdict: ErrorVerdict}, skerr.Wrapf(err, "Could not get high threshold for bisection")
 	}
 
-	return compare(valuesA, valuesB, LowThreshold, HighThreshold, direction)
+	return compare(valuesA, valuesB, lowThreshold, highThreshold, direction)
 }
 
 // compare decides whether two samples are the same, different, or unknown
 // using the KS and MWU tests and compare their p-values against the
 // LowThreshold and HighThreshold.
-func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64, dir ImprovementDir) (*CompareResults, error) {
+func compare(valuesA, valuesB []float64, lowThreshold, highThreshold float64, dir ImprovementDir) (*CompareResults, error) {
 	// verify a change is a regression
 	meanDiff := mean(valuesB) - mean(valuesA)
 	if (dir == Up && meanDiff > 0) || (dir == Down && meanDiff < 0) {
@@ -343,21 +340,19 @@ func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64, di
 		return &CompareResults{Verdict: ErrorVerdict}, skerr.Wrapf(err, "Failed KS test")
 	}
 	PValueMWU := MannWhitneyU(valuesA, valuesB)
-	if err != nil {
-		return &CompareResults{Verdict: ErrorVerdict}, skerr.Wrapf(err, "Failed MWU test")
-	}
 	PValue := min(PValueKS, PValueMWU)
 
 	var verdict Verdict
-	if PValue <= LowThreshold {
+	switch {
+	case PValue <= lowThreshold:
 		// The p-value is less than the significance level. Reject the null
 		// hypothesis.
 		verdict = Different
-	} else if PValue <= HighThreshold {
+	case PValue <= highThreshold:
 		// The p-value is not less than the significance level, but it's small
 		// enough to be suspicious. We'd like to investigate more closely.
 		verdict = Unknown
-	} else {
+	default:
 		// The p-value is quite large. We're not suspicious that the two samples might
 		// come from different distributions, and we don't care to investigate more.
 		verdict = Same
@@ -368,8 +363,8 @@ func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64, di
 		PValue:        PValue,
 		PValueKS:      PValueKS,
 		PValueMWU:     PValueMWU,
-		LowThreshold:  LowThreshold,
-		HighThreshold: HighThreshold,
+		LowThreshold:  lowThreshold,
+		HighThreshold: highThreshold,
 		MeanDiff:      meanDiff,
 	}, nil
 }

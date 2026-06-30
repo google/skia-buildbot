@@ -153,12 +153,13 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 }
 
 func (t *telemetryTest) GetCrossbenchExtraArgs(benchmark string) []string {
-	cmd := []string{}
-	cmd = append(cmd, "--benchmark-display-name", t.benchmark)
-	cmd = append(cmd, "--benchmarks", benchmark)
-	cmd = append(cmd, "--browser="+t.browser)
-	cmd = append(cmd, "-v")
-	cmd = append(cmd, "--isolated-script-test-output", "${ISOLATED_OUTDIR}/output.json")
+	cmd := []string{
+		"--benchmark-display-name", t.benchmark,
+		"--benchmarks", benchmark,
+		"--browser=" + t.browser,
+		"-v",
+		"--isolated-script-test-output", "${ISOLATED_OUTDIR}/output.json",
+	}
 	cmd = append(cmd, formatExtraArgs(t.extraArgs)...)
 
 	return cmd

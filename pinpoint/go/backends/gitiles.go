@@ -20,7 +20,7 @@ const (
 func createGitilesClient(ctx context.Context, repositoryUrl string) (*gitiles.Repo, error) {
 	token, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly, DEFAULT_GITILES_SCOPE)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	// Any non-200 response will be rejected.
@@ -29,7 +29,7 @@ func createGitilesClient(ctx context.Context, repositoryUrl string) (*gitiles.Re
 	c := httputils.DefaultClientConfig().WithTokenSource(token).With2xxOnly().Client()
 	repo, err := gitiles.NewRepoWithClient(repositoryUrl, c)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	return repo, nil

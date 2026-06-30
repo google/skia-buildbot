@@ -26,12 +26,12 @@ func TestFillTemplate_NoCulprit_EmptyString(t *testing.T) {
 
 	var input []*pinpoint_proto.CombinedCommit
 	resp, err := c.fillTemplate(input)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "", resp)
 
 	input = []*pinpoint_proto.CombinedCommit{}
 	resp, err = c.fillTemplate(input)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "", resp)
 }
 
@@ -69,6 +69,6 @@ If you think Pinpoint blamed the wrong commit, please add issue to
 yourself so that a sheriff can help diagnose.`
 
 	resp, err := c.fillTemplate(input)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expectedResp, resp)
 }

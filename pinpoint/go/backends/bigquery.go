@@ -64,7 +64,7 @@ func (b *bigQueryClient) CreateTable(ctx context.Context, datasetID, tableName s
 // Insert wraps BigQuery PUT.
 func (b *bigQueryClient) Insert(ctx context.Context, datasetID, tableName string, rows interface{}) error {
 	tableIns := b.client.Dataset(datasetID).Table(tableName).Inserter()
-	return tableIns.Put(ctx, rows)
+	return skerr.Wrap(tableIns.Put(ctx, rows))
 }
 
 var _ BigQueryClient = (*bigQueryClient)(nil)

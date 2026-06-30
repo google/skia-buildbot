@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -45,7 +46,7 @@ type JobStore interface {
 	AddCommitRuns(ctx context.Context, jobID string, left, right *schema.CommitRunData) error
 
 	// ListJobs retrieves a list of jobs with optional filtering for the dashboard.
-	ListJobs(ctx context.Context, options ListJobsOptions) ([]*DashboardJob, error)
+	ListJobs(ctx context.Context, options *ListJobsOptions) ([]*DashboardJob, error)
 }
 
 // JobStore provides methods to access job data from the database.
@@ -194,7 +195,7 @@ func (js *jobStoreImpl) GetJob(ctx context.Context, jobID string) (*schema.JobSc
 		&job.ErrorMessage,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, skerr.Fmt("job with ID %s not found", jobID)
 		}
 		return nil, skerr.Fmt("failed to query or scan job with ID %s: %w", jobID, err)
@@ -240,7 +241,7 @@ func (js *jobStoreImpl) UpdateJobStatus(ctx context.Context, jobID, status strin
 		return skerr.Fmt("failed to update job status and duration for job_id %s: %w", jobID, err)
 	}
 
-	return tx.Commit(ctx)
+	return skerr.Wrap(tx.Commit(ctx))
 }
 
 func (js *jobStoreImpl) AddResults(ctx context.Context, jobID string, results map[string]*pinpointpb.PairwiseExecution_WilcoxonResult) error {
@@ -293,7 +294,7 @@ func (js *jobStoreImpl) AddCommitRuns(ctx context.Context, jobID string, left, r
 	}
 
 	// Commit the transaction
-	return tx.Commit(ctx)
+	return skerr.Wrap(tx.Commit(ctx))
 }
 
 // Helper function that retrieves the additional parameters for a given job ID.
@@ -318,7 +319,10 @@ func (js *jobStoreImpl) getAdditionalParams(ctx context.Context, jobID string, t
 	return params, nil
 }
 
-func (js *jobStoreImpl) ListJobs(ctx context.Context, options ListJobsOptions) ([]*DashboardJob, error) {
+func (js *jobStoreImpl) ListJobs(ctx context.Context, options *ListJobsOptions) ([]*DashboardJob, error) {
+	if options == nil {
+		options = &ListJobsOptions{}
+	}
 	query := `
 		SELECT
 			job_id,

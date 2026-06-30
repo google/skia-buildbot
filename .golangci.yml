@@ -101,6 +101,7 @@ linters-settings:
       - go.skia.org/infra/go/skerr.Wrapf(
     ignorePackageGlobs:
       - go.skia.org/infra/go/skerr
+      - google.golang.org/grpc/status
 
 issues:
   # Do not limit the number of issues per linter (default is 50).

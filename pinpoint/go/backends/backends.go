@@ -11,6 +11,7 @@ import (
 	compute "google.golang.org/api/compute/v0.beta"
 	grpc_oauth "google.golang.org/grpc/credentials/oauth"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/perf/go/perfresults"
@@ -30,7 +31,7 @@ func outboundAuthTokenSource(ctx context.Context) (oauth2.TokenSource, error) {
 	ts, err := google.DefaultTokenSource(ctx, scopesForBackends...)
 	if err != nil {
 		sklog.Errorf("getting token source: %v", err)
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return ts, nil
 }

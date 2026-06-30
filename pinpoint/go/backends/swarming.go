@@ -122,7 +122,8 @@ func (s *SwarmingClientImpl) GetStatus(ctx context.Context, taskID string) (stri
 }
 
 func (s *SwarmingClientImpl) TriggerTask(ctx context.Context, req *apipb.NewTaskRequest) (*apipb.TaskRequestMetadataResponse, error) {
-	return s.SwarmingV2Client.NewTask(ctx, req)
+	resp, err := s.SwarmingV2Client.NewTask(ctx, req)
+	return resp, skerr.Wrap(err)
 }
 
 // FetchFreeBots gets a list of available bots per specified builder configuration.

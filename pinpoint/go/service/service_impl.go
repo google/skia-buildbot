@@ -102,7 +102,7 @@ func (s *server) LegacyJobQuery(ctx context.Context, req *pb.LegacyJobRequest) (
 		// via grpc-gateway.
 		// Note this API is only intermediate and will be gone, this is not considered to be
 		// best practise.
-		return nil, err
+		return nil, err //nolint:wrapcheck // forwarding gRPC status error
 	}
 
 	// TODO(b/318864009): convert BisectExecution to LegacyJobResponse

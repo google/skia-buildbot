@@ -53,7 +53,7 @@ func New(ctx context.Context, js jobstore.JobStore, t tpr_client.TemporalProvide
 		pinpointServer: pinpoint_service.New(t, l), // gRPC service to handle temporal interaction
 	}
 
-	handler, err := pinpoint_service.NewJSONHandler(context.Background(), s.pinpointServer)
+	handler, err := pinpoint_service.NewJSONHandler(ctx, s.pinpointServer)
 	if err != nil {
 		return nil, skerr.Fmt("failed to initialize pinpoint service %s.", err)
 	}
@@ -159,7 +159,7 @@ func (s *Service) ListJobsHandler(w http.ResponseWriter, r *http.Request) {
 		Offset:     offset,
 	}
 
-	jobs, err := s.jobStore.ListJobs(ctx, opts)
+	jobs, err := s.jobStore.ListJobs(ctx, &opts)
 	if err != nil {
 		msg := "Failed to list jobs"
 		httputils.ReportError(w, err, msg, http.StatusInternalServerError)

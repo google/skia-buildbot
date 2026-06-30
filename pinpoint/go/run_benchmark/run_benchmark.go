@@ -88,14 +88,16 @@ func (s State) IsTaskSuccessful() bool {
 
 // ConvertToProto
 func (s State) ConvertToProto() pinpoint_proto.SwarmingStatus {
-	if s.IsTaskSuccessful() {
+	switch {
+	case s.IsTaskSuccessful():
 		return pinpoint_proto.SwarmingStatus_COMPLETED
-	} else if s.IsTaskBenchmarkFailure() {
+	case s.IsTaskBenchmarkFailure():
 		return pinpoint_proto.SwarmingStatus_BENCHMARK_FAILURE
-	} else if !s.IsTaskFinished() {
+	case !s.IsTaskFinished():
 		return pinpoint_proto.SwarmingStatus_RUNNING
+	default:
+		return pinpoint_proto.SwarmingStatus_FAILURE
 	}
-	return pinpoint_proto.SwarmingStatus_FAILURE
 }
 
 // Run schedules a swarming task to run the RunBenchmarkRequest.

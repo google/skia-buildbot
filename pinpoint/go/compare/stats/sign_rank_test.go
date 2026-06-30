@@ -11,7 +11,7 @@ const almostEqualDelta = 1e-6
 
 func TestNewWilcoxonDistribution_GivenNLessThan0_ReturnsError(t *testing.T) {
 	dist, err := newWilcoxonDistribution(-1)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, dist)
 }
 

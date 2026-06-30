@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -48,8 +49,9 @@ func main() {
 	sklog.Infof("http://localhost%s", *port)
 
 	server := &http.Server{
-		Addr:    *port,
-		Handler: router,
+		Addr:              *port,
+		Handler:           router,
+		ReadHeaderTimeout: time.Minute,
 	}
 	sklog.Fatal(server.ListenAndServe())
 }

@@ -32,12 +32,12 @@ func newUploadChromeDataClient(ctx context.Context, cfg *UploadClientConfig) (*u
 
 // CreateTableFromStruct creates the table for Chrome according to the definition provided.
 func (u *uploadChromeDataClient) CreateTableFromStruct(ctx context.Context, req *CreateTableRequest) error {
-	return u.client.CreateTable(ctx, u.DatasetID, u.TableName, req.Definition)
+	return skerr.Wrap(u.client.CreateTable(ctx, u.DatasetID, u.TableName, req.Definition))
 }
 
 // Insert injects data defined in the InsertRequest to BigQuery.
 func (u *uploadChromeDataClient) Insert(ctx context.Context, req *InsertRequest) error {
-	return u.client.Insert(ctx, u.DatasetID, u.TableName, req.Items)
+	return skerr.Wrap(u.client.Insert(ctx, u.DatasetID, u.TableName, req.Items))
 }
 
 var _ UploadClient = (*uploadChromeDataClient)(nil)

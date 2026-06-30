@@ -208,16 +208,17 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 		if err != nil {
 			return WilcoxonSignedRankedTestResult{}, skerr.Wrapf(err, "could not calculate wilcoxon distribution for xLen %v", xLen)
 		}
-		if alt == TwoSided {
+		switch alt {
+		case TwoSided:
 			if statistic > float64(xLen*(xLen+1))/4 {
 				pVal = dist.pSignRank(statistic-1, false)
 			} else {
 				pVal = dist.pSignRank(statistic, true)
 			}
 			pVal = math.Min(2*pVal, 1.0)
-		} else if alt == Greater {
+		case Greater:
 			pVal = dist.pSignRank(statistic-1, false)
-		} else {
+		default:
 			pVal = dist.pSignRank(statistic, true)
 		}
 
@@ -226,7 +227,8 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 
 		qu := 0.0
 		achievedAlpha := 0.0
-		if alt == TwoSided {
+		switch alt {
+		case TwoSided:
 			qu, err = dist.qSignRank(alpha/2, true)
 			if err != nil {
 				return WilcoxonSignedRankedTestResult{}, skerr.Wrapf(err, "could not calculate QSignRank with alpha/2 (%v) and xLen (%v)", alpha/2, xLen)
@@ -236,10 +238,10 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 			}
 			q1 := float64(xLen*(xLen+1))/2 - qu
 			achievedAlpha = dist.pSignRank(math.Ceil(q1)-1.0, true)
-			achievedAlpha = achievedAlpha * 2
+			achievedAlpha *= 2
 			lowerCi = diffs[int(math.Round(qu))-1]
 			upperCi = diffs[int(math.Round(q1))]
-		} else if alt == Greater {
+		case Greater:
 			qu, err = dist.qSignRank(alpha, true)
 			if err != nil {
 				return WilcoxonSignedRankedTestResult{}, skerr.Wrapf(err, "could not calculate QSignRank with alpha (%v) and xLen (%v)", alpha, xLen)
@@ -250,7 +252,7 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 			achievedAlpha = dist.pSignRank(math.Ceil(qu)-1.0, true)
 			lowerCi = diffs[int(math.Round(qu))-1]
 			upperCi = math.Inf(1)
-		} else {
+		default:
 			qu, err = dist.qSignRank(alpha, true)
 			if err != nil {
 				return WilcoxonSignedRankedTestResult{}, skerr.Wrapf(err, "could not calculate QSignRank with alpha (%v) and xLen (%v)", alpha, xLen)
@@ -278,11 +280,12 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 	correct := true
 	z = (z - correction) / sigma
 	normalDist := moreStat.StdNormal
-	if alt == TwoSided {
+	switch alt {
+	case TwoSided:
 		pVal = 2 * math.Min(normalDist.CDF(z), 1-normalDist.CDF(z))
-	} else if alt == Greater {
+	case Greater:
 		pVal = 1 - normalDist.CDF(z)
-	} else {
+	default:
 		pVal = normalDist.CDF(z)
 	}
 
@@ -304,13 +307,14 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 	}
 
 	if xLen == 0 || math.IsInf(wMuMax, 0) || math.IsNaN(wMuMax) {
-		if alt == Less {
+		switch alt {
+		case Less:
 			lowerCi = math.Inf(-1)
 			upperCi = math.NaN()
-		} else if alt == Greater {
+		case Greater:
 			lowerCi = math.NaN()
 			upperCi = math.Inf(1)
-		} else {
+		default:
 			lowerCi = math.NaN()
 			upperCi = math.NaN()
 		}
@@ -320,12 +324,13 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 			estimate = math.NaN()
 		}
 	} else {
-		if alt == TwoSided {
+		switch alt {
+		case TwoSided:
 			for {
 				minDiff := wMuMin - dist.InvCDF(1-alpha/2)
 				maxDiff := wMuMax - dist.InvCDF(alpha/2)
 				if minDiff < 0 || maxDiff > 0 {
-					alpha = alpha * 2
+					alpha *= 2
 				} else {
 					break
 				}
@@ -350,11 +355,11 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 				lowerCi = getMedianFromSortedArray(xNonZero)
 				upperCi = lowerCi
 			}
-		} else if alt == Greater {
+		case Greater:
 			for {
 				minDiff := wMuMin - dist.InvCDF(1-alpha/2)
 				if minDiff < 0 {
-					alpha = alpha * 2
+					alpha *= 2
 				} else {
 					break
 				}
@@ -373,11 +378,11 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 				lowerCi = getMedianFromSortedArray(xNonZero)
 			}
 			upperCi = math.Inf(1)
-		} else { // alt == Less
+		default: // alt == Less
 			for {
 				maxDiff := wMuMax - dist.InvCDF(alpha/2)
 				if maxDiff > 0 {
-					alpha = alpha * 2
+					alpha *= 2
 				} else {
 					break
 				}
@@ -417,7 +422,7 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (WilcoxonSignedRan
 // Rank returns the sample ranks of the value in a list.
 // It orders the differences from smallest to largest and assigns them their ranks 1,...n (or average rank for ties).
 func rank(nums []float64) ([]float64, bool) {
-	var valueIndexes []valueIndex
+	valueIndexes := make([]valueIndex, 0, len(nums))
 	for index, ele := range nums {
 		valueIndexes = append(valueIndexes, valueIndex{value: ele, index: index})
 	}
@@ -488,11 +493,11 @@ func getDiffs(x []float64) []float64 {
 }
 
 func getMedianFromSortedArray(x []float64) float64 {
-	len := len(x)
-	if len%2 == 1 {
-		return x[len/2]
+	length := len(x)
+	if length%2 == 1 {
+		return x[length/2]
 	}
-	return (x[len/2] + x[len/2-1]) / 2.0
+	return (x[length/2] + x[length/2-1]) / 2.0
 }
 
 func getSumOfNTies(x []float64) int {
@@ -510,34 +515,35 @@ func getSumOfNTies(x []float64) int {
 
 func getCorrection(alt Hypothesis, z float64) float64 {
 	correction := 0.0
-	if alt == TwoSided {
+	switch alt {
+	case TwoSided:
 		if z > 0 {
 			correction = 0.5
 		} else if z < 0 {
 			correction = -0.5
 		}
-	} else if alt == Greater {
+	case Greater:
 		correction = 0.5
-	} else {
+	default:
 		correction = -0.5
 	}
 	return correction
 }
 
 func getMin(x []float64) float64 {
-	min := math.Inf(1)
+	minimum := math.Inf(1)
 	for _, val := range x {
-		min = math.Min(min, val)
+		minimum = math.Min(minimum, val)
 	}
-	return min
+	return minimum
 }
 
 func getMax(x []float64) float64 {
-	max := math.Inf(-1)
+	maximum := math.Inf(-1)
 	for _, val := range x {
-		max = math.Max(max, val)
+		maximum = math.Max(maximum, val)
 	}
-	return max
+	return maximum
 }
 
 // asymptoticW is the asymptotic Wilcoxon statistic of x - d.
@@ -558,7 +564,7 @@ func asymptoticW(x []float64, d float64, alt Hypothesis, correct bool) float64 {
 			zd += val
 		}
 	}
-	zd = zd - float64(nX*(nX+1))/4
+	zd -= float64(nX*(nX+1)) / 4
 	nTiesSum := getSumOfNTies(dR)
 	sigmaCi := math.Sqrt(float64(nX*(nX+1)*(2*nX+1))/24 - float64(nTiesSum)/48)
 	if sigmaCi == 0 {

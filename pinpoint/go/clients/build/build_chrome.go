@@ -64,7 +64,10 @@ type ChromeFindBuildRequest struct {
 }
 
 // CreateFindBuildRequest returns a request object with details needed by Chrome.
-func (b *buildChromeClient) CreateFindBuildRequest(params workflows.BuildParams) (*FindBuildRequest, error) {
+func (b *buildChromeClient) CreateFindBuildRequest(params *workflows.BuildParams) (*FindBuildRequest, error) {
+	if params == nil {
+		return nil, skerr.Fmt("BuildParams cannot be nil")
+	}
 	if params.Device == "" || params.Commit == nil {
 		return nil, skerr.Fmt("Missing required fields Commit and Device to create FindBuild request for Chrome")
 	}
@@ -103,7 +106,7 @@ func (b *buildChromeClient) FindBuild(ctx context.Context, req *FindBuildRequest
 	// commits in other repos (i.e. DEPS) or user submitted gerrit patches.
 	// If we checked the waterfall pool, we would find builds in chromium/src without
 	// DEPS or the gerrit patch, finding the wrong build.
-	if (findReq.Deps != nil && len(findReq.Deps) > 0) || (findReq.Patches != nil && len(findReq.Patches) > 0) {
+	if len(findReq.Deps) > 0 || len(findReq.Patches) > 0 {
 		return &FindBuildResponse{
 			Response: nil,
 		}, nil
@@ -189,7 +192,10 @@ func (b *buildChromeClient) buildRequestTags(pinpointJobID, commit string) []*bu
 
 // Note: Patch parameter was removed because it was not in use, but will
 // need to be re-added to support Try jobs with patch.
-func (b *buildChromeClient) CreateStartBuildRequest(params workflows.BuildParams) (*StartBuildRequest, error) {
+func (b *buildChromeClient) CreateStartBuildRequest(params *workflows.BuildParams) (*StartBuildRequest, error) {
+	if params == nil {
+		return nil, skerr.Fmt("BuildParams cannot be nil")
+	}
 	if params.Device == "" || params.Commit == nil || params.WorkflowID == "" {
 		return nil, skerr.Fmt("Missing required fields, one of [Commit, Device, WorkflowID] to create StartBuild request for Chrome")
 	}
@@ -202,7 +208,7 @@ func (b *buildChromeClient) CreateStartBuildRequest(params workflows.BuildParams
 
 	properties := b.buildRequestProperties(commit)
 
-	if deps != nil && len(deps) > 0 {
+	if len(deps) > 0 {
 		fields := make(map[string]*structpb.Value, 0)
 		for url, rev := range deps {
 			fields[url] = &structpb.Value{
@@ -244,17 +250,18 @@ func (b *buildChromeClient) StartBuild(ctx context.Context, req *StartBuildReque
 	build, err := b.BuildbucketClient.StartBuild(ctx, req.Request.(*buildbucketpb.ScheduleBuildRequest))
 	return &StartBuildResponse{
 		Response: build,
-	}, err
+	}, skerr.Wrap(err)
 }
 
 func (b *buildChromeClient) GetStatus(ctx context.Context, id int64) (buildbucketpb.Status, error) {
-	return b.BuildbucketClient.GetBuildStatus(ctx, id)
+	status, err := b.BuildbucketClient.GetBuildStatus(ctx, id)
+	return status, skerr.Wrap(err)
 }
 
 func (b *buildChromeClient) GetBuildArtifact(ctx context.Context, req *GetBuildArtifactRequest) (*GetBuildArtifactResponse, error) {
 	cas, err := b.BuildbucketClient.GetCASReference(ctx, req.BuildID, req.Target)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return &GetBuildArtifactResponse{
 		Response: cas,
@@ -262,7 +269,7 @@ func (b *buildChromeClient) GetBuildArtifact(ctx context.Context, req *GetBuildA
 }
 
 func (b *buildChromeClient) CancelBuild(ctx context.Context, req *CancelBuildRequest) error {
-	return b.BuildbucketClient.CancelBuild(ctx, req.BuildID, req.Reason)
+	return skerr.Wrap(b.BuildbucketClient.CancelBuild(ctx, req.BuildID, req.Reason))
 }
 
 var _ BuildClient = (*buildChromeClient)(nil)

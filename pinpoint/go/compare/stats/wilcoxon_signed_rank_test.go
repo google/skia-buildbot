@@ -111,7 +111,7 @@ func TestWilcoxonSignedRankTest_GivenTies_ReturnsMathNan(t *testing.T) {
 			if math.IsNaN(expected.PValue) {
 				assert.True(t, math.IsNaN(result.UpperCi))
 			} else {
-				assert.Equal(t, expected.PValue, result.PValue)
+				assert.InDelta(t, expected.PValue, result.PValue, 1e-9)
 			}
 		})
 	}

@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/cbb/upload_v3_data",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/skerr",
         "//perf/go/ingest/format",
     ],
 )

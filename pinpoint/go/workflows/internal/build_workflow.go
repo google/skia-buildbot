@@ -99,7 +99,7 @@ func (bca *BuildActivity) SearchOrBuildActivity(ctx context.Context, params *wor
 	}
 
 	activity.RecordHeartbeat(ctx, "kicking off the build.")
-	findReq, err := buildClient.CreateFindBuildRequest(*params)
+	findReq, err := buildClient.CreateFindBuildRequest(params)
 	if err != nil {
 		logger.Error("Failed to create find build request: ", err)
 		return -1, skerr.Wrapf(err, "failed to create find build request")
@@ -117,7 +117,7 @@ func (bca *BuildActivity) SearchOrBuildActivity(ctx context.Context, params *wor
 	}
 
 	// Not found, trigger a new build
-	buildReq, err := buildClient.CreateStartBuildRequest(*params)
+	buildReq, err := buildClient.CreateStartBuildRequest(params)
 	if err != nil {
 		logger.Error("Failed to generate build request: ", err)
 		return -1, skerr.Wrapf(err, "failed to generate build request")

@@ -27,13 +27,14 @@ import (
 	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/ingest/format"
 )
 
-func loadCsv(path string) [][]string {
+func loadCsv(path string) ([][]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		log.Fatalf("Failed to open CSV file at %s: %v", path, err)
+		return nil, skerr.Wrapf(err, "Failed to open CSV file at %s", path)
 	}
 	defer file.Close()
 
@@ -42,16 +43,16 @@ func loadCsv(path string) [][]string {
 	// Read the header row.
 	_, err = reader.Read()
 	if err != nil {
-		log.Fatalf("Failed to read header row: %v", err)
+		return nil, skerr.Wrapf(err, "Failed to read header row")
 	}
 
 	// Read all the remaining records.
 	records, err := reader.ReadAll()
 	if err != nil {
-		log.Fatalf("Failed to read CSV records: %v", err)
+		return nil, skerr.Wrapf(err, "Failed to read CSV records")
 	}
 
-	return records
+	return records, nil
 }
 
 // Chrome version from v3 data always has the last part padded to 3 digits,
@@ -240,7 +241,7 @@ func createPerfFile(device, browser, version, benchmark string, commitPosition i
 	case "Pixel Tablet":
 		bot = "android-pixel-tangor-perf-cbb"
 	default:
-		return fmt.Errorf("invalid device name: %s", device)
+		return skerr.Fmt("invalid device name: %s", device)
 	}
 
 	var br string
@@ -258,7 +259,7 @@ func createPerfFile(device, browser, version, benchmark string, commitPosition i
 	case "edge dev":
 		br = "Edge Dev"
 	default:
-		return fmt.Errorf("invalid browser name: %s", browser)
+		return skerr.Fmt("invalid browser name: %s", browser)
 	}
 	br += " (Legacy Data)"
 
@@ -271,7 +272,7 @@ func createPerfFile(device, browser, version, benchmark string, commitPosition i
 	case "motionmark1.3":
 		test = "score"
 	default:
-		return fmt.Errorf("invalid benchmark name: %s", benchmark)
+		return skerr.Fmt("invalid benchmark name: %s", benchmark)
 	}
 
 	data := format.Format{
@@ -308,13 +309,13 @@ func createPerfFile(device, browser, version, benchmark string, commitPosition i
 	filename := fmt.Sprintf("%s.%s.%s.%d.json", bot, benchmark, strings.ReplaceAll(browser, " ", "-"), commitPosition)
 	file, err := os.Create(filepath.Join(outPath, filename))
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	defer file.Close()
 
 	err = data.Write(file)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	return nil
@@ -328,44 +329,48 @@ func main() {
 	cbbPath := filepath.Join(home, "cbb")
 	csvPath := filepath.Join(cbbPath, "cbb_v3_data.csv")
 
-	records := loadCsv(csvPath)
+	records, err := loadCsv(csvPath)
+	if err != nil {
+		log.Fatalf("Failed to load CSV: %v", err)
+	}
 	for _, row := range records {
-		if len(row) >= 8 {
-			device := row[0]
-			controlBrowserName := row[1]
-			controlBrowserVersion := normalizeChromeVersion(row[2])
-			treatmentBrowserName := row[3]
-			treatmentBrowserVersion := row[4]
-			benchmark := row[5]
+		if len(row) < 8 {
+			continue
+		}
+		device := row[0]
+		controlBrowserName := row[1]
+		controlBrowserVersion := normalizeChromeVersion(row[2])
+		treatmentBrowserName := row[3]
+		treatmentBrowserVersion := row[4]
+		benchmark := row[5]
 
-			controlMedian, err := strconv.ParseFloat(row[6], 32)
-			if err != nil {
-				log.Fatalf("Could not parse Control_browser_median value %q: %v.", row[6], err)
-			}
-			treatmentMedian, err := strconv.ParseFloat(row[7], 32)
-			if err != nil {
-				log.Fatalf("Could not parse Treatment_browser_median value %q: %v.", row[7], err)
-			}
+		controlMedian, err := strconv.ParseFloat(row[6], 32)
+		if err != nil {
+			log.Fatalf("Could not parse Control_browser_median value %q: %v.", row[6], err)
+		}
+		treatmentMedian, err := strconv.ParseFloat(row[7], 32)
+		if err != nil {
+			log.Fatalf("Could not parse Treatment_browser_median value %q: %v.", row[7], err)
+		}
 
+		err = createPerfFile(
+			device, controlBrowserName, controlBrowserVersion, benchmark,
+			getCP(device, controlBrowserName, controlBrowserVersion, controlBrowserVersion),
+			float32(controlMedian), cbbPath)
+		if err != nil {
+			log.Fatalf(
+				"Unable to create file for Chrome (%s %s %s %s): %v.",
+				device, controlBrowserName, controlBrowserVersion, benchmark, err)
+		}
+		if device != "Pixel Tablet" {
 			err = createPerfFile(
-				device, controlBrowserName, controlBrowserVersion, benchmark,
-				getCP(device, controlBrowserName, controlBrowserVersion, controlBrowserVersion),
-				float32(controlMedian), cbbPath)
+				device, treatmentBrowserName, treatmentBrowserVersion, benchmark,
+				getCP(device, treatmentBrowserName, treatmentBrowserVersion, controlBrowserVersion),
+				float32(treatmentMedian), cbbPath)
 			if err != nil {
 				log.Fatalf(
-					"Unable to create file for Chrome (%s %s %s %s): %v.",
-					device, controlBrowserName, controlBrowserVersion, benchmark, err)
-			}
-			if device != "Pixel Tablet" {
-				err = createPerfFile(
-					device, treatmentBrowserName, treatmentBrowserVersion, benchmark,
-					getCP(device, treatmentBrowserName, treatmentBrowserVersion, controlBrowserVersion),
-					float32(treatmentMedian), cbbPath)
-				if err != nil {
-					log.Fatalf(
-						"Unable to create file for alternative browser (%s %s %s %s): %v.",
-						device, treatmentBrowserName, treatmentBrowserVersion, benchmark, err)
-				}
+					"Unable to create file for alternative browser (%s %s %s %s): %v.",
+					device, treatmentBrowserName, treatmentBrowserVersion, benchmark, err)
 			}
 		}
 	}

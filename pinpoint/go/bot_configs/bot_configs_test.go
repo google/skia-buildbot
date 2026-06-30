@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestGetBotConfig verifies if GetBotConfig will
@@ -46,7 +47,7 @@ func TestGetBotConfig(t *testing.T) {
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.NotEmpty(t, bot.Browser)
 			}
 		})
@@ -59,6 +60,6 @@ func TestValidateBotConfigs(t *testing.T) {
 
 func TestGetBotConfig_AliasedBuilder_CorrectReference(t *testing.T) {
 	cfg, err := GetBotConfig("Win 10 Perf", true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "win-10-perf", cfg.Bot)
 }

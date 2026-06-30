@@ -10,9 +10,11 @@
 package compare
 
 import (
-	"fmt"
 	"math"
+	"slices"
 	"sort"
+
+	"go.skia.org/infra/go/skerr"
 )
 
 // KolmogorovSmirnov computes the 2-sample Kolmogorov-Smirnov test on
@@ -32,14 +34,14 @@ func KolmogorovSmirnov(a, b []float64) (float64, error) {
 	n2 := len(y)
 
 	if n1 == 0 {
-		return -1.0, fmt.Errorf("x is an empty array")
+		return -1.0, skerr.Fmt("x is an empty array")
 	} else if n2 == 0 {
-		return -1.0, fmt.Errorf("y is an empty array")
+		return -1.0, skerr.Fmt("y is an empty array")
 	}
 
 	sort.Float64s(x)
 	sort.Float64s(y)
-	dataAll := append(x, y...)
+	dataAll := slices.Concat(x, y)
 
 	cdf1 := make([]float64, len(dataAll))
 	for i, value := range dataAll {
@@ -79,7 +81,7 @@ func survival(y float64) float64 {
 	p := 0.0
 	r := 1.0
 
-	for true {
+	for {
 		t := math.Exp(x * r * r)
 		p += sign * t
 		if t == 0.0 {

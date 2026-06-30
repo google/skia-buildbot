@@ -40,7 +40,8 @@ type rbeProvider struct {
 
 func (r *rbeProvider) Fetch(ctx context.Context, digest *apipb.CASReference) (map[string]perfresults.PerfResults, error) {
 	path := fmt.Sprintf("%s/%d", digest.Digest.Hash, digest.Digest.SizeBytes)
-	return backends.FetchBenchmarkJSON(ctx, r.Client, path)
+	res, err := backends.FetchBenchmarkJSON(ctx, r.Client, path)
+	return res, skerr.Wrap(err)
 }
 
 type perfCASClient struct {
@@ -54,7 +55,7 @@ func DialRBECAS(ctx context.Context, instance string) (*perfCASClient, error) {
 	clients, err := backends.DialRBECAS(ctx)
 	if err != nil {
 		sklog.Errorf("Failed to dial RBE CAS client due to error: %v", err)
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	if client, ok := clients[instance]; ok {
 		return &perfCASClient{
@@ -63,7 +64,7 @@ func DialRBECAS(ctx context.Context, instance string) (*perfCASClient, error) {
 			},
 		}, nil
 	}
-	return nil, fmt.Errorf("swarming instance %s is not within the set of allowed instances", instance)
+	return nil, skerr.Fmt("swarming instance %s is not within the set of allowed instances", instance)
 }
 
 // ReadValuesByChart reads Pinpoint results for the benchmark and chart from a list of CAS digests.

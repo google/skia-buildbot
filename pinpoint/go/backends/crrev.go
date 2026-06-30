@@ -62,8 +62,11 @@ func (c *CrrevClientImpl) GetCommitInfo(ctx context.Context, commit string) (*Cr
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not make request to crrev with commit %v", commit)
 	}
+	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to read response body")
+	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, skerr.Fmt("Response failed with status code: %d", resp.StatusCode)
 	}

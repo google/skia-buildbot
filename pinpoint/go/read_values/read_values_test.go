@@ -57,7 +57,7 @@ func TestReadChart_ReadSampleValues(t *testing.T) {
 	test := func(name, benchmark, chart string, expected ...float64) {
 		t.Run(name, func(t *testing.T) {
 			values, err := c.ReadValuesByChart(context.Background(), benchmark, chart, []*apipb.CASReference{{}}, "")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.EqualValues(t, expected, values.Values[chart])
 		})
 	}
@@ -75,7 +75,7 @@ func TestReadChart_ReadAggregatedValues(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// Load three same CAS
 			values, err := c.ReadValuesByChart(context.Background(), benchmark, chart, []*apipb.CASReference{{}, {}, {}}, agg)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.EqualValues(t, expected, values.Values[chart])
 		})
 	}

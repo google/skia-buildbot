@@ -18,7 +18,7 @@ import (
 func TestNewSwarmingClient_Default_SwarmingClient(t *testing.T) {
 	ctx := context.Background()
 	sc, err := NewSwarmingClient(ctx, DefaultSwarmingServiceAddress)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, sc)
 }
 
@@ -96,7 +96,7 @@ func TestGetCASOutput_ValidInput_SwarmingRBECasRef(t *testing.T) {
 		}, nil).Once()
 
 	rbe, err := sc.GetCASOutput(ctx, "taskId")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "instance", rbe.CasInstance)
 	assert.Equal(t, "hash", rbe.Digest.Hash)
 	assert.Equal(t, int64(0), rbe.Digest.SizeBytes)
@@ -195,7 +195,7 @@ func TestGetBotTasksBetweenTwoTasks_GivenValidInputs_ReturnsTasks(t *testing.T) 
 			mockClient.On("ListBotTasks", ctx, mockBotReq).Return(mockResp, nil)
 
 			resp, err := sc.GetBotTasksBetweenTwoTasks(ctx, botID, task1, task2)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, mockResp, resp)
 		})
 	}
@@ -231,6 +231,6 @@ func TestGetBotTasksBetweenTwoTasks_GivenBadTask_ReturnsError(t *testing.T) {
 	mockClient.On("GetResult", ctx, &apipb.TaskIdWithPerfRequest{TaskId: task1}).Return(nil, fmt.Errorf("some error"))
 
 	resp, err := sc.GetBotTasksBetweenTwoTasks(ctx, botID, task1, task2)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, resp)
 }

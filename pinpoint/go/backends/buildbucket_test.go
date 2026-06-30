@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"go.chromium.org/luci/grpc/appstatus"
 
@@ -136,7 +137,7 @@ func TestGetBuildWithPatches_OnePatch_MatchFound(t *testing.T) {
 	mbc.EXPECT().SearchBuilds(ctx, req).Return(resp, nil)
 
 	build, err := c.GetBuildWithPatches(ctx, builder, DefaultBucket, commit, patches)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(2), build.GetId())
 	assert.Equal(t, patches, build.Input.GerritChanges)
 }
@@ -169,7 +170,7 @@ func TestGetBuildWithPatches_OldBuild_NoMatch(t *testing.T) {
 	mbc.EXPECT().SearchBuilds(ctx, req).Return(resp, nil)
 
 	build, err := c.GetBuildWithPatches(ctx, builder, DefaultBucket, commit, patches)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, build)
 }
 
@@ -199,7 +200,7 @@ func TestGetBuildWithPatches_FailedBuild_NoMatch(t *testing.T) {
 	mbc.EXPECT().SearchBuilds(ctx, req).Return(resp, nil)
 
 	build, err := c.GetBuildWithPatches(ctx, builder, DefaultBucket, commit, patches)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, build)
 }
 
@@ -226,7 +227,7 @@ func TestGetBuildWithPatches_NilPatches_NoMatch(t *testing.T) {
 	mbc.EXPECT().SearchBuilds(ctx, req).Return(resp, nil)
 
 	build, err := c.GetBuildWithPatches(ctx, builder, DefaultBucket, commit, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, build)
 }
 
@@ -289,7 +290,7 @@ func TestGetBuildWithDeps_ValidInputs_MatchingBuild(t *testing.T) {
 	assert.NotNil(t, c.findMatchingBuild(resp.GetBuilds(), deps, nil))
 
 	build, err := c.GetBuildWithDeps(ctx, builder, DefaultBucket, commit, deps)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(1), build.GetId())
 	assert.Nil(t, build.Input.GerritChanges)
 	assert.Equal(t, "1", build.Input.Properties.Fields[DepsOverrideKey].GetStructValue().AsMap()[webrtc].(string))
@@ -324,7 +325,7 @@ func TestGetBuildFromWaterfall_ExistingMapping_BuildFound(t *testing.T) {
 	mbc.EXPECT().SearchBuilds(ctx, req).Return(resp, nil)
 
 	build, err := c.GetBuildFromWaterfall(ctx, builder, commit)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(2), build.GetId())
 }
 
@@ -340,7 +341,7 @@ func TestGetBuildFromWaterfall_UnsupportedBuilder_Error(t *testing.T) {
 	c := NewBuildbucketClient(mbc)
 
 	b, err := c.GetBuildFromWaterfall(ctx, "builder", commit)
-	assert.ErrorContains(t, err, "has no supported CI waterfall builder")
+	require.ErrorContains(t, err, "has no supported CI waterfall builder")
 	assert.Nil(t, b)
 }
 
@@ -361,7 +362,7 @@ func TestGetBuildStatus_ValidRequest_StatusStarted(t *testing.T) {
 	mbc.EXPECT().GetBuildStatus(ctx, req).Return(resp, nil)
 
 	status, err := c.GetBuildStatus(ctx, buildID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, bpb.Status_STARTED, status)
 }
 
@@ -382,7 +383,7 @@ func TestGetBuildStatus_Error_BuildStatusUnspecified(t *testing.T) {
 	mbc.EXPECT().GetBuildStatus(ctx, req).Return(nil, resp)
 
 	status, err := c.GetBuildStatus(ctx, buildID)
-	assert.ErrorContains(t, err, "random error")
+	require.ErrorContains(t, err, "random error")
 	assert.Equal(t, bpb.Status_STATUS_UNSPECIFIED, status)
 }
 
@@ -434,7 +435,7 @@ func TestGetCASReference_ValidRequest_CASResponse(t *testing.T) {
 	mbc.EXPECT().GetBuild(ctx, req).Return(resp, nil)
 
 	ref, err := c.GetCASReference(ctx, buildID, target)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, DefaultCASInstance, ref.CasInstance)
 	assert.Equal(t, "somehash", ref.Digest.Hash)
 	assert.Equal(t, int64(123), ref.Digest.SizeBytes)
@@ -460,7 +461,7 @@ func TestGetCASReference_BuildInProgress_Error(t *testing.T) {
 	mbc.EXPECT().GetBuild(ctx, req).Return(resp, nil)
 
 	ref, err := c.GetCASReference(ctx, buildID, target)
-	assert.ErrorContains(t, err, "Cannot fetch CAS information from build 12345 with status STARTED")
+	require.ErrorContains(t, err, "Cannot fetch CAS information from build 12345 with status STARTED")
 	assert.Nil(t, ref)
 }
 
@@ -482,7 +483,7 @@ func TestGetCASReference_MissingTargetInResponse_Error(t *testing.T) {
 	mbc.EXPECT().GetBuild(ctx, req).Return(resp, nil)
 
 	ref, err := c.GetCASReference(ctx, buildID, target)
-	assert.ErrorContains(t, err, "The target performance_test_suite cannot be found in the output properties")
+	require.ErrorContains(t, err, "The target performance_test_suite cannot be found in the output properties")
 	assert.Nil(t, ref)
 }
 
@@ -505,7 +506,7 @@ func TestGetCASReference_ModifiedCasHashFormat_Error(t *testing.T) {
 	mbc.EXPECT().GetBuild(ctx, req).Return(resp, nil)
 
 	ref, err := c.GetCASReference(ctx, buildID, target)
-	assert.ErrorContains(t, err, fmt.Sprintf("CAS hash %s has been changed to an unparsable format", wrongHash))
+	require.ErrorContains(t, err, fmt.Sprintf("CAS hash %s has been changed to an unparsable format", wrongHash))
 	assert.Nil(t, ref)
 }
 
@@ -541,6 +542,6 @@ func TestStartChromeBuild_BuildWithDeps_SuccessfullyScheduled(t *testing.T) {
 	mbc.EXPECT().ScheduleBuild(gomock.AssignableToTypeOf(ctx), req).Return(resp, nil)
 
 	build, err := c.StartChromeBuild(ctx, "1", "1", builder, commit, depsMap, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, bpb.Status_SCHEDULED, build.Status)
 }

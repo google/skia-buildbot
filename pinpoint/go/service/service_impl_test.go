@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/enums/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
@@ -67,7 +68,7 @@ func TestScheduleBisection_RateLimitedRequests_ReturnError(t *testing.T) {
 
 	_, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
 	// invalid request should be rate limited.
-	assert.ErrorContains(t, err, "git hash is empty")
+	require.ErrorContains(t, err, "git hash is empty")
 
 	resp, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
 	assert.Nil(t, resp)
@@ -131,7 +132,7 @@ func TestScheduleCulpritFinder_RateLimitedRequests_ReturnError(t *testing.T) {
 		Configuration: "mac-m1_mini_2020-perf",
 	})
 	assert.Equal(t, fakeID, resp.JobId)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	resp, err = svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{})
 	assert.Nil(t, resp)
@@ -232,7 +233,7 @@ func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {
 	expect := func(req *pb.QueryBisectRequest, want *pb.BisectExecution, desc string) {
 		resp, err := svc.QueryBisection(ctx, req)
 		// TODO(b/322047067): remove this once implemented, err should be nil
-		assert.ErrorContains(t, err, "not implemented")
+		require.ErrorContains(t, err, "not implemented")
 
 		// TODO(b/322047067): the response should match the expected
 		assert.Nil(t, resp, desc)
@@ -253,12 +254,12 @@ func TestQueryBisection_NonExistingJob_ShouldError(t *testing.T) {
 		JobId: "non-exist ID",
 	})
 	// TODO(b/322047067): change this to correct error message
-	assert.ErrorContains(t, err, "not implemented", "Error should indicate job doesn't exist.")
+	require.ErrorContains(t, err, "not implemented", "Error should indicate job doesn't exist.")
 	assert.Nil(t, resp, "Non-existed Job ID shouldn't contain any response.")
 
 	resp, err = svc.QueryBisection(ctx, &pb.QueryBisectRequest{})
 	// TODO(b/322047067): change this to correct error message
-	assert.ErrorContains(t, err, "not implemented", "Empty Job ID should error.")
+	require.ErrorContains(t, err, "not implemented", "Empty Job ID should error.")
 	assert.Nil(t, resp, "Empty Job ID shouldn't contain any response.")
 }
 
@@ -268,7 +269,7 @@ func TestCancelJob_InvalidInput_ReturnError(t *testing.T) {
 	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
 
 	_, err := svc.CancelJob(ctx, &pb.CancelJobRequest{JobId: "job-id"})
-	assert.ErrorContains(t, err, "bad request: missing Reason")
+	require.ErrorContains(t, err, "bad request: missing Reason")
 
 	_, err = svc.CancelJob(ctx, &pb.CancelJobRequest{Reason: "cancel reason"})
 	assert.ErrorContains(t, err, "bad request: missing JobId")
@@ -285,7 +286,7 @@ func TestCancelJob_JobCancelFailed_ReturnError(t *testing.T) {
 
 	resp, err := svc.CancelJob(ctx, &pb.CancelJobRequest{JobId: "job-id", Reason: "cancel reason"})
 	assert.Nil(t, resp)
-	assert.ErrorContains(t, err, "Unable to cancel workflow")
+	require.ErrorContains(t, err, "Unable to cancel workflow")
 	assert.ErrorContains(t, err, "internal error")
 }
 
@@ -299,7 +300,7 @@ func TestCancelJob_JobCancelled_ReturnSucceed(t *testing.T) {
 	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
 
 	resp, err := svc.CancelJob(ctx, &pb.CancelJobRequest{JobId: "job-id", Reason: "cancel reason"})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "job-id", resp.JobId)
 	assert.Equal(t, "Cancelled", resp.State)
 }
@@ -401,7 +402,7 @@ func TestQueryPairwise_StatusCompleted_ReturnsCompleted(t *testing.T) {
 	}).Return(nil)
 
 	resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: jobID})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, pb.PairwiseJobStatus_PAIRWISE_JOB_STATUS_COMPLETED, resp.Status)
 	assert.Equal(t, expectedExecution, resp.Execution)
@@ -471,7 +472,7 @@ func TestQueryPairwise_OtherStatuses_ReturnsCorrectJobStatus(t *testing.T) {
 			tcm.On("DescribeWorkflowExecution", mock.Anything, jobID, "").Return(describeResp, nil)
 
 			resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: jobID})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, tc.expectedStatus, resp.Status)
 			assert.Nil(t, resp.Execution)

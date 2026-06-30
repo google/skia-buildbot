@@ -23,9 +23,9 @@ var culpritDetected string
 
 const (
 	// Project name to fetch secret key from.
-	secretKeyProject = "skia-infra-public"
+	secretKeyProject = "skia-infra-public" //nolint:gosec // Not a credential, it is a GCP project ID.
 	// API Key name in secretKeyProject that stores the actual API Key.
-	secretAPIKey = "perf-issue-tracker-apikey"
+	secretAPIKey = "perf-issue-tracker-apikey" //nolint:gosec // Not a credential, it is a secret name.
 )
 
 type IssueTracker interface {
@@ -69,7 +69,7 @@ func NewIssueTrackerTransport(ctx context.Context) (*issueTrackerTransport, erro
 		return nil, skerr.Wrapf(err, "loading API Key secrets from project")
 	}
 
-	client, err := google.DefaultClient(context.Background(), "https://www.googleapis.com/auth/buganizer")
+	client, err := google.DefaultClient(ctx, "https://www.googleapis.com/auth/buganizer")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "creating authorized HTTP client")
 	}

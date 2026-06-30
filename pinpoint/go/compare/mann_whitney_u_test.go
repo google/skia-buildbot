@@ -11,7 +11,7 @@ func TestMannWhitneyU_Samples_ReturnsExpectedOutput(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result := MannWhitneyU(xData, yData)
 			if exact {
-				assert.Equal(t, result, expected)
+				assert.InDelta(t, expected, result, 1e-9)
 			} else {
 				// almostExpected criteria is numerical difference
 				// rounded to the 7th difference

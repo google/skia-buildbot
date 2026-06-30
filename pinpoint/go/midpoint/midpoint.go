@@ -83,7 +83,7 @@ func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endComm
 	// LogFirstParent will return in reverse chronological order, inclusive of the end git hash.
 	lc, err := gc.LogFirstParent(ctx, startGitHash, endGitHash)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	// The list can only be empty if the start and end commits are the same.
@@ -126,12 +126,12 @@ func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *pb.Commit) (
 			sklog.Debugf("gitiles.ReadFileAtRef returned 404 for DEPS file %s@%s", commit.Repository, commit.GitHash)
 			return denormalized, nil
 		}
-		return denormalized, err
+		return denormalized, skerr.Wrap(err)
 	}
 
 	entries, err := deps_parser.ParseDeps(string(content))
 	if err != nil {
-		return denormalized, err
+		return denormalized, skerr.Wrap(err)
 	}
 
 	// We have no good way of determining whether the current DEP is a .git based

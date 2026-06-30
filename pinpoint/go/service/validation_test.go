@@ -4,25 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/common"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
-
-func validatePairwiseRequest2(req *pb.SchedulePairwiseRequest) error {
-	switch {
-	case req.Configuration == "":
-		return skerr.Fmt("configuration is undefined")
-	case req.Benchmark == "":
-		return skerr.Fmt("benchmark is undefined")
-	case req.Story == "":
-		return skerr.Fmt("story is undefined")
-	case req.StartCommit == nil || req.EndCommit == nil:
-		return skerr.Fmt("invalid start and end commits")
-	}
-	return nil
-}
 
 func TestValidatePairwiseRequest_MissingConfiguration_ReturnError(t *testing.T) {
 	req := &pb.SchedulePairwiseRequest{
@@ -86,7 +72,7 @@ func TestValidatePairwiseRequest_StartAndEndCommits_ReturnError(t *testing.T) {
 	}
 
 	err := validatePairwiseRequest(req)
-	assert.ErrorContains(t, err, "invalid start and end commits")
+	require.ErrorContains(t, err, "invalid start and end commits")
 
 	req.StartCommit = &pb.CombinedCommit{
 		Main: common.NewChromiumCommit("1"),
@@ -119,6 +105,6 @@ func TestValidateQueryPairwiseRequest_JobIdNotValidUUID_ReturnsError(t *testing.
 		JobId: invalidJobID,
 	}
 	err := validateQueryPairwiseRequest(req)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid UUID length")
 }

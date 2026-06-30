@@ -42,7 +42,7 @@ type statisticFunction func([]float64, float64, Hypothesis, bool) float64
 func zeroin(zq, a, b, tol float64, nums []float64, alt Hypothesis, correct bool, f statisticFunction) (float64, error) {
 	// Calculate f(a).
 	fa := f(nums, a, alt, correct)
-	fa = fa - zq
+	fa -= zq
 
 	if fa == 0 {
 		return a, nil
@@ -50,7 +50,7 @@ func zeroin(zq, a, b, tol float64, nums []float64, alt Hypothesis, correct bool,
 
 	// Calculate f(b).
 	fb := f(nums, b, alt, correct)
-	fb = fb - zq
+	fb -= zq
 
 	if fb == 0 {
 		return b, nil
@@ -128,7 +128,7 @@ func zeroin(zq, a, b, tol float64, nums []float64, alt Hypothesis, correct bool,
 		a, fa = b, fb
 		b += newStep
 		fb = f(nums, b, alt, correct)
-		fb = fb - zq
+		fb -= zq
 		if (fb > 0 && fc > 0) || (fb < 0 && fc < 0) {
 			c, fc = a, fa
 		}

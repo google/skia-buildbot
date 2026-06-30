@@ -3,7 +3,6 @@ package backends
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"strings"
 
 	"go.skia.org/infra/go/skerr"
@@ -42,16 +41,16 @@ func FetchBenchmarkJSON(ctx context.Context, c *rbeclient.Client, rootDigest str
 func FetchBenchmarkJSONRaw(ctx context.Context, c *rbeclient.Client, rootDigest string) (map[string][]byte, error) {
 	d, err := digest.NewFromString(rootDigest)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse digest %q: %w", rootDigest, err)
+		return nil, skerr.Wrapf(err, "failed to parse digest %q", rootDigest)
 	}
 	rootDir := &repb.Directory{}
 	if _, err := c.ReadProto(ctx, d, rootDir); err != nil {
-		return nil, fmt.Errorf("failed to read root directory proto: %w", err)
+		return nil, skerr.Wrapf(err, "failed to read root directory proto")
 	}
 
 	dirs, err := c.GetDirectoryTree(ctx, d.ToProto())
 	if err != nil {
-		return nil, fmt.Errorf("failed to call GetDirectoryTree: %w", err)
+		return nil, skerr.Wrapf(err, "failed to call GetDirectoryTree")
 	}
 
 	t := &repb.Tree{
@@ -61,29 +60,30 @@ func FetchBenchmarkJSONRaw(ctx context.Context, c *rbeclient.Client, rootDigest 
 
 	outputs, err := c.FlattenTree(t, "")
 	if err != nil {
-		return nil, fmt.Errorf("failed to call FlattenTree: %w", err)
+		return nil, skerr.Wrapf(err, "failed to call FlattenTree")
 	}
 
 	ret := make(map[string][]byte)
 
 	for path, output := range outputs {
-		if strings.HasSuffix(path, resultsFilename) {
-			parts := strings.Split(path, "/")
-			if len(parts) != 2 {
-				sklog.Errorf("unexpected output path format: %q", path)
-			}
-			benchmark := parts[0]
-			d, err := digest.New(output.Digest.Hash, output.Digest.Size)
-			if err != nil {
-				return nil, err
-			}
-			blob, _, err := c.ReadBlob(ctx, d)
-			if err != nil {
-				return nil, err
-			}
-
-			ret[benchmark] = blob
+		if !strings.HasSuffix(path, resultsFilename) {
+			continue
 		}
+		parts := strings.Split(path, "/")
+		if len(parts) != 2 {
+			sklog.Errorf("unexpected output path format: %q", path)
+		}
+		benchmark := parts[0]
+		d, err := digest.New(output.Digest.Hash, output.Digest.Size)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		blob, _, err := c.ReadBlob(ctx, d)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		ret[benchmark] = blob
 	}
 
 	return ret, nil

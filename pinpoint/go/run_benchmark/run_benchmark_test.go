@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/swarming/v2/mocks"
 	"go.skia.org/infra/pinpoint/go/backends"
@@ -19,21 +19,6 @@ var fakeBotID = map[string]string{
 	"key":   "id",
 	"value": "fake-botid-h7",
 }
-
-var req = RunBenchmarkRequest{
-	JobID:     "id",
-	Benchmark: "benchmark",
-	Story:     "story",
-	Build: &apipb.CASReference{
-		CasInstance: "instance",
-		Digest: &apipb.Digest{
-			Hash:      "hash",
-			SizeBytes: 0,
-		},
-	},
-	Commit: "64893ca6294946163615dcf23b614afe0419bfa3",
-}
-var expectedErr = skerr.Fmt("some error")
 
 func TestRun_TelemetryTest_ValidExecution(t *testing.T) {
 	ctx := context.Background()
@@ -57,7 +42,7 @@ func TestRun_TelemetryTest_ValidExecution(t *testing.T) {
 			TaskId: "123",
 		}, nil).Once()
 	taskIds, err := Run(ctx, sc, c, "android-pixel4_webview-perf", "performance_browser_tests", "story", "all", nil, fakeID, buildArtifact, 1, fakeBotID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, taskIds, 1)
 	assert.Equal(t, "123", taskIds[0].TaskId)
 }

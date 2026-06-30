@@ -8,7 +8,7 @@ import (
 )
 
 func TestLowThreshold(t *testing.T) {
-	assert.Equal(t, 0.05, LowThreshold)
+	assert.InDelta(t, 0.05, LowThreshold, 1e-9)
 }
 
 func TestHighThresholds(t *testing.T) {

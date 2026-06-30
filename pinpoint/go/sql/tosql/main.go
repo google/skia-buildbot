@@ -32,7 +32,7 @@ func main() {
 
 	packagePath := cwd
 	schemaTarget := exporter.Spanner
-	packagePath = filepath.Join(packagePath, "schema/spanner")
+	packagePath = filepath.Join(packagePath, "schema", "spanner")
 
 	generatedSqlSchema := exporter.GenerateSQL(
 		spannerTables{},
@@ -42,7 +42,7 @@ func main() {
 		&exporter.SpannerConverter{SkipCreatedAt: true})
 
 	out := filepath.Join(packagePath, outputFileName)
-	err = os.WriteFile(out, []byte(generatedSqlSchema), 0o666)
+	err = os.WriteFile(out, []byte(generatedSqlSchema), 0o600)
 	if err != nil {
 		sklog.Fatalf("Could not write SQL to %s: %s", out, err)
 	}

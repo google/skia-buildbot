@@ -31,12 +31,12 @@ go_test(
     ],
     embed = [":run_benchmark"],
     deps = [
-        "//go/skerr",
         "//go/swarming",
         "//go/swarming/v2/mocks",
         "//pinpoint/go/backends",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )

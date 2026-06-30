@@ -308,7 +308,7 @@ func (b *buildbucketClient) GetBuildStatus(ctx context.Context, buildID int64) (
 
 	build, err := b.client.GetBuildStatus(ctx, req)
 	if err != nil {
-		return bpb.Status_STATUS_UNSPECIFIED, err
+		return bpb.Status_STATUS_UNSPECIFIED, skerr.Wrap(err)
 	}
 
 	return build.Status, nil
@@ -338,30 +338,31 @@ func (b *buildbucketClient) GetCASReference(ctx context.Context, buildID int64, 
 		return nil, skerr.Fmt("Cannot fetch CAS information from build %d with status %v", buildID, build.Status)
 	}
 	for k, v := range build.GetOutput().GetProperties().GetFields() {
-		if strings.Contains(k, SwarmingHashRefKey) {
-			mv := v.GetStructValue().AsMap()
-			cas, ok := mv[target].(string)
-			if !ok {
-				return nil, skerr.Fmt("The target %s cannot be found in the output properties.", target)
-			}
-			// cas hash is split into two parts: {hash}/{bytes}
-			parts := strings.Split(cas, "/")
-			if len(parts) != 2 {
-				return nil, skerr.Fmt("CAS hash %s has been changed to an unparsable format.", cas)
-			}
-			// base 10, 64 bit size
-			bytes, err := strconv.ParseInt(parts[1], 10, 64)
-			if err != nil {
-				return nil, err
-			}
-			return &apipb.CASReference{
-				CasInstance: DefaultCASInstance,
-				Digest: &apipb.Digest{
-					Hash:      parts[0],
-					SizeBytes: bytes,
-				},
-			}, nil
+		if !strings.Contains(k, SwarmingHashRefKey) {
+			continue
 		}
+		mv := v.GetStructValue().AsMap()
+		cas, ok := mv[target].(string)
+		if !ok {
+			return nil, skerr.Fmt("The target %s cannot be found in the output properties.", target)
+		}
+		// cas hash is split into two parts: {hash}/{bytes}
+		parts := strings.Split(cas, "/")
+		if len(parts) != 2 {
+			return nil, skerr.Fmt("CAS hash %s has been changed to an unparsable format.", cas)
+		}
+		// base 10, 64 bit size
+		bytes, err := strconv.ParseInt(parts[1], 10, 64)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return &apipb.CASReference{
+			CasInstance: DefaultCASInstance,
+			Digest: &apipb.Digest{
+				Hash:      parts[0],
+				SizeBytes: bytes,
+			},
+		}, nil
 	}
 
 	return nil, nil

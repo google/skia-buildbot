@@ -12,6 +12,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -23,6 +24,7 @@ import (
 	"golang.org/x/net/html"
 
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 )
 
 const (
@@ -36,13 +38,13 @@ var httpClient = httputils.NewTimeoutClient()
 func downloadAndParseHtml() (*html.Node, error) {
 	resp, err := httpClient.Get("https://developer.apple.com/safari/resources/")
 	if err != nil {
-		return nil, fmt.Errorf("error downloading STP resource page: %w\n", err)
+		return nil, skerr.Wrapf(err, "error downloading STP resource page")
 	}
 	defer resp.Body.Close()
 
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing HTML: %w\n", err)
+		return nil, skerr.Wrapf(err, "error parsing HTML")
 	}
 
 	return doc, nil
@@ -100,11 +102,12 @@ func extractFromHtml(doc *html.Node) *releaseInfo {
 			for _, a := range n.Attr {
 				if a.Key == "href" && strings.Contains(a.Val, "SafariTechnologyPreview.dmg") {
 					osInfo := n.LastChild.Data
-					if strings.Contains(osInfo, "Tahoe") {
+					switch {
+					case strings.Contains(osInfo, "Tahoe"):
 						ri.linkTahoe = a.Val
-					} else if strings.Contains(osInfo, "Sequoia") {
+					case strings.Contains(osInfo, "Sequoia"):
 						ri.linkSequoia = a.Val
-					} else {
+					default:
 						fmt.Fprintf(os.Stderr, "Unable to discover macOS version: %s\n", n.LastChild.Data)
 					}
 				}
@@ -130,8 +133,8 @@ func findCipd(ref string) bool {
 		return true
 	}
 
-	exitError, isExitError := err.(*exec.ExitError)
-	if isExitError && exitError.ProcessState.ExitCode() == 1 {
+	var exitError *exec.ExitError
+	if errors.As(err, &exitError) && exitError.ProcessState.ExitCode() == 1 {
 		// Exit code 1 means "cipd resolve" did not find an existing package.
 		return false
 	}
@@ -145,7 +148,7 @@ func createCipd(url string, refs []string) error {
 	// Create a new temporary directory
 	tmpDir, err := os.MkdirTemp("", "stp")
 	if err != nil {
-		return fmt.Errorf("error creating temp dir: %w\n", err)
+		return skerr.Wrapf(err, "error creating temp dir")
 	}
 	// Ignore errors during clean-up.
 	defer func() { _ = os.RemoveAll(tmpDir) }()
@@ -153,7 +156,7 @@ func createCipd(url string, refs []string) error {
 	// Download the file
 	resp, err := httpClient.Get(url)
 	if err != nil {
-		return fmt.Errorf("error downloading from %s: %w\n", url, err)
+		return skerr.Wrapf(err, "error downloading from %s", url)
 	}
 	defer resp.Body.Close()
 
@@ -161,13 +164,13 @@ func createCipd(url string, refs []string) error {
 	dmgPath := filepath.Join(tmpDir, "SafariTechnologyPreview.dmg")
 	tmpfile, err := os.Create(dmgPath)
 	if err != nil {
-		return fmt.Errorf("error creating temp file %s: %w\n", dmgPath, err)
+		return skerr.Wrapf(err, "error creating temp file %s", dmgPath)
 	}
 
 	// Write the body to the file
 	_, err = io.Copy(tmpfile, resp.Body)
 	if err != nil {
-		return fmt.Errorf("error writing to temp file %s: %w\n", dmgPath, err)
+		return skerr.Wrapf(err, "error writing to temp file %s", dmgPath)
 	}
 	tmpfile.Close()
 
@@ -182,7 +185,7 @@ func createCipd(url string, refs []string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running cipd %v: %w\n", args, err)
+		return skerr.Wrapf(err, "error running cipd %v", args)
 	}
 
 	fmt.Printf("Successfully uploaded %s to CIPD at %s with refs %v\n", dmgPath, cipdPath, refs)

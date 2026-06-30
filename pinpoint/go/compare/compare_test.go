@@ -3,6 +3,7 @@ package compare
 import (
 	"encoding/json"
 	"math"
+	"slices"
 	"sort"
 	"testing"
 
@@ -14,18 +15,17 @@ import (
 )
 
 func convertNormalizedToRawMagnitude(a, b []float64, normMagnitude float64) float64 {
-	all_values := append(a, b...)
-	sort.Float64s(all_values)
-	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
+	allValues := slices.Concat(a, b)
+	sort.Float64s(allValues)
+	iqr := allValues[len(allValues)*3/4] - allValues[len(allValues)/4]
 	return normMagnitude * iqr
 }
 
 func TestCompareFunctional_GivenNoData_ReturnsError(t *testing.T) {
 	x := []float64{}
 	y := []float64{0, 0, 0, 0, 0}
-	const expected = Unknown
 	result, err := CompareFunctional(x, y, DefaultFunctionalErrRate)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, ErrorVerdict, result.Verdict)
 }
 
@@ -33,16 +33,17 @@ func TestCompareFunctional_GivenValidInputs_ReturnsCorrectResult(t *testing.T) {
 	test := func(name string, x, y []float64, expectedErrRate float64, expected Verdict) {
 		t.Run(name, func(t *testing.T) {
 			result, err := CompareFunctional(x, y, expectedErrRate)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, expected, result.Verdict)
-			if result.Verdict == Unknown {
+			switch result.Verdict {
+			case Unknown:
 				assert.LessOrEqual(t, result.PValue, result.HighThreshold)
 				assert.Greater(t, result.PValue, result.LowThreshold)
-			} else if result.Verdict == Same {
+			case Same:
 				assert.Greater(t, result.PValue, result.HighThreshold)
-			} else if result.Verdict == Different {
+			case Different:
 				assert.LessOrEqual(t, result.PValue, result.LowThreshold)
-			} else {
+			default:
 				t.Errorf("Obtained non-existent verdict %s", result.Verdict)
 			}
 		})
@@ -64,9 +65,8 @@ func TestComparePerformance_GivenNoData_ReturnsNil(t *testing.T) {
 	x := []float64{0, 0, 0, 0, 0}
 	y := []float64{}
 	const magnitude = 1.0
-	const expected = Unknown
 	result, err := ComparePerformance(x, y, magnitude, UnknownDir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, NilVerdict, result.Verdict)
 }
 
@@ -74,7 +74,7 @@ func TestComparePerformance_GivenValidInputs_ReturnsCorrectResult(t *testing.T) 
 	test := func(name string, x, y []float64, magnitude float64, expected Verdict) {
 		t.Run(name, func(t *testing.T) {
 			result, err := ComparePerformance(x, y, magnitude, UnknownDir)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, expected, result.Verdict)
 			switch result.Verdict {
 			case Unknown:
@@ -107,7 +107,7 @@ func TestComparePerformance_GivenSmallDifference_ReturnsSame(t *testing.T) {
 	x := []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	y := []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	result, err := ComparePerformance(x, y, 1e6, UnknownDir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, Same, result.Verdict)
 	assert.Zero(t, result.PValue)
 	assert.True(t, result.IsTooSmall)
@@ -274,7 +274,7 @@ func TestComparePairwise_AEqualsB_ReturnsSame(t *testing.T) {
 	}
 
 	result, err := ComparePairwise(x, y, UnknownDir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expected, result)
 }
 
@@ -295,7 +295,7 @@ func TestComparePairwise_AllSameValues_ReturnsSame(t *testing.T) {
 	}
 
 	result, err := ComparePairwise(x, y, UnknownDir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expected, result)
 }
 
@@ -315,7 +315,7 @@ func TestComparePairwise_SameValues_ReturnsEstimate(t *testing.T) {
 	require.NoError(t, err)
 
 	result, err := ComparePairwise(valuesA, valuesB, UnknownDir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expected, result.PairwiseWilcoxonSignedRankedTestResult)
 }
 

@@ -289,7 +289,7 @@ deps = {
 	// no modified deps in start and end, meaning we go through the regular workflow of searching
 	// for midpoint in chromium.
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// Next candidate should be 2, since LogFirstParent returns [3, 2],
 	// 3 is popped leaving [2].
 	nextCommit := res.GetLatestModifiedDep()
@@ -319,7 +319,7 @@ func TestFindMidCombinedCommit_WithModifiedDeps_NextCandidateInModifiedDeps(t *t
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(webrtcUrl, wgc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// endGitHash is popped off, leaving [4, 3, 2, 1]
 	// and since len == 4, mid index == 2
 	nextCommit := res.GetLatestModifiedDep()
@@ -392,7 +392,7 @@ deps = {
 		})
 
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// The next candidate should be in v8/v8 with commit "2", because the midpoint
 	// from [3, 2] would be 2.
@@ -463,7 +463,7 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(webrtcUrl, wgc).WithRepo(v8Url, v8gc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// equality check through key
 	assert.Equal(t, start.Key(), res.Key())
 }
@@ -509,7 +509,7 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, start.Key(), res.Key())
 }
 
@@ -555,7 +555,7 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, origStart.Key(), res.Key())
 }
 
@@ -593,7 +593,7 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// endGitHash is popped off, leaving [4, 3, 2, 1]
 	nextCommit := res.GetLatestModifiedDep()
 	assert.Equal(t, "2", nextCommit.GitHash)
@@ -681,7 +681,7 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(v8Url, v8gc).WithRepo(webrtcUrl, wgc).WithRepo(randomUrl, randomGc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// [5, 4], top is popped off so midpoint = 4
 	nextCommit := res.GetLatestModifiedDep()
 	assert.Equal(t, "4", nextCommit.GitHash)
@@ -730,7 +730,7 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(webrtcUrl, wgc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, start.Key(), res.Key())
 }
 

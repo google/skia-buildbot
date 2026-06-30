@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/httputils",
+        "//go/skerr",
         "@org_golang_x_net//html",
     ],
 )

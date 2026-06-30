@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetCommand_WaterfallGTest_TestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
 	b, err := NewBenchmarkTest(c, "android-pixel6-perf", "", "components_perftests", "", "", nil)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cmd := b.GetCommand()
 	// stories w/o story tags should have -d set
@@ -25,7 +26,7 @@ func TestGetCommand_WaterfallGTest_TestCommand(t *testing.T) {
 func TestGetCommand_PerfBrowserTestWithStory_StoryTestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
 	b, err := NewBenchmarkTest(c, "android-pixel4_webview-perf", "", "performance_browser_tests", "story", "all", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cmd := b.GetCommand()
 	// stories w/o story tags should have -d set
@@ -39,7 +40,7 @@ func TestGetCommand_PerfBrowserTestWithStory_StoryTestCommand(t *testing.T) {
 func TestGetCommand_NonWaterfallEnabledGTest_TestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
 	b, err := NewBenchmarkTest(c, "android-pixel4_webview-perf", "", "random_test", "", "", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cmd := b.GetCommand()
 
@@ -52,7 +53,7 @@ func TestGetCommand_NonWaterfallEnabledGTest_TestCommand(t *testing.T) {
 func TestGetCommand_Crossbench_TestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
 	b, err := NewBenchmarkTest(c, "win-11-perf", "release", "speedometer3.1.crossbench", "default", "", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cmd := b.GetCommand()
 
@@ -65,7 +66,7 @@ func TestGetCommand_Crossbench_TestCommand(t *testing.T) {
 func TestGetCommand_CrossbenchWithExtraArgs_TestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
 	b, err := NewBenchmarkTest(c, "win-11-perf", "release", "speedometer3.1.crossbench", "default", "", []string{"--official-browser=safari"})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cmd := b.GetCommand()
 
@@ -110,7 +111,7 @@ func TestGetCommand_TelemetryWithBrowserSpecificExtraArgs_AutoWraps(t *testing.T
 		"--enable-features=IdbSqliteOnDiskRollout:stage/UseLevelDbOnly",
 		"--js-flags=--max-opt=0",
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cmd := b.GetCommand()
 
@@ -126,7 +127,7 @@ func TestGetCommand_CBBRunnerExtraArgs_NotWrapped(t *testing.T) {
 		"seed.json",
 		"--disable-field-trial-config",
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cmd := b.GetCommand()
 

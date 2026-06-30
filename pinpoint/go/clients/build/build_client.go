@@ -20,13 +20,13 @@ var BuildClientContextKey = &BuildClientKey{}
 // BuildClient is the interface for all build clients to implement.
 type BuildClient interface {
 	// CreateFindBuildRequest returns a request for FindBuild.
-	CreateFindBuildRequest(params workflows.BuildParams) (*FindBuildRequest, error)
+	CreateFindBuildRequest(params *workflows.BuildParams) (*FindBuildRequest, error)
 
 	// FindBuild looks for an existing build that matches the build parameters.
 	FindBuild(ctx context.Context, req *FindBuildRequest) (*FindBuildResponse, error)
 
 	// CreateStartBuildRequest returns a request for StartBuild
-	CreateStartBuildRequest(params workflows.BuildParams) (*StartBuildRequest, error)
+	CreateStartBuildRequest(params *workflows.BuildParams) (*StartBuildRequest, error)
 
 	// FindBuild starts a new build request.
 	StartBuild(ctx context.Context, req *StartBuildRequest) (*StartBuildResponse, error)

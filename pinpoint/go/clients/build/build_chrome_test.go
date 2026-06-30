@@ -30,7 +30,7 @@ func TestCreateFindBuildRequest_OnlyEssentials_ValidRequest(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: &mocks.BuildbucketClient{},
 	}
-	req, err := client.CreateFindBuildRequest(params)
+	req, err := client.CreateFindBuildRequest(&params)
 	require.NoError(t, err)
 	assert.Equal(t, device, req.Request.(*ChromeFindBuildRequest).Device)
 	assert.Equal(t, "random_hash", req.Request.(*ChromeFindBuildRequest).Commit)
@@ -47,7 +47,7 @@ func TestCreateFindBuildRequest_MissingCommit_Error(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: &mocks.BuildbucketClient{},
 	}
-	req, err := client.CreateFindBuildRequest(params)
+	req, err := client.CreateFindBuildRequest(&params)
 	require.Nil(t, req)
 	assert.Error(t, err, "Missing required fields")
 }
@@ -62,7 +62,7 @@ func TestFindBuild_UnsupportedBotConfig_Error(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: &mocks.BuildbucketClient{},
 	}
-	req, err := client.CreateFindBuildRequest(params)
+	req, err := client.CreateFindBuildRequest(&params)
 	require.NoError(t, err)
 
 	resp, err := client.FindBuild(ctx, req)
@@ -82,7 +82,7 @@ func TestFindBuild_ValidReq_BuildNotFound(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: mockClient,
 	}
-	req, err := client.CreateFindBuildRequest(params)
+	req, err := client.CreateFindBuildRequest(&params)
 	require.NoError(t, err)
 
 	mockClient.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", DefaultBucket, "random_hash", mock.Anything, mock.Anything).Return(nil, nil)
@@ -112,7 +112,7 @@ func TestFindBuild_ValidReqWithPatch_BuildNotFound(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: mockClient,
 	}
-	req, err := client.CreateFindBuildRequest(params)
+	req, err := client.CreateFindBuildRequest(&params)
 	require.NoError(t, err)
 
 	mockClient.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", DefaultBucket, "random_hash", mock.Anything, mock.Anything).Return(nil, nil)
@@ -134,7 +134,7 @@ func TestFindBuild_ValidReq_BuildFound(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: mockClient,
 	}
-	req, err := client.CreateFindBuildRequest(params)
+	req, err := client.CreateFindBuildRequest(&params)
 	require.NoError(t, err)
 
 	respBuild := &buildbucketpb.Build{
@@ -160,7 +160,7 @@ func TestFindBuild_ValidReq_BuildbucketFailure(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: mockClient,
 	}
-	req, err := client.CreateFindBuildRequest(params)
+	req, err := client.CreateFindBuildRequest(&params)
 	require.NoError(t, err)
 
 	mockClient.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", "try", "random_hash", mock.Anything, mock.Anything).Return(nil, skerr.Fmt("an error!"))
@@ -179,7 +179,7 @@ func TestCreateStartBuildRequest_MissingCommit_Error(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: &mocks.BuildbucketClient{},
 	}
-	req, err := client.CreateStartBuildRequest(params)
+	req, err := client.CreateStartBuildRequest(&params)
 	require.Nil(t, req)
 	assert.Error(t, err, "Missing required fields")
 }
@@ -194,7 +194,7 @@ func TestCreateStartBuildRequest_UnsupportedBotConfig_Error(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: &mocks.BuildbucketClient{},
 	}
-	req, err := client.CreateStartBuildRequest(params)
+	req, err := client.CreateStartBuildRequest(&params)
 	require.Nil(t, req)
 	assert.Error(t, err, "Unsupported device value provided")
 }
@@ -211,7 +211,7 @@ func TestCreateStartBuildRequest_NoDeps_ValidResponse(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: &mocks.BuildbucketClient{},
 	}
-	startReq, err := client.CreateStartBuildRequest(params)
+	startReq, err := client.CreateStartBuildRequest(&params)
 	require.NoError(t, err)
 
 	assert.Equal(t, DefaultBucket, startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Builder.Bucket)
@@ -239,7 +239,7 @@ func TestCreateStartBuildRequest_WithPatch_ValidResponse(t *testing.T) {
 	client := &buildChromeClient{
 		BuildbucketClient: &mocks.BuildbucketClient{},
 	}
-	startReq, err := client.CreateStartBuildRequest(params)
+	startReq, err := client.CreateStartBuildRequest(&params)
 	require.NoError(t, err)
 
 	assert.Equal(t, DefaultBucket, startReq.Request.(*buildbucketpb.ScheduleBuildRequest).Builder.Bucket)
@@ -265,7 +265,7 @@ func TestStartBuild_ValidReq_NoError(t *testing.T) {
 		BuildbucketClient: mockClient,
 	}
 
-	startReq, err := client.CreateStartBuildRequest(params)
+	startReq, err := client.CreateStartBuildRequest(&params)
 	require.NoError(t, err)
 
 	expectedResp := &buildbucketpb.Build{
