@@ -139,9 +139,9 @@ func main() {
 	runCheck("PythonFilesHaveNoTabs", func() bool { return checkPythonFilesHaveNoTabs(ctx, changedFiles) })
 	runCheck("BannedGoAPIs", func() bool { return checkBannedGoAPIs(ctx, changedFiles) })
 	runCheck("JSDebugging", func() bool { return checkJSDebugging(ctx, changedFiles) })
+	runCheck("GolangCILintForPinpoint", func() bool { return runGolangCILintForPinpoint(ctx, changedFiles, branchBaseCommit) })
+	runCheck("BetterAlignForPinpoint", func() bool { return runBetterAlignForPinpoint(ctx, changedFiles) })
 	if !*commit {
-		runCheck("GolangCILintForPinpoint", func() bool { return runGolangCILintForPinpoint(ctx, changedFiles, branchBaseCommit) })
-		runCheck("BetterAlignForPinpoint", func() bool { return runBetterAlignForPinpoint(ctx, changedFiles) })
 		runCheck("WorkflowCheck", func() bool { return runWorkflowCheck(ctx, changedFiles, *repoDir) })
 		runCheck("NonASCII", func() bool { return checkNonASCII(ctx, changedFiles) })
 		runCheck("Autoreview", func() bool { return runAutoreview(ctx, branchBaseCommit) })

@@ -43,9 +43,9 @@ func DialRBECAS(ctx context.Context, dialOpts ...grpc.DialOption) (map[string]*r
 	}
 
 	type connectResult struct {
-		casInstance string
 		rbeClient   *rbeclient.Client
 		err         error
+		casInstance string
 	}
 	results := make(chan connectResult)
 
@@ -54,9 +54,9 @@ func DialRBECAS(ctx context.Context, dialOpts ...grpc.DialOption) (map[string]*r
 		go func() {
 			rbeClient, err := rbeclient.NewClient(ctx, casInstance, dialParams, perRPCCreds)
 			results <- connectResult{
-				casInstance,
-				rbeClient,
-				err,
+				rbeClient:   rbeClient,
+				err:         err,
+				casInstance: casInstance,
 			}
 		}()
 	}
