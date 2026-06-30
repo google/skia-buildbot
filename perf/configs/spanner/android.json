@@ -1,6 +1,7 @@
 {
     "URL": "https://androidx-perf.skia.org",
     "instance_name": "AndroidX",
+    "landing_page_rel_path": "/e2",
     "header_image_url": "/dist/images/androidx.svg",
     "contact": "http://go/androidx-discuss",
     "ga_measurement_id": "G-YDQJ6YQGFM",
@@ -77,6 +78,7 @@
       ],
 
       "default_url_values": {
+        "evenXAxisSpacing": "true",
         "plotSummary": "true",
         "useTestPicker": "true",
         "showZero": "true",
@@ -153,6 +155,7 @@
     "optimize_sqltracestore": true,
     "show_triage_link": true,
     "show_bisect_btn": false,
+    "enable_v2_ui": true,
     "default_to_explore_v2": true
 }
 

@@ -633,6 +633,37 @@ describe('explore-multi-v2-sk', () => {
     }
   });
 
+  it('applies default_xaxis_domain and default_url_values on load', async () => {
+    const mockDataService = {
+      getInitPage: async () => ({ dataframe: { paramset: {} } }),
+      getDefaults: async () => ({
+        default_xaxis_domain: 'date',
+        default_url_values: {
+          evenXAxisSpacing: 'true',
+          sparklines: 'true',
+        },
+      }),
+    };
+    const oldInstance = (DataService as any).instance;
+    (DataService as any).instance = mockDataService as any;
+
+    try {
+      const newElement = document.createElement('explore-multi-v2-sk') as ExploreMultiV2Sk;
+      document.body.appendChild(newElement);
+      await newElement.updateComplete;
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(newElement.dateMode).to.be.true;
+      expect((newElement as any)._evenXAxisSpacing).to.be.true;
+      expect((newElement as any)._showSparklines).to.be.true;
+
+      document.body.removeChild(newElement);
+    } finally {
+      (DataService as any).instance = oldInstance;
+    }
+  });
+
   it('has sophisticated tour steps', () => {
     expect((element as any)._tourSteps.length).to.equal(11);
     expect((element as any)._tourSteps[0].title).to.equal('Dynamic Setup');

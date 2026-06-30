@@ -256,9 +256,13 @@ export class PerfScaffoldSk extends LitElement {
             <h1 class="name">${this.instanceTitleTemplate()}</h1>
           </a>
           <nav id="header-nav-items">
-            <a href="/e" tab-index="0" class="${this.isPageActive('/e') ? 'active' : ''}"
-              >Explore</a
-            >
+            ${!window.perf.default_to_explore_v2
+              ? html`
+                  <a href="/e" tab-index="0" class="${this.isPageActive('/e') ? 'active' : ''}"
+                    >Explore</a
+                  >
+                `
+              : ''}
             <a
               href="${this.multigraphUrl}"
               tab-index="0"

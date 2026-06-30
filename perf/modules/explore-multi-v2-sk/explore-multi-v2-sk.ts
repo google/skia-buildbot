@@ -880,6 +880,7 @@ export class ExploreMultiV2Sk extends LitElement {
       this._defaultParamSelections =
         (defaults.default_param_selections as Record<string, string[]>) || {};
       this._conditionalDefaults = defaults.conditional_defaults || [];
+      this._applyConfigDefaults(defaults);
 
       // Apply defaults to initial query if empty and no shortcut is present
       if (
@@ -909,6 +910,42 @@ export class ExploreMultiV2Sk extends LitElement {
       console.error('Metadata fetch error:', e);
     } finally {
       this._resolveTimeRange();
+    }
+  }
+
+  private _applyConfigDefaults(defaults: any) {
+    if (!defaults) return;
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (defaults.default_xaxis_domain === 'date' && !urlParams.has('dateMode')) {
+      this.dateMode = true;
+    }
+
+    if (defaults.default_url_values) {
+      const urlVals = defaults.default_url_values;
+      const stringToBool = (val: string) => val.toLowerCase() === 'true';
+
+      if (urlVals.evenXAxisSpacing !== undefined && !urlParams.has('evenXAxisSpacing')) {
+        this._evenXAxisSpacing = stringToBool(urlVals.evenXAxisSpacing);
+      }
+      if (urlVals.plotSummary !== undefined && !urlParams.has('plotSummary')) {
+        this._showSummaryBar = stringToBool(urlVals.plotSummary);
+      }
+      if (urlVals.dots !== undefined && !urlParams.has('dots')) {
+        this._showDots = stringToBool(urlVals.dots);
+      }
+      if (urlVals.sparklines !== undefined && !urlParams.has('sparklines')) {
+        this._showSparklines = stringToBool(urlVals.sparklines);
+      }
+      if (urlVals.regressions !== undefined && !urlParams.has('regressions')) {
+        this._showRegressions = stringToBool(urlVals.regressions);
+      }
+      if (urlVals.tooltipDiffs !== undefined && !urlParams.has('tooltipDiffs')) {
+        this._tooltipDiffs = stringToBool(urlVals.tooltipDiffs);
+      }
+      if (urlVals.transformPreset !== undefined && !urlParams.has('transformPreset')) {
+        this._transformPreset = urlVals.transformPreset;
+      }
     }
   }
 
