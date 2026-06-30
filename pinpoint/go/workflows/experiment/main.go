@@ -35,9 +35,6 @@ var (
 	bot        = flag.String("bot", "mac-m1_mini_2020-perf-pgo", "Target bot for the Chrome build.")
 	iterations = flag.Int("iterations", 20, "The number of times to run a benchmark task.")
 
-	// fetchExperimentResult flags
-	workflowId = flag.String("workflowId", "", "The temporal workflow associated with Swarming runs.")
-
 	// Run flags
 	runExperiment = flag.Bool("runExperiment", false, "Flag to run experiment")
 )
@@ -110,6 +107,4 @@ func main() {
 			sklog.Errorf("Workflow failed: ", err)
 		}
 	}
-
-	return
 }

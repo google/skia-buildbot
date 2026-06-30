@@ -17,7 +17,7 @@ import (
 )
 
 // BuildWorkflow is a Workflow definition that creates a build artifact.
-func BuildWorkflow(ctx workflow.Context, params workflows.BuildParams) (*workflows.Build, error) {
+func BuildWorkflow(ctx workflow.Context, params *workflows.BuildParams) (*workflows.Build, error) {
 	ctx = workflow.WithActivityOptions(ctx, buildActivityOption)
 	logger := workflow.GetLogger(ctx)
 
@@ -29,7 +29,7 @@ func BuildWorkflow(ctx workflow.Context, params workflows.BuildParams) (*workflo
 	buildClient, err := build.NewBuildClient(context.Background(), project)
 	if err != nil {
 		logger.Error("Failed to instantiate build client: ", err)
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	ctx = workflow.WithValue(ctx, build.BuildClientContextKey, buildClient)
 
@@ -54,17 +54,17 @@ func BuildWorkflow(ctx workflow.Context, params workflows.BuildParams) (*workflo
 
 	if err := workflow.ExecuteActivity(ctx, bca.SearchOrBuildActivity, params).Get(ctx, &buildID); err != nil {
 		logger.Error("Failed to wait for SearchOrBuildActivity:", err)
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	if err := workflow.ExecuteActivity(ctx, bca.WaitBuildCompletionActivity, buildID, project).Get(ctx, &status); err != nil {
 		logger.Error("Failed to wait for WaitBuildCompletionActivity:", err)
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	if status != buildbucketpb.Status_SUCCESS {
 		return &workflows.Build{
-			BuildParams: params,
+			BuildParams: *params,
 			ID:          buildID,
 			Status:      status,
 			CAS:         nil,
@@ -74,11 +74,11 @@ func BuildWorkflow(ctx workflow.Context, params workflows.BuildParams) (*workflo
 	var cas *apipb.CASReference
 	if err := workflow.ExecuteActivity(ctx, bca.RetrieveBuildArtifactActivity, buildID, params.Target, params.Project).Get(ctx, &cas); err != nil {
 		logger.Error("Failed to wait for RetrieveBuildArtifactActivity:", err)
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	return &workflows.Build{
-		BuildParams: params,
+		BuildParams: *params,
 		ID:          buildID,
 		Status:      status,
 		CAS:         cas,
@@ -89,7 +89,7 @@ func BuildWorkflow(ctx workflow.Context, params workflows.BuildParams) (*workflo
 type BuildActivity struct{}
 
 // SearchOrBuildActivity searches for an existing build to reuse, or triggers a new one.
-func (bca *BuildActivity) SearchOrBuildActivity(ctx context.Context, params workflows.BuildParams) (int64, error) {
+func (bca *BuildActivity) SearchOrBuildActivity(ctx context.Context, params *workflows.BuildParams) (int64, error) {
 	logger := activity.GetLogger(ctx)
 
 	buildClient, err := build.NewBuildClient(ctx, "chrome")
@@ -99,7 +99,7 @@ func (bca *BuildActivity) SearchOrBuildActivity(ctx context.Context, params work
 	}
 
 	activity.RecordHeartbeat(ctx, "kicking off the build.")
-	findReq, err := buildClient.CreateFindBuildRequest(params)
+	findReq, err := buildClient.CreateFindBuildRequest(*params)
 	if err != nil {
 		logger.Error("Failed to create find build request: ", err)
 		return -1, skerr.Wrapf(err, "failed to create find build request")
@@ -117,7 +117,7 @@ func (bca *BuildActivity) SearchOrBuildActivity(ctx context.Context, params work
 	}
 
 	// Not found, trigger a new build
-	buildReq, err := buildClient.CreateStartBuildRequest(params)
+	buildReq, err := buildClient.CreateStartBuildRequest(*params)
 	if err != nil {
 		logger.Error("Failed to generate build request: ", err)
 		return -1, skerr.Wrapf(err, "failed to generate build request")
@@ -143,7 +143,7 @@ func (bca *BuildActivity) WaitBuildCompletionActivity(ctx context.Context, build
 		newBuildClient, err := build.NewBuildClient(ctx, project)
 		if err != nil {
 			logger.Error("Failed to instantiate build client missing from context: ", err)
-			return buildbucketpb.Status_STATUS_UNSPECIFIED, err
+			return buildbucketpb.Status_STATUS_UNSPECIFIED, skerr.Wrap(err)
 		}
 		buildClient = newBuildClient
 	}
@@ -152,7 +152,7 @@ func (bca *BuildActivity) WaitBuildCompletionActivity(ctx context.Context, build
 	for {
 		select {
 		case <-ctx.Done():
-			return buildbucketpb.Status_STATUS_UNSPECIFIED, ctx.Err()
+			return buildbucketpb.Status_STATUS_UNSPECIFIED, skerr.Wrap(ctx.Err())
 		default:
 			status, err := buildClient.GetStatus(ctx, buildID)
 			if err != nil {
@@ -180,7 +180,7 @@ func (bca *BuildActivity) RetrieveBuildArtifactActivity(ctx context.Context, bui
 		newBuildClient, err := build.NewBuildClient(ctx, project)
 		if err != nil {
 			logger.Error("Failed to instantiate build client missing from context: ", err)
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 		buildClient = newBuildClient
 	}
@@ -194,7 +194,7 @@ func (bca *BuildActivity) RetrieveBuildArtifactActivity(ctx context.Context, bui
 	resp, err := buildClient.GetBuildArtifact(ctx, getArtifactReq)
 	if err != nil {
 		logger.Error("Failed to fetch build artifacts: ", err)
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	return resp.Response.(*apipb.CASReference), nil
@@ -213,7 +213,7 @@ func (bca *BuildActivity) CleanupBuildActivity(ctx context.Context, buildID int6
 		newBuildClient, err := build.NewBuildClient(ctx, project)
 		if err != nil {
 			logger.Error("Failed to instantiate build client missing from context: ", err)
-			return err
+			return skerr.Wrap(err)
 		}
 		buildClient = newBuildClient
 	}
@@ -224,5 +224,9 @@ func (bca *BuildActivity) CleanupBuildActivity(ctx context.Context, buildID int6
 		BuildID: buildID,
 		Reason:  "Pinpoint job cancelled",
 	}
-	return buildClient.CancelBuild(ctx, cancelReq)
+	err := buildClient.CancelBuild(ctx, cancelReq)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }

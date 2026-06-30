@@ -148,7 +148,9 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 		sklog.Errorf("Unable to get current Edge versions: %v", err)
 	}
 
-	otherBrowsers := append(safariVersions, edgeVersions...)
+	otherBrowsers := make([]BuildInfo, 0, len(safariVersions)+len(edgeVersions))
+	otherBrowsers = append(otherBrowsers, safariVersions...)
+	otherBrowsers = append(otherBrowsers, edgeVersions...)
 
 	var commitInfo ChromeReleaseInfo
 	if err := workflow.ExecuteActivity(ctx, GetChromeReleasesInfoActivity, otherBrowsers, isDev).Get(ctx, &commitInfo); err != nil {
@@ -239,7 +241,7 @@ func compareBuildInfos(oldBis, newBis []BuildInfo) ([]BuildInfo, error) {
 	}
 	for _, bi := range newBis {
 		if oldVersions[bi.Channel] != bi.Version {
-			return nil, fmt.Errorf(
+			return nil, skerr.Fmt(
 				"browser version conflict: %s %s has both %s and %s",
 				bi.Browser, bi.Channel, bi.Version, oldVersions[bi.Channel],
 			)
@@ -262,7 +264,7 @@ func CbbGetBrowserVersionsWorkflow(ctx workflow.Context, browser string) ([]Buil
 		platform = "windows"
 		configCounts = edgeConfigs
 	default:
-		return nil, fmt.Errorf("unsupported browser %s", browser)
+		return nil, skerr.Fmt("unsupported browser %s", browser)
 	}
 	var results []BuildInfo
 	for config, count := range configCounts {
@@ -297,21 +299,21 @@ func CollectBrowserVersionsActivity(ctx context.Context, browser, platform strin
 		clients, err := backends.DialRBECAS(ctx)
 		if err != nil {
 			sklog.Errorf("Failed to dial RBE CAS client due to error: %v", err)
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 		cl, ok := clients[run.CAS.CasInstance]
 		if !ok {
-			return nil, fmt.Errorf("swarming instance %s is not within the set of allowed instances", run.CAS.CasInstance)
+			return nil, skerr.Fmt("swarming instance %s is not within the set of allowed instances", run.CAS.CasInstance)
 		}
 
 		d, err := digest.NewFromString(fmt.Sprintf("%s/%d", run.CAS.Digest.Hash, run.CAS.Digest.SizeBytes))
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse digest %v: %w", run.CAS.Digest, err)
+			return nil, skerr.Wrapf(err, "failed to parse digest %v", run.CAS.Digest)
 		}
 
 		rootDir := &repb.Directory{}
 		if _, err := cl.ReadProto(ctx, d, rootDir); err != nil {
-			return nil, fmt.Errorf("failed to read root directory proto: %w", err)
+			return nil, skerr.Wrapf(err, "failed to read root directory proto")
 		}
 
 		var versionFileDigest *repb.Digest
@@ -321,11 +323,11 @@ func CollectBrowserVersionsActivity(ctx context.Context, browser, platform strin
 			}
 		}
 		if versionFileDigest == nil {
-			return nil, fmt.Errorf("missing browser_versions.json")
+			return nil, skerr.Fmt("missing browser_versions.json")
 		}
 		d, err = digest.NewFromString(fmt.Sprintf("%s/%d", versionFileDigest.Hash, versionFileDigest.SizeBytes))
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse digest %v: %w", run.CAS.Digest, err)
+			return nil, skerr.Wrapf(err, "failed to parse digest %v", run.CAS.Digest)
 		}
 		res, _, err := cl.ReadBlob(ctx, d)
 		if err != nil {
@@ -361,8 +363,7 @@ func callCbbRunner(ctx workflow.Context, p *CbbRunnerParams, workflowID string) 
 	options := cbbRunnerWorkflowOptions
 	options.WorkflowID = workflowID
 	ctx = workflow.WithChildOptions(ctx, options)
-	var cr *CommitRun
-	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbRunner, p).Get(ctx, &cr); err != nil {
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbRunner, p).Get(ctx, nil); err != nil {
 		sklog.Errorf("Error in CBB runner %#v: %v", p, err)
 		// Check if we have received a custom error object (CbbRunnerError) with additional details
 		// of what went wrong. The custom error has been wrapped by Temporal, and needs to be unwrapped.
@@ -389,10 +390,10 @@ func sendCbbRunnerErrorEmail(ctx workflow.Context, id string, p *CbbRunnerParams
 	var cbbErr *CbbRunnerError
 	hasCbbErr := errors.As(err, &cbbErr)
 
-	subject := fmt.Sprintf("CBB runner \"%s\" failed", id)
-	body := fmt.Sprintf("CBB runner \"%s\" failed:\n<ul>\n", html.EscapeString(id))
+	subject := fmt.Sprintf("CBB runner %q failed", id)
+	body := fmt.Sprintf("CBB runner %q failed:\n<ul>\n", html.EscapeString(id))
 	if hasCbbErr {
-		body += fmt.Sprintf("<li> Failed workflow details: <a href=\"%s\">%s</a></li>\n", cbbErr.WorkflowLink, cbbErr.WorkflowLink)
+		body += fmt.Sprintf("<li> Failed workflow details: <a href=%q>%s</a></li>\n", cbbErr.WorkflowLink, cbbErr.WorkflowLink)
 	}
 	body += fmt.Sprintf(
 		`<li> Bot: %s</li>
@@ -418,7 +419,7 @@ func sendCbbRunnerErrorEmail(ctx workflow.Context, id string, p *CbbRunnerParams
 
 		body += "<p>Failed benchmarks:</p>\n<ul>\n"
 		for b, l := range cbbErr.SwarmingLinks {
-			body += fmt.Sprintf("<li> %s: <a href=\"%s\">swarming tasks</a> </li>\n", html.EscapeString(b), l)
+			body += fmt.Sprintf("<li> %s: <a href=%q>swarming tasks</a> </li>\n", html.EscapeString(b), l)
 		}
 		body += "</ul>\n"
 
@@ -429,7 +430,7 @@ func sendCbbRunnerErrorEmail(ctx workflow.Context, id string, p *CbbRunnerParams
 			monitorUrl := fmt.Sprintf(
 				"https://%s/namespaces/perf-internal/workflows?query=%%60WorkflowType%%60%%3D%%22perf.cbb_runner%%22",
 				temporalHost)
-			monitorLink = fmt.Sprintf("<a href=\"%s\">this page</a>", monitorUrl)
+			monitorLink = fmt.Sprintf("<a href=%q>this page</a>", monitorUrl)
 		} else {
 			temporalHost = "skia-temporal-ui.corp.goog"
 			monitorLink = "<a href=\"http://go/cbb-runner\">go/cbb-runner</a>"

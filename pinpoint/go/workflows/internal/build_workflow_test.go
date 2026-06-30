@@ -27,7 +27,7 @@ func Test_BuildChrome_ShouldReturnBuild(t *testing.T) {
 	env.OnActivity(bca.WaitBuildCompletionActivity, mock.Anything, fakeBuildID, mock.Anything).Return(buildbucketpb.Status_SUCCESS, nil).Once()
 	env.OnActivity(bca.RetrieveBuildArtifactActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(cas, nil).Once()
 
-	env.ExecuteWorkflow(BuildWorkflow, workflows.BuildParams{})
+	env.ExecuteWorkflow(BuildWorkflow, &workflows.BuildParams{})
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
@@ -52,7 +52,7 @@ func Test_BuildChrome_ShouldPopulateBuildError(t *testing.T) {
 	env.OnActivity(bca.WaitBuildCompletionActivity, mock.Anything, fakeBuildID, mock.Anything).Return(buildbucketpb.Status_FAILURE, nil).Once()
 	env.OnActivity(bca.RetrieveBuildArtifactActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Never()
 
-	env.ExecuteWorkflow(BuildWorkflow, workflows.BuildParams{})
+	env.ExecuteWorkflow(BuildWorkflow, &workflows.BuildParams{})
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())

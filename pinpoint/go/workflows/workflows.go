@@ -241,7 +241,7 @@ func (pp *PairwiseParams) GetInitialAttempt() int32 {
 		return defaultPairwiseAttemptCount
 	}
 	// use bit shifting to ensure response is always even
-	return int32((attempt + 1) >> 1 << 1)
+	return (int32(attempt) + 1) >> 1 << 1
 }
 
 // GetImprovementDirection returns the improvement direction.

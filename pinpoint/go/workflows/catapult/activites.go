@@ -35,7 +35,11 @@ func FetchTaskActivity(ctx context.Context, taskID string) (*apipb.TaskResultRes
 }
 
 func createNewRepo(ctx context.Context, repository string) (*gitiles.Repo, error) {
-	return gitiles.NewRepo(ctx, repository)
+	repo, err := gitiles.NewRepo(ctx, repository)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return repo, nil
 }
 
 func getRepository(ctx context.Context, repository string) (gitiles.GitilesRepo, error) {

@@ -186,9 +186,9 @@ func TestParseResultValuesPerCommit_ListOfCombinedResults_MapOfKeysToValues(t *t
 	assert.Len(t, res, 5)
 	// spot checking a few
 	baseCommit := common.NewCombinedCommit(common.NewChromiumCommit("493a946"))
-	assert.Equal(t, 0.0, res[baseCommit.Key()][0])
+	assert.InDelta(t, 0.0, res[baseCommit.Key()][0], 1e-9)
 	fourthCommit := common.NewCombinedCommit(common.NewChromiumCommit("836476df"))
-	assert.Equal(t, 4.0, res[fourthCommit.Key()][0])
+	assert.InDelta(t, 4.0, res[fourthCommit.Key()][0], 1e-9)
 }
 
 func TestParseArguments(t *testing.T) {
@@ -210,7 +210,7 @@ func TestParseArguments(t *testing.T) {
 	arguments, err := parseArguments(request)
 	require.NoError(t, err)
 	assert.Equal(t, "performance_test_suite", arguments.Target)
-	assert.Equal(t, float64(21.9925), arguments.ComparisonMagnitude)
+	assert.InDelta(t, 21.9925, arguments.ComparisonMagnitude, 1e-9)
 	assert.Equal(t, int32(20), arguments.InitialAttemptCount)
 	assert.Equal(t, "--enable-features=Foo", arguments.ExtraTestArgs)
 	assert.Nil(t, arguments.Tags)

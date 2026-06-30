@@ -192,9 +192,9 @@ func TestRunBenchmarkPairwise_NoResources_ReturnsError(t *testing.T) {
 	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, p1, p2, workflows.RightThenLeft)
 
 	require.True(t, env.IsWorkflowCompleted())
-	assert.Error(t, env.GetWorkflowError())
+	require.Error(t, env.GetWorkflowError())
 	var result *workflows.PairwiseTestRun
-	assert.Error(t, env.GetWorkflowResult(&result))
+	require.Error(t, env.GetWorkflowResult(&result))
 	assert.Nil(t, result)
 	env.AssertExpectations(t)
 }

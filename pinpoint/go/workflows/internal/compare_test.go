@@ -29,7 +29,7 @@ func TestCompareActivity_FunctionalDifferent_ReturnsFunctional(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	env.RegisterActivity(CompareActivity)
-	res, err := env.ExecuteActivity(CompareActivity, cpv, 1.0, errRate, compare.UnknownDir)
+	res, err := env.ExecuteActivity(CompareActivity, &cpv, 1.0, errRate, compare.UnknownDir)
 	require.NoError(t, err)
 
 	var actual *CombinedResults
@@ -61,7 +61,7 @@ func TestCompareActivity_PerformanceNil_ReturnsFunctional(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	env.RegisterActivity(CompareActivity)
-	res, err := env.ExecuteActivity(CompareActivity, cpv, magnitude, 1.0, compare.UnknownDir)
+	res, err := env.ExecuteActivity(CompareActivity, &cpv, magnitude, 1.0, compare.UnknownDir)
 	require.NoError(t, err)
 
 	var actual *CombinedResults
@@ -95,7 +95,7 @@ func TestCompareActivity_PerformanceDifferent_ReturnsPerformance(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	env.RegisterActivity(CompareActivity)
-	res, err := env.ExecuteActivity(CompareActivity, cpv, 1.0, 1.0, compare.UnknownDir)
+	res, err := env.ExecuteActivity(CompareActivity, &cpv, 1.0, 1.0, compare.UnknownDir)
 	require.NoError(t, err)
 
 	var actual *CombinedResults
@@ -131,7 +131,7 @@ func TestCompareActivity_FunctionalUnknownPerformanceSame_ReturnsFunctional(t *t
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	env.RegisterActivity(CompareActivity)
-	res, err := env.ExecuteActivity(CompareActivity, cpv, magnitude, 0.5, compare.UnknownDir)
+	res, err := env.ExecuteActivity(CompareActivity, &cpv, magnitude, 0.5, compare.UnknownDir)
 	require.NoError(t, err)
 
 	var actual *CombinedResults
@@ -166,7 +166,7 @@ func TestCompareActivity_FunctionalSame_ReturnsPerformance(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	env.RegisterActivity(CompareActivity)
-	res, err := env.ExecuteActivity(CompareActivity, cpv, magnitude, 1.0, compare.UnknownDir)
+	res, err := env.ExecuteActivity(CompareActivity, &cpv, magnitude, 1.0, compare.UnknownDir)
 	require.NoError(t, err)
 
 	var actual *CombinedResults

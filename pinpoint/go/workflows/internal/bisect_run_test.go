@@ -29,6 +29,18 @@ func makeDefaultBisectParams() workflows.BisectParams {
 	return workflows.BisectParams{Request: &pb.ScheduleBisectRequest{}}
 }
 
+func totalRunsOf(t *testing.T, br *BisectRun) int32 {
+	tr, err := br.totalRuns()
+	require.NoError(t, err)
+	return tr
+}
+
+func nextRunSizeOf(t *testing.T, br1, br2 *BisectRun, minSampleSize int32) int32 {
+	res, err := nextRunSize(br1, br2, minSampleSize)
+	require.NoError(t, err)
+	return res
+}
+
 func TestBisectRun_ScheduleZeroOrLessRun_ReturnNil(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -40,20 +52,20 @@ func TestBisectRun_ScheduleZeroOrLessRun_ReturnNil(t *testing.T) {
 
 	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit("fake-hash")))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
-		f, err := br.scheduleRuns(ctx, jobID, bp, 0)
+		f, err := br.scheduleRuns(ctx, jobID, &bp, 0)
 		require.Nil(t, f)
 		require.NoError(t, err)
 		require.EqualValues(t, 0, br.totalScheduledRuns())
-		require.EqualValues(t, 0, br.totalRuns())
+		require.EqualValues(t, 0, totalRunsOf(t, br))
 		require.Empty(t, br.Runs)
 
-		f, err = br.scheduleRuns(ctx, jobID, bp, -1)
+		f, err = br.scheduleRuns(ctx, jobID, &bp, -1)
 		require.Nil(t, f)
 		require.NoError(t, err)
 		require.NoError(t, br.updateRuns(ctx, f), "update with nil runs should be no-op")
 
 		require.EqualValues(t, 0, br.totalScheduledRuns())
-		require.EqualValues(t, 0, br.totalRuns())
+		require.EqualValues(t, 0, totalRunsOf(t, br))
 		require.Empty(t, br.Runs)
 		return nil
 	})
@@ -73,15 +85,15 @@ func TestBisectRun_TotalRuns_WithScheduled_ReturnTotal(t *testing.T) {
 	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit("fake-hash")))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		require.Empty(t, br.Runs)
-		require.EqualValues(t, 0, br.totalRuns())
+		require.EqualValues(t, 0, totalRunsOf(t, br))
 
-		f, err := br.scheduleRuns(ctx, jobID, bp, 10)
+		f, err := br.scheduleRuns(ctx, jobID, &bp, 10)
 		require.NoError(t, err)
 		require.NotNil(t, f)
-		require.EqualValues(t, 10, br.totalRuns())
+		require.EqualValues(t, 10, totalRunsOf(t, br))
 
-		mf, err := br.scheduleRuns(ctx, jobID, bp, 20)
-		require.EqualValues(t, 30, br.totalRuns())
+		mf, err := br.scheduleRuns(ctx, jobID, &bp, 20)
+		require.EqualValues(t, 30, totalRunsOf(t, br))
 		require.NotNil(t, mf)
 		require.NoError(t, err)
 		return nil
@@ -107,34 +119,34 @@ func TestBisectRun_ScheduleAndUpdate(t *testing.T) {
 		thirdRuns  = 15
 	)
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
-		firstFuture, err := br.scheduleRuns(ctx, jobID, bp, firstRuns)
+		firstFuture, err := br.scheduleRuns(ctx, jobID, &bp, firstRuns)
 		require.NotNil(t, firstFuture)
 		require.NoError(t, err)
 
-		secondFuture, err := br.scheduleRuns(ctx, jobID, bp, secondRuns)
-		require.EqualValues(t, firstRuns+secondRuns, br.totalRuns())
+		secondFuture, err := br.scheduleRuns(ctx, jobID, &bp, secondRuns)
+		require.EqualValues(t, firstRuns+secondRuns, totalRunsOf(t, br))
 		require.EqualValues(t, firstRuns+secondRuns, br.totalScheduledRuns())
 		require.NotNil(t, secondFuture)
 		require.NoError(t, err)
 
 		require.NoError(t, br.updateRuns(ctx, secondFuture))
 		require.Len(t, br.Runs, secondRuns)
-		require.EqualValues(t, firstRuns+secondRuns, br.totalRuns())
+		require.EqualValues(t, firstRuns+secondRuns, totalRunsOf(t, br))
 		require.EqualValues(t, firstRuns, br.totalScheduledRuns())
 
 		require.NoError(t, br.updateRuns(ctx, firstFuture))
 		require.EqualValues(t, 0, br.totalScheduledRuns())
-		require.EqualValues(t, firstRuns+secondRuns, br.totalRuns())
+		require.EqualValues(t, firstRuns+secondRuns, totalRunsOf(t, br))
 		require.Len(t, br.Runs, firstRuns+secondRuns)
 
-		thirdFuture, err := br.scheduleRuns(ctx, jobID, bp, thirdRuns)
+		thirdFuture, err := br.scheduleRuns(ctx, jobID, &bp, thirdRuns)
 		require.EqualValues(t, thirdRuns, br.totalScheduledRuns())
-		require.EqualValues(t, firstRuns+secondRuns+thirdRuns, br.totalRuns())
+		require.EqualValues(t, firstRuns+secondRuns+thirdRuns, totalRunsOf(t, br))
 		require.NotNil(t, thirdFuture)
 		require.NoError(t, err)
 		require.NoError(t, br.updateRuns(ctx, thirdFuture))
 		require.Len(t, br.Runs, firstRuns+secondRuns+thirdRuns)
-		require.EqualValues(t, firstRuns+secondRuns+thirdRuns, br.totalRuns())
+		require.EqualValues(t, firstRuns+secondRuns+thirdRuns, totalRunsOf(t, br))
 		return nil
 	})
 
@@ -159,20 +171,20 @@ func TestBisectRun_WithIncompleteRun_ReturnRuns(t *testing.T) {
 
 	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit(hash1)))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
-		f1, err := br.scheduleRuns(ctx, jobID, bp, schedule)
+		f1, err := br.scheduleRuns(ctx, jobID, &bp, schedule)
 		require.NoError(t, err)
 
-		f2, err := br.scheduleRuns(ctx, jobID, bp, schedule)
+		f2, err := br.scheduleRuns(ctx, jobID, &bp, schedule)
 		require.NotNil(t, f2)
 		require.NoError(t, err)
 
 		require.NoError(t, br.updateRuns(ctx, f1))
 		require.EqualValues(t, schedule, br.totalScheduledRuns(), "partial completed runs should remove the initial scheduled runs.")
-		require.EqualValues(t, schedule+partialComplete, br.totalRuns(), "should only update with partially completed runs.")
+		require.EqualValues(t, schedule+partialComplete, totalRunsOf(t, br), "should only update with partially completed runs.")
 
 		require.NoError(t, br.updateRuns(ctx, f2))
 		require.EqualValues(t, 0, br.totalScheduledRuns())
-		require.EqualValues(t, partialComplete+partialComplete, br.totalRuns(), "should only update with partially completed runs.")
+		require.EqualValues(t, partialComplete+partialComplete, totalRunsOf(t, br), "should only update with partially completed runs.")
 		require.Len(t, br.Runs, partialComplete+partialComplete)
 
 		return nil
@@ -198,7 +210,7 @@ func TestBisectRun_UnmatchedCommit_ShouldError(t *testing.T) {
 	br1 := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit(hash1)))
 	br2 := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit(other)))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
-		f1, err := br1.scheduleRuns(ctx, jobID, bp, 10)
+		f1, err := br1.scheduleRuns(ctx, jobID, &bp, 10)
 		require.NoError(t, err)
 
 		require.ErrorContains(t, br2.updateRuns(ctx, f1), "different")
@@ -225,7 +237,7 @@ func TestBisectRun_WithAlreadyUpdated_ShouldError(t *testing.T) {
 	const hash1 = "fake-ffcaaab85ecf1a896da1d635aeca929edbe"
 	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit(hash1)))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
-		f1, err := br.scheduleRuns(ctx, jobID, bp, 10)
+		f1, err := br.scheduleRuns(ctx, jobID, &bp, 10)
 		require.EqualValues(t, 10, br.totalScheduledRuns())
 		require.NoError(t, err)
 		require.NoError(t, br.updateRuns(ctx, f1))
@@ -244,7 +256,7 @@ func TestNextRunSize_BothEqual_MoreRunsForBoth(t *testing.T) {
 	test := func(name string, runs, minSampleSize, expected int) {
 		t.Run(name, func(t *testing.T) {
 			br := &BisectRun{CommitRun: *generateSingleCommitRuns(hash1, runs)}
-			assert.EqualValues(t, expected, nextRunSize(br, br, int32(minSampleSize)))
+			assert.EqualValues(t, expected, nextRunSizeOf(t, br, br, int32(minSampleSize)))
 		})
 	}
 	// see benchmarkRunIterations for how these run iterations are calculated
@@ -260,14 +272,14 @@ func TestNextRunSize_LowerCommitMoreRuns_OnlySchedulesMoreRunsForHigherCommit(t 
 	const hash2 = "fake2-2222222222222296da1d635aeca929edbe"
 	br1 := &BisectRun{CommitRun: *generateSingleCommitRuns(hash1, 0)}
 	br2 := &BisectRun{CommitRun: *generateSingleCommitRuns(hash2, 10)}
-	require.EqualValues(t, 10, nextRunSize(br1, br2, 0))
-	require.EqualValues(t, 10, nextRunSize(br2, br1, 0))
+	require.EqualValues(t, 10, nextRunSizeOf(t, br1, br2, 0))
+	require.EqualValues(t, 10, nextRunSizeOf(t, br2, br1, 0))
 }
 
 func TestNextRunSize_WithNonZero_ReturnMinSampleSize(t *testing.T) {
 	const hash1 = "fake1-fcaaab85ecf1a896da1d635aeca929edbe"
 	br := &BisectRun{CommitRun: *generateSingleCommitRuns(hash1, 0)}
-	require.EqualValues(t, benchmarkRunIterations[0], nextRunSize(br, br, 0))
-	require.EqualValues(t, 10, nextRunSize(br, br, 10))
-	require.EqualValues(t, 20, nextRunSize(br, br, 20))
+	require.EqualValues(t, benchmarkRunIterations[0], nextRunSizeOf(t, br, br, 0))
+	require.EqualValues(t, 10, nextRunSizeOf(t, br, br, 10))
+	require.EqualValues(t, 20, nextRunSizeOf(t, br, br, 20))
 }

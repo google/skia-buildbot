@@ -148,10 +148,10 @@ func createTestQuestDetail(task *apipb.TaskResultResponse, benchmarkRun *workflo
 }
 
 // parseRunData parses run data into a map of combined commit to list of attempts and a unique list of bots run for tests.
-func parseRunData(ctx workflow.Context, runData []*internal.BisectRun, chart string) (map[uint32][]*pinpoint_proto.LegacyJobResponse_State_Attempt, []string, error) {
+func parseRunData(ctx workflow.Context, runData []*internal.BisectRun, chart string) (commitToAttempts map[uint32][]*pinpoint_proto.LegacyJobResponse_State_Attempt, bots []string, err error) {
 	// use as set so we don't repeat keys
 	botSet := map[string]bool{}
-	commitToAttempts := map[uint32][]*pinpoint_proto.LegacyJobResponse_State_Attempt{}
+	commitToAttempts = map[uint32][]*pinpoint_proto.LegacyJobResponse_State_Attempt{}
 
 	// Each run has one Combined Commit, mapped to many attempts
 	for _, commitRun := range runData {
@@ -184,7 +184,7 @@ func parseRunData(ctx workflow.Context, runData []*internal.BisectRun, chart str
 	}
 
 	// convert to list of keys from map
-	bots := make([]string, len(botSet))
+	bots = make([]string, len(botSet))
 	idx := 0
 	for k := range botSet {
 		bots[idx] = k
@@ -232,22 +232,23 @@ func parseToSortedCombinedCommits(comparisons []*internal.CombinedResults) []*co
 		higherCommit := comparison.CommitPairValues.Higher.Commit
 		higherCommitKey := higherCommit.Key()
 
-		if sortedCombinedCommits[midIdx-1].Key() == lowerCommitKey && sortedCombinedCommits[midIdx].Key() != higherCommitKey {
+		switch {
+		case sortedCombinedCommits[midIdx-1].Key() == lowerCommitKey && sortedCombinedCommits[midIdx].Key() != higherCommitKey:
 			// Given (A M Z), lower is A and higher is E (not M), inject higher between A and M.
 			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx, higherCommit)
-		} else if sortedCombinedCommits[midIdx].Key() == lowerCommitKey && sortedCombinedCommits[midIdx+1].Key() != higherCommitKey {
+		case sortedCombinedCommits[midIdx].Key() == lowerCommitKey && sortedCombinedCommits[midIdx+1].Key() != higherCommitKey:
 			// Given (A M Z), lower is M and higher is Z, inject higher between M and Z.
 			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx+1, higherCommit)
-		} else if midIdx+1 < len(sortedCombinedCommits) && sortedCombinedCommits[midIdx+1].Key() == lowerCommitKey && sortedCombinedCommits[midIdx+2].Key() != higherCommitKey {
+		case midIdx+1 < len(sortedCombinedCommits) && sortedCombinedCommits[midIdx+1].Key() == lowerCommitKey && sortedCombinedCommits[midIdx+2].Key() != higherCommitKey:
 			// Given (A M Q U Z), lower is U and higher is not Z, inject higher between U and Z.
 			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx+2, higherCommit)
-		} else if sortedCombinedCommits[midIdx-1].Key() == higherCommitKey && sortedCombinedCommits[midIdx-2].Key() != lowerCommitKey {
+		case sortedCombinedCommits[midIdx-1].Key() == higherCommitKey && sortedCombinedCommits[midIdx-2].Key() != lowerCommitKey:
 			// Given (A D F M Z), higher is D and lower is not A so inject lower between A and D
 			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx-1, lowerCommit)
-		} else if sortedCombinedCommits[midIdx].Key() == higherCommitKey && sortedCombinedCommits[midIdx-1].Key() != lowerCommitKey {
+		case sortedCombinedCommits[midIdx].Key() == higherCommitKey && sortedCombinedCommits[midIdx-1].Key() != lowerCommitKey:
 			// Given (A D F M Z), higher is F and lower is not D so inject lower between D and F
 			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx, lowerCommit)
-		} else if midIdx+1 < len(sortedCombinedCommits) && sortedCombinedCommits[midIdx+1].Key() == higherCommitKey && sortedCombinedCommits[midIdx].Key() != lowerCommitKey {
+		case midIdx+1 < len(sortedCombinedCommits) && sortedCombinedCommits[midIdx+1].Key() == higherCommitKey && sortedCombinedCommits[midIdx].Key() != lowerCommitKey:
 			// Given (A D F M Z), higher is M and lower is not F so inject lower between F and M
 			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx+1, lowerCommit)
 		}
@@ -267,13 +268,14 @@ func parseFooters(commitBody string) (*commitFooters, error) {
 
 	lines := strings.Split(commitBody, "\n")
 	for _, line := range lines {
-		if strings.HasPrefix(line, "Change-Id") {
+		switch {
+		case strings.HasPrefix(line, "Change-Id"):
 			parts := strings.Split(line, "Change-Id: ")
 			footers.ChangeID = parts[len(parts)-1]
-		} else if strings.HasPrefix(line, "Reviewed-on") {
+		case strings.HasPrefix(line, "Reviewed-on"):
 			parts := strings.Split(line, "Reviewed-on: ")
 			footers.ReviewUrl = parts[len(parts)-1]
-		} else if strings.HasPrefix(line, "Cr-Commit-Position") {
+		case strings.HasPrefix(line, "Cr-Commit-Position"):
 			parts := strings.Split(line, "Cr-Commit-Position: ")
 			commitInfo := parts[len(parts)-1]
 			subParts := strings.Split(commitInfo, "@")

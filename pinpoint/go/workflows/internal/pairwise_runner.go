@@ -181,6 +181,7 @@ func FindAvailableBotsActivity(ctx context.Context, botConfig string, seed int64
 	// The list of bot ids is randomized to make sure that the tasks
 	// do not everytime pick the same set of bots and leave the remaining
 	// unused almost the entire time.
+	//nolint:gosec // seed-based random is required for deterministic load balancing
 	rand.New(rand.NewSource(seed)).Shuffle(len(botIds), func(i, j int) {
 		botIds[i], botIds[j] = botIds[j], botIds[i]
 	})
@@ -201,13 +202,14 @@ func generatePairOrderIndices(seed int64, count int) []workflows.PairwiseOrder {
 	for i := range lt {
 		lt[i] = workflows.PairwiseOrder(i % 2)
 	}
+	//nolint:gosec // seed-based random is required for deterministic shuffling in tests
 	rand.New(rand.NewSource(seed)).Shuffle(len(lt), func(i, j int) {
 		lt[i], lt[j] = lt[j], lt[i]
 	})
 	return lt
 }
 
-func generatePairwiseBenchmarkParams(p PairwiseCommitsRunnerParams, builds []*workflows.Build, botDimension map[string]string, iteration int32, order workflows.PairwiseOrder) (firstRBP, secondRBP *RunBenchmarkParams) {
+func generatePairwiseBenchmarkParams(p *PairwiseCommitsRunnerParams, builds []*workflows.Build, botDimension map[string]string, iteration int32, order workflows.PairwiseOrder) (firstRBP, secondRBP *RunBenchmarkParams) {
 	left := &RunBenchmarkParams{
 		JobID:             p.PinpointJobID,
 		Commit:            builds[0].Commit,
@@ -251,13 +253,13 @@ func generatePairwiseBenchmarkParams(p PairwiseCommitsRunnerParams, builds []*wo
 //
 // PairwiseCommitsRunner builds, runs and collects benchmark sampled values from several commits.
 // It runs the tests in pairs to reduces sample noises.
-func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunnerParams) (*PairwiseRun, error) {
+func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc *PairwiseCommitsRunnerParams) (*PairwiseRun, error) {
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
 
 	var botIds []string
 	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, pc.BotConfig, pc.Seed).Get(ctx, &botIds); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	leftRunCh := workflow.NewBufferedChannel(ctx, int(pc.Iterations))
@@ -311,19 +313,18 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	runs := []workflow.Channel{leftRunCh, rightRunCh}
 
 	wg.Add(int(pc.Iterations))
-	for i := 0; i < int(pc.Iterations); i++ {
-		first := workflows.PairwiseOrder(pairOrder[i])
+	for i := int32(0); i < pc.Iterations; i++ {
+		first := workflows.PairwiseOrder(pairOrder[int(i)])
 		// TODO(b/327020123): Consider defining these maps directly using the key/value
 		// pair rather than separate entries. See convertDimensions in swarming_helpers.go
 		botDimension := map[string]string{
 			"key":   "id",
-			"value": botIds[i%len(botIds)],
+			"value": botIds[int(i)%len(botIds)],
 		}
 		// We need to make a copy of i since the following is a closure. By making a
 		// copy every closure will point to it's own copy of i rather than pointing to
 		// the same variable.
-		iteration := int32(i)
-		firstRBP, secondRBP := generatePairwiseBenchmarkParams(pc, builds, botDimension, iteration, first)
+		firstRBP, secondRBP := generatePairwiseBenchmarkParams(pc, builds, botDimension, i, first)
 
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()

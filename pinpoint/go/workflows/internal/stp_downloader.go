@@ -17,6 +17,7 @@ import (
 	"golang.org/x/net/html"
 
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -38,16 +39,16 @@ const (
 )
 
 // Download the Safari Technology Preview resources page, and then parse its HTML contents.
-func downloadAndParseHtml() (*html.Node, error) {
-	resp, err := httpClient.Get("https://developer.apple.com/safari/resources/")
+func downloadAndParseHtml(ctx context.Context) (*html.Node, error) {
+	resp, err := httputils.GetWithContext(ctx, httpClient, "https://developer.apple.com/safari/resources/")
 	if err != nil {
-		return nil, fmt.Errorf("error downloading STP resource page: %w\n", err)
+		return nil, skerr.Wrapf(err, "error downloading STP resource page")
 	}
 	defer resp.Body.Close()
 
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing HTML: %w\n", err)
+		return nil, skerr.Wrapf(err, "error parsing HTML")
 	}
 
 	return doc, nil
@@ -108,11 +109,12 @@ func extractFromHtml(doc *html.Node) *releaseInfo {
 			for _, a := range n.Attr {
 				if a.Key == "href" && strings.Contains(a.Val, "SafariTechnologyPreview.dmg") {
 					osInfo := n.LastChild.Data
-					if strings.Contains(osInfo, "Tahoe") || strings.Contains(osInfo, "26") {
+					switch {
+					case strings.Contains(osInfo, "Tahoe") || strings.Contains(osInfo, "26"):
 						ri.link26 = a.Val
-					} else if strings.Contains(osInfo, "27") {
+					case strings.Contains(osInfo, "27"):
 						// Ignore macOS 27 link for now.
-					} else {
+					default:
 						fmt.Fprintf(os.Stderr, "Unable to discover macOS version: %s\n", osInfo)
 					}
 				}
@@ -158,7 +160,7 @@ func createCipd(ctx context.Context, cipdClient *cipd.Client, cipdPath, url stri
 	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Download the file
-	resp, err := httpClient.Get(url)
+	resp, err := httputils.GetWithContext(ctx, httpClient, url)
 	if err != nil {
 		return skerr.Wrapf(err, "error downloading from %s", url)
 	}
@@ -194,17 +196,17 @@ func createCipd(ctx context.Context, cipdClient *cipd.Client, cipdPath, url stri
 //     and add ref labels needed to trigger installtion on CBB devices.
 //   - Returns the current STP release number.
 func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
-	doc, err := downloadAndParseHtml()
+	doc, err := downloadAndParseHtml(ctx)
 	if err != nil {
 		return "", skerr.Wrapf(err, "unable to download and parse STP site HTML")
 	}
 
 	ri := extractFromHtml(doc)
 	if ri.release == "" {
-		return "", fmt.Errorf("unable to discover STP release number")
+		return "", skerr.Fmt("unable to discover STP release number")
 	}
 	if ri.link26 == "" {
-		return "", fmt.Errorf("unable to discover STP download link for MacOS 26")
+		return "", skerr.Fmt("unable to discover STP download link for MacOS 26")
 	}
 
 	sklog.Infof("Release: %s\n", ri.release)
@@ -261,5 +263,8 @@ func DownloadSafariTPWorkflow(ctx workflow.Context) (string, error) {
 	ctx = workflow.WithActivityOptions(ctx, downloadSafariTPActivityOptions)
 	var version string
 	err := workflow.ExecuteActivity(ctx, DownloadSafariTPActivity, true).Get(ctx, &version)
-	return version, err
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return version, nil
 }

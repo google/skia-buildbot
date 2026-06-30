@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"cloud.google.com/go/bigquery"
@@ -65,7 +66,7 @@ func FetchAllSwarmingTasksActivity(ctx context.Context, project, dataset, tableN
 	for {
 		var tr TestResult
 		err := it.Next(&tr)
-		if err == iterator.Done {
+		if errors.Is(err, iterator.Done) {
 			break
 		}
 		if err != nil {
@@ -110,6 +111,9 @@ func GetAllSampleValuesActivity(ctx context.Context, benchmark string, task *Tes
 
 	digests := []*swarming_proto.CASReference{casRef}
 	valuesByChart, err := casClient.ReadValuesForAllCharts(ctx, benchmark, digests, "")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	for chart, sampleValues := range valuesByChart.Values {
 		newTask := &TestResult{

@@ -35,7 +35,7 @@ func NewStore(ctx context.Context, bucketName string, readOnly bool) (*store, er
 		storeOption = option.WithHTTPClient(client)
 
 	}
-	storageClient, err := storage.NewClient(context.Background(), storeOption)
+	storageClient, err := storage.NewClient(ctx, storeOption)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -57,7 +57,11 @@ func (s *store) GetFileContent(storeFilePath string) ([]byte, error) {
 		return nil, skerr.Wrap(err)
 	}
 	defer util.Close(response)
-	return io.ReadAll(response)
+	b, err := io.ReadAll(response)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return b, nil
 }
 
 // WriteFile creates or updates a file in GCS.

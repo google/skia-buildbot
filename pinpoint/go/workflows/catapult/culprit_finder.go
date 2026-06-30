@@ -84,7 +84,7 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 
 	// no culprits found, is there a bug?
 	// TODO(b/340235131): call culprit processing (if necessary)
-	if be.Culprits == nil || len(be.Culprits) == 0 {
+	if len(be.Culprits) == 0 {
 		return &pinpoint_proto.CulpritFinderExecution{
 			RegressionVerified: true,
 		}, nil
@@ -109,7 +109,7 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 func InvokeCulpritProcessingWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderParams,
 	verified_combined_culprits []*pinpoint_proto.CombinedCommit,
 ) error {
-	if verified_combined_culprits == nil || len(verified_combined_culprits) == 0 {
+	if len(verified_combined_culprits) == 0 {
 		sklog.Debug("No verified culprit is found. No need to invoke culprit processing.")
 		return nil
 	}
@@ -144,7 +144,7 @@ func InvokeCulpritProcessingWorkflow(ctx workflow.Context, cfp *workflows.Culpri
 
 func findLastDepCommit(combined_commit *pinpoint_proto.CombinedCommit) *pinpoint_proto.Commit {
 	var last_dep_commit *pinpoint_proto.Commit
-	if combined_commit.ModifiedDeps != nil && len(combined_commit.ModifiedDeps) > 0 {
+	if len(combined_commit.ModifiedDeps) > 0 {
 		last_dep_commit = combined_commit.ModifiedDeps[len(combined_commit.ModifiedDeps)-1]
 	} else {
 		last_dep_commit = combined_commit.Main
@@ -213,7 +213,7 @@ func runCulpritVerification(ctx workflow.Context, culpritPair *pinpoint_proto.Cu
 
 	var pe *pinpoint_proto.PairwiseExecution
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.PairwiseWorkflow, pp).Get(ctx, &pe); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return pe, nil
 }

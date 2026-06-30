@@ -45,13 +45,13 @@ func GetAllDataForCompareLocalActivity(ctx context.Context, lbr, hbr *BisectRun,
 // commitA and commitB are passed in to make it easier to see on the Temporal
 // UI what two commits are being tested. Errors are recorded in the activity but
 // the ErrorVerdict is not passed back to the main workflow.
-func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude, errRate float64, direction compare.ImprovementDir) (*CombinedResults, error) {
+func CompareActivity(ctx context.Context, allValues *CommitPairValues, magnitude, errRate float64, direction compare.ImprovementDir) (*CombinedResults, error) {
 	funcResult, err := compare.CompareFunctional(allValues.Lower.ErrorValues, allValues.Higher.ErrorValues, errRate)
 	if err != nil {
 		return &CombinedResults{
 			Result:           funcResult,
 			ResultType:       Functional,
-			CommitPairValues: allValues,
+			CommitPairValues: *allValues,
 		}, skerr.Wrap(err)
 	}
 	// always return different verdicts
@@ -59,7 +59,7 @@ func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude,
 		return &CombinedResults{
 			Result:           funcResult,
 			ResultType:       Functional,
-			CommitPairValues: allValues,
+			CommitPairValues: *allValues,
 		}, nil
 	}
 
@@ -69,7 +69,7 @@ func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude,
 			Result:           funcResult,
 			OtherResult:      perfResult,
 			ResultType:       Functional,
-			CommitPairValues: allValues,
+			CommitPairValues: *allValues,
 		}, skerr.Wrap(err)
 	}
 
@@ -80,7 +80,7 @@ func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude,
 			Result:           funcResult,
 			OtherResult:      perfResult,
 			ResultType:       Functional,
-			CommitPairValues: allValues,
+			CommitPairValues: *allValues,
 		}, nil
 	}
 	if funcResult.Verdict == compare.Unknown && perfResult.Verdict == compare.Same {
@@ -88,14 +88,14 @@ func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude,
 			Result:           funcResult,
 			OtherResult:      perfResult,
 			ResultType:       Functional,
-			CommitPairValues: allValues,
+			CommitPairValues: *allValues,
 		}, nil
 	}
 	return &CombinedResults{
 		Result:           perfResult,
 		OtherResult:      funcResult,
 		ResultType:       Performance,
-		CommitPairValues: allValues,
+		CommitPairValues: *allValues,
 	}, nil
 }
 
@@ -106,7 +106,7 @@ func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag 
 	}
 
 	var result *CombinedResults
-	if err := workflow.ExecuteActivity(ctx, CompareActivity, commitPairAllValues, mag, compare.DefaultFunctionalErrRate, dir).Get(ctx, &result); err != nil {
+	if err := workflow.ExecuteActivity(ctx, CompareActivity, &commitPairAllValues, mag, compare.DefaultFunctionalErrRate, dir).Get(ctx, &result); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -115,7 +115,11 @@ func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag 
 
 // ComparePairwiseActivity wraps compare.ComparePairwise as a temporal activity
 func ComparePairwiseActivity(ctx context.Context, valuesA, valuesB []float64, dir compare.ImprovementDir) (*compare.ComparePairwiseResult, error) {
-	return compare.ComparePairwise(valuesA, valuesB, dir)
+	res, err := compare.ComparePairwise(valuesA, valuesB, dir)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return res, nil
 }
 
 func comparePairwiseRuns(ctx workflow.Context, pr *PairwiseRun, dir compare.ImprovementDir) (map[string]compare.ComparePairwiseResult, error) {

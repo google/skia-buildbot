@@ -32,10 +32,10 @@ func generateSingleValueByChart(chart string, values float64) map[string][]float
 // generatePairwiseTestRuns generates mock test runs data for PairwiseRunner
 //
 // It returns the expected runs, and a channel that was buffered to send to mocked workflow.
-func generatePairwiseTestRuns(chartExpectedValues *workflows.TestResults, pairOrder []workflows.PairwiseOrder) ([]*workflows.PairwiseTestRun, chan *workflows.PairwiseTestRun) {
+func generatePairwiseTestRuns(chartExpectedValues *workflows.TestResults, pairOrder []workflows.PairwiseOrder) (ptrs []*workflows.PairwiseTestRun, rc chan *workflows.PairwiseTestRun) {
 	iterations := len(pairOrder)
-	rc := make(chan *workflows.PairwiseTestRun, iterations)
-	ptrs := make([]*workflows.PairwiseTestRun, iterations)
+	rc = make(chan *workflows.PairwiseTestRun, iterations)
+	ptrs = make([]*workflows.PairwiseTestRun, iterations)
 	ptrs[0] = &workflows.PairwiseTestRun{
 		FirstTestRun: &workflows.TestRun{
 			Status: run_benchmark.State(backends.RunBenchmarkFailure),
@@ -70,7 +70,7 @@ func generatePairwiseTestRuns(chartExpectedValues *workflows.TestResults, pairOr
 	}
 	for i := 1; i < iterations; i++ {
 		first := int(pairOrder[i])
-		second := 1 - first // 1-0 = 1; 1-1 = 0;
+		second := 1 - first // If first is 0, second is 1. If first is 1, second is 0.
 		ptrs[i] = &workflows.PairwiseTestRun{
 			FirstTestRun:  runs[first],
 			SecondTestRun: runs[second],
@@ -101,7 +101,7 @@ func TestGeneratePairIndices_GenerateRandomPair(t *testing.T) {
 			assert.NotEqualValues(t, generated, even, "shuffled pairs are still evenly distributed.")
 			ct := 0
 			for i := range generated {
-				ct = ct + int(generated[i])
+				ct += int(generated[i])
 			}
 			assert.EqualValues(t, len(generated)/2, ct, "pairs don't have equal 0's and 1's.")
 		})
@@ -494,8 +494,8 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	env.RegisterWorkflowWithOptions(BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})
 	env.RegisterWorkflowWithOptions(RunBenchmarkPairwiseWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmarkPairwise})
 
-	env.OnWorkflow(workflows.BuildChrome, mock.Anything, leftBuildChromeParams).Return(leftBuild, nil).Once()
-	env.OnWorkflow(workflows.BuildChrome, mock.Anything, rightBuildChromeParams).Return(rightBuild, nil).Once()
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, &leftBuildChromeParams).Return(leftBuild, nil).Once()
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, &rightBuildChromeParams).Return(rightBuild, nil).Once()
 	env.OnActivity(FindAvailableBotsActivity, mock.Anything, p.BotConfig, p.Seed).Return(freeBots, nil).Once()
 
 	env.OnWorkflow(workflows.RunBenchmarkPairwise, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(func(ctx workflow.Context, firstP, secondP *RunBenchmarkParams, first workflows.PairwiseOrder) (*workflows.PairwiseTestRun, error) {
@@ -511,7 +511,7 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	}).Times(int(p.Iterations))
 	env.OnActivity(CollectAllValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.AggregationMethod).Return(fakeChartValues, nil).Times(2 * (int(p.Iterations) - 1))
 
-	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, &p)
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 
@@ -591,7 +591,7 @@ func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
 	}).Times(int(p.Iterations))
 	env.OnActivity(CollectAllValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.AggregationMethod).Return(fakeChartValues, nil).Times(2 * (int(p.Iterations) - 1))
 
-	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, &p)
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 
@@ -682,7 +682,7 @@ func TestPairwiseCommitRunner_GivenMismatchedValueLengths_ShouldTruncateArrays(t
 		}, nil
 	}).Times(2 * (int(p.Iterations) - 1))
 
-	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, &p)
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 
@@ -771,7 +771,7 @@ func TestPairwiseCommitRunner_GivenEdgeCaseValues_ShouldHandleGracefully(t *test
 		}, nil
 	}).Times(2 * (int(p.Iterations) - 1))
 
-	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, &p)
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 
@@ -835,7 +835,7 @@ func TestPairwiseCommitRunner_BuildFails_ReturnsError(t *testing.T) {
 	env.RegisterWorkflowWithOptions(BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})
 
 	// Simulate Left build failure
-	env.OnWorkflow(workflows.BuildChrome, mock.Anything, leftBuildChromeParams).Return(nil, fmt.Errorf("failed to build Left chrome")).Once()
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, &leftBuildChromeParams).Return(nil, fmt.Errorf("failed to build Left chrome")).Once()
 	// Right build still runs since they are scheduled in parallel!
 	rightBuild := &workflows.Build{
 		BuildParams: workflows.BuildParams{
@@ -844,12 +844,12 @@ func TestPairwiseCommitRunner_BuildFails_ReturnsError(t *testing.T) {
 		Status: buildbucketpb.Status_SUCCESS,
 		CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6", SizeBytes: 810}},
 	}
-	env.OnWorkflow(workflows.BuildChrome, mock.Anything, rightBuildChromeParams).Return(rightBuild, nil).Once()
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, &rightBuildChromeParams).Return(rightBuild, nil).Once()
 
 	freeBots := []string{"lin-1-h516--device1"}
 	env.OnActivity(FindAvailableBotsActivity, mock.Anything, p.BotConfig, p.Seed).Return(freeBots, nil).Once()
 
-	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, &p)
 	require.True(t, env.IsWorkflowCompleted())
 
 	err = env.GetWorkflowError()

@@ -44,7 +44,7 @@ func PostBugCommentWorkflow(ctx workflow.Context, issueID int64, comment string)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	var success bool
 	if err := workflow.ExecuteActivity(ctx, PostBugCommentActivity, issueID, comment).Get(ctx, &success); err != nil {
-		return false, err
+		return false, skerr.Wrap(err)
 	}
 	return success, nil
 }

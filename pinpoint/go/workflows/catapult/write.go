@@ -69,6 +69,7 @@ func (cc *CatapultClient) WriteBisectToCatapult(ctx context.Context, content *pi
 	if httpResponse.Body == nil {
 		return nil, skerr.Wrap(err)
 	}
+	defer httpResponse.Body.Close()
 
 	if httpResponse.StatusCode != http.StatusOK {
 		return nil, skerr.Fmt("The catapult post request failed with status code %d", httpResponse.StatusCode)

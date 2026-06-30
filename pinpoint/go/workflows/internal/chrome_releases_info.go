@@ -99,6 +99,7 @@ func getChromeBuilds(ctx context.Context) ([]BuildInfo, error) {
 	if err != nil {
 		sklog.Fatalf("Failed to get ChromiumDash response: %s", err)
 	}
+	defer resp.Body.Close()
 	var builds []BuildInfo
 	if err := json.NewDecoder(resp.Body).Decode(&builds); err != nil {
 		sklog.Fatalf("Invalid ChromiumDash response:%s, err: %s", resp.Body, err)
@@ -133,12 +134,12 @@ func getChromeBuilds(ctx context.Context) ([]BuildInfo, error) {
 		}
 	}
 
-	builds = nil
+	result := make([]BuildInfo, 0, len(latestBuilds))
 	for _, buildEx := range latestBuilds {
-		builds = append(builds, *buildEx.buildInfo)
+		result = append(result, *buildEx.buildInfo)
 	}
 
-	return builds, nil
+	return result, nil
 }
 
 // filterBuilds removes the builds if their version hasn't changed from previous run.
@@ -152,7 +153,7 @@ func filterBuilds(ctx context.Context, builds []BuildInfo, isDev bool) ([]BuildI
 		return nil, skerr.Wrap(err)
 	}
 
-	var newBuilds []BuildInfo
+	newBuilds := make([]BuildInfo, 0, len(builds))
 	for _, build := range builds {
 		filePath := fmt.Sprintf(cbbRefInfoPath, build.Browser, build.Channel, build.Platform)
 		if store.Exists(filePath) {
@@ -198,7 +199,7 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 		return nil, skerr.Wrap(err)
 	}
 
-	ci, err := client.gerritClient.CreateChange(client.ctx, "chromium/src", "main", cbbCommitMessage, "", "")
+	ci, err := client.gerritClient.CreateChange(ctx, "chromium/src", "main", cbbCommitMessage, "", "")
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create Gerrit change.")
 	}
@@ -209,18 +210,18 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to convert %v to JSON", build)
 		}
-		err = client.gerritClient.EditFile(client.ctx, ci, filename, string(jsonData))
+		err = client.gerritClient.EditFile(ctx, ci, filename, string(jsonData))
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to add %s to Gerrit change", filename)
 		}
 	}
 
-	err = client.gerritClient.PublishChangeEdit(client.ctx, ci)
+	err = client.gerritClient.PublishChangeEdit(ctx, ci)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to publish the change to Gerrit.")
 	}
 	// Must call GetChange to refresh the ChangeInfo, otherwise SetReview will fail.
-	ci, err = client.gerritClient.GetChange(client.ctx, ci.Id)
+	ci, err = client.gerritClient.GetChange(ctx, ci.Id)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to refresh change info after publishing edit.")
 	}
@@ -232,44 +233,44 @@ func commitBuildsInfo(ctx context.Context, builds []BuildInfo, isDev bool) (*Chr
 
 	labels := map[string]int{"Auto-Submit": 1}
 	reviewers := []string{"rubber-stamper@appspot.gserviceaccount.com"}
-	err = client.gerritClient.SetReview(client.ctx, ci, "", labels, reviewers, "", nil, "", 0, nil)
+	err = client.gerritClient.SetReview(ctx, ci, "", labels, reviewers, "", nil, "", 0, nil)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to set review info on Gerrit.")
 	}
 	sklog.Infof("Change published to Gerrit, change ID: %v", ci.Issue)
 
-	return waitForSubmitCl(client, ci, builds)
+	return waitForSubmitCl(ctx, client, ci, builds)
 }
 
 // waitForSubmitCl waits for the 'rubber-stamper' to submit uploaded CLs, then
 // returns the commit position.
-func waitForSubmitCl(client *gitClient, ci *gerrit.ChangeInfo, builds []BuildInfo) (*ChromeReleaseInfo, error) {
+func waitForSubmitCl(ctx context.Context, client *gitClient, ci *gerrit.ChangeInfo, builds []BuildInfo) (releaseInfo *ChromeReleaseInfo, err error) {
 	var commitPosition string
 	sklog.Infof("Waiting for CL to be submitted.")
 	start := time.Now()
 	for {
 		if time.Since(start) > ClSubmissionTimeout {
-			return nil, fmt.Errorf("waitForSubmitCl timeout!")
+			return nil, skerr.Fmt("waitForSubmitCl timeout!")
 		}
 		// Refresh the change info to get the latest CL status.
-		ci, err := client.gerritClient.GetChange(client.ctx, ci.Id)
+		ci, err = client.gerritClient.GetChange(ctx, ci.Id)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to refresh change info.")
 		}
 		if ci.Committed {
 			commitHash := ci.Patchsets[len(ci.Patchsets)-1].ID
-			commit, err := client.gerritClient.GetCommit(client.ctx, ci.Issue, commitHash)
+			commit, err := client.gerritClient.GetCommit(ctx, ci.Issue, commitHash)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Failed to get commit info")
 			}
 			re := regexp.MustCompile(clCommitNumber)
 			match := re.FindStringSubmatch(commit.Message)
 			if len(match) != 2 {
-				return nil, fmt.Errorf("Failed to detect Commit Number: %s", commit.Message)
+				return nil, skerr.Fmt("Failed to detect Commit Number: %s", commit.Message)
 			}
 			commitPosition = match[1]
 			sklog.Infof("Detected commit number=%s", commitPosition)
-			releaseInfo := &ChromeReleaseInfo{
+			releaseInfo = &ChromeReleaseInfo{
 				CommitPosition: commitPosition,
 				CommitHash:     commitHash,
 				Builds:         builds,

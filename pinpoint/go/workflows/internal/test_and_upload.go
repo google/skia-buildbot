@@ -98,7 +98,7 @@ func buildArtifact(ctx workflow.Context, workflowID, bot, benchmark string, comb
 	}
 
 	var b *workflows.Build
-	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, workflows.BuildParams{
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, &workflows.BuildParams{
 		WorkflowID: workflowID,
 		Device:     bot,
 		Target:     t,

@@ -3,6 +3,7 @@ package catapult
 import (
 	"fmt"
 
+	"github.com/ccoveille/go-safecast/v2"
 	"github.com/google/uuid"
 
 	"go.skia.org/infra/go/skerr"
@@ -77,6 +78,10 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 		// default account for autobisects
 		user = "chromeperf@appspot.gserviceaccount.com"
 	}
+	differenceCount, err := safecast.Convert[int32](len(be.Culprits))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to safely cast culprit count to int32")
+	}
 	resp := &pinpoint_proto.LegacyJobResponse{
 		JobId:                be.JobId,
 		Configuration:        p.Request.GetConfiguration(),
@@ -87,7 +92,7 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 		Name:                 fmt.Sprintf(BisectJobNameTemplate, p.Request.GetConfiguration(), p.Request.GetBenchmark()),
 		User:                 user,
 		Created:              be.CreateTime,
-		DifferenceCount:      int32(len(be.Culprits)),
+		DifferenceCount:      differenceCount,
 		Metric:               p.Request.GetChart(),
 		Quests:               []string{"Build", "Test", "Get values"},
 	}

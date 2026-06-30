@@ -161,7 +161,10 @@ func main() {
 	w.RegisterActivity(catapult.FetchCommitActivity)
 	w.RegisterActivity(catapult.WriteBisectToCatapultActivity)
 	w.RegisterWorkflowWithOptions(catapult.CatapultBisectWorkflow, workflow.RegisterOptions{Name: workflows.CatapultBisect})
-	w.RegisterWorkflowWithOptions(catapult.ConvertToCatapultResponseWorkflow, workflow.RegisterOptions{Name: workflows.ConvertToCatapultResponseWorkflow})
+	w.RegisterWorkflowWithOptions(
+		catapult.ConvertToCatapultResponseWorkflow,
+		workflow.RegisterOptions{Name: workflows.ConvertToCatapultResponseWorkflow},
+	)
 	w.RegisterWorkflowWithOptions(catapult.CulpritFinderWorkflow, workflow.RegisterOptions{Name: workflows.CulpritFinderWorkflow})
 
 	// Activities and workflows for experiments

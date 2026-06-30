@@ -28,6 +28,8 @@ const (
 
 // gitClient info.
 type gitClient struct {
+	// TODO(b/515025206): Consider removing the context from this structure.
+	// Instead, pass the context as the first parameter to the structure methods.
 	ctx          context.Context
 	repo         *gitiles.Repo
 	repoUrl      string
@@ -45,12 +47,12 @@ func NewGitClient(ctx context.Context, repoUrl, gerritUrl string) (*gitClient, e
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	repo, err := gitiles.NewRepoWithClient(repoUrl, httpClient)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	repo, err := gitiles.NewRepoWithClient(repoUrl, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	gerritClient, err := gerrit.NewGerrit(gerritUrl, httpClient)
+	gerritClient, err := gerrit.NewGerrit(gerritUrl, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -84,7 +86,11 @@ func ReadGitFileActivity(ctx context.Context, combinedCommit *common.CombinedCom
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return repo.ReadFileAtRef(ctx, path, commit.GitHash)
+	b, err := repo.ReadFileAtRef(ctx, path, commit.GitHash)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return b, nil
 }
 
 // ShallowClone creates a shallow clone of the given repo at the given commit.

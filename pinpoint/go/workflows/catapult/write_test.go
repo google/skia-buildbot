@@ -33,14 +33,14 @@ func unmarshalMockDatastoreResp(data string) (*DatastoreResponse, error) {
 
 func TestNewCatapultClient_GivenProd_ReturnsProdClient(t *testing.T) {
 	cc, err := NewCatapultClient(context.Background(), true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, cc)
 	assert.Equal(t, catapultBisectPostUrl, cc.url)
 }
 
 func TestNewCatapultClient_GivenStaging_ReturnsStagingClient(t *testing.T) {
 	cc, err := NewCatapultClient(context.Background(), false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, cc)
 	assert.Equal(t, catapultStagingPostUrl, cc.url)
 }

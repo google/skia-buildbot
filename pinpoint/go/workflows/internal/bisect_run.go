@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/ccoveille/go-safecast/v2"
 	"go.temporal.io/sdk/workflow"
 
 	"go.skia.org/infra/go/skerr"
@@ -10,7 +11,7 @@ import (
 
 type scheduledRun struct {
 	childWorkflow  workflow.Future
-	scheduledCount uint32
+	scheduledCount int32
 }
 
 // BisectRun tracks current scheduled SingleCommitRun's and merges from other runs.
@@ -40,7 +41,7 @@ func newBisectRun(cc *common.CombinedCommit) *BisectRun {
 func (br *BisectRun) totalScheduledRuns() int32 {
 	t := int32(0)
 	for _, v := range br.ScheduledRuns {
-		t = t + int32(v.scheduledCount)
+		t += v.scheduledCount
 	}
 	return t
 }
@@ -54,23 +55,30 @@ func (br *BisectRun) totalPendings() []workflow.Future {
 }
 
 // totalRuns returns the total number of existing runs and pending runs
-func (br *BisectRun) totalRuns() int32 {
-	return int32(len(br.Runs)) + br.totalScheduledRuns()
+func (br *BisectRun) totalRuns() (int32, error) {
+	l, err := safecast.Convert[int32](len(br.Runs))
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	return l + br.totalScheduledRuns(), nil
 }
 
 // scheduleRuns schedules the child workflow to run the given expected number of benchmarks.
 //
 // This is a non-blocking call. The future that returns can be used to update the runs.
-func (br *BisectRun) scheduleRuns(ctx workflow.Context, jobID string, p workflows.BisectParams, newRuns int32) (workflow.ChildWorkflowFuture, error) {
+func (br *BisectRun) scheduleRuns(ctx workflow.Context, jobID string, p *workflows.BisectParams, newRuns int32) (workflow.ChildWorkflowFuture, error) {
 	if newRuns <= 0 {
 		// nothing to schedule, safely return
 		return nil, nil
 	}
-	finishedIteration := int32(len(br.CommitRun.Runs))
+	finishedIteration, err := safecast.Convert[int32](len(br.CommitRun.Runs))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	cf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, newRuns, br.Build.Commit, finishedIteration))
 	br.ScheduledRuns = append(br.ScheduledRuns, scheduledRun{
 		childWorkflow:  cf,
-		scheduledCount: uint32(newRuns),
+		scheduledCount: newRuns,
 	})
 	return cf, nil
 }
@@ -145,20 +153,26 @@ func (br *BisectRun) updateRuns(ctx workflow.Context, cf workflow.ChildWorkflowF
 //
 // If minSampleSize is non-zero, it is used for the initial interation; otherwise, it picks
 // up from the predefined number of iterations.
-func nextRunSize(br1, br2 *BisectRun, minSampleSize int32) int32 {
-	r1 := int32(len(br1.Runs))
-	r2 := int32(len(br2.Runs))
+func nextRunSize(br1, br2 *BisectRun, minSampleSize int32) (int32, error) {
+	r1, err := safecast.Convert[int32](len(br1.Runs))
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	r2, err := safecast.Convert[int32](len(br2.Runs))
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
 
 	if r1 != r2 {
-		return max(r1, r2)
+		return max(r1, r2), nil
 	}
 	if r1 == 0 && minSampleSize > 0 {
-		return minSampleSize
+		return minSampleSize, nil
 	}
 	for _, iter := range benchmarkRunIterations {
 		if iter > r1 {
-			return iter
+			return iter, nil
 		}
 	}
-	return getMaxSampleSize()
+	return getMaxSampleSize(), nil
 }

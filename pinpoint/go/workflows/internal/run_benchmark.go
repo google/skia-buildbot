@@ -187,19 +187,21 @@ func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP, secondRBP *Run
 	})
 	mh.Counter("pairwise_task_count").Inc(1)
 	defer func() {
-		if taskContError == nil && isTaskContinous {
+		switch {
+		case taskContError == nil && isTaskContinous:
 			mh.Counter("pairwise_task_continuous_true").Inc(1)
-		} else if taskContError == nil && !isTaskContinous {
+		case taskContError == nil && !isTaskContinous:
 			mh.Counter("pairwise_task_continuous_false").Inc(1)
-		} else {
+		default:
 			mh.Counter("pairwise_task_continuous_error").Inc(1)
 		}
 
-		if taskOrderError == nil && isTaskOrdered {
+		switch {
+		case taskOrderError == nil && isTaskOrdered:
 			mh.Counter("pairwise_task_order_true").Inc(1)
-		} else if taskOrderError == nil && !isTaskOrdered {
+		case taskOrderError == nil && !isTaskOrdered:
 			mh.Counter("pairwise_task_order_false").Inc(1)
-		} else {
+		default:
 			mh.Counter("pairwise_task_order_error").Inc(1)
 		}
 
@@ -309,7 +311,7 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *
 
 	taskIds, err := run_benchmark.Run(ctx, sc, commit, rbp.BotConfig, rbp.Benchmark, rbp.Story, rbp.StoryTags, rbp.ExtraArgs, rbp.JobID, rbp.BuildCAS, 1, rbp.Dimensions)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
 	return taskIds[0].TaskId, nil
 }
@@ -335,7 +337,7 @@ func (rba *RunBenchmarkActivity) WaitTaskAcceptedActivity(ctx context.Context, t
 	for {
 		select {
 		case <-ctx.Done():
-			return "", ctx.Err()
+			return "", skerr.Wrap(ctx.Err())
 		default:
 			s, err := sc.GetStatus(ctx, taskID)
 			if err != nil {
@@ -381,7 +383,7 @@ func (rba *RunBenchmarkActivity) WaitTaskPendingActivity(ctx context.Context, ta
 	for {
 		select {
 		case <-ctx.Done():
-			return "", ctx.Err()
+			return "", skerr.Wrap(ctx.Err())
 		default:
 			s, err := sc.GetStatus(ctx, taskID)
 			state := run_benchmark.State(s)
@@ -416,7 +418,7 @@ func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, t
 	for {
 		select {
 		case <-ctx.Done():
-			return "", ctx.Err()
+			return "", skerr.Wrap(ctx.Err())
 		default:
 			s, err := sc.GetStatus(ctx, taskID)
 			state := run_benchmark.State(s)
@@ -449,7 +451,7 @@ func (rba *RunBenchmarkActivity) RetrieveTestCASActivity(ctx context.Context, ta
 	cas, err := sc.GetCASOutput(ctx, taskID)
 	if err != nil {
 		logger.Error("Failed to retrieve CAS:", err)
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	return cas, nil
@@ -457,7 +459,7 @@ func (rba *RunBenchmarkActivity) RetrieveTestCASActivity(ctx context.Context, ta
 
 // CleanupActivity wraps run_benchmark.Cancel
 func (rba *RunBenchmarkActivity) CleanupBenchmarkRunActivity(ctx context.Context, taskID string, state run_benchmark.State) error {
-	if len(taskID) == 0 || state.IsTaskFinished() {
+	if taskID == "" || state.IsTaskFinished() {
 		return nil
 	}
 
@@ -470,7 +472,7 @@ func (rba *RunBenchmarkActivity) CleanupBenchmarkRunActivity(ctx context.Context
 
 	err = run_benchmark.Cancel(ctx, sc, taskID)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	return nil
 }

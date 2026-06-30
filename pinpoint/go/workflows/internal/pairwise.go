@@ -164,7 +164,7 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (
 	}
 
 	var pr *PairwiseRun
-	if err := workflow.ExecuteChildWorkflow(ctx, workflows.PairwiseCommitsRunner, pairwiseRunnerParams).Get(ctx, &pr); err != nil {
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.PairwiseCommitsRunner, &pairwiseRunnerParams).Get(ctx, &pr); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 

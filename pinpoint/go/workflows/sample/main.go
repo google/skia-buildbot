@@ -277,7 +277,7 @@ func triggerBuildChrome(c client.Client) (*apipb.CASReference, error) {
 		Device:     *configuration,
 		Target:     "performance_test_suite",
 	}
-	we, err := c.ExecuteWorkflow(context.Background(), defaultWorkflowOptions(), workflows.BuildChrome, bcp)
+	we, err := c.ExecuteWorkflow(context.Background(), defaultWorkflowOptions(), workflows.BuildChrome, &bcp)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Unable to execute workflow")
 	}

@@ -21,9 +21,9 @@ import (
 // generateTestRuns generates a test runs data
 //
 // It returns the expected runs, and a channel that was buffered to send to mocked workflow.
-func generateTestRuns(chart string, c int, chartExpectedValues *workflows.TestResults) ([]*workflows.TestRun, chan *workflows.TestRun) {
-	rc := make(chan *workflows.TestRun, c)
-	trs := make([]*workflows.TestRun, c)
+func generateTestRuns(chart string, c int, chartExpectedValues *workflows.TestResults) (trs []*workflows.TestRun, rc chan *workflows.TestRun) {
+	rc = make(chan *workflows.TestRun, c)
+	trs = make([]*workflows.TestRun, c)
 	trs[0] = &workflows.TestRun{
 		Status: run_benchmark.State(backends.RunBenchmarkFailure),
 	}
@@ -212,10 +212,10 @@ func TestGetBotDimensions_GivenValidInput_ShouldReturnBotDimensions(t *testing.T
 
 func TestGetBotDimensions_GivenInValidInput_ShouldNotReturnBotDimensions(t *testing.T) {
 	gotBotDimensionsWithNilBotList := getBotDimension(1, 2, nil)
-	assert.Equal(t, (map[string]string)(nil), gotBotDimensionsWithNilBotList)
+	assert.Nil(t, gotBotDimensionsWithNilBotList)
 
 	gotBotDimensionsWithEmptyBotList := getBotDimension(1, 2, make([]string, 0))
-	assert.Equal(t, (map[string]string)(nil), gotBotDimensionsWithEmptyBotList)
+	assert.Nil(t, gotBotDimensionsWithEmptyBotList)
 }
 
 func TestGetSwarmingStatus_GivenNilRuns_ReturnsEmpty(t *testing.T) {

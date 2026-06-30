@@ -77,7 +77,7 @@ func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTrac
 	}
 }
 
-func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *pinpoint_common.CombinedCommit, finishedIteration int32) *SingleCommitRunnerParams {
+func newRunnerParams(jobID string, p *workflows.BisectParams, it int32, cc *pinpoint_common.CombinedCommit, finishedIteration int32) *SingleCommitRunnerParams {
 	return &SingleCommitRunnerParams{
 		CombinedCommit:    cc,
 		PinpointJobID:     jobID,
@@ -186,17 +186,28 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 	// schedulePairRuns is a helper function to schedule new benchmark runs from two BisectRun.
 	// It captures common local variable and attempts to make the code cleaner in the for-loop below.
 	schedulePairRuns := func(lower, higher *BisectRun) (workflow.ChildWorkflowFuture, workflow.ChildWorkflowFuture, error) {
-		expected := nextRunSize(lower, higher, minSampleSize)
-		lf, err := lower.scheduleRuns(ctx, jobID, *p, expected-lower.totalRuns())
+		expected, err := nextRunSize(lower, higher, minSampleSize)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		lowerRuns, err := lower.totalRuns()
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		lf, err := lower.scheduleRuns(ctx, jobID, p, expected-lowerRuns)
 		if err != nil {
 			logger.Warn("Failed to schedule more runs.", "commit", lower.Build.Commit, "error", err)
 			return nil, nil, skerr.Wrap(err)
 		}
 
-		hf, err := higher.scheduleRuns(ctx, jobID, *p, expected-higher.totalRuns())
+		higherRuns, err := higher.totalRuns()
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		hf, err := higher.scheduleRuns(ctx, jobID, p, expected-higherRuns)
 		if err != nil {
 			logger.Warn("Failed to schedule more runs.", "commit", higher.Build.Commit, "error", err)
-			return nil, nil, err
+			return nil, nil, skerr.Wrap(err)
 		}
 
 		return lf, hf, nil
@@ -320,7 +331,12 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 				}
 
 				midRunIdx, midRun := tracker.newRun(mid)
-				mf, err := midRun.scheduleRuns(ctx, be.JobId, *p, nextRunSize(lower, midRun, minSampleSize))
+				expectedSize, err := nextRunSize(lower, midRun, minSampleSize)
+				if err != nil {
+					logger.Warn(fmt.Sprintf("Failed to calculate next run size: %v", err))
+					break
+				}
+				mf, err := midRun.scheduleRuns(ctx, be.JobId, p, expectedSize)
 				if err != nil {
 					logger.Warn(fmt.Sprintf("Failed to schedule more runs for (%v): %v", mid, err))
 					break
@@ -338,7 +354,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 						comparisons.Send(gCtx, cr.CloneWithHigher(midRunIdx))
 						comparisons.Send(gCtx, cr.CloneWithLower(midRunIdx))
 					})
-					pendings = pendings + 2
+					pendings += 2
 				})
 			}
 		}

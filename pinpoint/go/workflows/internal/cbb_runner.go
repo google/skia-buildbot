@@ -12,15 +12,17 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/sdk/temporal"
+	"go.temporal.io/sdk/workflow"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/perfresults"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
-
-	"go.temporal.io/sdk/temporal"
-	"go.temporal.io/sdk/workflow"
 )
 
 // CbbRunnerParams defines the parameters for CbbRunnerWorkflow.
@@ -76,18 +78,18 @@ func validateParameters(cbb *CbbRunnerParams) error {
 	switch cbb.Browser {
 	case "chrome", "edge":
 		if cbb.Channel != "stable" && cbb.Channel != "dev" {
-			return fmt.Errorf(
+			return skerr.Fmt(
 				"Unrecognized browser channel %s, %s only supports stable and dev",
 				cbb.Channel, cbb.Browser)
 		}
 	case "safari":
 		if cbb.Channel != "stable" && cbb.Channel != "technology-preview" {
-			return fmt.Errorf(
+			return skerr.Fmt(
 				"Unrecognized browser channel %s, %s only supports stable and technology-preview",
 				cbb.Channel, cbb.Browser)
 		}
 	default:
-		return fmt.Errorf(
+		return skerr.Fmt(
 			"Unrecognized browser %s, only chrome, safari, and edge are supported",
 			cbb.Browser)
 	}
@@ -107,9 +109,11 @@ func setupBenchmarks(cbb *CbbRunnerParams) []BenchmarkRunConfig {
 		benchmarks = append(benchmarks, BenchmarkRunConfig{"speedometer3", 22})
 	}
 
-	benchmarks = append(benchmarks, BenchmarkRunConfig{"jetstream2", 22})
-	benchmarks = append(benchmarks, BenchmarkRunConfig{"jetstream3", 22})
-	benchmarks = append(benchmarks, BenchmarkRunConfig{"motionmark1.3", 22})
+	benchmarks = append(benchmarks,
+		BenchmarkRunConfig{"jetstream2", 22},
+		BenchmarkRunConfig{"jetstream3", 22},
+		BenchmarkRunConfig{"motionmark1.3", 22},
+	)
 	if strings.HasPrefix(botConfig, "android-") {
 		// Loadline2 is only available on Android. It also takes considerably
 		// longer than other benchmarks, having 50 iterations built-in,
@@ -142,14 +146,15 @@ type browserInfo struct {
 
 func getBrowserInfo(ctx workflow.Context, cbb *CbbRunnerParams) (*browserInfo, error) {
 	var platformName string
-	if strings.HasPrefix(cbb.BotConfig, "mac-") {
+	switch {
+	case strings.HasPrefix(cbb.BotConfig, "mac-"):
 		platformName = "mac"
-	} else if strings.HasPrefix(cbb.BotConfig, "win-") {
+	case strings.HasPrefix(cbb.BotConfig, "win-"):
 		platformName = "windows"
-	} else if strings.HasPrefix(cbb.BotConfig, "android-") {
+	case strings.HasPrefix(cbb.BotConfig, "android-"):
 		platformName = "android"
-	} else {
-		return nil, fmt.Errorf("Unable to determine platform for bot %s", cbb.BotConfig)
+	default:
+		return nil, skerr.Fmt("Unable to determine platform for bot %s", cbb.BotConfig)
 	}
 	gitPath := fmt.Sprintf("testing/perf/cbb_ref_info/%s/%s/%s.json", cbb.Browser, cbb.Channel, platformName)
 
@@ -187,15 +192,16 @@ func genJobId(bi *browserInfo, cbb *CbbRunnerParams, benchmark string) string {
 	bot := getShortBotName(cbb.BotConfig)
 
 	// Shorten benchmark name.
-	if strings.HasPrefix(benchmark, "speedometer") {
+	switch {
+	case strings.HasPrefix(benchmark, "speedometer"):
 		benchmark = "SP"
-	} else if strings.HasPrefix(benchmark, "jetstream2") {
+	case strings.HasPrefix(benchmark, "jetstream2"):
 		benchmark = "JS2"
-	} else if strings.HasPrefix(benchmark, "jetstream3") {
+	case strings.HasPrefix(benchmark, "jetstream3"):
 		benchmark = "JS3"
-	} else if strings.HasPrefix(benchmark, "loadline2") {
+	case strings.HasPrefix(benchmark, "loadline2"):
 		benchmark = "LL2"
-	} else if strings.HasPrefix(benchmark, "motionmark") {
+	case strings.HasPrefix(benchmark, "motionmark"):
 		benchmark = "MM"
 	}
 
@@ -264,7 +270,7 @@ func getShortBotName(bot string) string {
 }
 
 // Workflow to run all CBB benchmarks on a particular browser / bot config and upload the results.
-func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]*format.Format, error) {
+func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (map[string]*format.Format, error) {
 	startTime := workflow.Now(ctx)
 
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
@@ -390,10 +396,11 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (*map[string]
 		}
 		// The CbbRunnerError object must be wrapped in an ApplicationError in
 		// order to be successfully passed back to the parent workflow.
+		//nolint:wrapcheck // temporal error must be propagated raw
 		return nil, temporal.NewApplicationError(err.Err, "CbbRuntimeError", err)
 	}
 
-	return &results, nil
+	return results, nil
 }
 
 // Provide a StringWriterCloser interface wrapper around strings.Builder,
@@ -403,7 +410,11 @@ type StringWriterCloser struct {
 }
 
 func (swc StringWriterCloser) Write(p []byte) (int, error) {
-	return swc.builder.Write(p)
+	n, err := swc.builder.Write(p)
+	if err != nil {
+		return n, skerr.Wrap(err)
+	}
+	return n, nil
 }
 
 func (StringWriterCloser) Close() error {
@@ -481,7 +492,7 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot, benchmark string, bi
 	// Form a human-readable browser name and channel string, such as "Chrome Stable".
 	browser_id := fmt.Sprintf("%s %s", bi.Browser, bi.Channel)
 	browser_id = strings.ReplaceAll(browser_id, "-", " ")
-	browser_id = strings.Title(browser_id)
+	browser_id = cases.Title(language.English).String(browser_id)
 	if bi.Browser == "chrome" && bi.Platform != "android" {
 		if bi.Channel == "stable" && !skipFinch {
 			browser_id += " (Top Finch Variations)"
@@ -529,7 +540,7 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot, benchmark string, bi
 }
 
 // Activity to upload CBB results to cloud storage, for import into perf dashboard.
-func UploadCbbResultsActivity(ctx context.Context, t time.Time, cbb CbbRunnerParams, benchmark, results string) (string, error) {
+func UploadCbbResultsActivity(ctx context.Context, t time.Time, cbb *CbbRunnerParams, benchmark, results string) (string, error) {
 	if cbb.Bucket == "" {
 		return "", nil
 	}

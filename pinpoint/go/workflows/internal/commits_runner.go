@@ -139,7 +139,7 @@ func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *com
 	}
 
 	var b *workflows.Build
-	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, workflows.BuildParams{
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, &workflows.BuildParams{
 		WorkflowID: jobID,
 		Device:     bot,
 		Target:     t,
@@ -182,7 +182,7 @@ func runBenchmark(ctx workflow.Context, cc *common.CombinedCommit, cas *apipb.CA
 	}
 
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.RunBenchmark, rbp).Get(ctx, &tr); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	if !tr.Status.IsTaskSuccessful() {
@@ -197,11 +197,11 @@ func runBenchmark(ctx workflow.Context, cc *common.CombinedCommit, cas *apipb.CA
 	var results *workflows.TestResults
 	if scrp.Chart != "" {
 		if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, tr, scrp.Benchmark, scrp.Chart, scrp.AggregationMethod).Get(ctx, &results); err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 	} else {
 		if err := workflow.ExecuteActivity(ctx, CollectAllValuesActivity, tr, scrp.Benchmark, scrp.AggregationMethod).Get(ctx, &results); err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 	}
 
@@ -230,11 +230,11 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
-	for i := 0; i < int(sc.Iterations); i++ {
+	for i := int32(0); i < sc.Iterations; i++ {
 		// We need to make a copy of i since the following is a closure. By making a
 		// copy every closure will point to it's own copy of i rather than pointing to
 		// the same variable.
-		iteration := int32(i)
+		iteration := i
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()
 
@@ -268,9 +268,10 @@ func getBotDimension(finishedIteration, iteration int32, botIds []string) map[st
 		return nil
 	}
 
+	index := (int(finishedIteration) + int(iteration)) % len(botIds)
 	botDimension := map[string]string{
 		"key":   "id",
-		"value": (botIds)[(finishedIteration+iteration)%int32(len(botIds))],
+		"value": botIds[index],
 	}
 	return botDimension
 }
@@ -281,7 +282,11 @@ func CollectValuesActivity(ctx context.Context, run *workflows.TestRun, benchmar
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to dial rbe client")
 	}
-	return client.ReadValuesByChart(ctx, benchmark, chart, []*apipb.CASReference{run.CAS}, aggMethod)
+	res, err := client.ReadValuesByChart(ctx, benchmark, chart, []*apipb.CASReference{run.CAS}, aggMethod)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return res, nil
 }
 
 // CollectAllValuesActivity is an activity to collect all sampled values from a single test run.
@@ -290,5 +295,9 @@ func CollectAllValuesActivity(ctx context.Context, run *workflows.TestRun, bench
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to dial rbe client")
 	}
-	return client.ReadValuesForAllCharts(ctx, benchmark, []*apipb.CASReference{run.CAS}, aggMethod)
+	res, err := client.ReadValuesForAllCharts(ctx, benchmark, []*apipb.CASReference{run.CAS}, aggMethod)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return res, nil
 }
