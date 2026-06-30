@@ -426,7 +426,7 @@ use_repo(oci, "pinned_jsfiddle")
 # Debugger's version of CanvasKit is built with different flags
 oci.pull(
     name = "pinned_debugger",
-    digest = "sha256:95d4a8841f9b5380f8c883e1994583f7ecc4357b09511365ba427ae386b128b5",
+    digest = "sha256:fb420eac74a7127d501144473582f2be65ca24a73945b4acfd3056a98d8dfee3",
     image = "gcr.io/skia-public/debugger-app-final",
 )
 use_repo(oci, "pinned_debugger")
