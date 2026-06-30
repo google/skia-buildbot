@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -14,9 +13,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ccoveille/go-safecast/v2"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
 	"golang.org/x/oauth2/google"
@@ -70,6 +71,7 @@ var (
 	triggerCbbNewReleaseFlag  = flag.Bool("cbb-new-release", false, "toggle true to trigger CbbNewReleaseDetectorWorkflow")
 	triggerCbbGetVersionsFlag = flag.Bool("cbb-get-versions", false, "toggle true to trigger CbbGetBrowserVersionsWorkflow")
 	triggerCbbDownloadSTPFlag = flag.Bool("cbb-download-stp", false, "toggle true to trigger DownloadSafariTPWorkflow")
+	triggerBuildChromeFlag    = flag.Bool("build-chrome", false, "toggle true to trigger build chrome workflow")
 	// The following flags are used by cbb-runner only.
 	commitPosition = flag.Int("commit-position", 0, "Commit position (required for CBB).")
 	browser        = flag.String("browser", "chrome", "chrome or safari or edge (used by CBB only)")
@@ -156,6 +158,10 @@ func triggerBisectWorkflow(c client.Client) (*pb.BisectExecution, error) {
 }
 
 func triggerPairwiseRunner(c client.Client) (*internal.PairwiseRun, error) {
+	iterations32, err := safecast.Convert[int32](*iterations)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	ctx := context.Background()
 	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/1372a174810000
 	p := &internal.PairwiseCommitsRunnerParams{
@@ -166,7 +172,7 @@ func triggerPairwiseRunner(c client.Client) (*internal.PairwiseRun, error) {
 			Story:             *story,
 			Chart:             *chart,
 			AggregationMethod: *aggregationMethod,
-			Iterations:        int32(*iterations),
+			Iterations:        iterations32,
 		},
 		Seed:        54321,
 		LeftCommit:  common.NewCombinedCommit(&pb.Commit{GitHash: *startGitHash}),
@@ -221,6 +227,10 @@ func triggerPairwiseWorkflow(c client.Client) (*pb.PairwiseExecution, error) {
 }
 
 func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
+	iterations32, err := safecast.Convert[int32](*iterations)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	ctx := context.Background()
 	p := &internal.SingleCommitRunnerParams{
 		PinpointJobID:     *jobId,
@@ -230,14 +240,14 @@ func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 		Chart:             *chart,
 		AggregationMethod: *aggregationMethod,
 		CombinedCommit:    common.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
-		Iterations:        int32(*iterations),
+		Iterations:        iterations32,
 	}
 	if *extraArg != "" {
 		p.ExtraArgs = []string{*extraArg}
 	}
 	if *patchId != 0 {
 		if *patchSet == 0 {
-			return nil, errors.New("--patch-set is required when --patch-id is used")
+			return nil, skerr.Fmt("--patch-set is required when --patch-id is used")
 		}
 		p.CombinedCommit.Patch = &pb.GerritChange{
 			Host:     *patchHost,
@@ -260,7 +270,7 @@ func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 	return cr, nil
 }
 
-func triggerBuildChrome(c client.Client) *apipb.CASReference {
+func triggerBuildChrome(c client.Client) (*apipb.CASReference, error) {
 	bcp := workflows.BuildParams{
 		WorkflowID: *jobId,
 		Commit:     common.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
@@ -269,8 +279,7 @@ func triggerBuildChrome(c client.Client) *apipb.CASReference {
 	}
 	we, err := c.ExecuteWorkflow(context.Background(), defaultWorkflowOptions(), workflows.BuildChrome, bcp)
 	if err != nil {
-		sklog.Fatalf("Unable to execute workflow: %v", err)
-		return nil
+		return nil, skerr.Wrapf(err, "Unable to execute workflow")
 	}
 
 	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
@@ -279,9 +288,9 @@ func triggerBuildChrome(c client.Client) *apipb.CASReference {
 	var result *apipb.CASReference
 	err = we.Get(context.Background(), &result)
 	if err != nil {
-		sklog.Errorf("Unable get workflow result: %v", err)
+		return nil, skerr.Wrapf(err, "Unable get workflow result")
 	}
-	return result
+	return result, nil
 }
 
 func triggerBugUpdateWorkflow(c client.Client) (bool, error) {
@@ -355,10 +364,14 @@ func triggerQueryPairwise(c client.Client) (*pb.QueryPairwiseResponse, error) {
 
 func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 	if len(flag.Args()) != 0 {
-		return nil, fmt.Errorf("Unrecognized command line arguments: %v", flag.Args())
+		return nil, skerr.Fmt("Unrecognized command line arguments: %v", flag.Args())
 	}
-	if *commitPosition == 0 {
-		return nil, errors.New("Please specify a commit position using --commit-position switch")
+	if *commitPosition <= 0 {
+		return nil, skerr.Fmt("Please specify a valid positive commit position using --commit-position switch")
+	}
+	commitPos32, err := safecast.Convert[int32](*commitPosition)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "invalid commit position")
 	}
 	ctx := context.Background()
 	// If the user didn't specify a commit hash (so that *commit has the
@@ -378,7 +391,7 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 			// return an error, but converts the commit position into a string.
 			// Since a valid commit hash must be 40 characters long, we assume
 			// an error if the length is incorrect.
-			return nil, fmt.Errorf(
+			return nil, skerr.Fmt(
 				"commit position %d appears invalid, GetCommitInfo returned %s",
 				*commitPosition, ci.GitHash,
 			)
@@ -393,11 +406,11 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 		Channel:   *channel,
 		SkipFinch: *skipFinch,
 	}
-	p.Commit.Main.CommitPosition = int32(*commitPosition)
+	p.Commit.Main.CommitPosition = commitPos32
 
 	if *patchId != 0 {
 		if *patchSet == 0 {
-			return nil, errors.New("--patch-set is required when --patch-id is used")
+			return nil, skerr.Fmt("--patch-set is required when --patch-id is used")
 		}
 		p.Commit.Patch = &pb.GerritChange{
 			Host:     *patchHost,
@@ -418,6 +431,10 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 			*iterations = 2
 		}
 	}
+	iterations32, err := safecast.Convert[int32](*iterations)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	switch *benchmark {
 	case "", "full":
@@ -425,10 +442,10 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 		p.Benchmarks = nil
 	case "trial":
 		p.Benchmarks = []internal.BenchmarkRunConfig{
-			{Benchmark: "speedometer3", Iterations: int32(*iterations)},
-			{Benchmark: "jetstream2", Iterations: int32(*iterations)},
-			{Benchmark: "jetstream3", Iterations: int32(*iterations)},
-			{Benchmark: "motionmark1.3", Iterations: int32(*iterations)},
+			{Benchmark: "speedometer3", Iterations: iterations32},
+			{Benchmark: "jetstream2", Iterations: iterations32},
+			{Benchmark: "jetstream3", Iterations: iterations32},
+			{Benchmark: "motionmark1.3", Iterations: iterations32},
 		}
 	default:
 		// Multiple benchmarks can be specified, separated by ",".
@@ -436,7 +453,10 @@ func triggerCbbRunner(c client.Client) (*internal.CommitRun, error) {
 			// Each benchmark can be specified as "name", or "name:iteration"
 			colon := strings.Index(b, ":")
 			if colon == -1 {
-				p.Benchmarks = append(p.Benchmarks, internal.BenchmarkRunConfig{Benchmark: b, Iterations: int32(*iterations)})
+				p.Benchmarks = append(
+					p.Benchmarks,
+					internal.BenchmarkRunConfig{Benchmark: b, Iterations: iterations32},
+				)
 			} else {
 				i, err := strconv.ParseInt(b[colon+1:], 10, 32)
 				if err != nil {
@@ -491,10 +511,10 @@ func triggerCbbNewReleaseDetector(c client.Client) (*internal.ChromeReleaseInfo,
 
 func triggerCbbGetBrowserVersions(c client.Client) ([]internal.BuildInfo, error) {
 	if len(flag.Args()) != 0 {
-		return nil, fmt.Errorf("Unrecognized command line arguments: %v", flag.Args())
+		return nil, skerr.Fmt("Unrecognized command line arguments: %v", flag.Args())
 	}
 	if *browser != "safari" && *browser != "edge" {
-		return nil, errors.New("Either --browser=safari or --browser=edge is required")
+		return nil, skerr.Fmt("Either --browser=safari or --browser=edge is required")
 	}
 	ctx := context.Background()
 	var buildInfos []internal.BuildInfo
@@ -526,19 +546,19 @@ func triggerCbbDownloadSTP(c client.Client) (string, error) {
 	return result, nil
 }
 
-var gerritURLRegex = regexp.MustCompile(`^https?://([^/]+)/c/(.+)/\+/([0-9]+)(?:/([0-9]+))?/?$`)
+var gerritURLRegex = regexp.MustCompile(`^https?://([^/]+)/c/(.+)/\+/(\d+)(?:/(\d+))?/?$`)
 
 func parseGerritURL(gerritURL string) (*pb.GerritChange, error) {
 	matches := gerritURLRegex.FindStringSubmatch(gerritURL)
 	if matches == nil {
-		return nil, fmt.Errorf("invalid gerrit URL format: %s", gerritURL)
+		return nil, skerr.Fmt("invalid gerrit URL format: %s", gerritURL)
 	}
 
 	host := matches[1]
 	project := matches[2]
 	changeID, err := strconv.ParseInt(matches[3], 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse change ID: %w", err)
+		return nil, skerr.Wrapf(err, "failed to parse change ID")
 	}
 
 	var patchset int64 = 1
@@ -640,14 +660,18 @@ func triggerMimicLegacyJob(c client.Client, legacyJobID string) (interface{}, er
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 
-	resp, err := httpClient.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create request for legacy Pinpoint job")
+	}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to fetch legacy Pinpoint job")
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch legacy job, status code: %d", resp.StatusCode)
+		return nil, skerr.Fmt("failed to fetch legacy job, status code: %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -677,7 +701,7 @@ func triggerMimicLegacyJob(c client.Client, legacyJobID string) (interface{}, er
 		}
 		endHash := args.EndGitHash
 		if startHash == "" {
-			return nil, fmt.Errorf("missing start_git_hash or base_git_hash in legacy job arguments")
+			return nil, skerr.Fmt("missing start_git_hash or base_git_hash in legacy job arguments")
 		}
 		if endHash == "" {
 			endHash = startHash
@@ -751,7 +775,7 @@ func triggerMimicLegacyJob(c client.Client, legacyJobID string) (interface{}, er
 		}
 		endHash := args.EndGitHash
 		if startHash == "" || endHash == "" {
-			return nil, fmt.Errorf("missing start_git_hash/base_git_hash or end_git_hash in legacy job arguments")
+			return nil, skerr.Fmt("missing start_git_hash/base_git_hash or end_git_hash in legacy job arguments")
 		}
 
 		req := &pb.ScheduleBisectRequest{
@@ -789,7 +813,7 @@ func triggerMimicLegacyJob(c client.Client, legacyJobID string) (interface{}, er
 		return be, nil
 	}
 
-	return nil, fmt.Errorf("unsupported comparison mode for mimicking legacy job: %s", comparisonMode)
+	return nil, skerr.Fmt("unsupported comparison mode for mimicking legacy job: %s", comparisonMode)
 }
 
 // Sample client to trigger a BuildChrome workflow.
@@ -848,6 +872,9 @@ func main() {
 	}
 	if *triggerCbbDownloadSTPFlag {
 		result, err = triggerCbbDownloadSTP(c)
+	}
+	if *triggerBuildChromeFlag {
+		result, err = triggerBuildChrome(c)
 	}
 	if *mimicLegacyJob != "" {
 		result, err = triggerMimicLegacyJob(c, *mimicLegacyJob)

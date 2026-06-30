@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
@@ -78,10 +79,10 @@ func TestParseGerritURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			actual, err := parseGerritURL(tc.url)
 			if tc.expectErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Nil(t, actual)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tc.expected, actual)
 			}
 		})
