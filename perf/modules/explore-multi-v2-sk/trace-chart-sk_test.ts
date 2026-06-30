@@ -292,6 +292,71 @@ describe('trace-chart-sk', () => {
     }
   });
 
+  it('sets isCtrl true only when ctrlKey or metaKey is pressed on pointerdown', async () => {
+    (element as any)['_processedSeries'] = [
+      { id: 'test', color: '#fff', rows: [{ commit_number: 100, val: 1, createdat: 1 }] },
+    ];
+    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
+
+    const downNormal = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
+    (element as any)['_handlePointerDown'](downNormal);
+    expect((element as any)['_dragCtx'].isCtrl).to.be.false;
+
+    const downCtrl = new PointerEvent('pointerdown', { clientX: 100, clientY: 100, ctrlKey: true });
+    (element as any)['_handlePointerDown'](downCtrl);
+    expect((element as any)['_dragCtx'].isCtrl).to.be.true;
+
+    const downMeta = new PointerEvent('pointerdown', { clientX: 100, clientY: 100, metaKey: true });
+    (element as any)['_handlePointerDown'](downMeta);
+    expect((element as any)['_dragCtx'].isCtrl).to.be.true;
+  });
+
+  it('pans the viewport on standard pointer drag without Ctrl or Shift', async () => {
+    let eventDetail: any = null;
+    element.addEventListener('viewport-changed', (e: any) => {
+      eventDetail = e.detail;
+    });
+
+    (element as any)['_processedSeries'] = [
+      { id: 'test', color: '#fff', rows: [{ commit_number: 100, val: 1, createdat: 1 }] },
+    ];
+
+    const oldGetMapping = (element as any)['_getChartBoundsAndMapping'];
+    (element as any)['_getChartBoundsAndMapping'] = () => ({
+      minX: 100,
+      maxX: 500,
+      padding: { left: 0, top: 0, right: 0, bottom: 0 },
+      graphWidth: 1000,
+      graphHeight: 400,
+      unmapY: (y: number) => y,
+    });
+
+    try {
+      const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+      canvas.getBoundingClientRect = () =>
+        ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
+
+      const downEvent = new PointerEvent('pointerdown', { clientX: 200, clientY: 100 });
+      (element as any)['_handlePointerDown'](downEvent);
+
+      const moveEvent = new PointerEvent('pointermove', { clientX: 300, clientY: 100 });
+      (element as any)['_handlePointerMove'](moveEvent);
+
+      expect((element as any)['_viewportMinX']).to.equal(60);
+      expect((element as any)['_viewportMaxX']).to.equal(460);
+
+      const upEvent = new PointerEvent('pointerup', { clientX: 300, clientY: 100 });
+      (element as any)['_handlePointerUp'](upEvent);
+
+      expect(eventDetail).to.not.be.null;
+      expect(eventDetail.minCommit).to.equal(60);
+      expect(eventDetail.maxCommit).to.equal(460);
+    } finally {
+      (element as any)['_getChartBoundsAndMapping'] = oldGetMapping;
+    }
+  });
+
   it('draws No Data message when minX is Infinity', async () => {
     const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d')!;

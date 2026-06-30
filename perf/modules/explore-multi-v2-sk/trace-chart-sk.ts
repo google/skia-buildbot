@@ -66,6 +66,7 @@ const ROLLOUT_BOX_HEIGHT = 14; // Total height of the label background box
 
 const ZOOM_PIXEL_THRESHOLD = 15;
 const ZOOM_RATIO_THRESHOLD = 0.3;
+const DRAG_THRESHOLD_PX = 5;
 
 type ZoomMode = 'X_ONLY' | 'Y_ONLY' | 'BOTH';
 
@@ -249,6 +250,8 @@ export class TraceChartSk extends LitElement {
     isDragging: false,
     dragStartX: 0,
     dragStartY: 0,
+    dragStartMinX: 0,
+    dragStartMaxX: 0,
     dragStartMinY: 0,
     dragStartMaxY: 0,
     isShift: false,
@@ -1636,7 +1639,7 @@ export class TraceChartSk extends LitElement {
     const mouseY = e.clientY - rect.top;
 
     const isShiftNow = e.shiftKey;
-    const isCtrlNow = !isShiftNow; // Zoom by default if not shifting
+    const isCtrlNow = e.ctrlKey || e.metaKey;
     if (!isShiftNow && this._measureState) {
       this._measureState = null;
     }
@@ -1669,6 +1672,8 @@ export class TraceChartSk extends LitElement {
     if (this._processedSeries.length === 0) return;
 
     const mapping = this._getChartBoundsAndMapping(rect);
+    this._dragCtx.dragStartMinX = mapping.minX;
+    this._dragCtx.dragStartMaxX = mapping.maxX;
     const startDataY = mapping.unmapY(mouseY);
 
     if (this._dragCtx.isShift) {
@@ -1714,6 +1719,13 @@ export class TraceChartSk extends LitElement {
         this._dragCtx.currentX = mouseX;
         this._dragCtx.currentY = mouseY;
         this._drawForeground();
+      } else {
+        const dx = mouseX - this._dragCtx.dragStartX;
+        const dataShift =
+          (dx / mapping.graphWidth) * (this._dragCtx.dragStartMaxX - this._dragCtx.dragStartMinX);
+        this._viewportMinX = this._dragCtx.dragStartMinX - dataShift;
+        this._viewportMaxX = this._dragCtx.dragStartMaxX - dataShift;
+        this.requestUpdate();
       }
       return;
     }
@@ -1843,7 +1855,7 @@ export class TraceChartSk extends LitElement {
       const dx = Math.abs(startX - currentX);
       const dy = Math.abs(startY - currentY);
 
-      if (dx > 5 || dy > 5) {
+      if (dx > DRAG_THRESHOLD_PX || dy > DRAG_THRESHOLD_PX) {
         const mapping = this._getChartBoundsAndMapping(rect);
 
         let newMinX = this._viewportMinX;
@@ -1853,7 +1865,7 @@ export class TraceChartSk extends LitElement {
         let xZoomChanged = false;
 
         if (zoomMode === 'X_ONLY' || zoomMode === 'BOTH') {
-          if (dx > 5) {
+          if (dx > DRAG_THRESHOLD_PX) {
             const xRange = mapping.maxX - mapping.minX;
             const dataX1 =
               mapping.minX + ((startX - mapping.padding.left) / mapping.graphWidth) * xRange;
@@ -1872,7 +1884,7 @@ export class TraceChartSk extends LitElement {
         }
 
         if (zoomMode === 'Y_ONLY' || zoomMode === 'BOTH') {
-          if (dy > 5) {
+          if (dy > DRAG_THRESHOLD_PX) {
             const dataY1 = mapping.unmapY(startY);
             const dataY2 = mapping.unmapY(currentY);
             newMinY = Math.min(dataY1, dataY2);
@@ -1903,7 +1915,23 @@ export class TraceChartSk extends LitElement {
       }
     }
 
-    if (dist < 5) {
+    if (!this._dragCtx.isCtrl && !this._dragCtx.isShift && dist > DRAG_THRESHOLD_PX) {
+      if (this._viewportMinX !== null && this._viewportMaxX !== null) {
+        this.dispatchEvent(
+          new CustomEvent('viewport-changed', {
+            detail: {
+              minCommit: this._viewportMinX,
+              maxCommit: this._viewportMaxX,
+            },
+            bubbles: true,
+            composed: true,
+          })
+        );
+      }
+      return;
+    }
+
+    if (dist < DRAG_THRESHOLD_PX) {
       // Click detected
       if (this.globalPinnedX !== null) {
         // Clear pin if already pinned
