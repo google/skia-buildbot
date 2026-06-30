@@ -120,6 +120,8 @@ ts_library(
     deps = [
         ":trace-types_ts_lib",
         "//:node_modules/lit",
+        "//elements-sk/modules/icons/close-icon-sk",
+        "//perf/modules/anomalies-table-sk:triage-api_ts_lib",
         "//perf/modules/bisect-dialog-sk",
         "//perf/modules/cid:cid_ts_lib",
         "//perf/modules/commit-range-sk",
@@ -199,6 +201,7 @@ karma_test(
         ":trace-chart-tooltip-sk_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
     ],
 )
 

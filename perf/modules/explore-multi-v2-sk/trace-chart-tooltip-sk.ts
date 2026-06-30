@@ -13,6 +13,8 @@ import '../user-issue-sk/user-issue-sk';
 import '../bisect-dialog-sk/bisect-dialog-sk';
 import '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
 import { AnomalyData } from '../common/anomaly-data';
+import '../../../elements-sk/modules/icons/close-icon-sk';
+import { makeEditAnomalyRequest } from '../anomalies-table-sk/triage-api';
 import { lookupCids } from '../cid/cid';
 
 @customElement('trace-chart-tooltip-sk')
@@ -321,6 +323,15 @@ export class TraceChartTooltipSk extends LitElement {
     triage-menu-sk #ignore_toast {
       background-color: var(--background);
       color: var(--on-background);
+    }
+
+    close-icon-sk#unassociate-bug-button {
+      fill: var(--negative);
+      cursor: pointer;
+      height: 18px;
+      width: 18px;
+      margin-left: 4px;
+      vertical-align: middle;
     }
   `;
 
@@ -701,6 +712,23 @@ export class TraceChartTooltipSk extends LitElement {
     }
   }
 
+  private unassociateBug(traceName: string, regression: Regression): void {
+    makeEditAnomalyRequest([regression as any], [traceName], 'RESET').then(() => {
+      this.dispatchEvent(
+        new CustomEvent('anomaly-changed', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            traceNames: [traceName],
+            editAction: 'RESET',
+            anomalies: [regression],
+          },
+        })
+      );
+      this.requestUpdate();
+    });
+  }
+
   private _xAccessor(r: TraceRow) {
     return this.dateMode ? r.createdat : r.commit_number;
   }
@@ -811,6 +839,10 @@ export class TraceChartTooltipSk extends LitElement {
                     <div class="tooltip-row">
                       <strong>Bug ID:</strong>
                       <span> ${formatBug(this.bug_host_url, (regression as any).bug_id)} </span>
+                      <close-icon-sk
+                        id="unassociate-bug-button"
+                        @click=${() => this.unassociateBug(s.originalId || s.id, regression)}>
+                      </close-icon-sk>
                     </div>
                   `
                 : ''}

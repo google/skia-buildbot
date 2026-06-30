@@ -1,18 +1,21 @@
 import './trace-chart-tooltip-sk';
 import { TraceChartTooltipSk } from './trace-chart-tooltip-sk';
 import { expect } from 'chai';
+import fetchMock from 'fetch-mock';
 
 describe('trace-chart-tooltip-sk', () => {
   let element: TraceChartTooltipSk;
 
   beforeEach(async () => {
     element = document.createElement('trace-chart-tooltip-sk') as TraceChartTooltipSk;
+    element.bug_host_url = 'https://issues.chromium.org';
     document.body.appendChild(element);
     await element.updateComplete;
   });
 
   afterEach(() => {
     document.body.removeChild(element);
+    fetchMock.reset();
   });
 
   it('renders anomaly details when available', async () => {
@@ -384,5 +387,73 @@ describe('trace-chart-tooltip-sk', () => {
 
       document.body.removeEventListener(eventName, listener);
     }
+  });
+
+  it('renders unassociate bug button when bug_id is present', async () => {
+    const rows = [{ commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' }];
+    element.hoveredPoint = {
+      series: { id: 'test', color: '#fff', rows: rows },
+      row: rows[0],
+      x: 100,
+      y: 100,
+    };
+    element.regressions = {
+      test: {
+        100: {
+          id: '123',
+          bug_id: 456,
+          is_improvement: false,
+          median_before: 5.0,
+          median_after: 10.0,
+        } as any,
+      },
+    };
+    await element.updateComplete;
+
+    const unassociateBtn = element.shadowRoot!.querySelector('#unassociate-bug-button');
+    expect(unassociateBtn).to.not.be.null;
+  });
+
+  it('unassociates bug when unassociate button is clicked', async () => {
+    const rows = [{ commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' }];
+    const regression = {
+      id: '123',
+      bug_id: 456,
+      is_improvement: false,
+      median_before: 5.0,
+      median_after: 10.0,
+    };
+    element.hoveredPoint = {
+      series: { id: 'test', color: '#fff', rows: rows },
+      row: rows[0],
+      x: 100,
+      y: 100,
+    };
+    element.regressions = {
+      test: {
+        100: regression as any,
+      },
+    };
+    await element.updateComplete;
+
+    fetchMock.post('/_/triage/edit_anomalies', { status: 200, body: JSON.stringify({}) });
+
+    let anomalyChangedDetail: any = null;
+    element.addEventListener('anomaly-changed', (e) => {
+      anomalyChangedDetail = (e as CustomEvent).detail;
+    });
+
+    const unassociateBtn = element.shadowRoot!.querySelector(
+      '#unassociate-bug-button'
+    ) as HTMLElement;
+    expect(unassociateBtn).to.not.be.null;
+
+    unassociateBtn.click();
+    await fetchMock.flush(true);
+
+    expect(anomalyChangedDetail).to.not.be.null;
+    expect(anomalyChangedDetail.editAction).to.equal('RESET');
+    expect(anomalyChangedDetail.traceNames).to.deep.equal(['test']);
+    expect(regression.bug_id).to.equal(0);
   });
 });
