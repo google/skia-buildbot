@@ -36,6 +36,9 @@ export const lowPowerLottieProfileSchema =
                 "$ref": "#/$defs/features/layers/properties/no-track-matte"
               },
               {
+                "$ref": "#/$defs/features/layers/properties/no-matte-target"
+              },
+              {
                 "$ref": "#/$defs/features/layers/properties/no-blend-modes"
               },
               {
@@ -374,6 +377,16 @@ export const lowPowerLottieProfileSchema =
             "type": "object",
             "properties": {
               "tt": {
+                "const": 0
+              }
+            }
+          },
+          "no-matte-target": {
+            "feature-code": "property-matte-target",
+            "feature-link": "property-matte-mask",
+            "type": "object",
+            "properties": {
+              "td": {
                 "const": 0
               }
             }
