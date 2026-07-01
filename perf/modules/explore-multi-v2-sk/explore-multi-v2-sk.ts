@@ -243,6 +243,8 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _evenXAxisSpacing = false;
 
+  @state() private _showZero = false;
+
   @state() private _transformPreset = 'none';
 
   @state() private _tooltipDiffs = false;
@@ -316,6 +318,7 @@ export class ExploreMultiV2Sk extends LitElement {
           regressions: this._showRegressions,
           tooltipDiffs: this._tooltipDiffs,
           evenXAxisSpacing: this._evenXAxisSpacing,
+          showZero: this._showZero,
           transformPreset: this._transformPreset,
           dateMode: this.dateMode,
           page: this._tracePage,
@@ -402,6 +405,7 @@ export class ExploreMultiV2Sk extends LitElement {
         if (stateObj.tooltipDiffs !== undefined) this._tooltipDiffs = stateObj.tooltipDiffs;
         if (stateObj.evenXAxisSpacing !== undefined)
           this._evenXAxisSpacing = stateObj.evenXAxisSpacing;
+        if (stateObj.showZero !== undefined) this._showZero = stateObj.showZero;
         if (stateObj.transformPreset !== undefined)
           this._transformPreset = stateObj.transformPreset;
         if (stateObj.dateMode !== undefined) this.dateMode = stateObj.dateMode;
@@ -947,6 +951,9 @@ export class ExploreMultiV2Sk extends LitElement {
 
       if (urlVals.evenXAxisSpacing !== undefined && !urlParams.has('evenXAxisSpacing')) {
         this._evenXAxisSpacing = stringToBool(urlVals.evenXAxisSpacing);
+      }
+      if (urlVals.showZero !== undefined && !urlParams.has('showZero')) {
+        this._showZero = stringToBool(urlVals.showZero);
       }
       if (urlVals.plotSummary !== undefined && !urlParams.has('plotSummary')) {
         this._showSummaryBar = stringToBool(urlVals.plotSummary);
@@ -2787,6 +2794,7 @@ export class ExploreMultiV2Sk extends LitElement {
           .showDots=${this._showDots}
           .showSparklines=${this._showSparklines}
           .evenXAxisSpacing=${this._evenXAxisSpacing}
+          .showZero=${this._showZero}
           .transformPreset=${this._transformPreset}
           .showRegressions=${this._showRegressions}
           .tooltipDiffs=${this._tooltipDiffs}
@@ -2832,6 +2840,7 @@ export class ExploreMultiV2Sk extends LitElement {
                 .edgeLookahead=${this._edgeLookahead}
                 .showDots=${this._showDots}
                 .evenXAxisSpacing=${this._evenXAxisSpacing}
+                .showZero=${this._showZero}
                 .viewportMinX=${this.viewportMinX}
                 .viewportMaxX=${this.viewportMaxX}
                 .globalHoverX=${this._globalHoverX}

@@ -101,6 +101,8 @@ export class TraceChartSk extends LitElement {
 
   @property({ type: Boolean }) evenXAxisSpacing = false;
 
+  @property({ type: Boolean }) showZero = false;
+
   @property({ type: Array, attribute: false }) series: TraceSeries[] = [];
 
   @property({ type: String }) normalizeCentre: 'none' | 'first' | 'average' | 'median' = 'none';
@@ -527,7 +529,8 @@ export class TraceChartSk extends LitElement {
       changedProperties.has('_viewportMinY') ||
       changedProperties.has('_viewportMaxY') ||
       changedProperties.has('selectedSubrepo') ||
-      changedProperties.has('evenXAxisSpacing')
+      changedProperties.has('evenXAxisSpacing') ||
+      changedProperties.has('showZero')
     ) {
       needsBackgroundRedraw = true;
     }
@@ -1523,6 +1526,10 @@ export class TraceChartSk extends LitElement {
             if (valY > maxY) maxY = valY;
           });
         });
+      }
+
+      if (this.showZero) {
+        minY = Math.min(0, minY);
       }
     } else {
       minY = this._viewportMinY;

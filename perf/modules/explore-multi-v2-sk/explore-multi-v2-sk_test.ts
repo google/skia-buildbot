@@ -641,6 +641,7 @@ describe('explore-multi-v2-sk', () => {
         default_url_values: {
           evenXAxisSpacing: 'true',
           sparklines: 'true',
+          showZero: 'true',
         },
       }),
     };
@@ -657,6 +658,7 @@ describe('explore-multi-v2-sk', () => {
       expect(newElement.dateMode).to.be.true;
       expect((newElement as any)._evenXAxisSpacing).to.be.true;
       expect((newElement as any)._showSparklines).to.be.true;
+      expect((newElement as any)._showZero).to.be.true;
 
       document.body.removeChild(newElement);
     } finally {

@@ -472,6 +472,32 @@ describe('trace-chart-sk', () => {
     expect(Math.abs(diff1 - diff2)).to.be.below(1);
   });
 
+  it('forces Y axis minimum to 0 when showZero is enabled', async () => {
+    element.series = [
+      {
+        id: 'test',
+        color: '#fff',
+        rows: [
+          { commit_number: 10, val: 50, createdat: 1000 },
+          { commit_number: 20, val: 100, createdat: 2000 },
+        ],
+      },
+    ];
+    await element.updateComplete;
+
+    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
+
+    let mapping = (element as any)['_getChartBoundsAndMapping'](canvas.getBoundingClientRect());
+    expect(mapping.minY).to.equal(50);
+
+    element.showZero = true;
+    await element.updateComplete;
+
+    mapping = (element as any)['_getChartBoundsAndMapping'](canvas.getBoundingClientRect());
+    expect(mapping.minY).to.equal(0);
+  });
+
   it('generates X axis ticks at indices when evenXAxisSpacing is enabled', async () => {
     element.evenXAxisSpacing = true;
     element.series = [

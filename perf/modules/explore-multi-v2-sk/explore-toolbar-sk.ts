@@ -36,6 +36,8 @@ export class ExploreToolbarSk extends LitElement {
 
   @property({ type: Boolean }) evenXAxisSpacing = false;
 
+  @property({ type: Boolean }) showZero = false;
+
   @property({ type: String }) transformPreset = 'none';
 
   @property({ type: String }) hoverMode = 'original';
@@ -269,6 +271,15 @@ export class ExploreToolbarSk extends LitElement {
               @change=${(e: any) => this._emitChange('evenXAxisSpacing', e.target.checked)} />
             <span class="checkmark"></span>
             Even X-Axis Spacing
+          </label>
+
+          <label class="custom-checkbox">
+            <input
+              type="checkbox"
+              .checked=${this.showZero}
+              @change=${(e: any) => this._emitChange('showZero', e.target.checked)} />
+            <span class="checkmark"></span>
+            Show Zero
           </label>
 
           ${window.perf?.trace_transform
