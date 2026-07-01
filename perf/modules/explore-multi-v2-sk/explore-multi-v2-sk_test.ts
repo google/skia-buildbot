@@ -1575,4 +1575,85 @@ describe('explore-multi-v2-sk', () => {
       newElement.parentNode?.removeChild(newElement);
     }
   });
+
+  describe('reset zoom', () => {
+    it('does not clear series data or trigger _fetchData', async () => {
+      let fetchDataCalled = false;
+      (element as any)._fetchData = async () => {
+        fetchDataCalled = true;
+      };
+      (element as any)._seriesData = [{ id: 'trace-1', rows: [] }];
+
+      (element as any)._onResetZoom();
+
+      expect(fetchDataCalled).to.be.false;
+      expect((element as any)._seriesData.length).to.equal(1);
+    });
+
+    it('resets viewportMinX and viewportMaxX to null on standard explore page', () => {
+      element.embedded = false;
+      element.viewportMinX = 100;
+      element.viewportMaxX = 500;
+
+      (element as any)._onResetZoom();
+
+      expect(element.viewportMinX).to.be.null;
+      expect(element.viewportMaxX).to.be.null;
+    });
+
+    it('resets viewport to anomaly commit range [minCommit - 100, maxCommit + 100] when embedded = true', () => {
+      element.embedded = true;
+      (element as any)._regressions = {
+        'trace-1': {
+          500: {
+            id: 'anomaly-1',
+            start_revision: 450,
+            end_revision: 500,
+            commit_number: 500,
+          },
+          800: {
+            id: 'anomaly-2',
+            start_revision: 750,
+            end_revision: 800,
+            commit_number: 800,
+          },
+        },
+      };
+
+      (element as any)._onResetZoom();
+
+      // minCommit = 450, maxCommit = 800
+      // Expected range: [max(0, 450 - 100), 800 + 100] = [350, 900]
+      expect(element.viewportMinX).to.equal(350);
+      expect(element.viewportMaxX).to.equal(900);
+    });
+
+    it('filters anomaly range by highlightAnomalies when set on embedded page', () => {
+      element.embedded = true;
+      element.highlightAnomalies = ['anomaly-2'];
+      (element as any)._regressions = {
+        'trace-1': {
+          500: {
+            id: 'anomaly-1',
+            start_revision: 450,
+            end_revision: 500,
+            commit_number: 500,
+          },
+          800: {
+            id: 'anomaly-2',
+            start_revision: 750,
+            end_revision: 800,
+            commit_number: 800,
+          },
+        },
+      };
+
+      (element as any)._onResetZoom();
+
+      // Only anomaly-2 is highlighted: minCommit = 750, maxCommit = 800
+      // Expected range: [750 - 100, 800 + 100] = [650, 900]
+      expect(element.viewportMinX).to.equal(650);
+      expect(element.viewportMaxX).to.equal(900);
+    });
+  });
 });

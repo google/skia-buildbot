@@ -58,6 +58,7 @@ export const SUBREPO_CONFIG: Record<string, { logUrl: string; repoUrl: string }>
 
 const DEFAULT_SUMMARY_RANGE_SEC = 90 * 24 * 3600; // 90 days
 const SUMMARY_INCREMENT_SEC = 90 * 24 * 3600; // 90 days
+const ANOMALY_VIEWPORT_PADDING_COMMITS = 100;
 
 @customElement('explore-multi-v2-sk')
 export class ExploreMultiV2Sk extends LitElement {
@@ -213,6 +214,8 @@ export class ExploreMultiV2Sk extends LitElement {
   @property({ type: Number, reflect: true }) viewportMinX: number | null = null;
 
   @property({ type: Number, reflect: true }) viewportMaxX: number | null = null;
+
+  private _initialViewportBounds: { minX: number; maxX: number } | null = null;
 
   @state() private _globalHoverX: number | null = null;
 
@@ -861,6 +864,23 @@ export class ExploreMultiV2Sk extends LitElement {
     }
   `;
 
+  willUpdate(changedProperties: PropertyValues) {
+    super.willUpdate(changedProperties);
+    if (changedProperties.has('dateMode')) {
+      this._initialViewportBounds = null;
+    }
+    if (
+      this._initialViewportBounds === null &&
+      this.viewportMinX !== null &&
+      this.viewportMaxX !== null
+    ) {
+      this._initialViewportBounds = {
+        minX: this.viewportMinX,
+        maxX: this.viewportMaxX,
+      };
+    }
+  }
+
   protected firstUpdated() {
     // Yield a macro-tick to guarantee stateReflector's initial stateFromURL microtask
     // completes first and sets loaded=true. This ensures resolved default/partial bounds
@@ -1111,6 +1131,8 @@ export class ExploreMultiV2Sk extends LitElement {
   private _mapAnomalyFields(anomaly: any): Regression {
     return {
       ...anomaly,
+      start_revision: anomaly.start_revision,
+      end_revision: anomaly.end_revision,
       is_improvement: anomaly.is_improvement,
       bug_id: anomaly.bug_id,
       recovered: anomaly.recovered,
@@ -1446,18 +1468,112 @@ export class ExploreMultiV2Sk extends LitElement {
     this._showRegressions = e.target.checked;
   }
 
+  private _getRegressionCommitBounds(
+    reg: Regression | (Regression & Record<string, any>),
+    fallbackCommit: number
+  ): { start: number; end: number } {
+    const rawStart = (reg as any).start_revision ?? reg.prev_commit_number;
+    const start =
+      rawStart !== undefined && rawStart !== null
+        ? Number(rawStart)
+        : reg.commit_number !== undefined && reg.commit_number !== null
+          ? Number(reg.commit_number) - 1
+          : fallbackCommit - 1;
+    const end = (reg as any).end_revision ?? reg.commit_number ?? fallbackCommit;
+    return { start: Number(start), end: Number(end) };
+  }
+
+  /**
+   * Calculates the viewport range [minCommit - PADDING, maxCommit + PADDING] covering all
+   * (or highlighted) anomalies in _regressions.
+   */
+  private _getAnomalyViewportRange(): { minCommit: number; maxCommit: number } | null {
+    if (!this._regressions || Object.keys(this._regressions).length === 0) {
+      return null;
+    }
+
+    let minCommit = Infinity;
+    let maxCommit = -Infinity;
+    const hasHighlightFilter =
+      Array.isArray(this.highlightAnomalies) && this.highlightAnomalies.length > 0;
+
+    for (const commitMap of Object.values(this._regressions)) {
+      if (!commitMap) continue;
+      for (const [commitStr, reg] of Object.entries(commitMap)) {
+        if (!reg) continue;
+        if (
+          hasHighlightFilter &&
+          !this.highlightAnomalies.some((id) => String(id) === String(reg.id || ''))
+        ) {
+          continue;
+        }
+
+        const bounds = this._getRegressionCommitBounds(reg, Number(commitStr));
+        if (!isNaN(bounds.start) && bounds.start < minCommit) {
+          minCommit = bounds.start;
+        }
+        if (!isNaN(bounds.end) && bounds.end > maxCommit) {
+          maxCommit = bounds.end;
+        }
+      }
+    }
+
+    if (minCommit === Infinity || maxCommit === -Infinity) {
+      return null;
+    }
+
+    return {
+      minCommit: Math.max(0, minCommit - ANOMALY_VIEWPORT_PADDING_COMMITS),
+      maxCommit: maxCommit + ANOMALY_VIEWPORT_PADDING_COMMITS,
+    };
+  }
+
+  /**
+   * Translates a commit number to the appropriate X-axis viewport coordinate
+   * based on the active domain mode (commit number vs. timestamp).
+   * Returns null if dateMode is true and timestamp translation fails.
+   */
+  private _toViewportX(commitNumber: number): number | null {
+    if (!this.dateMode) {
+      return commitNumber;
+    }
+    const timestamp = this._translateCommitToTimestamp(commitNumber);
+    return timestamp !== UNSET_TIME ? timestamp : null;
+  }
+
+  private _onResetZoomEmbedded() {
+    const anomalyRange = this._getAnomalyViewportRange();
+    if (anomalyRange) {
+      const minX = this._toViewportX(anomalyRange.minCommit);
+      const maxX = this._toViewportX(anomalyRange.maxCommit);
+      if (minX !== null && maxX !== null) {
+        this.viewportMinX = minX;
+        this.viewportMaxX = maxX;
+        return;
+      }
+    }
+
+    if (this._initialViewportBounds) {
+      this.viewportMinX = this._initialViewportBounds.minX;
+      this.viewportMaxX = this._initialViewportBounds.maxX;
+    } else {
+      this.viewportMinX = null;
+      this.viewportMaxX = null;
+    }
+  }
+
   private _onResetZoom() {
-    this.viewportMinX = null;
-    this.viewportMaxX = null;
-    this.begin = UNSET_TIME;
-    this.end = UNSET_TIME;
-    this._resolveTimeRange();
-    this._updateSeriesData([]);
-    this._loadedBounds = {};
-    this._globalBounds = {};
-    this._regressions = {};
-    this._latestRequestId++;
-    void this._fetchData(this._latestRequestId);
+    if (this.embedded) {
+      this._onResetZoomEmbedded();
+    } else {
+      this.viewportMinX = null;
+      this.viewportMaxX = null;
+      this.begin = UNSET_TIME;
+      this.end = UNSET_TIME;
+      this._resolveTimeRange();
+    }
+    this._stateHasChanged();
+    this.requestUpdate();
   }
 
   private _determineYAxisTitle(traceNames: string[]): string {
