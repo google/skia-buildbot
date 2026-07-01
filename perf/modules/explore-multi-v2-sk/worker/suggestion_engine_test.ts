@@ -173,4 +173,29 @@ describe('suggestion_engine memory-lookup path', () => {
     expect(combined).to.not.be.undefined;
     expect(combined!.count).to.equal(2);
   });
+
+  it('should suggest other values for a key when key is in currentQuery, omitting only exact active key=value pair', async () => {
+    const params: Param[] = [
+      { id: 1, key: 'os', value: 'linux' },
+      { id: 2, key: 'os', value: 'linux_official' },
+      { id: 3, key: 'os', value: 'windows' },
+    ];
+    const queryInput = 'linu';
+    const currentQuery: Query = {
+      os: ['linux'],
+    };
+
+    const suggestions = await computeSuggestions(
+      queryInput,
+      currentQuery,
+      params,
+      null,
+      null,
+      dummyShouldAbort
+    );
+
+    expect(suggestions).to.not.be.null;
+    expect(suggestions!.length).to.equal(1);
+    expect(suggestions![0].params[0]).to.deep.equal({ id: 2, key: 'os', value: 'linux_official' });
+  });
 });

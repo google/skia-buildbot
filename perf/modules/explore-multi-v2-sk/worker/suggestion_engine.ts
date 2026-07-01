@@ -34,50 +34,19 @@ export async function computeSuggestions(
     return [];
   }
 
-  let pool: Param[] = [];
   const currentQueryKeys = Object.keys(currentQuery);
-  const queryKeySet = new Set(currentQueryKeys);
 
+  const apCountMap = new Map<string, number | undefined>();
   if (availableParams) {
-    // Build a fast lookup map for global params: "key=value" -> id
-    const paramLookup = new Map<string, number>();
-    for (const p of params) {
-      paramLookup.set(`${p.key}=${p.value}`, p.id);
-    }
-
     for (const ap of availableParams) {
-      if (queryKeySet.has(ap.key)) continue; // Exclude existing keys
-
-      const id = paramLookup.get(`${ap.key}=${ap.value}`);
-      if (id !== undefined) {
-        pool.push({
-          id: id,
-          key: ap.key,
-          value: ap.value,
-        });
-      }
+      apCountMap.set(`${ap.key}=${ap.value}`, (ap as any).count);
     }
-  } else if (traceData) {
-    const { matchingParams, bitsetSize } = traceData;
-    const keyToIndex = new Map<string, number>();
-    currentQueryKeys.forEach((k, i) => keyToIndex.set(k, i));
-    const isQueryEmpty = currentQueryKeys.length === 0;
-
-    for (const p of params) {
-      if (queryKeySet.has(p.key)) continue; // Exclude existing keys
-
-      let bitsetOffset = 0;
-      if (keyToIndex.has(p.key)) {
-        const k = keyToIndex.get(p.key)!;
-        bitsetOffset = (k + 1) * bitsetSize;
-      }
-      if (isQueryEmpty || matchingParams[bitsetOffset + p.id] > 0) {
-        pool.push(p);
-      }
-    }
-  } else {
-    pool = params;
   }
+
+  const pool: Param[] = params.filter((p) => {
+    const existingValues = currentQuery[p.key];
+    return !(existingValues && existingValues.includes(p.value));
+  });
   const tokenCandidateSets = tokens.map((token) => {
     const eqIdx = token.indexOf('=');
     const vPartCheck = eqIdx !== -1 ? token.substring(eqIdx + 1) : token;
@@ -232,6 +201,7 @@ export async function computeSuggestions(
     if (traceData) {
       let minCount = traceData.numTraces;
       for (const p of comb.params) {
+        if (p.id === -1) continue;
         let bitsetOffset = 0;
         if (keyToIndex.has(p.key)) {
           const k = keyToIndex.get(p.key)!;
@@ -338,9 +308,58 @@ export async function computeSuggestions(
       s.countIsLowerBound = false; // Exact count!
     } else {
       s.countIsLowerBound = false; // Single parameters are already 100% exact
+      if (s.params.length === 1) {
+        if (s.params[0].id === -1) {
+          const p = s.params[0];
+          const parts = p.value
+            .split(',')
+            .map((str) => str.trim())
+            .filter(Boolean);
+          const regexes = parts.map((part) => {
+            const escaped = part.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+            const pattern = '^' + escaped.replace(/\*/g, '.*').replace(/\?/g, '.') + '$';
+            return new RegExp(pattern, 'i');
+          });
+
+          let totalGlobCount = 0;
+          let globMatched = false;
+
+          if (availableParams) {
+            for (const ap of availableParams) {
+              if (ap.key === p.key && regexes.some((r) => r.test(ap.value))) {
+                totalGlobCount += (ap as any).count ?? 0;
+                globMatched = true;
+              }
+            }
+          } else if (traceData) {
+            let bitsetOffset = 0;
+            if (keyToIndex.has(p.key)) {
+              const k = keyToIndex.get(p.key)!;
+              bitsetOffset = (k + 1) * traceData.bitsetSize;
+            }
+            for (const pm of params) {
+              if (pm.key === p.key && regexes.some((r) => r.test(pm.value))) {
+                totalGlobCount += traceData.matchingParams[bitsetOffset + pm.id] ?? 0;
+                globMatched = true;
+              }
+            }
+          }
+
+          if (globMatched) {
+            s.count = totalGlobCount;
+          }
+        } else if (availableParams) {
+          const c = apCountMap.get(`${s.params[0].key}=${s.params[0].value}`);
+          if (c !== undefined) {
+            s.count = c;
+          }
+        }
+      }
     }
 
-    if (!traceData || s.count! > 0) {
+    if (!traceData && !availableParams) {
+      finalSuggestions.push(s);
+    } else if (s.count === undefined || s.count > 0) {
       finalSuggestions.push(s);
     }
   }

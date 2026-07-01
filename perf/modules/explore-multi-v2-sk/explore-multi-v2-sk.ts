@@ -181,6 +181,10 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _optionsByKey: Record<string, { value: string; count: number }[]> = {};
 
+  @state() private _globalAvailableParams: { key: string; value: string; count: number }[] = [];
+
+  @state() private _globalOptionsByKey: Record<string, { value: string; count: number }[]> = {};
+
   @state() private _availableParamsPerQuery: { key: string; value: string; count: number }[][] = [];
 
   @state() private _optionsByKeyPerQuery: Record<string, { value: string; count: number }[]>[] = [];
@@ -483,9 +487,11 @@ export class ExploreMultiV2Sk extends LitElement {
         console.log('Worker Params Ready');
         if (payload.availableParams) {
           this._availableParams = payload.availableParams;
+          this._globalAvailableParams = payload.availableParams;
         }
         if (payload.paramsByKey) {
           this._optionsByKey = payload.paramsByKey;
+          this._globalOptionsByKey = payload.paramsByKey;
         }
       },
       (payload) => {
@@ -2349,7 +2355,12 @@ export class ExploreMultiV2Sk extends LitElement {
   private _handleSuggest(idx: number, e: CustomEvent<{ query: string }>) {
     const queryInput = e.detail.query;
     const currentQuery = this.queries[idx] || {};
-    const availableParams = this._availableParamsPerQuery[idx] || this._availableParams;
+    const availableParams =
+      this._availableParamsPerQuery[idx] && this._availableParamsPerQuery[idx].length > 0
+        ? this._availableParamsPerQuery[idx]
+        : this._globalAvailableParams.length > 0
+          ? this._globalAvailableParams
+          : this._availableParams;
 
     const reqId =
       this._workerController?.suggest(queryInput, currentQuery, idx, availableParams) || 0;
@@ -2699,11 +2710,15 @@ export class ExploreMultiV2Sk extends LitElement {
                 .availableParams=${this._availableParamsPerQuery[idx] &&
                 this._availableParamsPerQuery[idx].length > 0
                   ? this._availableParamsPerQuery[idx]
-                  : this._availableParams}
+                  : this._globalAvailableParams.length > 0
+                    ? this._globalAvailableParams
+                    : this._availableParams}
                 .optionsByKey=${this._optionsByKeyPerQuery[idx] &&
                 Object.keys(this._optionsByKeyPerQuery[idx]).length > 0
                   ? this._optionsByKeyPerQuery[idx]
-                  : this._optionsByKey}
+                  : Object.keys(this._globalOptionsByKey).length > 0
+                    ? this._globalOptionsByKey
+                    : this._optionsByKey}
                 .splitKeys=${this.splitKeys}
                 .includeParams=${this._includeParams}
                 .defaults=${this._defaults}

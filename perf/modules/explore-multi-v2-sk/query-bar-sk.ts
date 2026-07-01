@@ -383,6 +383,22 @@ export class QueryBarSk extends LitElement {
     return `Filter by: ${[...keys].sort().join(', ')}`;
   }
 
+  private _getAllParams(): { key: string; value: string; count: number }[] {
+    const apMap = new Map<string, number>();
+    (this.availableParams || []).forEach((p) => {
+      apMap.set(`${p.key}=${p.value}`, p.count ?? 0);
+    });
+
+    const list: { key: string; value: string; count: number }[] = [];
+    Object.keys(this.optionsByKey || {}).forEach((k) => {
+      (this.optionsByKey[k] || []).forEach((o) => {
+        const count = apMap.get(`${k}=${o.value}`) ?? 0;
+        list.push({ key: k, value: o.value, count });
+      });
+    });
+    return list;
+  }
+
   private _updateSuggestions() {
     const trimmed = this._inputValue.trim();
     if (!trimmed) {
@@ -390,16 +406,26 @@ export class QueryBarSk extends LitElement {
       if (this._isOpen) {
         if (!this._selectedCategory) {
           const keys = Object.keys(this.optionsByKey).filter((k) => !this.query[k]);
-          this._suggestions = keys.map((k) => {
-            const options = this.optionsByKey[k] || [];
-            const totalCount = options.reduce((sum, o) => sum + o.count, 0);
-            return {
-              params: [{ key: k, value: '' }],
-              score: 100,
-              count: totalCount,
-              countIsLowerBound: false,
-            };
-          });
+          this._suggestions = keys
+            .map((k) => {
+              let totalCount = 0;
+              if (this.availableParams && this.availableParams.length > 0) {
+                totalCount = this.availableParams
+                  .filter((p) => p.key === k)
+                  .reduce((sum, p) => sum + (p.count ?? 0), 0);
+              } else {
+                const options = this.optionsByKey[k] || [];
+                totalCount = options.reduce((sum, o) => sum + o.count, 0);
+              }
+              return {
+                params: [{ key: k, value: '' }],
+                score: 100,
+                count: totalCount,
+                countIsLowerBound: false,
+              };
+            })
+            .filter((s) => s.count > 0);
+
           // Sort by include_params order, then by count descending
           const order = this.includeParams || [];
           this._suggestions.sort((a, b) => {
@@ -418,13 +444,26 @@ export class QueryBarSk extends LitElement {
             return keyA.localeCompare(keyB);
           });
         } else {
-          const options = this.optionsByKey[this._selectedCategory] || [];
-          this._suggestions = options.map((o) => ({
-            params: [{ key: this._selectedCategory!, value: o.value }],
-            score: 100,
-            count: o.count,
-            countIsLowerBound: false,
-          }));
+          const cat = this._selectedCategory;
+          const apMap = new Map<string, number>();
+          if (this.availableParams && this.availableParams.length > 0) {
+            this.availableParams.forEach((p) => {
+              if (p.key === cat) apMap.set(p.value, p.count ?? 0);
+            });
+          }
+
+          const options = this.optionsByKey[cat] || [];
+          this._suggestions = options
+            .map((o) => ({
+              params: [{ key: cat, value: o.value }],
+              score: 100,
+              count:
+                this.availableParams && this.availableParams.length > 0
+                  ? (apMap.get(o.value) ?? 0)
+                  : o.count,
+              countIsLowerBound: false,
+            }))
+            .filter((s) => s.count > 0);
         }
       } else {
         this._suggestions = [];
@@ -454,8 +493,10 @@ export class QueryBarSk extends LitElement {
         return;
       }
 
-      const scored = this.availableParams
-        .filter((p) => !this.query[p.key])
+      const scored = this._getAllParams()
+        .filter(
+          (p) => !this.query[p.key]?.includes(p.value) && (p.count === undefined || p.count > 0)
+        )
         .map((p) => {
           let bestScore = -Infinity;
           for (const token of tokens) {
@@ -516,11 +557,24 @@ export class QueryBarSk extends LitElement {
           let totalCount = 0;
           let matchesAnything = false;
 
+          const apMap = new Map<string, number>();
+          if (this.availableParams && this.availableParams.length > 0) {
+            this.availableParams.forEach((p) => {
+              if (p.key === key) apMap.set(p.value, p.count ?? 0);
+            });
+          }
+
           for (const opt of this.optionsByKey[key]) {
             const matches = regexes.some((r) => r.test(opt.value));
             if (matches) {
-              matchesAnything = true;
-              totalCount += opt.count;
+              const c =
+                this.availableParams && this.availableParams.length > 0
+                  ? (apMap.get(opt.value) ?? 0)
+                  : opt.count;
+              if (c > 0) {
+                matchesAnything = true;
+                totalCount += c;
+              }
             }
           }
 
@@ -543,8 +597,10 @@ export class QueryBarSk extends LitElement {
       }
     }
 
-    const scored = this.availableParams
-      .filter((p) => !this.query[p.key])
+    const scored = this._getAllParams()
+      .filter(
+        (p) => !this.query[p.key]?.includes(p.value) && (p.count === undefined || p.count > 0)
+      )
       .map((p) => {
         return { p, score: scoreParamAny(p, trimmed) };
       });
