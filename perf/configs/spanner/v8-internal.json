@@ -21,7 +21,8 @@
     "datastore_type": "spanner",
     "connection_string": "postgresql://root@localhost:5432/v8_int?sslmode=disable",
     "tile_size": 256,
-    "min_db_connections": 5
+    "min_db_connections": 5,
+    "query_traces_chunk_size": 500
   },
   "experiments": {
     "regressions_trace_id_field": true
@@ -59,7 +60,9 @@
     "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
   },
   "anomaly_config": {
-    "use_anomaly_localization": true
+    "use_anomaly_localization": true,
+    "use_improved_anomaly_bounds_refiner": true,
+    "process_alert_configs_worker_count": 10
   },
   "query_config": {
     "include_params": [
