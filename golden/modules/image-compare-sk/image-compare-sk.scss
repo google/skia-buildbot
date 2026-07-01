@@ -57,8 +57,10 @@ image-compare-sk {
   }
 
   img.fullsize {
-    width: inherit;
-    height: inherit;
+    width: auto;
+    height: auto;
+    max-width: 30vw;
+    max-height: 70vh;
     cursor: zoom-out;
   }
 }
