@@ -3,9 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"time"
 
-	"github.com/google/uuid"
 	"go.temporal.io/sdk/workflow"
 
 	"go.skia.org/infra/go/skerr"
@@ -120,9 +118,10 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithLocalActivityOptions(ctx, localActivityOptions)
 
+	workflowStartTime := workflow.Now(ctx)
 	logger := workflow.GetLogger(ctx)
 
-	jobID := uuid.New().String()
+	jobID := workflow.GetInfo(ctx).WorkflowExecution.ID
 	if p.JobID != "" {
 		jobID = p.JobID
 	}
@@ -130,7 +129,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 		JobId:            jobID,
 		Culprits:         []*pinpoint_proto.CombinedCommit{},
 		DetailedCulprits: []*pinpoint_proto.Culprit{},
-		CreateTime:       timestamppb.Now(),
+		CreateTime:       timestamppb.New(workflowStartTime),
 		Comparisons:      []*CombinedResults{},
 	}
 
@@ -142,10 +141,10 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 		"story":     p.Request.Story,
 	})
 	mh.Counter("bisect_start_count").Inc(1)
-	wkStartTime := time.Now().UnixNano()
+
 	defer func() {
-		duration := time.Now().UnixNano() - wkStartTime
-		mh.Timer("bisect_duration").Record(time.Duration(duration))
+		durationTime := workflow.Now(ctx).Sub(workflowStartTime)
+		mh.Timer("bisect_duration").Record(durationTime)
 		mh.Counter("bisect_complete_count").Inc(1)
 
 		if wkErr != nil {
@@ -168,7 +167,8 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 	p.ExtraArgs = extraArgs
 
 	// Find the available bot list
-	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, p.Request.Configuration, time.Now().UnixNano()).Get(ctx, &p.BotIds); err != nil {
+	seed := workflowStartTime.UnixNano()
+	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, p.Request.Configuration, seed).Get(ctx, &p.BotIds); err != nil {
 		return nil, skerr.Wrapf(err, "failed to find available bots")
 	}
 
