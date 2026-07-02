@@ -35,22 +35,43 @@ export interface TraceSeries {
 // For example, if val is halfway between arr[i] and arr[i+1], it returns i + 0.5.
 function getVirtualIndex(arr: number[], val: number): number {
   if (arr.length === 0) return 0;
-  if (val <= arr[0]) return 0;
-  if (val >= arr[arr.length - 1]) return arr.length - 1;
+  if (arr.length === 1) return val - arr[0];
+
+  const n = arr.length;
+  if (val <= arr[0]) {
+    return (val - arr[0]) / (arr[1] - arr[0]);
+  }
+  if (val >= arr[n - 1]) {
+    return n - 1 + (val - arr[n - 1]) / (arr[n - 1] - arr[n - 2]);
+  }
 
   let low = 0;
-  let high = arr.length - 1;
+  let high = n - 1;
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
     if (arr[mid] === val) return mid;
     if (arr[mid] < val) low = mid + 1;
     else high = mid - 1;
   }
-  // low is guaranteed to be at least 1 here as we already handled the case where val <= arr[0].
-  // Thus, i will be at least 0.
   const i = low - 1;
-  const frac = (val - arr[i]) / (arr[i + 1] - arr[i]);
-  return i + frac;
+  return i + (val - arr[i]) / (arr[i + 1] - arr[i]);
+}
+
+function getValueFromVirtualIndex(arr: number[], virtIdx: number): number {
+  if (arr.length === 0) return 0;
+  if (arr.length === 1) return arr[0] + virtIdx;
+
+  const n = arr.length;
+  if (virtIdx <= 0) {
+    return arr[0] + virtIdx * (arr[1] - arr[0]);
+  }
+  if (virtIdx >= n - 1) {
+    return arr[n - 1] + (virtIdx - (n - 1)) * (arr[n - 1] - arr[n - 2]);
+  }
+
+  const i = Math.floor(virtIdx);
+  const frac = virtIdx - i;
+  return arr[i] + frac * (arr[i + 1] - arr[i]);
 }
 
 // Styling and layout constants for subrepo update rollout drawing
@@ -1559,9 +1580,8 @@ export class TraceChartSk extends LitElement {
       };
 
       unmapX = (px: number) => {
-        const idx = Math.round(minIdx + ((px - padding.left) / graphWidth) * xRange);
-        const clampedIdx = Math.max(0, Math.min(idx, this._sortedXValues.length - 1));
-        return this._sortedXValues[clampedIdx];
+        const virtIdx = minIdx + ((px - padding.left) / graphWidth) * xRange;
+        return getValueFromVirtualIndex(this._sortedXValues, virtIdx);
       };
     } else {
       xRange = displayMaxX - displayMinX || 1;

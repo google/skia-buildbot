@@ -130,8 +130,13 @@ export class PlotSummaryV2Sk extends LitElement {
     super.disconnectedCallback();
   }
 
+  private sortedXCache: number[] | null = null;
+
   protected updated(changedProperties: PropertyValues) {
     super.updated(changedProperties);
+    if (changedProperties.has('series') || changedProperties.has('domain')) {
+      this.sortedXCache = null;
+    }
     if (
       changedProperties.has('series') ||
       changedProperties.has('domain') ||
@@ -139,6 +144,10 @@ export class PlotSummaryV2Sk extends LitElement {
     ) {
       this.drawSummary();
     }
+  }
+
+  private getX(r: TraceRow): number {
+    return this.domain === 'date' ? r.createdat : r.commit_number;
   }
 
   private decimate(rows: TraceRow[]): TraceRow[] {
@@ -172,29 +181,69 @@ export class PlotSummaryV2Sk extends LitElement {
     return decimated;
   }
 
-  private getSeriesBounds(): { min: number; max: number } {
-    const isDate = this.domain === 'date';
-    const getX = (r: TraceRow) => (isDate ? r.createdat : r.commit_number);
+  private getSortedX(): number[] {
+    if (this.sortedXCache) {
+      return this.sortedXCache;
+    }
+    const uniqueX = new Set<number>();
+    this.series
+      .filter((s) => !s.hidden)
+      .forEach((s) => {
+        if (s.rows) {
+          s.rows.forEach((r) => {
+            const x = this.getX(r);
+            if (x !== undefined && !isNaN(x)) {
+              uniqueX.add(x);
+            }
+          });
+        }
+      });
+    this.sortedXCache = Array.from(uniqueX).sort((a, b) => a - b);
+    return this.sortedXCache;
+  }
 
-    if (this.evenXAxisSpacing) {
-      const uniqueX = new Set<number>();
-      this.series
-        .filter((s) => !s.hidden)
-        .forEach((s) => {
-          if (s.rows) {
-            s.rows.forEach((r) => {
-              const x = getX(r);
-              if (x !== undefined) uniqueX.add(x);
-            });
-          }
-        });
-      const uniqueCount = uniqueX.size;
-      return {
-        min: 0,
-        max: uniqueCount > 1 ? uniqueCount - 1 : 0,
-      };
+  private getVirtualIndex(arr: number[], val: number): number {
+    if (arr.length === 0) return 0;
+    if (arr.length === 1) return val - arr[0];
+
+    const n = arr.length;
+    if (val <= arr[0]) {
+      return (val - arr[0]) / (arr[1] - arr[0]);
+    }
+    if (val >= arr[n - 1]) {
+      return n - 1 + (val - arr[n - 1]) / (arr[n - 1] - arr[n - 2]);
     }
 
+    let low = 0;
+    let high = n - 1;
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      if (arr[mid] === val) return mid;
+      if (arr[mid] < val) low = mid + 1;
+      else high = mid - 1;
+    }
+    const i = low - 1;
+    return i + (val - arr[i]) / (arr[i + 1] - arr[i]);
+  }
+
+  private getValueFromVirtualIndex(arr: number[], virtIdx: number): number {
+    if (arr.length === 0) return 0;
+    if (arr.length === 1) return arr[0] + virtIdx;
+
+    const n = arr.length;
+    if (virtIdx <= 0) {
+      return arr[0] + virtIdx * (arr[1] - arr[0]);
+    }
+    if (virtIdx >= n - 1) {
+      return arr[n - 1] + (virtIdx - (n - 1)) * (arr[n - 1] - arr[n - 2]);
+    }
+
+    const i = Math.floor(virtIdx);
+    const frac = virtIdx - i;
+    return arr[i] + frac * (arr[i + 1] - arr[i]);
+  }
+
+  private getSeriesBounds(): { min: number; max: number } {
     let minX = Infinity;
     let maxX = -Infinity;
     this.series
@@ -202,8 +251,8 @@ export class PlotSummaryV2Sk extends LitElement {
       .forEach((s) => {
         if (s.rows) {
           s.rows.forEach((r) => {
-            const xVal = getX(r);
-            if (xVal !== undefined) {
+            const xVal = this.getX(r);
+            if (xVal !== undefined && !isNaN(xVal)) {
               if (xVal < minX) minX = xVal;
               if (xVal > maxX) maxX = xVal;
             }
@@ -219,8 +268,22 @@ export class PlotSummaryV2Sk extends LitElement {
     endVal: number,
     width: number
   ): { begin: number; end: number } | null {
+    if (width === 0) return null;
+
+    if (this.evenXAxisSpacing) {
+      const sortedX = this.getSortedX();
+      if (sortedX.length < 2) return null;
+      const minVirtIdx = this.getVirtualIndex(sortedX, beginVal);
+      const maxVirtIdx = this.getVirtualIndex(sortedX, endVal);
+      const maxIdx = sortedX.length - 1;
+      return {
+        begin: (minVirtIdx / maxIdx) * width,
+        end: (maxVirtIdx / maxIdx) * width,
+      };
+    }
+
     const { min: minX, max: maxX } = this.getSeriesBounds();
-    if (minX === Infinity || maxX === -Infinity || maxX === minX || width === 0) return null;
+    if (minX === Infinity || maxX === -Infinity || maxX === minX) return null;
 
     const mapVal = (v: number) => ((v - minX) / (maxX - minX)) * width;
     return {
@@ -234,8 +297,22 @@ export class PlotSummaryV2Sk extends LitElement {
     endPx: number,
     width: number
   ): { begin: number; end: number } | null {
+    if (width === 0) return null;
+
+    if (this.evenXAxisSpacing) {
+      const sortedX = this.getSortedX();
+      if (sortedX.length < 2) return null;
+      const maxIdx = sortedX.length - 1;
+      const minVirtIdx = (beginPx / width) * maxIdx;
+      const maxVirtIdx = (endPx / width) * maxIdx;
+      return {
+        begin: this.getValueFromVirtualIndex(sortedX, minVirtIdx),
+        end: this.getValueFromVirtualIndex(sortedX, maxVirtIdx),
+      };
+    }
+
     const { min: minX, max: maxX } = this.getSeriesBounds();
-    if (minX === Infinity || maxX === -Infinity || maxX === minX || width === 0) return null;
+    if (minX === Infinity || maxX === -Infinity || maxX === minX) return null;
 
     const mapPx = (px: number) => minX + (px / width) * (maxX - minX);
     return {
@@ -244,49 +321,25 @@ export class PlotSummaryV2Sk extends LitElement {
     };
   }
 
-  public drawSummary() {
-    const canvas = this.canvasRef.value;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, rect.width, rect.height);
-
-    if (!this.series || this.series.length === 0) return;
-
-    const isDate = this.domain === 'date';
-    const getX = (r: TraceRow) => (isDate ? r.createdat : r.commit_number);
-
-    let sortedX: number[] = [];
-    const xToIndex = new Map<number, number>();
-    if (this.evenXAxisSpacing) {
-      const uniqueX = new Set<number>();
-      this.series.forEach((s) => {
-        if (s.hidden) return;
-        s.rows.forEach((r) => {
-          uniqueX.add(getX(r));
-        });
-      });
-      sortedX = Array.from(uniqueX).sort((a, b) => a - b);
-      sortedX.forEach((v, i) => xToIndex.set(v, i));
-    }
-
+  private computeSummaryBounds(xToIndex: Map<number, number>): {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  } {
     let minX = Infinity;
     let maxX = -Infinity;
     let minY = Infinity;
     let maxY = -Infinity;
 
     this.series.forEach((s) => {
-      if (s.hidden) return;
+      if (s.hidden || !s.rows) return;
       s.rows.forEach((r) => {
-        const xVal = this.evenXAxisSpacing ? xToIndex.get(getX(r))! : getX(r);
+        const rawX = this.getX(r);
+        if (rawX === undefined || isNaN(rawX)) return;
+        const xVal = this.evenXAxisSpacing ? xToIndex.get(rawX) : rawX;
+        if (xVal === undefined || isNaN(xVal)) return;
+
         if (xVal < minX) minX = xVal;
         if (xVal > maxX) maxX = xVal;
         if (r.val < minY) minY = r.val;
@@ -294,55 +347,94 @@ export class PlotSummaryV2Sk extends LitElement {
       });
     });
 
-    if (minX === Infinity || minY === Infinity) return;
+    return { minX, maxX, minY, maxY };
+  }
 
-    const yDelta = maxY - minY;
-    if (yDelta === 0) {
-      minY -= 1;
-      maxY += 1;
-    } else {
-      minY -= yDelta * 0.05;
-      maxY += yDelta * 0.05;
-    }
-
-    const paddingY = 4;
-    const drawableHeight = rect.height - 2 * paddingY;
-
-    const mapX = (xVal: number) => {
-      if (maxX === minX) return 0;
-      return ((xVal - minX) / (maxX - minX)) * rect.width;
-    };
-
-    const mapY = (yVal: number) => {
-      return rect.height - paddingY - ((yVal - minY) / (maxY - minY)) * drawableHeight;
-    };
-
-    ctx.lineWidth = 1.5;
-
+  private renderSeriesToCanvas(
+    ctx: CanvasRenderingContext2D,
+    xToIndex: Map<number, number>,
+    mapX: (x: number) => number,
+    mapY: (y: number) => number
+  ): void {
     this.series.forEach((s) => {
-      if (s.hidden) return;
-      if (!s.rows || s.rows.length === 0) return;
+      if (s.hidden || !s.rows || s.rows.length === 0) return;
 
       const decimated = this.decimate(s.rows);
-      const color = s.color || '#1a73e8';
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = s.color || '#1a73e8';
       ctx.globalAlpha = 0.7;
 
       ctx.beginPath();
-      decimated.forEach((r, idx) => {
-        const xVal = this.evenXAxisSpacing ? xToIndex.get(getX(r))! : getX(r);
+      let isFirst = true;
+      decimated.forEach((r) => {
+        const rawX = this.getX(r);
+        if (rawX === undefined || isNaN(rawX)) return;
+        const xVal = this.evenXAxisSpacing ? xToIndex.get(rawX) : rawX;
+        if (xVal === undefined || isNaN(xVal)) return;
+
         const px = mapX(xVal);
         const py = mapY(r.val);
-        if (idx === 0) {
+        if (isNaN(px) || isNaN(py)) return;
+
+        if (isFirst) {
           ctx.moveTo(px, py);
+          isFirst = false;
         } else {
           ctx.lineTo(px, py);
         }
       });
       ctx.stroke();
     });
+  }
 
-    ctx.globalAlpha = 1.0;
+  private prepareCanvas(): { ctx: CanvasRenderingContext2D; width: number; height: number } | null {
+    const canvas = this.canvasRef.value;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    return { ctx, width: rect.width, height: rect.height };
+  }
+
+  private getSummaryIndexMap(): Map<number, number> {
+    const xToIndex = new Map<number, number>();
+    if (this.evenXAxisSpacing) {
+      this.getSortedX().forEach((v, i) => xToIndex.set(v, i));
+    }
+    return xToIndex;
+  }
+
+  public drawSummary() {
+    if (!this.series || this.series.length === 0) return;
+    const prep = this.prepareCanvas();
+    if (!prep) return;
+
+    const xToIndex = this.getSummaryIndexMap();
+    const { minX, maxX, minY, maxY } = this.computeSummaryBounds(xToIndex);
+    if (!isFinite(minX) || !isFinite(minY)) return;
+
+    const yDelta = maxY - minY;
+    const adjustedMinY = yDelta === 0 ? minY - 1 : minY - yDelta * 0.05;
+    const adjustedMaxY = yDelta === 0 ? maxY + 1 : maxY + yDelta * 0.05;
+
+    const paddingY = 4;
+    const drawableHeight = prep.height - 2 * paddingY;
+    const yRange = adjustedMaxY - adjustedMinY || 1;
+    const xRange = maxX - minX || 1;
+
+    const mapX = (xVal: number) => ((xVal - minX) / xRange) * prep.width;
+    const mapY = (yVal: number) =>
+      prep.height - paddingY - ((yVal - adjustedMinY) / yRange) * drawableHeight;
+
+    prep.ctx.lineWidth = 1.5;
+    this.renderSeriesToCanvas(prep.ctx, xToIndex, mapX, mapY);
+    prep.ctx.globalAlpha = 1.0;
   }
 
   protected render() {

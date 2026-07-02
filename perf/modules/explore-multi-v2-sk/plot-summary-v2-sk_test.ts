@@ -133,4 +133,80 @@ describe('plot-summary-v2-sk', () => {
       ctx.lineTo = oldLineTo;
     }
   });
+
+  it('converts domain values to pixel coords correctly when evenXAxisSpacing is enabled', async () => {
+    element.series = [
+      {
+        id: 'trace1',
+        color: '#ff0000',
+        rows: [
+          { commit_number: 10, val: 50, createdat: 1000 },
+          { commit_number: 20, val: 100, createdat: 2000 },
+          { commit_number: 100, val: 50, createdat: 3000 },
+        ],
+      },
+    ];
+    element.evenXAxisSpacing = true;
+    element.domain = 'commit';
+    await element.updateComplete;
+
+    // Width = 200px. Unique commits: 10 (idx 0), 20 (idx 1), 100 (idx 2).
+    // viewportMinX=20 (idx 1, 100px), viewportMaxX=100 (idx 2, 200px)
+    const coords = (element as any).convertToCoordsRange(20, 100, 200);
+    expect(coords).to.not.be.null;
+    expect(coords!.begin).to.equal(100);
+    expect(coords!.end).to.equal(200);
+  });
+
+  it('converts pixel coords to domain values correctly when evenXAxisSpacing is enabled', async () => {
+    element.series = [
+      {
+        id: 'trace1',
+        color: '#ff0000',
+        rows: [
+          { commit_number: 10, val: 50, createdat: 1000 },
+          { commit_number: 20, val: 100, createdat: 2000 },
+          { commit_number: 100, val: 50, createdat: 3000 },
+        ],
+      },
+    ];
+    element.evenXAxisSpacing = true;
+    element.domain = 'commit';
+    await element.updateComplete;
+
+    // Width = 200px. 0px -> idx 0 (commit 10), 100px -> idx 1 (commit 20), 200px -> idx 2 (commit 100).
+    const values = (element as any).convertToValueRange(100, 200, 200);
+    expect(values).to.not.be.null;
+    expect(values!.begin).to.equal(20);
+    expect(values!.end).to.equal(100);
+  });
+
+  it('handles out-of-bounds coordinate and value conversions when evenXAxisSpacing is enabled', async () => {
+    element.series = [
+      {
+        id: 'trace1',
+        color: '#ff0000',
+        rows: [
+          { commit_number: 10, val: 50, createdat: 1000 },
+          { commit_number: 20, val: 100, createdat: 2000 },
+        ],
+      },
+    ];
+    element.evenXAxisSpacing = true;
+    element.domain = 'commit';
+    await element.updateComplete;
+
+    // arr = [10, 20], step = 10. width = 100px (0px=10, 100px=20).
+    // -50px should map to virtIdx = -0.5 -> commit 5.
+    const values = (element as any).convertToValueRange(-50, 150, 100);
+    expect(values).to.not.be.null;
+    expect(values!.begin).to.equal(5);
+    expect(values!.end).to.equal(25);
+
+    // Commit 0 (virtIdx = -1.0) should map to -100px. Commit 30 (virtIdx = 2.0) should map to 200px.
+    const coords = (element as any).convertToCoordsRange(0, 30, 100);
+    expect(coords).to.not.be.null;
+    expect(coords!.begin).to.equal(-100);
+    expect(coords!.end).to.equal(200);
+  });
 });
