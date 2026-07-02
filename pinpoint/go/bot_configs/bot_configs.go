@@ -37,6 +37,7 @@ var (
 
 func getExternalBotConfigs() map[string]BotConfig {
 	onceExternal.Do(func() {
+		//workflowcheck:ignore
 		err := json.Unmarshal(externalBotConfigsJSON, &externalBotConfigs)
 		if err != nil {
 			externalBotConfigs = make(map[string]BotConfig)
@@ -57,6 +58,7 @@ var (
 func getAllBotConfigs() map[string]BotConfig {
 	onceAll.Do(func() {
 		allBotConfigs = maps.Clone(getExternalBotConfigs())
+		//workflowcheck:ignore
 		err := json.Unmarshal(internalBotConfigsJSON, &allBotConfigs)
 		if err != nil {
 			sklog.Errorf("Fail to load internal bot config file: %s", err)

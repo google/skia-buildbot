@@ -79,28 +79,28 @@ func (pr *PairwiseRun) GetCommonCharts() []string {
 		return nil
 	}
 
-	charts := []string{}
-	// find charts that show up in both left and right
-	for c, id := range lCharts {
-		if _, ok := rCharts[c]; !ok {
-			// TODO(b/414823001): Monitor this warning on a dashboard and fire an alert when the incident rate is too high
-			// Alternatively if the overall incident rate is low, escalate this log to an error.
-			sklog.Warningf("Chart %s found in left charts but not right. Implies error with benchmark runner. See swarming task %s", c, id)
-		} else {
+	allCharts := slices.Concat(common.SortedKeys(lCharts), common.SortedKeys(rCharts))
+	slices.Sort(allCharts)
+	allCharts = slices.Compact(allCharts)
+
+	charts := make([]string, 0, len(allCharts))
+	for _, c := range allCharts {
+		leftId, okLeft := lCharts[c]
+		rightId, okRight := rCharts[c]
+		switch {
+		case okLeft && okRight:
 			charts = append(charts, c)
-		}
-	}
-
-	// double check any charts that show up in the right run but not the left
-	for c, id := range rCharts {
-		if _, ok := lCharts[c]; !ok {
+		case okLeft:
 			// TODO(b/414823001): Monitor this warning on a dashboard and fire an alert when the incident rate is too high
 			// Alternatively if the overall incident rate is low, escalate this log to an error.
-			sklog.Warningf("Chart %s found in right charts but not left. Implies error with benchmark runner. See swarming task %s", c, id)
+			sklog.Warningf("Chart %s found in left charts but not right. Implies error with benchmark runner. See swarming task %s", c, leftId)
+		case okRight:
+			// TODO(b/414823001): Monitor this warning on a dashboard and fire an alert when the incident rate is too high
+			// Alternatively if the overall incident rate is low, escalate this log to an error.
+			sklog.Warningf("Chart %s found in right charts but not left. Implies error with benchmark runner. See swarming task %s", c, rightId)
 		}
 	}
 
-	slices.Sort(charts)
 	return charts
 }
 
@@ -386,7 +386,8 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc *PairwiseCommitsRunn
 		rightRuns[i].Values = rr.Values
 		rightRuns[i].Units = rr.Units
 
-		for chart, leftVals := range leftRuns[i].Values {
+		for _, chart := range common.SortedKeys(leftRuns[i].Values) {
+			leftVals := leftRuns[i].Values[chart]
 			if rightVals, ok := rightRuns[i].Values[chart]; ok {
 				minLen := min(len(leftVals), len(rightVals))
 				leftRuns[i].Values[chart] = leftVals[:minLen]

@@ -2,13 +2,11 @@
 package workflows
 
 import (
-	"slices"
 	"strconv"
 	"strings"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
-	"golang.org/x/exp/maps"
 
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
@@ -115,9 +113,7 @@ func (tr *TestRun) GetAllCharts() []string {
 	if tr == nil || tr.Values == nil {
 		return nil
 	}
-	charts := maps.Keys(tr.Values)
-	slices.Sort(charts)
-	return charts
+	return common.SortedKeys(tr.Values)
 }
 
 // IsEmptyValues checks the TestRun if there are values at that chart
