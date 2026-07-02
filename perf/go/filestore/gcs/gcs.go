@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -83,6 +84,47 @@ func (f *filesystem) Open(name string) (fs.File, error) {
 	return &file{
 		Reader: reader,
 	}, nil
+}
+
+type objectIterator interface {
+	Next() (*storage.ObjectAttrs, error)
+}
+
+// FindFileByPrefix implements prefix searching for Google Cloud Storage.
+func (f *filesystem) FindFileByPrefix(ctx context.Context, namePrefix string) (string, error) {
+	bucket, pathPrefix, err := parseNameIntoBucketAndPath(namePrefix)
+	if err != nil {
+		return "", skerr.Wrapf(err, "Failed to parse source file location.")
+	}
+
+	it := f.client.Bucket(bucket).Objects(ctx, &storage.Query{Prefix: pathPrefix})
+	return extractLatestObject(it, bucket, namePrefix)
+}
+
+func extractLatestObject(it objectIterator, bucket, namePrefix string) (string, error) {
+	var lastAttrs *storage.ObjectAttrs
+	var count int
+	for {
+		attrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return "", skerr.Wrapf(err, "Failed to find object with prefix %q", namePrefix)
+		}
+		lastAttrs = attrs
+		count++
+	}
+
+	if lastAttrs == nil {
+		return "", fs.ErrNotExist
+	}
+
+	if count > 1 {
+		sklog.Infof("Found %d files matching prefix %q. Using the latest one: %q", count, namePrefix, lastAttrs.Name)
+	}
+
+	return "gs://" + bucket + "/" + lastAttrs.Name, nil
 }
 
 // Assert that *filesystem implements http.FileSystem.

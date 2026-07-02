@@ -831,6 +831,9 @@
         },
         "show_only_public_traces": {
           "type": "boolean"
+        },
+        "override_gcs": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

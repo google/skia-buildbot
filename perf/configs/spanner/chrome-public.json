@@ -132,6 +132,7 @@
     "visibility_config": {
         "show_only_public_traces": true,
         "provider_name": "chrome",
+        "override_gcs": "chrome-perf-public",
         "sources": {
             "chrome_bot": {
                 "git_repo": "https://chromium.googlesource.com/chromium/src",

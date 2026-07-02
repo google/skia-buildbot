@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "builders",
-    srcs = ["builders.go"],
+    srcs = [
+        "builders.go",
+        "public_fs.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/builders",
     visibility = ["//visibility:public"],
     deps = [
@@ -56,7 +59,10 @@ go_library(
 
 go_test(
     name = "builders_test",
-    srcs = ["builders_test.go"],
+    srcs = [
+        "builders_test.go",
+        "public_fs_test.go",
+    ],
     embed = [":builders"],
     deps = [
         "//go/paramtools",

@@ -942,6 +942,7 @@ type VisibilityConfig struct {
 	ProviderName         string                            `json:"provider_name"`
 	Sources              map[string]VisibilitySourceConfig `json:"sources"`
 	ShowOnlyPublicTraces bool                              `json:"show_only_public_traces,omitempty"`
+	OverrideGCS          string                            `json:"override_gcs,omitempty"`
 }
 
 // VisibilitySourceConfig defines the configuration for a single visibility source.

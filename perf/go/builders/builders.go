@@ -302,16 +302,26 @@ func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 // provides access to ingested files.
 //
 // If local is true then we aren't running in production.
-func NewIngestedFSFromConfig(ctx context.Context, cfg *config.InstanceConfig) (fs.FS, error) {
+func NewIngestedFSFromConfig(ctx context.Context, cfg *config.InstanceConfig) (ingestedFS fs.FS, err error) {
 	switch cfg.IngestionConfig.SourceConfig.SourceType {
-	case config.GCSSourceType:
-		return gcs.New(ctx)
 	case config.DirSourceType:
-		return localfilestore.New(cfg.IngestionConfig.SourceConfig.Sources[0])
+		ingestedFS, err = localfilestore.New(cfg.IngestionConfig.SourceConfig.Sources[0])
+	default:
+		// We currently default to Google Cloud Storage (GCSSourceType), but Config options could be
+		// added to use other systems, such as S3.
+		ingestedFS, err = gcs.New(ctx)
 	}
-	// We currently default to Google Cloud Storage, but Config options could be
-	// added to use other systems, such as S3.
-	return gcs.New(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg.VisibilityConfig != nil && cfg.VisibilityConfig.OverrideGCS != "" {
+		return &publicFS{
+			FS:          ingestedFS,
+			overrideGCS: cfg.VisibilityConfig.OverrideGCS,
+		}, nil
+	}
+	return ingestedFS, nil
 }
 
 // NewAnomalyGroupStoreFromConfig creates a new anomalygroup.Store from the
