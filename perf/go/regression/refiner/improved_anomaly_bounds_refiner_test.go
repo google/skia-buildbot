@@ -1,19 +1,15 @@
 package refiner
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
-	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/stepfit"
-	tracestore_mocks "go.skia.org/infra/perf/go/tracestore/mocks"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
@@ -30,9 +26,8 @@ func TestApplyImprovedLogic_NoPrevRegression_ReturnsOriginal(t *testing.T) {
 		},
 	}
 
-	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, nil, nil)
+	res := r.applyImprovedLogic(cr, &alerts.Alert{}, nil, nil, nil)
 
-	assert.NoError(t, err)
 	assert.Equal(t, cr, res)
 }
 
@@ -58,9 +53,8 @@ func TestApplyImprovedLogic_OverlapWithDB_FiltersOut(t *testing.T) {
 		"trace1": {100: dbReg},
 	}
 
-	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, nil, batchPrev)
+	res := r.applyImprovedLogic(cr, &alerts.Alert{}, nil, batchPrev, nil)
 
-	assert.NoError(t, err)
 	assert.Nil(t, res) // Filtered out
 }
 
@@ -92,9 +86,8 @@ func TestApplyImprovedLogic_OverlapWithInMemory_FiltersOut(t *testing.T) {
 		"trace1": {100: dbReg},
 	}
 
-	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, latestRefined, batchPrev)
+	res := r.applyImprovedLogic(cr, &alerts.Alert{}, latestRefined, batchPrev, nil)
 
-	assert.NoError(t, err)
 	assert.Nil(t, res) // Filtered out
 }
 
@@ -110,16 +103,13 @@ func TestApplyImprovedLogic_NilBatchPrev_ReturnsOriginal(t *testing.T) {
 		},
 	}
 
-	res, err := r.applyImprovedLogic(context.Background(), cr, &alerts.Alert{}, nil, nil)
+	res := r.applyImprovedLogic(cr, &alerts.Alert{}, nil, nil, nil)
 
-	assert.NoError(t, err)
 	assert.Equal(t, cr, res) // Fallback because no prev regression found in memory either
 }
 
 func TestApplyImprovedLogic_CohenThreshold_Capped(t *testing.T) {
-	mockTraceStore := &tracestore_mocks.TraceStore{}
 	r := &ImprovedAnomalyBoundsRefiner{
-		traceStore:      mockTraceStore,
 		stdDevThreshold: 0.001,
 	}
 
@@ -162,12 +152,14 @@ func TestApplyImprovedLogic_CohenThreshold_Capped(t *testing.T) {
 		"trace1": {100: dbReg},
 	}
 
-	mockTraceStore.On("ReadTracesForCommitRange", mock.Anything, []string{"trace1"}, types.CommitNumber(50), types.CommitNumber(90)).Return(
-		types.TraceSet{"trace1": types.Trace{10, 10, 10, 10}},
-		[]provider.Commit{{CommitNumber: 50}, {CommitNumber: 60}, {CommitNumber: 70}, {CommitNumber: 80}},
-		nil,
-		nil,
-	)
+	pData := &prefetchedData{
+		traces: map[string]types.Trace{
+			"trace1": {10, 10, 10, 10},
+		},
+		commits: map[string][]types.CommitNumber{
+			"trace1": {50, 60, 70, 80},
+		},
+	}
 
 	alert := &alerts.Alert{
 		Step:        types.CohenStep,
@@ -175,9 +167,8 @@ func TestApplyImprovedLogic_CohenThreshold_Capped(t *testing.T) {
 		Radius:      2,
 	}
 
-	res, err := r.applyImprovedLogic(context.Background(), cr, alert, nil, batchPrev)
+	res := r.applyImprovedLogic(cr, alert, nil, batchPrev, pData)
 
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 

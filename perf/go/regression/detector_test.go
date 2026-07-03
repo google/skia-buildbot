@@ -221,12 +221,19 @@ func (m *mockRegressionRefiner) Process(ctx context.Context, cfg *alerts.Alert, 
 }
 
 func TestRefineAndReportRegressions_NoResponses_DoesNothing(t *testing.T) {
+	oldConfig := config.Config
+	config.Config = &config.InstanceConfig{}
+	defer func() { config.Config = oldConfig }()
+
 	ctx := context.Background()
 	mockRefiner := &mockRegressionRefiner{}
 
 	cfg := &alerts.Alert{Radius: 5}
 	p := &regressionDetectionProcess{
-		request:           &RegressionDetectionRequest{Alert: cfg},
+		request: &RegressionDetectionRequest{
+			Alert:    cfg,
+			Progress: progress.New(),
+		},
 		regressionRefiner: mockRefiner,
 	}
 
@@ -236,13 +243,20 @@ func TestRefineAndReportRegressions_NoResponses_DoesNothing(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func refineAndReportRegressions(t *testing.T) {
+func TestRefineAndReportRegressions(t *testing.T) {
+	oldConfig := config.Config
+	config.Config = &config.InstanceConfig{}
+	defer func() { config.Config = oldConfig }()
+
 	ctx := context.Background()
 	mockRefiner := &mockRegressionRefiner{}
 
 	cfg := &alerts.Alert{Radius: 5}
 	p := &regressionDetectionProcess{
-		request:           &RegressionDetectionRequest{Alert: cfg},
+		request: &RegressionDetectionRequest{
+			Alert:    cfg,
+			Progress: progress.New(),
+		},
 		regressionRefiner: mockRefiner,
 	}
 

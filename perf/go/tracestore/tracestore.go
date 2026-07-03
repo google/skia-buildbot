@@ -34,6 +34,12 @@ type WasmCacheData struct {
 	Traces []byte
 }
 
+// TraceRangeRequest specifies a commit range to read for a trace.
+type TraceRangeRequest struct {
+	BeginCommit types.CommitNumber
+	EndCommit   types.CommitNumber
+}
+
 // TraceStore is the interface that all backends that store traces must
 // implement. It is used by dfbuilder to build DataFrames and by the perf-tool
 // to perform some common maintenance tasks.
@@ -84,6 +90,10 @@ type TraceStore interface {
 	// ReadTracesForCommitRange loads the traces for the given trace keys and
 	// between the begin and end commit, inclusive.
 	ReadTracesForCommitRange(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber) (types.TraceSet, []provider.Commit, map[string]*types.TraceSourceInfo, error)
+
+	// ReadTracesForCommitRanges loads the traces for the given requests, where each
+	// request specifies a trace key and a commit range (inclusive).
+	ReadTracesForCommitRanges(ctx context.Context, requests map[string]TraceRangeRequest) (map[string]types.Trace, map[string][]types.CommitNumber, error)
 
 	// TileNumber returns the types.TileNumber that the commit is stored in.
 	TileNumber(commitNumber types.CommitNumber) types.TileNumber

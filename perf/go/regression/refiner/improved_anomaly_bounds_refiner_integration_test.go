@@ -55,6 +55,26 @@ func (m *performanceMockTraceStore) ReadTracesForCommitRange(ctx context.Context
 	return traceSet, commits, nil, nil
 }
 
+func (m *performanceMockTraceStore) ReadTracesForCommitRanges(ctx context.Context, requests map[string]tracestore.TraceRangeRequest) (map[string]types.Trace, map[string][]types.CommitNumber, error) {
+	traces := map[string]types.Trace{}
+	commits := map[string][]types.CommitNumber{}
+	for traceName, req := range requests {
+		length := int(req.EndCommit - req.BeginCommit + 1)
+		trace := make(types.Trace, length)
+		for i := 0; i < length; i++ {
+			trace[i] = 10.0 // steady baseline value
+		}
+		traces[traceName] = trace
+
+		commitList := make([]types.CommitNumber, length)
+		for i := 0; i < length; i++ {
+			commitList[i] = req.BeginCommit + types.CommitNumber(i)
+		}
+		commits[traceName] = commitList
+	}
+	return traces, commits, nil
+}
+
 func generateRegressionForTrace(traceName string, commit types.CommitNumber, prevCommit types.CommitNumber) *regression.Regression {
 	r := regression.NewRegression()
 	r.Id = uuid.NewString()

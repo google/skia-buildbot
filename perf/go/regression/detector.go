@@ -365,20 +365,23 @@ func (p *regressionDetectionProcess) detectRegressionsOnDataFrame(ctx context.Co
 func (p *regressionDetectionProcess) refineAndReportRegressions(ctx context.Context, allResponses []*RegressionDetectionResponse) error {
 	// 1. Pass the complete, raw list and the alert config to the regression refiner.
 	// The refiner is now responsible for all filtering.
+	start := time.Now()
 	processTimer := metrics2.NewTimer("perf_regression_refiner_process")
 	confirmedRegressions, err := p.regressionRefiner.Process(ctx, p.request.Alert, allResponses)
 	processTimer.Stop()
 	if err != nil {
 		return p.reportError(err, "Failed during post-processing step.")
 	}
-
+	p.request.Progress.Message("Time - refiner took", fmt.Sprintf("%s", time.Since(start)))
+	start = time.Now()
 	// // 2. Generate shortcuts for all confirmed regressions.
 	for _, resp := range confirmedRegressions {
 		if err := p.shortcutFromKeys(ctx, resp.Summary); err != nil {
 			return p.reportError(err, "Failed to write shortcut for keys during batch processing.")
 		}
 	}
-
+	p.request.Progress.Message("Time - shortcut generation took", fmt.Sprintf("%s", time.Since(start)))
+	start = time.Now()
 	// 3. Now, process the final batch of confirmed results.
 	if len(confirmedRegressions) > 0 {
 		// The summary message can still refer to the original count for clarity.
@@ -391,6 +394,7 @@ func (p *regressionDetectionProcess) refineAndReportRegressions(ctx context.Cont
 		}
 		// The refineAndReportRegressions callback should add the results to Progress if that's required.
 	}
+	p.request.Progress.Message("Time - confirmed regression handler took", fmt.Sprintf("%s", time.Since(start)))
 	return nil
 }
 

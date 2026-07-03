@@ -6,6 +6,7 @@ import (
 	"math"
 	"sort"
 	"sync"
+	"time"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -53,13 +54,15 @@ func NewImprovedAnomalyBoundsRefiner(anomalyStore anomalies.Store, store regress
 // to more effectively separate noise from real regressions.
 func (r *ImprovedAnomalyBoundsRefiner) Process(ctx context.Context, cfg *alerts.Alert, responses []*regression.RegressionDetectionResponse) ([]*regression.ConfirmedRegression, error) {
 	// Run the base AnomalyBoundsRefiner logic.
+	start := time.Now()
 	responsesLen := len(responses)
 	sklog.Debugf("starting base refiner logic for %d responses", responsesLen)
 	confirmed, err := r.base.Process(ctx, cfg, responses)
 	if err != nil {
 		return nil, err
 	}
-	sklog.Debugf("base refiner logic for %d responses done", responsesLen)
+	sklog.Debugf("base refiner logic for %d responses done in %s", responsesLen, time.Since(start))
+	start = time.Now()
 
 	// The Const algorithm ignores the baseline, so the improved refiner logic
 	// (which relies on a historical baseline) is not applicable.
@@ -76,21 +79,29 @@ func (r *ImprovedAnomalyBoundsRefiner) Process(ctx context.Context, cfg *alerts.
 	sort.Strings(traceNames)
 	sklog.Debugf("starting batched regressions before - %d resp", responsesLen)
 
-	var batchPrev map[string]map[types.CommitNumber]*regression.Regression
-	if len(confirmed) > 0 {
-		var traceNamesBatch []string
-		var commitsBatch []types.CommitNumber
-		for _, cr := range confirmed {
-			traceNamesBatch = append(traceNamesBatch, cr.Summary.Clusters[0].Keys[0])
-			commitsBatch = append(commitsBatch, cr.DisplayCommitNumber)
-		}
-		var err error
-		batchPrev, err = r.store.GetBatchRegressionsBefore(ctx, traceNamesBatch, commitsBatch, cfg.SubscriptionName)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "[ImprovedAnomalyBoundsRefiner] Failed to get batch regressions before")
-		}
+	sklog.Debugf("regressions grouped by trace in %s", time.Since(start))
+	start = time.Now()
+
+	batchPrev, err := r.getBatchRegressionsBefore(ctx, confirmed, cfg.SubscriptionName)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "[ImprovedAnomalyBoundsRefiner] Failed to get batch regressions before")
 	}
-	sklog.Debugf("batched regressions queries - %d resp", responsesLen)
+	sklog.Debugf("batched regressions queries - %d resp in %s", responsesLen, time.Since(start))
+	start = time.Now()
+
+	rangesToFetch := r.calculateRangesToFetch(byTrace, batchPrev)
+
+	fetchedTraces, fetchedCommits, err := r.traceStore.ReadTracesForCommitRanges(ctx, rangesToFetch)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to batch fetch trace data")
+	}
+
+	pData := &prefetchedData{
+		traces:  fetchedTraces,
+		commits: fetchedCommits,
+	}
+	sklog.Debugf("batch fetched trace data in %s", time.Since(start))
+	start = time.Now()
 
 	var mu sync.Mutex
 	var refined []*regression.ConfirmedRegression
@@ -103,13 +114,7 @@ func (r *ImprovedAnomalyBoundsRefiner) Process(ctx context.Context, cfg *alerts.
 		traceName := traceName
 		group := byTrace[traceName]
 		g.Go(func() error {
-			sort.Slice(group, func(i, j int) bool {
-				return group[i].CommitNumber < group[j].CommitNumber
-			})
-			localRefined, err := r.processTraceGroup(ctx, group, cfg, batchPrev)
-			if err != nil {
-				return err
-			}
+			localRefined := r.processTraceGroup(group, cfg, batchPrev, pData)
 			if len(localRefined) > 0 {
 				mu.Lock()
 				refined = append(refined, localRefined...)
@@ -122,9 +127,70 @@ func (r *ImprovedAnomalyBoundsRefiner) Process(ctx context.Context, cfg *alerts.
 	if err := g.Wait(); err != nil {
 		return nil, skerr.Wrapf(err, "error processing trace group")
 	}
-	sklog.Debugf("improved refinement done for %d responses - got %d refined", responsesLen, len(refined))
+	sklog.Debugf("improved refinement done for %d responses - got %d refined in %s", responsesLen, len(refined), time.Since(start))
 
 	return refined, nil
+}
+
+// getBatchRegressionsBefore retrieves historical database regressions for all confirmed candidates.
+func (r *ImprovedAnomalyBoundsRefiner) getBatchRegressionsBefore(ctx context.Context, confirmed []*regression.ConfirmedRegression, subscriptionName string) (map[string]map[types.CommitNumber]*regression.Regression, error) {
+	if len(confirmed) == 0 {
+		return map[string]map[types.CommitNumber]*regression.Regression{}, nil
+	}
+	var traceNamesBatch []string
+	var commitsBatch []types.CommitNumber
+	for _, cr := range confirmed {
+		traceNamesBatch = append(traceNamesBatch, cr.Summary.Clusters[0].Keys[0])
+		commitsBatch = append(commitsBatch, cr.DisplayCommitNumber)
+	}
+	return r.store.GetBatchRegressionsBefore(ctx, traceNamesBatch, commitsBatch, subscriptionName)
+}
+
+// calculateRangesToFetch calculates the commit ranges of trace data to pre-fetch
+// for refining a batch of candidate regressions.
+//
+// For each trace, it determines a single bounding range [begin, end] to fetch:
+//   - 'begin': The commit of the previous regression (from the batchPrev database),
+//     or the oldest regression in the current batch if no previous database
+//     regression exists and there are multiple regressions in the batch.
+//   - 'end': The commit immediately preceding the newest regression in the batch.
+//
+// Traces with only one candidate regression and no previous database regression
+// are skipped, as they cannot be refined without a historical baseline.
+func (r *ImprovedAnomalyBoundsRefiner) calculateRangesToFetch(byTrace map[string][]*regression.ConfirmedRegression, batchPrev map[string]map[types.CommitNumber]*regression.Regression) map[string]tracestore.TraceRangeRequest {
+	rangesToFetch := make(map[string]tracestore.TraceRangeRequest)
+	for traceName, group := range byTrace {
+		if len(group) == 0 {
+			continue
+		}
+		sort.Slice(group, func(i, j int) bool {
+			return group[i].CommitNumber < group[j].CommitNumber
+		})
+
+		crOldest := group[0]
+		crNewest := group[len(group)-1]
+
+		dbPrevOldest := batchPrev[traceName][crOldest.DisplayCommitNumber]
+
+		var begin types.CommitNumber
+		if dbPrevOldest != nil {
+			begin = dbPrevOldest.CommitNumber
+		} else if len(group) > 1 {
+			begin = crOldest.CommitNumber
+		} else {
+			continue
+		}
+
+		end := crNewest.PrevCommitNumber
+
+		if begin <= end {
+			rangesToFetch[traceName] = tracestore.TraceRangeRequest{
+				BeginCommit: begin,
+				EndCommit:   end,
+			}
+		}
+	}
+	return rangesToFetch
 }
 
 // groupRegressionsByTrace groups a slice of confirmed regressions by their trace name.
@@ -139,23 +205,20 @@ func groupRegressionsByTrace(confirmed []*regression.ConfirmedRegression) map[st
 
 // processTraceGroup processes a list of regressions for a single trace sequentially,
 // tracking and utilizing the previous refined regression in chronological order.
-func (r *ImprovedAnomalyBoundsRefiner) processTraceGroup(ctx context.Context, group []*regression.ConfirmedRegression, cfg *alerts.Alert, batchPrev map[string]map[types.CommitNumber]*regression.Regression) ([]*regression.ConfirmedRegression, error) {
+func (r *ImprovedAnomalyBoundsRefiner) processTraceGroup(group []*regression.ConfirmedRegression, cfg *alerts.Alert, batchPrev map[string]map[types.CommitNumber]*regression.Regression, pData *prefetchedData) []*regression.ConfirmedRegression {
 	var localRefined []*regression.ConfirmedRegression
 	var lastRefined *regression.ConfirmedRegression
 	for _, cr := range group {
-		newCr, err := r.applyImprovedLogic(ctx, cr, cfg, lastRefined, batchPrev)
-		if err != nil {
-			return nil, err
-		}
+		newCr := r.applyImprovedLogic(cr, cfg, lastRefined, batchPrev, pData)
 		if newCr != nil {
 			localRefined = append(localRefined, newCr)
 			lastRefined = newCr
 		}
 	}
-	return localRefined, nil
+	return localRefined
 }
 
-func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(ctx context.Context, cr *regression.ConfirmedRegression, cfg *alerts.Alert, latestRefined *regression.ConfirmedRegression, batchPrev map[string]map[types.CommitNumber]*regression.Regression) (*regression.ConfirmedRegression, error) {
+func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(cr *regression.ConfirmedRegression, cfg *alerts.Alert, latestRefined *regression.ConfirmedRegression, batchPrev map[string]map[types.CommitNumber]*regression.Regression, pData *prefetchedData) *regression.ConfirmedRegression {
 	traceName := cr.Summary.Clusters[0].Keys[0]
 	pickOffset := cr.DisplayCommitNumber
 
@@ -163,22 +226,19 @@ func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(ctx context.Context, c
 	prevInfo := r.findPreviousRegression(traceName, pickOffset, latestRefined, batchPrev)
 	if prevInfo == nil {
 		sklog.Infof("[ImprovedAnomalyBoundsRefiner] No previous regression found for trace %s before %d. Keeping original regression.", traceName, pickOffset)
-		return cr, nil
+		return cr
 	}
 
 	// Check for overlap.
 	if prevInfo.CommitNumber >= cr.PrevCommitNumber && prevInfo.PrevCommitNumber <= cr.CommitNumber {
 		sklog.Infof("[ImprovedAnomalyBoundsRefiner] Filtering out regression at %d due to overlap with existing %s regression at %d", pickOffset, prevInfo.Source, prevInfo.CommitNumber)
-		return nil, nil // Filter out
+		return nil // Filter out
 	}
 
 	// Extract data to beetween regressions.
-	leftData, leftCommits, rightData, rightCommits, err := r.extractData(ctx, cr, cfg, prevInfo)
-	if err != nil {
-		return nil, err
-	}
+	leftData, leftCommits, rightData, rightCommits := r.extractData(cr, cfg, prevInfo, pData)
 	if leftData == nil {
-		return cr, nil
+		return cr
 	}
 
 	// Re-verify the regression against the historical baseline (data between previous and current regression) to confirm it is statistically significant.
@@ -197,7 +257,7 @@ func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(ctx context.Context, c
 		rightEnd := rightCommits[len(rightCommits)-1]
 		sklog.Infof("[ImprovedAnomalyBoundsRefiner] Filtering out regression for trace %s at offset %d. Failed strict check. RegressionVal: %f, Threshold: %f, Left(mean=%f, stddev=%f, n=%d, range=[%d, %d]), Right(mean=%f, stddev=%f, n=%d, range=[%d, %d]), Pick Range: [%d, %d]",
 			traceName, pickOffset, regressionVal, interestingThreshold, vec32.Mean(leftData), vec32.StdDev(leftData, vec32.Mean(leftData)), len(leftData), leftStart, leftEnd, vec32.Mean(rightData), vec32.StdDev(rightData, vec32.Mean(rightData)), len(rightData), rightStart, rightEnd, cr.PrevCommitNumber, cr.CommitNumber)
-		return nil, nil
+		return nil
 	}
 
 	// Populate metadata to simplify future analysis.
@@ -220,7 +280,7 @@ func (r *ImprovedAnomalyBoundsRefiner) applyImprovedLogic(ctx context.Context, c
 		cl.Metadata["improved_refiner_threshold"] = interestingThreshold
 	}
 
-	return cr, nil
+	return cr
 }
 
 type previousRegressionInfo struct {
@@ -271,40 +331,6 @@ func (r *ImprovedAnomalyBoundsRefiner) findPreviousRegression(traceName string, 
 		PrevCommitNumber: lastPrevCommit,
 		Source:           source,
 	}
-}
-
-// getLeftData loads raw trace data from the store for the range between the previous
-// regression and the current one, filtering out missing data and limiting to the last 200 points.
-func (r *ImprovedAnomalyBoundsRefiner) getLeftData(ctx context.Context, traceName string, startCommit types.CommitNumber, endCommit types.CommitNumber, radius int) ([]float32, []types.CommitNumber, error) {
-	// 200 is considered a reasonable number of points to capture the typical noise
-	// and variance in the data for a reliable statistical check.
-	const maxLeftDataPoints = 200
-
-	traceSet, commits, _, err := r.traceStore.ReadTracesForCommitRange(ctx, []string{traceName}, startCommit, endCommit)
-	if err != nil {
-		return nil, nil, skerr.Wrapf(err, "[ImprovedAnomalyBoundsRefiner] Failed to read traces for range [%d, %d]", startCommit, endCommit)
-	}
-
-	traceData, ok := traceSet[traceName]
-	if !ok || len(traceData) < radius {
-		return nil, nil, nil // Return nil to signal caller to fallback to original regression
-	}
-
-	var leftData []float32
-	var leftCommits []types.CommitNumber
-	for i, v := range traceData {
-		if v != vec32.MissingDataSentinel {
-			leftData = append(leftData, v)
-			leftCommits = append(leftCommits, commits[i].CommitNumber)
-		}
-	}
-
-	if len(leftData) > maxLeftDataPoints {
-		leftData = leftData[len(leftData)-maxLeftDataPoints:]
-		leftCommits = leftCommits[len(leftCommits)-maxLeftDataPoints:]
-	}
-
-	return leftData, leftCommits, nil
 }
 
 // extractRightData extracts the right side data points from the centroid of the
@@ -402,14 +428,11 @@ func (r *ImprovedAnomalyBoundsRefiner) calculateStepAndConfirm(leftData, rightDa
 // The left data is loaded from the trace store between the previous regression and the current one.
 // The right data is extracted from the centroid of the right-most regression in the group.
 // Returns nil slices to signal the caller to fallback to the original regression if not enough data is found.
-func (r *ImprovedAnomalyBoundsRefiner) extractData(ctx context.Context, cr *regression.ConfirmedRegression, cfg *alerts.Alert, prevInfo *previousRegressionInfo) ([]float32, []types.CommitNumber, []float32, []types.CommitNumber, error) {
+func (r *ImprovedAnomalyBoundsRefiner) extractData(cr *regression.ConfirmedRegression, cfg *alerts.Alert, prevInfo *previousRegressionInfo, pData *prefetchedData) ([]float32, []types.CommitNumber, []float32, []types.CommitNumber) {
 	traceName := cr.Summary.Clusters[0].Keys[0]
-	leftData, leftCommits, err := r.getLeftData(ctx, traceName, prevInfo.CommitNumber, cr.PrevCommitNumber, cfg.Radius)
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
+	leftData, leftCommits := pData.getLeftData(traceName, prevInfo.CommitNumber, cr.PrevCommitNumber, cfg.Radius)
 	if len(leftData) < 3 {
-		return nil, nil, nil, nil, nil // Return nil to signal caller to fallback to original regression
+		return nil, nil, nil, nil
 	}
 
 	algo := cfg.Step
@@ -418,8 +441,44 @@ func (r *ImprovedAnomalyBoundsRefiner) extractData(ctx context.Context, cr *regr
 	}
 	rightData, rightCommits := extractRightData(cr, algo)
 	if len(rightData) < 3 {
-		return nil, nil, nil, nil, nil // Return nil to signal caller to fallback to original regression
+		return nil, nil, nil, nil
 	}
 
-	return leftData, leftCommits, rightData, rightCommits, nil
+	return leftData, leftCommits, rightData, rightCommits
+}
+
+type prefetchedData struct {
+	traces  map[string]types.Trace
+	commits map[string][]types.CommitNumber
+}
+
+func (p *prefetchedData) getLeftData(traceName string, startCommit types.CommitNumber, endCommit types.CommitNumber, radius int) ([]float32, []types.CommitNumber) {
+	if int(endCommit-startCommit+1) < radius {
+		return nil, nil
+	}
+	traceData, ok := p.traces[traceName]
+	if !ok {
+		return nil, nil
+	}
+	commits := p.commits[traceName]
+
+	var leftData []float32
+	var leftCommits []types.CommitNumber
+	for i, v := range traceData {
+		c := commits[i]
+		if c >= startCommit && c <= endCommit {
+			leftData = append(leftData, v)
+			leftCommits = append(leftCommits, c)
+		}
+	}
+
+	// 200 is considered a reasonable number of points to capture the typical noise
+	// and variance in the data for a reliable statistical check.
+	const maxLeftDataPoints = 200
+	if len(leftData) > maxLeftDataPoints {
+		leftData = leftData[len(leftData)-maxLeftDataPoints:]
+		leftCommits = leftCommits[len(leftCommits)-maxLeftDataPoints:]
+	}
+
+	return leftData, leftCommits
 }

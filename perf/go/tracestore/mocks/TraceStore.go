@@ -451,6 +451,45 @@ func (_m *TraceStore) ReadTracesForCommitRange(ctx context.Context, keys []strin
 	return r0, r1, r2, r3
 }
 
+// ReadTracesForCommitRanges provides a mock function with given fields: ctx, requests
+func (_m *TraceStore) ReadTracesForCommitRanges(ctx context.Context, requests map[string]tracestore.TraceRangeRequest) (map[string]types.Trace, map[string][]types.CommitNumber, error) {
+	ret := _m.Called(ctx, requests)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReadTracesForCommitRanges")
+	}
+
+	var r0 map[string]types.Trace
+	var r1 map[string][]types.CommitNumber
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]tracestore.TraceRangeRequest) (map[string]types.Trace, map[string][]types.CommitNumber, error)); ok {
+		return rf(ctx, requests)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]tracestore.TraceRangeRequest) map[string]types.Trace); ok {
+		r0 = rf(ctx, requests)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]types.Trace)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, map[string]tracestore.TraceRangeRequest) map[string][]types.CommitNumber); ok {
+		r1 = rf(ctx, requests)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(map[string][]types.CommitNumber)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, map[string]tracestore.TraceRangeRequest) error); ok {
+		r2 = rf(ctx, requests)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // StartBackgroundMetricsGathering provides a mock function with no fields
 func (_m *TraceStore) StartBackgroundMetricsGathering() {
 	_m.Called()

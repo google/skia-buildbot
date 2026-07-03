@@ -981,3 +981,31 @@ func TestQueryLastNPoints(t *testing.T) {
 		}, commits)
 	})
 }
+
+func TestReadTracesForCommitRanges_Success(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t)
+
+	requests := map[string]tracestore.TraceRangeRequest{
+		",arch=x86,config=8888,": {
+			BeginCommit: 1,
+			EndCommit:   3,
+		},
+		",arch=x86,config=565,": {
+			BeginCommit: 3,
+			EndCommit:   8,
+		},
+	}
+
+	traces, commits, err := s.ReadTracesForCommitRanges(ctx, requests)
+	require.NoError(t, err)
+
+	assert.Equal(t, map[string]types.Trace{
+		",arch=x86,config=8888,": {1.5, 2.5},
+		",arch=x86,config=565,":  {3.3, 4.3},
+	}, traces)
+
+	assert.Equal(t, map[string][]types.CommitNumber{
+		",arch=x86,config=8888,": {1, 3},
+		",arch=x86,config=565,":  {3, 8},
+	}, commits)
+}
