@@ -918,8 +918,12 @@ func (s *SQLTraceStore) QueryLastNPoints(ctx context.Context, traceNames []strin
 		resCommits[name] = []types.CommitNumber{}
 	}
 
+	customQueryTracesChunkSize := calculateCustomQueryChunkSize(n)
+
+	sklog.Infof("Running QueryLastNPoints with n = %d and (trace) chunk size = %d", n, customQueryTracesChunkSize)
+
 	// Iterate over the traceIDs in chunks and query the database in parallel.
-	err := util.ChunkIterParallelPool(ctx, len(traceIDsForQuery), s.queryTracesChunkSize, s.queryTracesPoolSize, func(ctx context.Context, startIdx, endIdx int) error {
+	err := util.ChunkIterParallelPool(ctx, len(traceIDsForQuery), customQueryTracesChunkSize, s.queryTracesPoolSize, func(ctx context.Context, startIdx, endIdx int) error {
 		chunk := traceIDsForQuery[startIdx:endIdx]
 
 		// Execute the query.
@@ -932,7 +936,7 @@ func (s *SQLTraceStore) QueryLastNPoints(ctx context.Context, traceNames []strin
 		}
 		defer rows.Close()
 
-		localTraces, localCommits, err := readRowsFromreadLastNTraces(rows, traceIdToNameMap)
+		localTraces, localCommits, err := readRowsFromReadLastNTraces(rows, traceIdToNameMap)
 		if err != nil {
 			return err
 		}
@@ -959,7 +963,24 @@ func (s *SQLTraceStore) QueryLastNPoints(ctx context.Context, traceNames []strin
 	return resTraces, resCommits, nil
 }
 
-func readRowsFromreadLastNTraces(rows pgx.Rows, traceIdToNameMap map[types.TraceIDForSQLInBytes]string) (map[string]types.Trace, map[string][]types.CommitNumber, error) {
+func calculateCustomQueryChunkSize(n int) int {
+	// We fetch trace_id (16 bytes) and two arrays of values from TraceValues:
+	// commit number (int64, 8 bytes) and val (float32, 4 bytes).
+	// This sums up to 16 + 12*n bytes per trace.
+	// There is a default limit of 4MB for gRPC calls. We target 2MB to be extra safe.
+	const oneMB = 1024 * 1024
+	const traceIDsize = 16
+	const cnAndValSize = 8 + 4
+	safeN := max(0, n)
+	bytesPerTrace := traceIDsize + (cnAndValSize * safeN)
+	customQueryTracesChunkSize := 2 * oneMB / bytesPerTrace
+
+	// A safeguard against extremely large n-s. Highly unlikely.
+	customQueryTracesChunkSize = max(1, customQueryTracesChunkSize)
+	return customQueryTracesChunkSize
+}
+
+func readRowsFromReadLastNTraces(rows pgx.Rows, traceIdToNameMap map[types.TraceIDForSQLInBytes]string) (map[string]types.Trace, map[string][]types.CommitNumber, error) {
 	localTraces := map[string]types.Trace{}
 	localCommits := map[string][]types.CommitNumber{}
 

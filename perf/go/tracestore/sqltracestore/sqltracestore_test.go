@@ -967,4 +967,17 @@ func TestQueryLastNPoints(t *testing.T) {
 			",arch=x86,config=565,":  {1, 3, 8},
 		}, commits)
 	})
+
+	t.Run("Query last 0 points.", func(t *testing.T) {
+		traces, commits, err := s.QueryLastNPoints(ctx, keys, 0, 8)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]types.Trace{
+			",arch=x86,config=8888,": {},
+			",arch=x86,config=565,":  {},
+		}, traces)
+		assert.Equal(t, map[string][]types.CommitNumber{
+			",arch=x86,config=8888,": {},
+			",arch=x86,config=565,":  {},
+		}, commits)
+	})
 }
