@@ -922,6 +922,8 @@ func (s *SQLTraceStore) QueryLastNPoints(ctx context.Context, traceNames []strin
 
 	sklog.Infof("Running QueryLastNPoints with n = %d and (trace) chunk size = %d", n, customQueryTracesChunkSize)
 
+	slices.SortFunc(traceIDsForQuery, bytes.Compare)
+
 	// Iterate over the traceIDs in chunks and query the database in parallel.
 	err := util.ChunkIterParallelPool(ctx, len(traceIDsForQuery), customQueryTracesChunkSize, s.queryTracesPoolSize, func(ctx context.Context, startIdx, endIdx int) error {
 		chunk := traceIDsForQuery[startIdx:endIdx]
