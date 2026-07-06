@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/perf/go/culprit/formatter"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/culprit/transport"
+	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	sub_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -30,7 +31,7 @@ type DefaultCulpritNotifier struct {
 }
 
 // newNotifier returns a newNotifier Notifier.
-func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitURLTemplate string) (CulpritNotifier, error) {
+func GetDefaultNotifier(ctx context.Context, tracker perf_issuetracker.IssueTracker, cfg *config.InstanceConfig, commitURLTemplate string) (CulpritNotifier, error) {
 	switch cfg.IssueTrackerConfig.NotificationType {
 	case types.NoneNotify:
 		return &DefaultCulpritNotifier{
@@ -38,10 +39,10 @@ func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitU
 			transport: transport.NewNoopTransport(),
 		}, nil
 	case types.IssueNotify:
-		transport, err := transport.NewIssueTrackerTransport(ctx, &cfg.IssueTrackerConfig)
-		if err != nil {
-			return nil, skerr.Wrap(err)
+		if tracker == nil {
+			return nil, skerr.Fmt("IssueTracker dependency is required for IssueNotify culprit notifier.")
 		}
+		transport := transport.NewIssueTrackerTransport(tracker)
 		formatter, err := formatter.NewMarkdownFormatter(commitURLTemplate, cfg)
 		if err != nil {
 			return nil, skerr.Wrap(err)

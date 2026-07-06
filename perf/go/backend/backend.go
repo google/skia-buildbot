@@ -173,7 +173,7 @@ func (b *Backend) initialize(
 
 	sklog.Debug("Creating culprit notifier.")
 	if notifier == nil {
-		notifier, err = notify.GetDefaultNotifier(ctx, config.Config, b.flags.CommitRangeURL)
+		notifier, err = notify.GetDefaultNotifier(ctx, b.tracker, config.Config, b.flags.CommitRangeURL)
 		if err != nil {
 			sklog.Fatal(err)
 		}
