@@ -46,6 +46,12 @@ type IssueTracker interface {
 
 	// FileUserIssue creates a new user issue.
 	FileUserIssue(ctx context.Context, req *CreateUserIssueRequest) (int, error)
+
+	// CreateIssue creates a new issue with raw parameters.
+	CreateIssue(ctx context.Context, req *CreateIssueRequest) (int64, error)
+
+	// ModifyIssue modifies an existing issue (status and/or comment).
+	ModifyIssue(ctx context.Context, req *ModifyIssueRequest) error
 }
 
 // / IssueTrackerImpl implements IssueTracker using the issue tracker API
@@ -96,6 +102,26 @@ type CreateUserIssueRequest struct {
 	TraceKey       string `json:"trace_key"`
 	CommitPosition int64  `json:"commit_position"`
 	Assignee       string `json:"assignee"`
+}
+
+// CreateIssueRequest defines the request object for CreateIssue.
+type CreateIssueRequest struct {
+	Title       string
+	Description string
+	ComponentId int64
+	Priority    string // "P0"-"P4"
+	Severity    string // "S0"-"S4"
+	Reporter    string
+	Ccs         []string
+	AccessLevel string // e.g. "LIMIT_VIEW_TRUSTED"
+	Status      string // e.g. "NEW"
+}
+
+// ModifyIssueRequest defines the request object for ModifyIssue.
+type ModifyIssueRequest struct {
+	IssueId int64
+	Status  string // If non-empty, update status
+	Comment string // If non-empty, add comment
 }
 
 func setupSecretClient(ctx context.Context, cfg config.IssueTrackerConfig, options []option.ClientOption) (*http.Client, []option.ClientOption, error) {
@@ -306,6 +332,13 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		return 0, err
 	}
 
+	var assigneeUser *issuetracker.User
+	if assignee != "" {
+		assigneeUser = &issuetracker.User{
+			EmailAddress: assignee,
+		}
+	}
+
 	newIssue := &issuetracker.Issue{
 		IssueComment: &issuetracker.IssueComment{
 			Comment:        description,
@@ -317,20 +350,22 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 			Severity:    fmt.Sprintf("S%d", mostImpactedSub.BugSeverity),
 			Status:      issueStatus,
 			Title:       req.Title,
-			Assignee: &issuetracker.User{
-				EmailAddress: assignee,
-			},
-			Ccs:  ccs,
-			Type: "BUG",
+			Assignee:    assigneeUser,
+			Ccs:         ccs,
+			Type:        "BUG",
 		},
 	}
 
 	resp, err := s.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
 	if err != nil {
+		assigneeEmail := ""
+		if newIssue.IssueState.Assignee != nil {
+			assigneeEmail = newIssue.IssueState.Assignee.EmailAddress
+		}
 		return 0, skerr.Wrapf(err,
 			"[Perf_issuetracker] failed to create issue: Title=%q, Assignee=%q, ComponentID=%d",
 			newIssue.IssueState.Title,
-			newIssue.IssueState.Assignee.EmailAddress,
+			assigneeEmail,
 			newIssue.IssueState.ComponentId,
 		)
 	}
@@ -526,4 +561,93 @@ func (s *issueTrackerImpl) describeAnomaly(ctx context.Context, a *v1.Anomaly) s
 		a.Paramset["bot"], a.Paramset["benchmark"], a.Paramset["measurement"], a.Paramset["story"],
 		calcChange(a.MedianBefore, a.MedianAfter), commitRange, commitHashRange,
 	)
+}
+
+// CreateIssue implements IssueTracker.
+func (s *issueTrackerImpl) CreateIssue(ctx context.Context, req *CreateIssueRequest) (int64, error) {
+	if req == nil {
+		return 0, skerr.Fmt("Create issue request is null.")
+	}
+
+	ccs := []*issuetracker.User{}
+	for _, email := range req.Ccs {
+		if trimmedEmail := strings.TrimSpace(email); trimmedEmail != "" {
+			ccs = append(ccs, &issuetracker.User{EmailAddress: trimmedEmail})
+		}
+	}
+
+	var reporter *issuetracker.User
+	if reporterEmail := strings.TrimSpace(req.Reporter); reporterEmail != "" {
+		reporter = &issuetracker.User{EmailAddress: reporterEmail}
+	}
+
+	newIssue := &issuetracker.Issue{
+		IssueComment: &issuetracker.IssueComment{
+			Comment:        req.Description,
+			FormattingMode: "MARKDOWN",
+		},
+		IssueState: &issuetracker.IssueState{
+			ComponentId: req.ComponentId,
+			Priority:    req.Priority,
+			Severity:    req.Severity,
+			Reporter:    reporter,
+			Ccs:         ccs,
+			Status:      req.Status,
+			Title:       req.Title,
+			Type:        "BUG",
+		},
+	}
+
+	if req.AccessLevel != "" {
+		newIssue.IssueState.AccessLimit = &issuetracker.IssueAccessLimit{
+			AccessLevel: req.AccessLevel,
+		}
+	}
+
+	resp, err := s.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
+	if err != nil {
+		return 0, skerr.Wrapf(err, "failed to create issue: Title=%q, ComponentID=%d", req.Title, req.ComponentId)
+	}
+
+	return resp.IssueId, nil
+}
+
+// ModifyIssue implements IssueTracker.
+func (s *issueTrackerImpl) ModifyIssue(ctx context.Context, req *ModifyIssueRequest) error {
+	if req == nil {
+		return skerr.Fmt("Modify issue request is null.")
+	}
+	if req.IssueId <= 0 {
+		return skerr.Fmt("Invalid issue ID: %d", req.IssueId)
+	}
+
+	modifyReq := &issuetracker.ModifyIssueRequest{}
+	mask := []string{}
+
+	if req.Status != "" {
+		modifyReq.Add = &issuetracker.IssueState{
+			Status: req.Status,
+		}
+		mask = append(mask, "status")
+	}
+
+	if req.Comment != "" {
+		modifyReq.IssueComment = &issuetracker.IssueComment{
+			Comment:        req.Comment,
+			FormattingMode: "MARKDOWN",
+		}
+	}
+
+	if len(mask) > 0 {
+		modifyReq.AddMask = strings.Join(mask, ",")
+	}
+
+	if req.Status != "" || req.Comment != "" {
+		_, err := s.client.Issues.Modify(req.IssueId, modifyReq).Do()
+		if err != nil {
+			return skerr.Wrapf(err, "failed to modify issue %d", req.IssueId)
+		}
+	}
+
+	return nil
 }

@@ -46,6 +46,34 @@ func (_m *IssueTracker) CreateComment(ctx context.Context, req *issuetracker.Cre
 	return r0, r1
 }
 
+// CreateIssue provides a mock function with given fields: ctx, req
+func (_m *IssueTracker) CreateIssue(ctx context.Context, req *issuetracker.CreateIssueRequest) (int64, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateIssue")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *issuetracker.CreateIssueRequest) (int64, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *issuetracker.CreateIssueRequest) int64); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *issuetracker.CreateIssueRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FileBug provides a mock function with given fields: ctx, req
 func (_m *IssueTracker) FileBug(ctx context.Context, req *issuetracker.FileBugRequest) (int, error) {
 	ret := _m.Called(ctx, req)
@@ -130,6 +158,24 @@ func (_m *IssueTracker) ListIssues(ctx context.Context, requestObj issuetracker.
 	}
 
 	return r0, r1
+}
+
+// ModifyIssue provides a mock function with given fields: ctx, req
+func (_m *IssueTracker) ModifyIssue(ctx context.Context, req *issuetracker.ModifyIssueRequest) error {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ModifyIssue")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *issuetracker.ModifyIssueRequest) error); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewIssueTracker creates a new instance of IssueTracker. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -31,11 +31,14 @@ import (
 )
 
 var sampleParamsetMap = map[string]string{
-	"bot":         "botxyz",
-	"benchmark":   "benchmark",
-	"story":       "story",
-	"measurement": "measurement",
-	"stat":        "stat",
+	"bot":                   "botxyz",
+	"benchmark":             "benchmark",
+	"story":                 "story",
+	"measurement":           "measurement",
+	"stat":                  "stat",
+	"test":                  "test",
+	"subtest_1":             "subtest_1",
+	"improvement_direction": "up",
 }
 
 func getMockRegressions(n int) []*regression.Regression {
@@ -445,7 +448,7 @@ func TestFileBug_SelectSubscription_NotBerfDevTest(t *testing.T) {
 	require.Equal(t, "P1", receivedReq.IssueState.Priority)
 	require.Equal(t, "S1", receivedReq.IssueState.Severity)
 	// Values below are empty due to some subscription not being the test one.
-	require.Equal(t, "", receivedReq.IssueState.Assignee.EmailAddress)
+	require.Nil(t, receivedReq.IssueState.Assignee)
 	require.Len(t, receivedReq.IssueState.Ccs, 0)
 }
 
@@ -616,4 +619,129 @@ func TestNewIssueTracker_FileBug_Success(t *testing.T) {
 	issueID, err := tracker.FileBug(ctx, req)
 	require.NoError(t, err)
 	require.Equal(t, 54321, issueID)
+}
+
+func TestCreateIssue_Success(t *testing.T) {
+	var receivedReq issuetracker.Issue
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		err = json.Unmarshal(body, &receivedReq)
+		require.NoError(t, err)
+
+		w.Header().Set("Content-Type", "application/json")
+		resp := &issuetracker.Issue{
+			IssueId: 999,
+		}
+		err = json.NewEncoder(w).Encode(resp)
+		require.NoError(t, err)
+	}))
+	defer ts.Close()
+
+	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
+	require.NoError(t, err)
+
+	s := &issueTrackerImpl{
+		client: c,
+	}
+
+	req := &CreateIssueRequest{
+		Title:       "Test Title",
+		Description: "Test Description",
+		ComponentId: 123,
+		Priority:    "P2",
+		Severity:    "S2",
+		Reporter:    "reporter@google.com",
+		Ccs:         []string{"cc@google.com"},
+		AccessLevel: "LIMIT_VIEW_TRUSTED",
+		Status:      "NEW",
+	}
+
+	issueId, err := s.CreateIssue(context.Background(), req)
+	require.NoError(t, err)
+	require.Equal(t, int64(999), issueId)
+
+	require.Equal(t, "Test Title", receivedReq.IssueState.Title)
+	require.Equal(t, "Test Description", receivedReq.IssueComment.Comment)
+	require.Equal(t, int64(123), receivedReq.IssueState.ComponentId)
+	require.Equal(t, "P2", receivedReq.IssueState.Priority)
+	require.Equal(t, "S2", receivedReq.IssueState.Severity)
+	require.Equal(t, "reporter@google.com", receivedReq.IssueState.Reporter.EmailAddress)
+	require.Len(t, receivedReq.IssueState.Ccs, 1)
+	require.Equal(t, "cc@google.com", receivedReq.IssueState.Ccs[0].EmailAddress)
+	require.Equal(t, "LIMIT_VIEW_TRUSTED", receivedReq.IssueState.AccessLimit.AccessLevel)
+	require.Equal(t, "NEW", receivedReq.IssueState.Status)
+}
+
+func TestModifyIssue_BothStatusAndComment(t *testing.T) {
+	var receivedReq issuetracker.ModifyIssueRequest
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		err = json.Unmarshal(body, &receivedReq)
+		require.NoError(t, err)
+
+		w.Header().Set("Content-Type", "application/json")
+		resp := &issuetracker.Issue{
+			IssueId: 123,
+		}
+		err = json.NewEncoder(w).Encode(resp)
+		require.NoError(t, err)
+	}))
+	defer ts.Close()
+
+	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
+	require.NoError(t, err)
+
+	s := &issueTrackerImpl{
+		client: c,
+	}
+
+	req := &ModifyIssueRequest{
+		IssueId: 123,
+		Status:  "OBSOLETE",
+		Comment: "Closing this issue",
+	}
+
+	err = s.ModifyIssue(context.Background(), req)
+	require.NoError(t, err)
+
+	require.Equal(t, "OBSOLETE", receivedReq.Add.Status)
+	require.Equal(t, "status", receivedReq.AddMask)
+	require.Equal(t, "Closing this issue", receivedReq.IssueComment.Comment)
+}
+
+func TestModifyIssue_OnlyComment(t *testing.T) {
+	var receivedReq issuetracker.ModifyIssueRequest
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		err = json.Unmarshal(body, &receivedReq)
+		require.NoError(t, err)
+
+		w.Header().Set("Content-Type", "application/json")
+		resp := &issuetracker.IssueComment{
+			CommentNumber: 1,
+		}
+		err = json.NewEncoder(w).Encode(resp)
+		require.NoError(t, err)
+	}))
+	defer ts.Close()
+
+	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
+	require.NoError(t, err)
+
+	s := &issueTrackerImpl{
+		client: c,
+	}
+
+	req := &ModifyIssueRequest{
+		IssueId: 123,
+		Comment: "Just a comment",
+	}
+
+	err = s.ModifyIssue(context.Background(), req)
+	require.NoError(t, err)
+
+	require.Equal(t, "Just a comment", receivedReq.IssueComment.Comment)
 }
