@@ -461,6 +461,7 @@ type BackendFlags struct {
 	Port           string
 	PromPort       string
 	CommitRangeURL string
+	DevMode        bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -489,6 +490,12 @@ func (flags *BackendFlags) AsCliFlags() []cli.Flag {
 			Name:        "commit_range_url",
 			Value:       "",
 			Usage:       "A URI Usage: Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. e.g. https://skia.googlesource.com/skia/+log/{begin}..{end}.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.DevMode,
+			Name:        "dev_mode",
+			Value:       false,
+			Usage:       "Running in development mode if true. As opposed to in production.",
 		},
 	}
 }

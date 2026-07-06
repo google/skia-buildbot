@@ -28,6 +28,7 @@ go_library(
         "//perf/go/culprit:store",
         "//perf/go/culprit/notify",
         "//perf/go/culprit/service",
+        "//perf/go/issuetracker",
         "//perf/go/notifytypes",
         "//perf/go/regression",
         "//perf/go/subscription:store",

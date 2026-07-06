@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/perf/go/culprit"
 	"go.skia.org/infra/perf/go/culprit/notify"
 	culprit_service "go.skia.org/infra/perf/go/culprit/service"
+	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/subscription"
@@ -42,6 +43,7 @@ type Backend struct {
 	serverAuthPolicy *grpcsp.ServerPolicy
 	lisGRPC          net.Listener
 	flags            *config.BackendFlags
+	tracker          perf_issuetracker.IssueTracker
 }
 
 // BackendService provides an interface for a service to be hosted on Backend application.
@@ -84,13 +86,6 @@ func (b *Backend) initialize(
 		if err != nil {
 			sklog.Errorf("Error creating anomalgroup store. %s", err)
 			return err
-		}
-	}
-	sklog.Debug("Creating culprit notifier.")
-	if notifier == nil {
-		notifier, err = notify.GetDefaultNotifier(ctx, config.Config, b.flags.CommitRangeURL)
-		if err != nil {
-			sklog.Fatal(err)
 		}
 	}
 
@@ -158,6 +153,29 @@ func (b *Backend) initialize(
 			config.Config.TemporalConfig.HostPort, config.Config.TemporalConfig.Namespace)
 		if err != nil {
 			return skerr.Wrapf(err, "Error creating temporal client.")
+		}
+	}
+
+	sklog.Debug("Creating issuetracker client.")
+	if config.Config.IssueTrackerConfig.IssueTrackerAPIKeySecretProject != "" && config.Config.IssueTrackerConfig.IssueTrackerAPIKeySecretName != "" {
+		b.tracker, err = perf_issuetracker.NewIssueTracker(ctx, perf_issuetracker.IssueTrackerDeps{
+			Cfg:                   config.Config.IssueTrackerConfig,
+			FetchAnomaliesFromSql: config.Config.FetchAnomaliesFromSql,
+			OverrideBugComponent:  config.Config.Experiments.OverrideBugComponent,
+			RegStore:              regressionStore,
+			DevMode:               b.flags.DevMode,
+			UrlBase:               config.Config.URL,
+		})
+		if err != nil {
+			sklog.Fatalf("Failed to build issuetracker client: %s", err)
+		}
+	}
+
+	sklog.Debug("Creating culprit notifier.")
+	if notifier == nil {
+		notifier, err = notify.GetDefaultNotifier(ctx, config.Config, b.flags.CommitRangeURL)
+		if err != nil {
+			sklog.Fatal(err)
 		}
 	}
 

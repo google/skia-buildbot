@@ -852,6 +852,23 @@ func (f *Frontend) initialize() {
 
 	f.commitHashRangeFormatter = formatter.NewCommitHashRangeFormatter(f.perfGit)
 
+	if (cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretProject != "" && cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretName != "") || f.flags.DevMode {
+		f.issuetracker, err = issuetracker.NewIssueTracker(ctx, issuetracker.IssueTrackerDeps{
+			Cfg:                      cfg.IssueTrackerConfig,
+			FetchAnomaliesFromSql:    config.Config.FetchAnomaliesFromSql,
+			OverrideBugComponent:     config.Config.Experiments.OverrideBugComponent,
+			RegStore:                 f.regStore,
+			RegrShortcutStore:        f.regrShortcutStore,
+			UserIssueStore:           f.userIssueStore,
+			DevMode:                  f.flags.DevMode,
+			UrlBase:                  cfg.URL,
+			CommitHashRangeFormatter: f.commitHashRangeFormatter,
+		})
+		if err != nil {
+			sklog.Fatalf("Failed to build issuetracker client: %s", err)
+		}
+	}
+
 	f.notifier, err = notify.New(ctx, notify.NotifierDeps{
 		Cfg:                      &config.Config.NotifyConfig,
 		ItCfg:                    &config.Config.IssueTrackerConfig,
@@ -933,40 +950,6 @@ func (f *Frontend) initialize() {
 			sklog.Fatalf("Failed to build chromeperf client: %s", err)
 		}
 
-		if cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretProject != "" && cfg.IssueTrackerConfig.IssueTrackerAPIKeySecretName != "" {
-			f.issuetracker, err = issuetracker.NewIssueTracker(ctx, issuetracker.IssueTrackerDeps{
-				Cfg:                      cfg.IssueTrackerConfig,
-				FetchAnomaliesFromSql:    config.Config.FetchAnomaliesFromSql,
-				OverrideBugComponent:     config.Config.Experiments.OverrideBugComponent,
-				RegStore:                 f.regStore,
-				RegrShortcutStore:        f.regrShortcutStore,
-				UserIssueStore:           f.userIssueStore,
-				DevMode:                  f.flags.DevMode,
-				UrlBase:                  cfg.URL,
-				CommitHashRangeFormatter: f.commitHashRangeFormatter,
-			})
-			if err != nil {
-				sklog.Fatalf("Failed to build issuetracker client: %s", err)
-			}
-		}
-	}
-
-	// Build mock issuetracker
-	if f.flags.DevMode && f.issuetracker == nil {
-		f.issuetracker, err = issuetracker.NewIssueTracker(ctx, issuetracker.IssueTrackerDeps{
-			Cfg:                      cfg.IssueTrackerConfig,
-			FetchAnomaliesFromSql:    config.Config.FetchAnomaliesFromSql,
-			OverrideBugComponent:     config.Config.Experiments.OverrideBugComponent,
-			RegStore:                 f.regStore,
-			RegrShortcutStore:        f.regrShortcutStore,
-			UserIssueStore:           f.userIssueStore,
-			DevMode:                  f.flags.DevMode,
-			UrlBase:                  cfg.URL,
-			CommitHashRangeFormatter: f.commitHashRangeFormatter,
-		})
-		if err != nil {
-			sklog.Fatalf("Failed to build issuetracker client: %s", err)
-		}
 	}
 
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)

@@ -40,6 +40,7 @@ func setupTestApp(t *testing.T) *Backend {
 		Port:           ":0",
 		PromPort:       ":0",
 		ConfigFilename: configFile,
+		DevMode:        true,
 	}
 	b, err := New(flags, anomalygroupStore, autobisectionStore, culpritStore, subscriptionStore, regressionStore, &notify.DefaultCulpritNotifier{})
 	require.NoError(t, err)
