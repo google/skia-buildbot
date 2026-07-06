@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Dashboard | Perf Builders & Testers</title>
+    <meta name="description" content="Dashboard for managing Chrome binary builders, tester coordinators, and test machines. View mappings, pool status, benchmarks, and file issues.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="glow-orb orb-3"></div>
+    </div>
+
+    <main class="dashboard-container">
+        <header class="glass-panel main-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="header-content">
+                <h1>Hardware Dashboard</h1>
+                <p class="subtitle">Chrome Builders & Testers Overview</p>
+            </div>
+            <div class="search-container" style="position: relative;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 12px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="searchInput" placeholder="Search builders, testers, benchmarks, dimensions..." style="padding: 10px 15px 10px 38px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; width: 350px; font-family: inherit; font-size: 0.95rem; outline: none; transition: 0.2s;">
+            </div>
+        </header>
+
+        <section id="dashboard-content" class="glass-panel" style="padding: 1.5rem; overflow-y: auto; max-height: calc(100vh - 250px);">
+            <!-- Dynamic content will be injected here by app.js -->
+        </section>
+    </main>
+
+    <!-- Template for a Builder Card (Not rendered directly, used for reference in JS) -->
+    <!--
+    <article class="glass-panel builder-card">
+        <h2>Builder Name</h2>
+        ...
+    </article>
+    -->
+
+    <script src="app.js" type="module"></script>
+</body>
+</html>
