@@ -18,13 +18,10 @@ import (
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/notify/common"
 	"go.skia.org/infra/perf/go/notifytypes"
-	"go.skia.org/infra/perf/go/regression"
-	"go.skia.org/infra/perf/go/regrshortcut"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
-	"go.skia.org/infra/perf/go/userissue"
 )
 
 // Formatter has implementations for both HTML and Markdown.
@@ -223,17 +220,12 @@ func (n *defaultNotifier) UpdateNotification(ctx context.Context, commit, previo
 
 // NotifierDeps contains dependencies and configuration for creating a new Notifier.
 type NotifierDeps struct {
-	Cfg                      *config.NotifyConfig
-	ItCfg                    *config.IssueTrackerConfig
-	URL                      string
-	CommitRangeURITemplate   string
-	TraceStore               tracestore.TraceStore
-	RegressionStore          regression.Store
-	RegrShortcutStore        regrshortcut.Store
-	UserIssueStore           userissue.Store
-	FS                       fs.FS
-	DevMode                  bool
-	CommitHashRangeFormatter types.CommitHashRangeFormatter
+	Cfg                    *config.NotifyConfig
+	URL                    string
+	CommitRangeURITemplate string
+	TraceStore             tracestore.TraceStore
+	FS                     fs.FS
+	IssueTracker           perf_issuetracker.IssueTracker // Shared dependency
 }
 
 // New returns a Notifier of the selected type.
@@ -263,34 +255,18 @@ func New(ctx context.Context, deps NotifierDeps) (Notifier, error) {
 		}
 		return newNotifier(notificationDataProvider, formatter, tp, deps.URL, deps.TraceStore, deps.FS), nil
 	case notifytypes.MarkdownIssueTracker:
-		tracker, err := NewIssueTrackerTransport(ctx, deps.Cfg)
-		if err != nil {
-			return nil, skerr.Wrap(err)
+		if deps.IssueTracker == nil {
+			return nil, skerr.Fmt("IssueTracker dependency is required for MarkdownIssueTracker notifier.")
 		}
+		tracker := NewIssueTrackerTransport(deps.IssueTracker)
 		return newNotifier(notificationDataProvider, formatter, tracker, deps.URL, deps.TraceStore, deps.FS), nil
 	case notifytypes.ChromeperfAlerting:
 		return NewChromePerfNotifier(ctx, nil)
 	case notifytypes.AnomalyGrouper:
-		if !deps.DevMode {
-			if deps.ItCfg == nil || deps.ItCfg.IssueTrackerAPIKeySecretProject == "" || deps.ItCfg.IssueTrackerAPIKeySecretName == "" {
-				return nil, skerr.Fmt("Invalid issue tracker configs. It is required by anomalygroup notifier type.")
-			}
+		if deps.IssueTracker == nil {
+			return nil, skerr.Fmt("IssueTracker dependency is required for AnomalyGrouper notifier.")
 		}
-		perfIssueTracker, err := perf_issuetracker.NewIssueTracker(ctx, perf_issuetracker.IssueTrackerDeps{
-			Cfg:                      *deps.ItCfg,
-			FetchAnomaliesFromSql:    config.Config.FetchAnomaliesFromSql,
-			OverrideBugComponent:     config.Config.Experiments.OverrideBugComponent,
-			RegStore:                 deps.RegressionStore,
-			RegrShortcutStore:        deps.RegrShortcutStore,
-			UserIssueStore:           deps.UserIssueStore,
-			DevMode:                  deps.DevMode,
-			UrlBase:                  deps.URL,
-			CommitHashRangeFormatter: deps.CommitHashRangeFormatter,
-		})
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return ag.NewAnomalyGroupNotifier(ctx, nil, perfIssueTracker), nil
+		return ag.NewAnomalyGroupNotifier(ctx, nil, deps.IssueTracker), nil
 	default:
 		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", deps.Cfg.Notifications, notifytypes.AllNotifierTypes)
 	}

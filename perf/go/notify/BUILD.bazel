@@ -19,12 +19,10 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/email",
-        "//go/issuetracker/v1:issuetracker",
         "//go/metrics2",
         "//go/now",
         "//go/paramtools",
         "//go/query",
-        "//go/secret",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
@@ -41,15 +39,10 @@ go_library(
         "//perf/go/issuetracker",
         "//perf/go/notify/common",
         "//perf/go/notifytypes",
-        "//perf/go/regression",
-        "//perf/go/regrshortcut",
         "//perf/go/stepfit",
         "//perf/go/tracestore",
         "//perf/go/types",
         "//perf/go/ui/frame",
-        "//perf/go/userissue:store",
-        "@org_golang_google_api//option",
-        "@org_golang_x_oauth2//google",
     ],
 )
 

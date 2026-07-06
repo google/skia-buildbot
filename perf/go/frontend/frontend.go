@@ -870,17 +870,12 @@ func (f *Frontend) initialize() {
 	}
 
 	f.notifier, err = notify.New(ctx, notify.NotifierDeps{
-		Cfg:                      &config.Config.NotifyConfig,
-		ItCfg:                    &config.Config.IssueTrackerConfig,
-		URL:                      config.Config.URL,
-		CommitRangeURITemplate:   f.flags.CommitRangeURL,
-		TraceStore:               f.traceStore,
-		RegressionStore:          f.regStore,
-		RegrShortcutStore:        f.regrShortcutStore,
-		UserIssueStore:           f.userIssueStore,
-		FS:                       f.ingestedFS,
-		DevMode:                  f.flags.DevMode,
-		CommitHashRangeFormatter: f.commitHashRangeFormatter,
+		Cfg:                    &config.Config.NotifyConfig,
+		URL:                    config.Config.URL,
+		CommitRangeURITemplate: f.flags.CommitRangeURL,
+		TraceStore:             f.traceStore,
+		FS:                     f.ingestedFS,
+		IssueTracker:           f.issuetracker,
 	})
 	if err != nil {
 		sklog.Fatalf("Failed to create issue tracker: %v", err)
