@@ -291,43 +291,18 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		sklog.Warningf("we ignore componentID: %s passed by fe and use data from the db: %d", req.Component, componentID)
 	}
 
-	topAnomalies, err := ags.TopAnomaliesMedianCmp(regData, int64(TOP_ANOMALIES_COUNT))
-	description := ""
-	// TODO(b/464211673) Make sure the links lead to correct graphs.
-	link, err := s.generateLinkToGraph(ctx, regressionIds)
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	description += s.describeTopAnomalies(ctx, topAnomalies, link)
-	description += s.intersectionFooter(ctx, regData)
-
-	descriptionDebugSection := "\n\n## DEBUG BELOW\n\n"
-	// This is to prevent spamming other teams while testing.
+	originalComponentID := componentID
 	if s.OverrideComponent {
 		componentID = 1325852
 		sklog.Warningf("File Bug would use the following component: %d. Using a default component until migration is done.", componentID)
-		descriptionDebugSection += fmt.Sprintf("component %d should be used.\nUntil migration is done, we use the default one.\n", componentID)
-		description += descriptionDebugSection + "\n\n"
 	}
 
-	var ccs []string
-	ccs = append(ccs, req.Ccs...)
-
-	assignee := mostImpactedSub.ContactEmail
-	issueStatus := "ASSIGNED"
-	if !isTestRun {
-		sklog.Warningf("disable testrun flag in issuetracker.go to use real assignee and ccs")
-		assignee = ""
-		issueStatus = "NEW"
-		subCcs = []string{}
+	description, err := s.formatBugDescription(ctx, regData, regressionIds, originalComponentID)
+	if err != nil {
+		return 0, err
 	}
-	// Our test subscription has Sergei set as the contact point.
-	if assignee == "sergeirudenkov@google.com" {
-		assignee = "berf-issuetracker-testing@google.com"
-	}
-	ccs = append(ccs, subCcs...)
 
-	err = s.validateAssigneeAndStatus(assignee, issueStatus)
+	assignee, issueStatus, ccs, err := s.resolveAssigneeAndStatus(isTestRun, mostImpactedSub, subCcs, req.Ccs)
 	if err != nil {
 		return 0, err
 	}
@@ -481,6 +456,50 @@ func (s *issueTrackerImpl) intersectionFooter(ctx context.Context, regData []*re
 		commitHashRange = s.commitHashRangeFormatter(ctx, int64(begin), int64(end))
 	}
 	return fmt.Sprintf("\nCommon commit range of all regressions in this bug: %s - Hash range: %s\n", commitRange, commitHashRange)
+}
+
+func (s *issueTrackerImpl) formatBugDescription(ctx context.Context, regData []*regression.Regression, regressionIds []string, originalComponentID int) (string, error) {
+	topAnomalies, err := ags.TopAnomaliesMedianCmp(regData, int64(TOP_ANOMALIES_COUNT))
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	// TODO(b/464211673) Make sure the links lead to correct graphs.
+	link, err := s.generateLinkToGraph(ctx, regressionIds)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	description := s.describeTopAnomalies(ctx, topAnomalies, link)
+	description += s.intersectionFooter(ctx, regData)
+
+	if s.OverrideComponent {
+		descriptionDebugSection := "\n\n## DEBUG BELOW\n\n"
+		descriptionDebugSection += fmt.Sprintf("component %d should be used.\nUntil migration is done, we use the default one.\n", originalComponentID)
+		description += descriptionDebugSection + "\n\n"
+	}
+	return description, nil
+}
+
+func (s *issueTrackerImpl) resolveAssigneeAndStatus(isTestRun bool, mostImpactedSub *pb.Subscription, subCcs []string, reqCcs []string) (string, string, []string, error) {
+	ccs := append([]string{}, reqCcs...)
+	assignee := mostImpactedSub.ContactEmail
+	issueStatus := "ASSIGNED"
+	if !isTestRun {
+		sklog.Warningf("disable testrun flag in issuetracker.go to use real assignee and ccs")
+		assignee = ""
+		issueStatus = "NEW"
+		subCcs = []string{}
+	}
+	// Our test subscription has Sergei set as the contact point.
+	if assignee == "sergeirudenkov@google.com" {
+		assignee = "berf-issuetracker-testing@google.com"
+	}
+	ccs = append(ccs, subCcs...)
+
+	err := s.validateAssigneeAndStatus(assignee, issueStatus)
+	if err != nil {
+		return "", "", nil, err
+	}
+	return assignee, issueStatus, ccs, nil
 }
 
 // There may be several subscriptions
