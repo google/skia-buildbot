@@ -112,6 +112,7 @@ type CreateIssueRequest struct {
 	Priority    string // "P0"-"P4"
 	Severity    string // "S0"-"S4"
 	Reporter    string
+	Assignee    string
 	Ccs         []string
 	AccessLevel string // e.g. "LIMIT_VIEW_TRUSTED"
 	Status      string // e.g. "NEW"
@@ -202,7 +203,8 @@ func (s *issueTrackerImpl) CreateComment(ctx context.Context, req *CreateComment
 	sklog.Debugf("[Perf_issuetracker] Received CreateCommentRequest. Issue Id: %d, Comment: %s", req.IssueId, req.Comment)
 	// FormattingMode is default to PLAIN
 	issueComment := &issuetracker.IssueComment{
-		Comment: req.Comment,
+		Comment:        req.Comment,
+		FormattingMode: "MARKDOWN",
 	}
 	resp, err := s.client.Issues.Comments.Create(int64(req.IssueId), issueComment).Do()
 	if err != nil {
@@ -308,10 +310,8 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		description += descriptionDebugSection + "\n\n"
 	}
 
-	var ccs []*issuetracker.User
-	for _, cc := range req.Ccs {
-		ccs = append(ccs, &issuetracker.User{EmailAddress: cc})
-	}
+	var ccs []string
+	ccs = append(ccs, req.Ccs...)
 
 	assignee := mostImpactedSub.ContactEmail
 	issueStatus := "ASSIGNED"
@@ -319,7 +319,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		sklog.Warningf("disable testrun flag in issuetracker.go to use real assignee and ccs")
 		assignee = ""
 		issueStatus = "NEW"
-		subCcs = []*issuetracker.User{}
+		subCcs = []string{}
 	}
 	// Our test subscription has Sergei set as the contact point.
 	if assignee == "sergeirudenkov@google.com" {
@@ -332,50 +332,29 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 		return 0, err
 	}
 
-	var assigneeUser *issuetracker.User
-	if assignee != "" {
-		assigneeUser = &issuetracker.User{
-			EmailAddress: assignee,
-		}
-	}
-
-	newIssue := &issuetracker.Issue{
-		IssueComment: &issuetracker.IssueComment{
-			Comment:        description,
-			FormattingMode: "MARKDOWN",
-		},
-		IssueState: &issuetracker.IssueState{
-			ComponentId: int64(componentID),
-			Priority:    fmt.Sprintf("P%d", mostImpactedSub.BugPriority),
-			Severity:    fmt.Sprintf("S%d", mostImpactedSub.BugSeverity),
-			Status:      issueStatus,
-			Title:       req.Title,
-			Assignee:    assigneeUser,
-			Ccs:         ccs,
-			Type:        "BUG",
-		},
-	}
-
-	resp, err := s.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
+	issueId, err := s.CreateIssue(ctx, &CreateIssueRequest{
+		Title:       req.Title,
+		Description: description,
+		ComponentId: int64(componentID),
+		Priority:    fmt.Sprintf("P%d", mostImpactedSub.BugPriority),
+		Severity:    fmt.Sprintf("S%d", mostImpactedSub.BugSeverity),
+		Assignee:    assignee,
+		Ccs:         ccs,
+		Status:      issueStatus,
+	})
 	if err != nil {
-		assigneeEmail := ""
-		if newIssue.IssueState.Assignee != nil {
-			assigneeEmail = newIssue.IssueState.Assignee.EmailAddress
-		}
 		return 0, skerr.Wrapf(err,
 			"[Perf_issuetracker] failed to create issue: Title=%q, Assignee=%q, ComponentID=%d",
-			newIssue.IssueState.Title,
-			assigneeEmail,
-			newIssue.IssueState.ComponentId,
+			req.Title,
+			assignee,
+			componentID,
 		)
 	}
 
-	issueId := resp.IssueId
-
-	_, err = s.client.Issues.Comments.Create(issueId, &issuetracker.IssueComment{
-		Comment:        fmt.Sprintf("Link to graph by bugID: %s/u?bugID=%d", s.urlBase, issueId),
-		FormattingMode: "MARKDOWN",
-	}).Do()
+	_, err = s.CreateComment(ctx, &CreateCommentRequest{
+		IssueId: issueId,
+		Comment: fmt.Sprintf("Link to graph by bugID: %s/u?bugID=%d", s.urlBase, issueId),
+	})
 	if err != nil {
 		sklog.Errorf("failed to post comment with bugID due to err: %s", err)
 	}
@@ -397,38 +376,28 @@ func (s *issueTrackerImpl) FileUserIssue(ctx context.Context, req *CreateUserIss
 
 	title := fmt.Sprintf("Trace ID %s shows a potential regression at commit position %d.", req.TraceKey, req.CommitPosition)
 
-	newIssue := &issuetracker.Issue{
-		IssueComment: &issuetracker.IssueComment{
-			FormattingMode: "MARKDOWN",
-		},
-		IssueState: &issuetracker.IssueState{
-			ComponentId: int64(COMPONENET_ID),
-			Priority:    "P2",
-			Severity:    "S2",
-			Status:      issueStatus,
-			Title:       title,
-			Assignee: &issuetracker.User{
-				EmailAddress: req.Assignee,
-			},
-			Type: "BUG",
-		},
-	}
-
-	resp, err := s.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
+	issueId, err := s.CreateIssue(ctx, &CreateIssueRequest{
+		Title:       title,
+		Description: "",
+		ComponentId: int64(COMPONENET_ID),
+		Priority:    "P2",
+		Severity:    "S2",
+		Assignee:    req.Assignee,
+		Status:      issueStatus,
+	})
 	if err != nil {
 		return 0, skerr.Wrapf(err,
 			"[Perf_issuetracker] failed to create user issue: Title=%q, Assignee=%q, ComponentID=%d",
-			newIssue.IssueState.Title,
-			newIssue.IssueState.Assignee.EmailAddress,
-			newIssue.IssueState.ComponentId,
+			title,
+			req.Assignee,
+			COMPONENET_ID,
 		)
 	}
 
-	issueId := resp.IssueId
-	_, err = s.client.Issues.Comments.Create(issueId, &issuetracker.IssueComment{
-		Comment:        fmt.Sprintf("Link to trace by bugID: %s/u?bugID=%d", s.urlBase, issueId),
-		FormattingMode: "MARKDOWN",
-	}).Do()
+	_, err = s.CreateComment(ctx, &CreateCommentRequest{
+		IssueId: issueId,
+		Comment: fmt.Sprintf("Link to trace by bugID: %s/u?bugID=%d", s.urlBase, issueId),
+	})
 	if err != nil {
 		sklog.Errorf("failed to post comment with bugID due to err: %s", err)
 	}
@@ -518,13 +487,15 @@ func (s *issueTrackerImpl) intersectionFooter(ctx context.Context, regData []*re
 // We will choose data from the sub which defines the highest <priority,severity> pair
 // Additionally, all sheriffs will be CCed on the bug
 // Non-emptiness of the subscriptions list here is ensured in the FileBug method.
-func (s *issueTrackerImpl) selectSub(nonEmptySubscriptions []*pb.Subscription) (topSub *pb.Subscription, allContactEmails []*issuetracker.User) {
+func (s *issueTrackerImpl) selectSub(nonEmptySubscriptions []*pb.Subscription) (topSub *pb.Subscription, allContactEmails []string) {
 	topSub = nonEmptySubscriptions[0]
 	for _, sub := range nonEmptySubscriptions {
 		if sub.BugPriority < topSub.BugPriority || (sub.BugPriority == topSub.BugPriority && sub.BugSeverity < topSub.BugSeverity) {
 			topSub = sub
 		}
-		allContactEmails = append(allContactEmails, &issuetracker.User{EmailAddress: sub.ContactEmail})
+		if trimmed := strings.TrimSpace(sub.ContactEmail); trimmed != "" {
+			allContactEmails = append(allContactEmails, trimmed)
+		}
 	}
 	return
 }
@@ -581,6 +552,11 @@ func (s *issueTrackerImpl) CreateIssue(ctx context.Context, req *CreateIssueRequ
 		reporter = &issuetracker.User{EmailAddress: reporterEmail}
 	}
 
+	var assignee *issuetracker.User
+	if assigneeEmail := strings.TrimSpace(req.Assignee); assigneeEmail != "" {
+		assignee = &issuetracker.User{EmailAddress: assigneeEmail}
+	}
+
 	newIssue := &issuetracker.Issue{
 		IssueComment: &issuetracker.IssueComment{
 			Comment:        req.Description,
@@ -591,6 +567,7 @@ func (s *issueTrackerImpl) CreateIssue(ctx context.Context, req *CreateIssueRequ
 			Priority:    req.Priority,
 			Severity:    req.Severity,
 			Reporter:    reporter,
+			Assignee:    assignee,
 			Ccs:         ccs,
 			Status:      req.Status,
 			Title:       req.Title,
