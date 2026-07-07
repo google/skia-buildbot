@@ -36,6 +36,8 @@ export class MultiSelectSk extends LitElement {
 
   @property({ type: Boolean }) isHighlighted = false;
 
+  @property({ type: Boolean }) loading = false;
+
   private _isOpen = false;
 
   @property({ type: Boolean })
@@ -315,6 +317,10 @@ export class MultiSelectSk extends LitElement {
       margin-left: 12px;
       flex-shrink: 0;
       font-family: monospace;
+    }
+
+    .multiselect-container.loading .ms-opt-count {
+      opacity: 0.5;
     }
 
     .ms-diff-btn {
@@ -730,8 +736,8 @@ export class MultiSelectSk extends LitElement {
     return html`
       <div
         class="${this.variant === 'pill'
-          ? `multiselect-container pill ${this.isHighlighted ? 'highlighted' : ''}`
-          : 'multiselect-container default'}">
+          ? `multiselect-container pill ${this.isHighlighted ? 'highlighted' : ''} ${this.loading ? 'loading' : ''}`
+          : `multiselect-container default ${this.loading ? 'loading' : ''}`}">
         ${this.variant === 'default'
           ? html`<label class="multiselect-label">${this.label}</label>`
           : ''}

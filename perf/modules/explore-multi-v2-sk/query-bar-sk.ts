@@ -106,6 +106,8 @@ export class QueryBarSk extends LitElement {
 
   @property({ type: Array }) externalSuggestions: Suggestion[] | null = null;
 
+  @property({ type: Boolean }) loading = false;
+
   @state() private _inputValue = '';
 
   @state() private _isOpen = false;
@@ -113,8 +115,6 @@ export class QueryBarSk extends LitElement {
   @state() private _focusedIndex = 0;
 
   @state() private _suggestions: Suggestion[] = [];
-
-  @state() private _isLoadingSuggestions = false;
 
   @state() private _selectedCategory: string | null = null;
 
@@ -293,6 +293,10 @@ export class QueryBarSk extends LitElement {
       color: var(--md-sys-color-on-surface-variant);
       font-style: italic;
       font-size: 10px;
+    }
+
+    .s-count.stale {
+      opacity: 0.5;
     }
 
     .query-actions {
@@ -1205,6 +1209,7 @@ export class QueryBarSk extends LitElement {
                   .isOpen=${idx === this._openPillIndex}
                   .showSplitButton=${true}
                   .showDiffButton=${true}
+                  .loading=${this.loading}
                   @open=${() => {
                     this._openPillIndex = idx;
                     void this._handleMultiSelectOpen(key);
@@ -1251,7 +1256,7 @@ export class QueryBarSk extends LitElement {
               @paste=${this._handlePasteEvent}
               placeholder=${this._getPlaceholderTip()}
               @click=${(e: Event) => e.stopPropagation()}></md-outlined-text-field>
-            ${this._isLoadingSuggestions ? html`<div class="input-spinner"></div>` : ''}
+            ${this.loading ? html`<div class="input-spinner"></div>` : ''}
             ${this._isOpen && this._suggestions.length > 0
               ? html`
                   <div class="suggestions-dropdown" @click=${(e: Event) => e.stopPropagation()}>
@@ -1272,7 +1277,7 @@ export class QueryBarSk extends LitElement {
                           )}
                           ${s.count !== undefined
                             ? html`
-                                <span class="s-count right"
+                                <span class="s-count right ${this.loading ? 'stale' : ''}"
                                   >(${s.count.toLocaleString()}${s.countIsLowerBound
                                     ? '+'
                                     : ''})</span

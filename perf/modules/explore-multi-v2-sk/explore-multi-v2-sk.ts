@@ -190,6 +190,8 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _optionsByKeyPerQuery: Record<string, { value: string; count: number }[]>[] = [];
 
+  @state() private _isCalculatingCounts = false;
+
   @state() private _suggestionsForQueryBar: Suggestion[][] = [];
 
   private _latestSuggestRequestIds: number[] = [];
@@ -482,6 +484,7 @@ export class ExploreMultiV2Sk extends LitElement {
         this._loading = false;
         this._statusMessage = '';
         this._workerInitializing = false;
+        this._isCalculatingCounts = false;
         errorMessage(`Worker initialization failed: ${message}`);
       },
       (payload) => {
@@ -598,6 +601,7 @@ export class ExploreMultiV2Sk extends LitElement {
       this._availableParamsPerQuery = availableParamsPerQuery;
       this._optionsByKeyPerQuery = optionsByKeyPerQuery;
     }
+    this._isCalculatingCounts = false;
   }
 
   private _triggerWorkerFilter(requestId?: number): number {
@@ -1003,6 +1007,7 @@ export class ExploreMultiV2Sk extends LitElement {
     const currentRequestId = this._latestRequestId;
 
     if (queriesChanged) {
+      this._isCalculatingCounts = true;
       if (this._workerController?.isReady()) {
         if (this._debounceDelay === 0) {
           this._triggerWorkerFilter(currentRequestId);
@@ -2728,6 +2733,7 @@ export class ExploreMultiV2Sk extends LitElement {
                 .defaults=${this._defaults}
                 .showRemoveQueryButton=${this.queries.length > 1}
                 .externalSuggestions=${this._suggestionsForQueryBar[idx] || null}
+                .loading=${this._isCalculatingCounts}
                 @suggest=${(e: CustomEvent) => this._handleSuggest(idx, e)}
                 @add-query=${(e: CustomEvent) => this._handleAddQuery(idx, e)}
                 @remove-query=${(e: CustomEvent) => this._handleRemoveQuery(idx, e)}

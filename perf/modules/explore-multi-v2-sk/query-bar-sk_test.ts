@@ -208,6 +208,36 @@ describe('query-bar-sk', () => {
     expect(cloneClicked).to.be.true;
   });
 
+  it('grays out counts when loading is true', async () => {
+    (element as any)['_isOpen'] = true;
+    (element as any)['_suggestions'] = [
+      { score: 1, params: [{ key: 'bot', value: 'linux' }], count: 42 },
+    ];
+    element.loading = true;
+    await element.updateComplete;
+
+    const count = element.shadowRoot!.querySelector('.s-count') as HTMLElement;
+    expect(count).to.not.be.null;
+    expect(count.classList.contains('stale')).to.be.true;
+
+    element.loading = false;
+    await element.updateComplete;
+    expect(count.classList.contains('stale')).to.be.false;
+  });
+
+  it('shows spinner when loading is true', async () => {
+    element.loading = true;
+    await element.updateComplete;
+
+    const spinner = element.shadowRoot!.querySelector('.input-spinner');
+    expect(spinner).to.not.be.null;
+
+    element.loading = false;
+    await element.updateComplete;
+    const spinnerHidden = element.shadowRoot!.querySelector('.input-spinner');
+    expect(spinnerHidden).to.be.null;
+  });
+
   describe('pill selection and clipboard actions', () => {
     beforeEach(async () => {
       element.query = { benchmark: ['v8'], bot: ['MacM1'] };
