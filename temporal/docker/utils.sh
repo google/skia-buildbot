@@ -51,8 +51,10 @@ setup_postgres_schema() {
     # This export might not be needed but kept the same as original version.
     export SQL_PASSWORD=${POSTGRES_PWD}
 
+    local sql_plugin="postgres"
     if [[ ${DB} == "postgres12" ]]; then
       POSTGRES_VERSION_DIR=v12
+      sql_plugin="postgres12"
     else
       POSTGRES_VERSION_DIR=v96
     fi
@@ -63,7 +65,7 @@ setup_postgres_schema() {
     # container itself will create database.
     if [[ ${DBNAME} != "${POSTGRES_USER}" && ${SKIP_DB_CREATE} != true ]]; then
         temporal-sql-tool \
-            --plugin postgres \
+            --plugin "${sql_plugin}" \
             --ep "${POSTGRES_SEEDS}" \
             -u "${POSTGRES_USER}" \
             -p "${DB_PORT}" \
@@ -77,7 +79,7 @@ setup_postgres_schema() {
             create
     fi
     temporal-sql-tool \
-        --plugin postgres \
+        --plugin "${sql_plugin}" \
         --ep "${POSTGRES_SEEDS}" \
         -u "${POSTGRES_USER}" \
         -p "${DB_PORT}" \
@@ -90,7 +92,7 @@ setup_postgres_schema() {
         --tls-server-name "${POSTGRES_TLS_SERVER_NAME}" \
         setup-schema -v 0.0
     temporal-sql-tool \
-        --plugin postgres \
+        --plugin "${sql_plugin}" \
         --ep "${POSTGRES_SEEDS}" \
         -u "${POSTGRES_USER}" \
         -p "${DB_PORT}" \
@@ -106,7 +108,7 @@ setup_postgres_schema() {
     VISIBILITY_SCHEMA_DIR=${SCHEMA_BASE_DIR}/visibility/versioned
     if [[ ${VISIBILITY_DBNAME} != "${POSTGRES_USER}" && ${SKIP_DB_CREATE} != true ]]; then
         temporal-sql-tool \
-            --plugin postgres \
+            --plugin "${sql_plugin}" \
             --ep "${POSTGRES_SEEDS}" \
             -u "${POSTGRES_USER}" \
             -p "${DB_PORT}" \
@@ -120,7 +122,7 @@ setup_postgres_schema() {
             create
     fi
     temporal-sql-tool \
-        --plugin postgres \
+        --plugin "${sql_plugin}" \
         --ep "${POSTGRES_SEEDS}" \
         -u "${POSTGRES_USER}" \
         -p "${DB_PORT}" \
@@ -133,7 +135,7 @@ setup_postgres_schema() {
         --tls-server-name "${POSTGRES_TLS_SERVER_NAME}" \
         setup-schema -v 0.0
     temporal-sql-tool \
-        --plugin postgres \
+        --plugin "${sql_plugin}" \
         --ep "${POSTGRES_SEEDS}" \
         -u "${POSTGRES_USER}" \
         -p "${DB_PORT}" \
