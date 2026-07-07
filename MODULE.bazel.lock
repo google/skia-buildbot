@@ -1851,7 +1851,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "zxDIfSvh9GYoXb1dY/RCi1hUEtCKMEcc3vlW/dCAukM=",
+        "usagesDigest": "wnkddQtd4RQpz0KxF9DzSHhOCW6RfucoVkFVErJ2+AE=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -2189,7 +2189,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/server",
-              "identifier": "sha256:6831458b0f15efc3aa9f1df82d9e3da9f78c18e1eb310b67ffb6040362ed2f9d",
+              "identifier": "sha256:72357453d98c534363b852645d57c925870dc50df3c3315a8972200974edc584",
               "platform": "linux/amd64",
               "target_name": "temporal-server_linux_amd64",
               "bazel_tags": []
@@ -2203,7 +2203,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/server",
-              "identifier": "sha256:6831458b0f15efc3aa9f1df82d9e3da9f78c18e1eb310b67ffb6040362ed2f9d",
+              "identifier": "sha256:72357453d98c534363b852645d57c925870dc50df3c3315a8972200974edc584",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@temporal-server_linux_amd64"
               },
@@ -2218,7 +2218,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/admin-tools",
-              "identifier": "sha256:c2954b70ed48ba715ba53684e9ee81e094a5619879398042db9cffe7b8aa9d50",
+              "identifier": "sha256:7686798acaa9d3e99a8880626da18e0bf608ea81ae9bc5818b34804a965510cb",
               "platform": "linux/amd64",
               "target_name": "temporal-admin-tools_linux_amd64",
               "bazel_tags": []
@@ -2232,7 +2232,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/admin-tools",
-              "identifier": "sha256:c2954b70ed48ba715ba53684e9ee81e094a5619879398042db9cffe7b8aa9d50",
+              "identifier": "sha256:7686798acaa9d3e99a8880626da18e0bf608ea81ae9bc5818b34804a965510cb",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@temporal-admin-tools_linux_amd64"
               },
