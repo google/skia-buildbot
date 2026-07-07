@@ -42,6 +42,7 @@ import '../triage2-sk';
 import '../word-cloud-sk';
 import '../commit-range-sk';
 import { errorMessage } from '../errorMessage';
+import { CountMetric } from '../telemetry/telemetry';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import {
   FullSummary,
@@ -52,6 +53,8 @@ import {
   ColumnHeader,
   Alert,
   StepDetection,
+  StepFit,
+  CommitNumber,
 } from '../json';
 import { PlotShowTooltipEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import '../window/window';
@@ -238,39 +241,22 @@ export class ClusterSummary2Sk extends LitElement {
     return this;
   }
 
-  render() {
+  private renderBugLink() {
+    if (!this.summary.notification_id) {
+      return html``;
+    }
     return html`
-      <div class="regression ${this.statusClass()}">
-        ${this.labels.regression}
-        <span>${this.labels.regressionFormatter(this.summary.step_fit?.regression || 0)}</span>
+      <div>
+        Bug:
+        <a href="http://b/${this.summary.notification_id}">b/${this.summary.notification_id}</a>
       </div>
-      <div class="stats">
-        <div class="labelled">
-          Cluster Size:
-          <span>${this.summary.num}</span>
-        </div>
-        ${this.leastSquares()}
-        <div class="labelled">
-          ${this.labels.stepSize}
-          <span>${this.labels.stepSizeFormatter(this.summary.step_fit?.step_size || 0)}</span>
-        </div>
-        ${this.summary.notification_id
-          ? html` <div>
-              Bug:
-              <a href="http://b/${this.summary.notification_id}"
-                >b/${this.summary.notification_id}</a
-              >
-            </div>`
-          : html``}
-      </div>
-      <div class="plot-wrapper">
-        <plot-google-chart-sk
-          specialevents
-          .data=${this.graphData}
-          .xbar=${this.xbarValue}
-          @plot-data-select=${this.traceSelected}></plot-google-chart-sk>
-      </div>
-      <div id="status" class="${this.hiddenClass()} ${this.isEditor ? '' : 'disabled'}">
+    `;
+  }
+
+  private renderStatusPanel() {
+    const statusClass = `${this.hiddenClass()} ${this.isEditor ? '' : 'disabled'}`;
+    return html`
+      <div id="status" class="${statusClass}">
         <p class="disabledMessage">You must be logged in to change the status.</p>
         <triage2-sk
           .value=${this.triageStatus.status}
@@ -289,6 +275,35 @@ export class ClusterSummary2Sk extends LitElement {
           label="Message" />
         <button class="action" @click=${this.updateStatus}>Update</button>
       </div>
+    `;
+  }
+
+  render() {
+    return html`
+      <div class="regression ${this.statusClass()}">
+        ${this.labels.regression}
+        <span>${this.labels.regressionFormatter(this.summary.step_fit?.regression || 0)}</span>
+      </div>
+      <div class="stats">
+        <div class="labelled">
+          Cluster Size:
+          <span>${this.summary.num}</span>
+        </div>
+        ${this.leastSquares()}
+        <div class="labelled">
+          ${this.labels.stepSize}
+          <span>${this.labels.stepSizeFormatter(this.summary.step_fit?.step_size || 0)}</span>
+        </div>
+        ${this.renderBugLink()}
+      </div>
+      <div class="plot-wrapper">
+        <plot-google-chart-sk
+          specialevents
+          .data=${this.graphData}
+          .xbar=${this.xbarValue}
+          @plot-data-select=${this.traceSelected}></plot-google-chart-sk>
+      </div>
+      ${this.renderStatusPanel()}
       <commit-detail-panel-sk
         selectable
         .trace_id=${this.summary.shortcut}
@@ -333,61 +348,84 @@ export class ClusterSummary2Sk extends LitElement {
     }
   }
 
-  private updateGraphData() {
+  private updateDatasetStats(stepFit: StepFit | null) {
     this.dataset.clustersize = this.summary.num.toString();
-    const step_fit = this.summary.step_fit;
-    if (step_fit) {
-      this.dataset.steplse = step_fit.least_squares.toPrecision(2);
-      this.dataset.stepsize = step_fit.step_size.toPrecision(2);
-      this.dataset.stepregression = step_fit.regression.toPrecision(2);
-    }
-
-    const headers = this.frame?.dataframe?.header;
-    const validHeaders = headers ? headers.filter((h): h is ColumnHeader => h !== null) : [];
-
-    if (
-      this.summary.centroid &&
-      this.summary.centroid.length > 0 &&
-      validHeaders.length === this.summary.centroid.length
-    ) {
-      const rows = this.summary.centroid.map((value, i) => {
-        const header = validHeaders[i];
-        const label = new Date(header.timestamp * 1000);
-        return [header.offset, label, value];
-      });
-
-      this.graphData = google.visualization.arrayToDataTable([
-        ['Commit Position', 'Date', 'centroid'],
-        ...rows,
-      ]);
-    }
-
-    if (step_fit && step_fit.status !== 'Uninteresting') {
-      const step = this.summary.step_point;
-      if (step && headers) {
-        let xbar = -1;
-        headers.forEach((h, i) => {
-          if (h && h.offset === step.offset) {
-            xbar = i;
-          }
-        });
-        if (xbar !== -1) {
-          this.xbarValue = xbar;
-        }
-
-        if (step.offset > 0) {
-          ClusterSummary2Sk.lookupCids([step.offset])
-            .then((json) => {
-              this.commitsDetails = json.commitSlice || [];
-            })
-            .catch(errorMessage);
-        }
-      }
+    if (stepFit) {
+      this.dataset.steplse = stepFit.least_squares.toPrecision(2);
+      this.dataset.stepsize = stepFit.step_size.toPrecision(2);
+      this.dataset.stepregression = stepFit.regression.toPrecision(2);
+    } else {
+      this.dataset.steplse = '';
+      this.dataset.stepsize = '';
+      this.dataset.stepregression = '';
     }
   }
 
+  private buildGraphData(validHeaders: ColumnHeader[]) {
+    const centroid = this.summary.centroid;
+    if (!centroid || centroid.length === 0 || validHeaders.length !== centroid.length) {
+      return;
+    }
+    const rows = centroid.map((value, i) => {
+      const header = validHeaders[i];
+      const label = new Date(header.timestamp * 1000);
+      return [header.offset, label, value];
+    });
+
+    this.graphData = google.visualization.arrayToDataTable([
+      ['Commit Position', 'Date', 'centroid'],
+      ...rows,
+    ]);
+  }
+
+  private isInterestingStep(stepFit: StepFit | null): boolean {
+    return !!stepFit && stepFit.status !== 'Uninteresting';
+  }
+
+  private fetchCommitDetails(offset: CommitNumber) {
+    if (offset <= 0) {
+      return;
+    }
+    ClusterSummary2Sk.lookupCids([offset])
+      .then((json) => {
+        this.commitsDetails = json.commitSlice || [];
+      })
+      .catch(errorMessage);
+  }
+
+  private updateXbarAndCommitDetails(
+    stepFit: StepFit | null,
+    headers: (ColumnHeader | null)[] | null | undefined
+  ) {
+    if (!this.isInterestingStep(stepFit) || !headers || !this.summary.step_point) {
+      return;
+    }
+
+    const step = this.summary.step_point;
+    const xbar = headers.findIndex((h) => h?.offset === step.offset);
+    if (xbar !== -1) {
+      this.xbarValue = xbar;
+    }
+
+    this.fetchCommitDetails(step.offset);
+  }
+
+  private updateGraphData() {
+    const stepFit = this.summary.step_fit;
+    this.updateDatasetStats(stepFit);
+
+    const headers = this.frame?.dataframe?.header;
+    const validHeaders = headers ? headers.filter((h): h is ColumnHeader => h !== null) : [];
+    this.buildGraphData(validHeaders);
+
+    this.updateXbarAndCommitDetails(stepFit, headers);
+  }
+
   updateStatus() {
-    const columnHeader = this.summary.step_point!;
+    const columnHeader = this.summary.step_point;
+    if (!columnHeader) {
+      return;
+    }
     // Let's use standard CustomEvent constructor.
     this.dispatchEvent(
       new CustomEvent<ClusterSummary2SkTriagedEventDetail>('triaged', {
@@ -401,11 +439,19 @@ export class ClusterSummary2Sk extends LitElement {
   }
 
   openShortcut() {
+    const header = this.frame?.dataframe?.header;
+    if (!header || !header.length || !this.summary.step_point) {
+      return;
+    }
+    const firstHeader = header.find((h) => h !== null);
+    if (!firstHeader) {
+      return;
+    }
     const detail: ClusterSummary2SkOpenKeysEventDetail = {
       shortcut: this.summary.shortcut,
-      begin: this.frame!.dataframe!.header![0]!.timestamp,
+      begin: firstHeader.timestamp,
       end: Math.floor(Date.now() / 1000),
-      xbar: this.summary.step_point!,
+      xbar: this.summary.step_point,
     };
     this.dispatchEvent(
       new CustomEvent<ClusterSummary2SkOpenKeysEventDetail>('open-keys', {
@@ -416,8 +462,12 @@ export class ClusterSummary2Sk extends LitElement {
   }
 
   private traceSelected(e: CustomEvent<PlotShowTooltipEventDetails>) {
-    const commitNumber = this.frame!.dataframe!.header![e.detail.tableRow]?.offset;
-    ClusterSummary2Sk.lookupCids([commitNumber!])
+    const header = this.frame?.dataframe?.header;
+    const commitNumber = header?.[e.detail.tableRow]?.offset;
+    if (commitNumber === undefined) {
+      return;
+    }
+    ClusterSummary2Sk.lookupCids([commitNumber])
       .then((json) => {
         this.commitsDetails = json.commitSlice || [];
       })
@@ -465,7 +515,14 @@ export class ClusterSummary2Sk extends LitElement {
   }
 
   set full_summary(val: FullSummary | null) {
-    if (!val || !val.frame) {
+    if (!val) {
+      return;
+    }
+    if (!val.frame || !val.summary) {
+      errorMessage('Invalid FullSummary object: missing frame or summary.', 0, {
+        countMetricSource: CountMetric.ConfirmedRegressionInvalidPayload,
+        source: 'cluster-summary2',
+      });
       return;
     }
     const oldVal = this.fullSummary;

@@ -13,6 +13,7 @@ import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
+import { CountMetric } from '../telemetry/telemetry';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../elements-sk/modules/spinner-sk';
@@ -283,12 +284,8 @@ export class ClusterPageSk extends ElementSk {
     this._render();
   }
 
-  private async start() {
-    if (this.requestId) {
-      errorMessage('There is a pending query already running.');
-      return;
-    }
-    const body: RegressionDetectionRequest = {
+  private createRegressionDetectionRequest(): RegressionDetectionRequest {
+    return {
       step: 0,
       total_queries: 0,
       alert: {
@@ -319,9 +316,54 @@ export class ClusterPageSk extends ElementSk {
         end: new Date().toISOString(),
       },
     };
+  }
+
+  private processConfirmedRegressionResults(
+    confirmedRegression?: ConfirmedRegression
+  ): FullSummary[] {
+    if (!confirmedRegression) {
+      return [];
+    }
+    if (
+      !confirmedRegression.summary ||
+      !confirmedRegression.summary.Clusters ||
+      !confirmedRegression.frame
+    ) {
+      errorMessage(
+        'Received invalid ConfirmedRegression payload: missing summary, Clusters, or frame.',
+        0,
+        {
+          countMetricSource: CountMetric.ConfirmedRegressionInvalidPayload,
+          source: 'cluster-page',
+        }
+      );
+      return [];
+    }
+    const frame = confirmedRegression.frame;
+    const summaries: FullSummary[] = [];
+    confirmedRegression.summary.Clusters.forEach((clusterSummary) => {
+      if (clusterSummary) {
+        summaries.push({
+          summary: clusterSummary,
+          frame,
+          triage: {
+            status: '',
+            message: '',
+          },
+        });
+      }
+    });
+    return summaries;
+  }
+
+  private async start() {
+    if (this.requestId) {
+      errorMessage('There is a pending query already running.');
+      return;
+    }
+
+    const body = this.createRegressionDetectionRequest();
     this.summaries = [];
-    // Set a value for _requestId so the spinner starts, and we don't start
-    // another request too soon.
     this.requestId = 'pending';
     this.runningStatus = '';
     this._render();
@@ -336,22 +378,12 @@ export class ClusterPageSk extends ElementSk {
         onStart: () => (this.spinner!.active = true),
         onSettled: () => (this.spinner!.active = false),
       });
+
       if (prog.status === 'Error') {
         throw new Error(messagesToErrorString(prog.messages));
       }
 
-      this.summaries = [];
-      const confirmedRegression = prog.results as ConfirmedRegression;
-      confirmedRegression.summary!.Clusters!.forEach((clusterSummary) => {
-        this.summaries.push({
-          summary: clusterSummary!,
-          frame: confirmedRegression.frame!,
-          triage: {
-            status: '',
-            message: '',
-          },
-        });
-      });
+      this.summaries = this.processConfirmedRegressionResults(prog.results as ConfirmedRegression);
     } catch (error: any) {
       this.catch(error);
     } finally {

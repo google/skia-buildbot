@@ -59,6 +59,8 @@ describe('cluster-lastn-page-sk', () => {
         config: ['8888', 'gl'],
       },
     });
+    fetchMock.post('/_/fe_error_log', 200);
+    fetchMock.post('/_/fe_telemetry', 200);
   });
 
   afterEach(() => {
@@ -202,7 +204,10 @@ describe('cluster-lastn-page-sk', () => {
   it('starts triage when triage-status-sk emits event', async () => {
     await setupElement();
     const triageData = { status: 'untriaged' as const, message: '' };
-    const fullSummary: any = { summary: { num: 10 } };
+    const fullSummary: any = {
+      summary: { num: 10 },
+      frame: {},
+    };
 
     (element as any).triageStart(
       new CustomEvent('start-triage', {

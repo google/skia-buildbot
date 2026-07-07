@@ -18,6 +18,7 @@ export enum CountMetric {
   // AnomalyDataRaceTraceNotFound - Anomalies miss on graph due to race condition,
   // trace was not there yet during anomalies assigment.
   AnomalyDataRaceTraceNotFound = 'fe_anomaly_data_race_trace_not_found',
+  ConfirmedRegressionInvalidPayload = 'fe_confirmed_regression_invalid_payload',
   DataFetchFailure = 'fe_data_fetch_failure',
   ExistingBugDialogSkBugIdUsedAsAnomalyKey = 'fe_exisitng_dialog_sk_bug_id_used_as_anomaly_key',
   ExploreMultiV2Visit = 'fe_explore_multi_v2_page_visit_count',

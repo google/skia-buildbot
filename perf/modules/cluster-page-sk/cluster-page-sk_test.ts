@@ -2,6 +2,8 @@ import './index';
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
 import { ClusterPageSk } from './cluster-page-sk';
+import { telemetry } from '../telemetry/telemetry';
+import { CountMetric } from '../telemetry/types';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import {
   CommitNumber,
@@ -63,6 +65,8 @@ describe('cluster-page-sk', () => {
       },
       { overwriteRoutes: true }
     );
+    fetchMock.post('/_/fe_error_log', 200);
+    fetchMock.post('/_/fe_telemetry', 200);
   });
 
   afterEach(() => {
@@ -163,6 +167,68 @@ describe('cluster-page-sk', () => {
 
     const clusters = element.querySelectorAll('cluster-summary2-sk');
     assert.equal(clusters.length, 1);
+  });
+
+  it('reports metric and returns empty summaries when confirmedRegression results payload is missing summary or frame', async () => {
+    await setupElement();
+    const responseNullSummary: ConfirmedRegression = {
+      summary: null,
+      frame: null,
+      prev_commit_number: 99 as CommitNumber,
+      commit_number: 100 as CommitNumber,
+      display_commit_number: 100 as CommitNumber,
+    };
+
+    telemetry._forTesting.reset();
+
+    // Listen for error-sk event
+    let errorSkEventCalled = false;
+    const handleErrorSk = () => {
+      errorSkEventCalled = true;
+    };
+    document.addEventListener('error-sk', handleErrorSk);
+
+    const summaries = (element as any).processConfirmedRegressionResults(responseNullSummary);
+
+    assert.deepEqual(summaries, []);
+    assert.isTrue(errorSkEventCalled, 'Expected error-sk event to be dispatched');
+
+    const metrics = telemetry._forTesting.getBuffer();
+    assert.equal(metrics.length, 1);
+    assert.equal(metrics[0].metric_name, CountMetric.ConfirmedRegressionInvalidPayload);
+
+    document.removeEventListener('error-sk', handleErrorSk);
+  });
+
+  it('handles undefined results (no confirmed regressions found) without error', async () => {
+    await setupElement();
+
+    (element as any).state.offset = 100;
+    (element as any).state.query = 'config=8888';
+    (element as any)._render();
+
+    fetchMock.post('/_/cluster/start', {
+      id: 'request-789',
+      url: '/_/progress/request-789',
+      status: 'Running',
+      messages: [{ key: 'Status', value: 'Running' }],
+    });
+
+    fetchMock.get('/_/progress/request-789', {
+      id: 'request-789',
+      url: '/_/progress/request-789',
+      status: 'Finished',
+      messages: [{ key: 'Status', value: 'Finished' }],
+      // results is omitted / undefined
+    });
+
+    element.querySelector<HTMLButtonElement>('button#start')!.click();
+    const _ = await fetchMock.flush(true);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const __ = await fetchMock.flush(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    assert.include(element.textContent, 'No clusters found.');
   });
 
   it('updates state on input', async () => {
