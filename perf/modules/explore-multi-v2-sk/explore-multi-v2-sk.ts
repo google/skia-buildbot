@@ -1001,6 +1001,8 @@ export class ExploreMultiV2Sk extends LitElement {
       queriesChanged = true;
     }
 
+    const formulasChanged = changedProperties.has('_formulasPerQuery');
+
     const pageOrSizeChanged =
       changedProperties.has('_tracePage') ||
       changedProperties.has('_pageSize') ||
@@ -1029,6 +1031,9 @@ export class ExploreMultiV2Sk extends LitElement {
           }, this._debounceDelay);
         }
       }
+    }
+
+    if (queriesChanged || formulasChanged) {
       void this._updateShortcut();
     }
 
@@ -1119,7 +1124,10 @@ export class ExploreMultiV2Sk extends LitElement {
           }
         }
         if (queries.length > 0) {
-          this._lastQueriesJson = JSON.stringify(queries);
+          this._lastQueriesJson = JSON.stringify({
+            q: queries,
+            f: formulasPerQuery,
+          });
           this._formulasPerQuery = formulasPerQuery;
           this.queries = queries;
         }
@@ -1148,7 +1156,10 @@ export class ExploreMultiV2Sk extends LitElement {
     if ((window as any).perf && (window as any).perf.disable_shortcut_update) {
       return;
     }
-    const currentJson = JSON.stringify(this.queries);
+    const currentJson = JSON.stringify({
+      q: this.queries,
+      f: this._formulasPerQuery,
+    });
     if (currentJson === this._lastQueriesJson) {
       return;
     }

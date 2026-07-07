@@ -1187,6 +1187,36 @@ describe('explore-multi-v2-sk', () => {
     }
   });
 
+  it('updates shortcut when formulas change', async () => {
+    const originalUpdateShortcut = DataService.prototype.updateShortcut;
+    let updateConfigs: any = null;
+    DataService.prototype.updateShortcut = async (configs: any) => {
+      updateConfigs = configs;
+      return 'new-shortcut-id-789';
+    };
+
+    try {
+      element.queries = [{ test: ['Y'] }];
+      // Initialize state to avoid first-run query update triggering updateShortcut
+      element['_lastQueriesJson'] = JSON.stringify({ q: [{ test: ['Y'] }], f: [[]] });
+      await element.updateComplete;
+
+      // Now change formulas
+      element['_formulasPerQuery'] = [['fill']];
+      await element.updateComplete; // Should trigger updated() -> _updateShortcut()
+
+      // Yield thread to allow background _updateShortcut promise to resolve
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(updateConfigs).to.not.be.null;
+      expect(updateConfigs.length).to.equal(1);
+      expect(updateConfigs[0].formulas).to.deep.equal(['fill(filter("test=Y"))']);
+      expect(element['_shortcut']).to.equal('new-shortcut-id-789');
+    } finally {
+      DataService.prototype.updateShortcut = originalUpdateShortcut;
+    }
+  });
+
   it('clears shortcut ID from state and URL when queries are emptied', async () => {
     const originalUpdateShortcut = DataService.prototype.updateShortcut;
     let updateCalled = false;
@@ -1199,7 +1229,7 @@ describe('explore-multi-v2-sk', () => {
       // Start with a valid query and shortcut
       element['queries'] = [{ test: ['Z'] }];
       element['_shortcut'] = 'some-existing-id';
-      element['_lastQueriesJson'] = JSON.stringify([{ test: ['Z'] }]);
+      element['_lastQueriesJson'] = JSON.stringify({ q: [{ test: ['Z'] }], f: [[]] });
 
       // Now clear the query
       element['queries'] = [{}];
