@@ -84,6 +84,40 @@ export interface QueryDiffBaseEventDetail {
   value: string;
 }
 
+export interface FormulaOption {
+  id: string;
+  name: string;
+  desc: string;
+  category: 'prep' | 'agg' | 'trans';
+}
+
+// TODO(b/381280000): Consider generating this list from go/calc/parser.go
+// so that the backend supported functions remain the single source of truth.
+export const FORMULA_OPTIONS: FormulaOption[] = [
+  { id: 'fill', name: 'fill()', desc: 'Fill missing data points', category: 'prep' },
+  { id: 'iqrr', name: 'iqrr()', desc: 'Remove outliers (IQR)', category: 'prep' },
+
+  { id: 'ave', name: 'ave()', desc: 'Average matching traces', category: 'agg' },
+  { id: 'sum', name: 'sum()', desc: 'Sum matching traces', category: 'agg' },
+  { id: 'min', name: 'min()', desc: 'Minimum value across traces', category: 'agg' },
+  { id: 'max', name: 'max()', desc: 'Maximum value across traces', category: 'agg' },
+  { id: 'count', name: 'count()', desc: 'Count non-missing values', category: 'agg' },
+  { id: 'geo', name: 'geo()', desc: 'Geometric mean across traces', category: 'agg' },
+
+  { id: 'norm', name: 'norm()', desc: 'Normalize (mean 0, stddev 1)', category: 'trans' },
+  { id: 'log', name: 'log()', desc: 'Base-10 logarithm', category: 'trans' },
+  { id: 'step', name: 'step()', desc: 'Step detection ratio', category: 'trans' },
+  { id: 'scale_by_ave', name: 'scale_by_ave()', desc: 'Scale by 1/average', category: 'trans' },
+  { id: 'trace_ave', name: 'trace_ave()', desc: 'Trace mean timeline', category: 'trans' },
+  {
+    id: 'trace_stddev',
+    name: 'trace_stddev()',
+    desc: 'Trace standard deviation',
+    category: 'trans',
+  },
+  { id: 'trace_cov', name: 'trace_cov()', desc: 'Coefficient of variation', category: 'trans' },
+];
+
 @customElement('query-bar-sk')
 export class QueryBarSk extends LitElement {
   private static readonly DRAG_THRESHOLD_PX = 5;
@@ -104,7 +138,13 @@ export class QueryBarSk extends LitElement {
 
   @property({ type: Boolean }) showRemoveQueryButton = false;
 
+  @property({ type: String }) formula = 'none';
+
+  @property({ type: Array }) pipeline: string[] = [];
+
   @property({ type: Array }) externalSuggestions: Suggestion[] | null = null;
+
+  @state() private _showFormulaPopover = false;
 
   @property({ type: Boolean }) loading = false;
 
@@ -165,7 +205,7 @@ export class QueryBarSk extends LitElement {
       flex-wrap: wrap;
       align-items: center;
       cursor: text;
-      box-shadow: 0 1px 2px color-mix(in srgb, var(--transparent-overlay) 10%, transparent);
+      box-shadow: none;
       transition: all 0.2s ease;
     }
 
@@ -327,6 +367,165 @@ export class QueryBarSk extends LitElement {
     .qb-remove-query-btn:hover {
       background-color: var(--md-sys-color-surface-container-highest);
     }
+
+    .qb-formula-select {
+      background: var(
+        --surface-variant,
+        var(--surface, var(--md-sys-color-surface-container-high))
+      );
+      border: 1px solid var(--outline, var(--border, var(--md-sys-color-outline-variant)));
+      color: var(--on-surface, var(--on-background, var(--md-sys-color-on-surface)));
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      height: 28px;
+      box-sizing: border-box;
+    }
+
+    .qb-formula-select option {
+      background-color: var(--surface, var(--background, var(--md-sys-color-surface)));
+      color: var(--on-surface, var(--md-sys-color-on-surface));
+    }
+
+    .qb-formula-select:hover,
+    .qb-formula-select:focus {
+      border-color: var(--primary, var(--md-sys-color-primary));
+    }
+
+    .qb-pipeline-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(
+        --md-sys-color-surface-container-low,
+        var(--surface-container-low, var(--background))
+      );
+      border: 1px solid var(--md-sys-color-outline-variant, var(--border));
+      border-radius: 8px;
+      padding: 3px 8px;
+      position: relative;
+    }
+
+    .qb-pipeline-step {
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 2px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: color-mix(in srgb, var(--md-sys-color-primary, var(--primary)) 20%, transparent);
+      color: var(--md-sys-color-primary, var(--primary));
+      border: 1px solid
+        color-mix(in srgb, var(--md-sys-color-primary, var(--primary)) 40%, transparent);
+    }
+
+    .qb-pipeline-arrow {
+      color: var(--md-sys-color-on-surface-variant);
+      font-size: 10px;
+    }
+
+    .qb-pipeline-remove {
+      font-size: 14px;
+      line-height: 1;
+      color: var(--md-sys-color-on-surface-variant);
+      cursor: pointer;
+      margin-left: 2px;
+    }
+
+    .qb-pipeline-remove:hover {
+      color: var(--md-sys-color-error, var(--error));
+    }
+
+    .qb-add-formula-btn {
+      background: color-mix(in srgb, var(--on-surface) 10%, transparent);
+      border: 1px dashed color-mix(in srgb, var(--on-surface) 30%, transparent);
+      color: var(--on-surface);
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 4px;
+      padding: 3px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .qb-add-formula-btn:hover {
+      background: color-mix(in srgb, var(--primary) 20%, transparent);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .qb-formula-popover {
+      position: absolute;
+      right: 0;
+      top: 42px;
+      width: 320px;
+      max-width: calc(100vw - 32px);
+      max-height: 380px;
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid color-mix(in srgb, var(--on-surface) 15%, transparent);
+      border-radius: 8px;
+      box-shadow: none;
+      padding: 14px;
+      z-index: 2000;
+    }
+
+    .qb-formula-popover-header {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin: 10px 0 6px;
+    }
+
+    .qb-formula-popover-header:first-child {
+      margin-top: 0;
+    }
+
+    .qb-formula-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+
+    .qb-formula-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 8px 10px;
+      background: color-mix(in srgb, var(--on-surface) 5%, transparent);
+      border: 1px solid color-mix(in srgb, var(--on-surface) 12%, transparent);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+    }
+
+    .qb-formula-item:hover {
+      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      border-color: var(--primary);
+    }
+
+    .qb-formula-item-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--on-surface);
+      font-family: monospace;
+    }
+
+    .qb-formula-item-desc {
+      font-size: 11px;
+      color: color-mix(in srgb, var(--on-surface) 75%, transparent);
+      margin-top: 2px;
+    }
   `;
 
   connectedCallback() {
@@ -361,6 +560,9 @@ export class QueryBarSk extends LitElement {
     const path = e.composedPath();
     if (this._isOpen && !path.includes(this)) {
       this._isOpen = false;
+    }
+    if (this._showFormulaPopover && !path.includes(this)) {
+      this._showFormulaPopover = false;
     }
   };
 
@@ -1181,7 +1383,27 @@ export class QueryBarSk extends LitElement {
     });
   }
 
+  private _addPipelineStep(funcId: string) {
+    const newPipeline = [...this.pipeline, funcId];
+    this.pipeline = newPipeline;
+    this._showFormulaPopover = false;
+    this._dispatchEvent('pipeline-change', { pipeline: newPipeline });
+  }
+
+  private _removePipelineStep(idx: number) {
+    const newPipeline = this.pipeline.filter((_, i) => i !== idx);
+    this.pipeline = newPipeline;
+    this._dispatchEvent('pipeline-change', { pipeline: newPipeline });
+  }
+
   render() {
+    const activePipeline =
+      this.pipeline.length > 0
+        ? this.pipeline
+        : this.formula && this.formula !== 'none'
+          ? [this.formula]
+          : [];
+
     return html`
       <div
         class="query-bar-container"
@@ -1293,7 +1515,7 @@ export class QueryBarSk extends LitElement {
           </div>
         </div>
 
-        <div class="query-actions">
+        <div class="query-actions" @click=${(e: Event) => e.stopPropagation()}>
           <md-icon-button
             class="qb-clone-query-btn"
             @click=${(e: Event) => {
@@ -1319,6 +1541,69 @@ export class QueryBarSk extends LitElement {
                 </md-icon-button>
               `
             : ''}
+
+          <div class="qb-pipeline-container">
+            ${activePipeline.map(
+              (step, idx) => html`
+                <span class="qb-pipeline-step">
+                  ${step}()
+                  <span
+                    class="qb-pipeline-remove"
+                    title="Remove this step"
+                    @click=${(e: Event) => {
+                      e.stopPropagation();
+                      this._removePipelineStep(idx);
+                    }}
+                    >&times;</span
+                  >
+                </span>
+                ${idx < activePipeline.length - 1
+                  ? html`<span class="qb-pipeline-arrow">&rarr;</span>`
+                  : ''}
+              `
+            )}
+
+            <button
+              class="qb-add-formula-btn"
+              @click=${(e: Event) => {
+                e.stopPropagation();
+                this._showFormulaPopover = !this._showFormulaPopover;
+              }}
+              title="Add formula transformation step">
+              ${activePipeline.length > 0 ? 'Add Step' : 'Formula'}
+            </button>
+
+            ${this._showFormulaPopover
+              ? html`
+                  <div class="qb-formula-popover" @click=${(e: Event) => e.stopPropagation()}>
+                    ${[
+                      { id: 'prep', title: '1. Preprocessing' },
+                      { id: 'agg', title: '2. Aggregation' },
+                      { id: 'trans', title: '3. Transformation' },
+                    ].map(
+                      (cat) => html`
+                        <div class="qb-formula-popover-header">${cat.title}</div>
+                        <div class="qb-formula-grid">
+                          ${FORMULA_OPTIONS.filter((f) => f.category === cat.id).map(
+                            (f) => html`
+                              <button
+                                class="qb-formula-item"
+                                @click=${(e: Event) => {
+                                  e.stopPropagation();
+                                  this._addPipelineStep(f.id);
+                                }}>
+                                <span class="qb-formula-item-name">${f.name}</span>
+                                <span class="qb-formula-item-desc">${f.desc}</span>
+                              </button>
+                            `
+                          )}
+                        </div>
+                      `
+                    )}
+                  </div>
+                `
+              : ''}
+          </div>
         </div>
       </div>
     `;

@@ -637,10 +637,66 @@ func StdDevFuncImpl(rows types.TraceSet) types.Trace {
 	})
 }
 
+type MaxFunc struct{}
+
+func (MaxFunc) Describe() string {
+	return `max() returns the maximum value across all argument traces.`
+}
+
+// MaxFunc implements Func and computes the max of all argument traces into a single trace.
+func (MaxFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("max() takes a single argument")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("max() takes a function argument")
+	}
+	rows, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("max() argument failed to evaluate: %s", err)
+	}
+
+	if len(rows) == 0 {
+		return rows, nil
+	}
+
+	retRow := MaxFuncImpl(types.TraceSet(rows))
+	return types.TraceSet{ctx.formula: retRow}, nil
+}
+
 // MaxFuncImpl puts the max of the values of all argument traces into a single
 // trace.
 func MaxFuncImpl(rows types.TraceSet) types.Trace {
 	return applyFuncToEachColumn(rows, vec32.Max)
+}
+
+var maxFunc = MaxFunc{}
+
+type MinFunc struct{}
+
+func (MinFunc) Describe() string {
+	return `min() returns the minimum value across all argument traces.`
+}
+
+// MinFunc implements Func and computes the min of all argument traces into a single trace.
+func (MinFunc) Eval(ctx *Context, node *Node) (types.TraceSet, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("min() takes a single argument")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("min() takes a function argument")
+	}
+	rows, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("min() argument failed to evaluate: %s", err)
+	}
+
+	if len(rows) == 0 {
+		return rows, nil
+	}
+
+	retRow := MinFuncImpl(types.TraceSet(rows))
+	return types.TraceSet{ctx.formula: retRow}, nil
 }
 
 // MinFuncImpl puts the min of the values of all argument traces into a single
@@ -648,3 +704,5 @@ func MaxFuncImpl(rows types.TraceSet) types.Trace {
 func MinFuncImpl(rows types.TraceSet) types.Trace {
 	return applyFuncToEachColumn(rows, vec32.Min)
 }
+
+var minFunc = MinFunc{}

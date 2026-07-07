@@ -1,7 +1,7 @@
 import { LitElement, css, html, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { DataService, TraceValuesRequest, TraceValuesResponse } from '../data-service';
-import { FrameRequest, Regression } from '../json';
+import { FrameRequest, Regression, AnomalyMap } from '../json';
 import { TraceSeries } from './trace-types';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
@@ -33,6 +33,8 @@ import './help-hub-sk';
 import './interactive-tour-sk';
 import { TourStep } from './interactive-tour-sk';
 import '../window/window';
+
+const MAX_VISIBLE_TRACES = 500;
 
 export const SUBREPO_CONFIG: Record<string, { logUrl: string; repoUrl: string }> = {
   V8: {
@@ -84,6 +86,8 @@ export class ExploreMultiV2Sk extends LitElement {
   @property({ type: Array }) highlightAnomalies: string[] = [];
 
   @state() private _queriesExpanded = false;
+
+  @state() private _formulasPerQuery: string[][] = [[]];
 
   @state() private _shortcut = '';
 
@@ -336,6 +340,7 @@ export class ExploreMultiV2Sk extends LitElement {
           outlier: this._edgeLookahead,
           begin: this.begin,
           end: this.end,
+          formulas: this._formulasPerQuery.map((p) => (p ? p.join(':') : '')).join(','),
         };
 
         // Dynamically preserve all non-managed query parameters from the URL (e.g., from report-page or other elements)
@@ -386,6 +391,11 @@ export class ExploreMultiV2Sk extends LitElement {
           } else if (stateObj.q !== undefined) {
             this.queries = [toParamSet(stateObj.q)];
           }
+        }
+        if (stateObj.formulas !== undefined && typeof stateObj.formulas === 'string') {
+          this._formulasPerQuery = stateObj.formulas
+            .split(',')
+            .map((str: string) => (str && str !== 'none' ? str.split(':') : []));
         }
         if (stateObj.centre !== undefined) this._normalizeCentre = stateObj.centre;
         if (stateObj.scale !== undefined) this._normalizeScale = stateObj.scale;
@@ -714,13 +724,11 @@ export class ExploreMultiV2Sk extends LitElement {
     .workspace {
       background: var(--surface);
       backdrop-filter: blur(12px);
-      border: none;
+      border: 1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
       color: var(--on-surface);
       border-radius: 12px;
       padding: 12px;
-      box-shadow:
-        0 10px 25px -5px color-mix(in srgb, var(--transparent-overlay) 20%, transparent),
-        0 8px 10px -6px color-mix(in srgb, var(--transparent-overlay) 20%, transparent);
+      box-shadow: none;
     }
 
     .section-title {
@@ -1091,15 +1099,28 @@ export class ExploreMultiV2Sk extends LitElement {
       const graphConfigs = await DataService.getInstance().getShortcut(id);
       if (graphConfigs && graphConfigs.length > 0) {
         const queries: Record<string, string[]>[] = [];
+        const formulasPerQuery: string[][] = [];
         for (const config of graphConfigs) {
           if (config.queries && config.queries.length > 0) {
             for (const q of config.queries) {
               queries.push(toParamSet(q));
+              const pipeline: string[] = [];
+              if (config.formulas && config.formulas.length > 0) {
+                const f = config.formulas[0].trim();
+                const regex =
+                  /(ave|avg|sum|min|max|count|ratio|geo|norm|fill|log|step|iqrr|scale_by_ave|scale_by_avg|trace_ave|trace_avg|trace_cov|trace_stddev)\(/g;
+                let match: RegExpExecArray | null;
+                while ((match = regex.exec(f)) !== null) {
+                  pipeline.unshift(this._normalizeFormulaName(match[1]));
+                }
+              }
+              formulasPerQuery.push(pipeline);
             }
           }
         }
         if (queries.length > 0) {
           this._lastQueriesJson = JSON.stringify(queries);
+          this._formulasPerQuery = formulasPerQuery;
           this.queries = queries;
         }
       }
@@ -1107,6 +1128,19 @@ export class ExploreMultiV2Sk extends LitElement {
       console.error('Failed to load shortcut:', e);
     } finally {
       this._loading = false;
+    }
+  }
+
+  private _normalizeFormulaName(name: string): string {
+    switch (name) {
+      case 'avg':
+        return 'ave';
+      case 'trace_avg':
+        return 'trace_ave';
+      case 'scale_by_avg':
+        return 'scale_by_ave';
+      default:
+        return name;
     }
   }
 
@@ -1122,9 +1156,18 @@ export class ExploreMultiV2Sk extends LitElement {
 
     const graphConfigs = this.queries
       .filter((q) => Object.keys(q).length > 0)
-      .map((q) => {
+      .map((q, idx) => {
         const config = new GraphConfig();
-        config.queries = [fromParamSet(q)];
+        const qStr = fromParamSet(q);
+        config.queries = [qStr];
+        const pipeline = this._formulasPerQuery[idx] || [];
+        if (pipeline.length > 0) {
+          let expr = `filter("${qStr}")`;
+          pipeline.forEach((step) => {
+            expr = `${step}(${expr})`;
+          });
+          config.formulas = [expr];
+        }
         return config;
       });
 
@@ -1237,18 +1280,49 @@ export class ExploreMultiV2Sk extends LitElement {
     };
   }
 
+  private _getVisibleTraceIds(): string[] {
+    const startIdx = this._tracePage * this._pageSize;
+    const endIdx = startIdx + this._pageSize;
+    return this._showAllTraces
+      ? this._matchingTraceIds.slice(0, MAX_VISIBLE_TRACES)
+      : this._matchingTraceIds.slice(startIdx, endIdx);
+  }
+
+  private _getRequiredTraceIds(visibleIds: string[]): string[] {
+    const reqTraceIds = visibleIds.filter((id) => {
+      return this.queries.some((q, qIdx) => {
+        return (
+          !this._isQueryFormulaActive(qIdx) && this._traceMatchesQuery(id, q, this.queries.length)
+        );
+      });
+    });
+    return Array.from(new Set(reqTraceIds));
+  }
+
+  private _updateRegressionsFromResponse(anomalymap: AnomalyMap) {
+    if (!anomalymap) return;
+    const nextRegressions = { ...this._regressions };
+    for (const [traceId, commitMap] of Object.entries(anomalymap)) {
+      if (!commitMap) continue;
+      if (!nextRegressions[traceId]) {
+        nextRegressions[traceId] = {};
+      }
+      for (const [commit, anomaly] of Object.entries(commitMap)) {
+        nextRegressions[traceId][Number(commit)] = this._mapAnomalyFields(anomaly);
+      }
+    }
+    this._regressions = nextRegressions;
+  }
+
   private async _fetchData(requestId: number, retryCount = 0): Promise<void> {
     console.log('[_fetchData] called, retryCount:', retryCount, 'requestId:', requestId);
     if (requestId !== this._latestRequestId) {
       console.log('[_fetchData] aborted early: request ID mismatch');
       return;
     }
-    const startIdx = this._tracePage * this._pageSize;
-    const endIdx = startIdx + this._pageSize;
-    const visibleIds = this._showAllTraces
-      ? this._matchingTraceIds.slice(0, 500)
-      : this._matchingTraceIds.slice(startIdx, endIdx);
-    if (visibleIds.length === 0) {
+    const visibleIds = this._getVisibleTraceIds();
+    const activeFormulas = this._getActiveFormulas();
+    if (visibleIds.length === 0 && activeFormulas.length === 0) {
       return;
     }
 
@@ -1264,11 +1338,14 @@ export class ExploreMultiV2Sk extends LitElement {
         quantizedBegin = quantizedNow - duration;
       }
 
-      let reqTraceIds = [...visibleIds];
+      const reqTraceIds = this._getRequiredTraceIds(visibleIds);
 
-      reqTraceIds = Array.from(new Set(reqTraceIds));
-      console.log('[_fetchData] reqTraceIds:', reqTraceIds);
-      if (reqTraceIds.every((id) => loadedIds.has(id))) {
+      console.log('[_fetchData] reqTraceIds:', reqTraceIds, 'activeFormulas:', activeFormulas);
+      if (
+        activeFormulas.length === 0 &&
+        reqTraceIds.length > 0 &&
+        reqTraceIds.every((id) => loadedIds.has(id))
+      ) {
         console.log('Skipping fetch: all requested traces already loaded in memory');
         if (requestId === this._latestRequestId) {
           this._loading = false;
@@ -1280,32 +1357,18 @@ export class ExploreMultiV2Sk extends LitElement {
         begin: quantizedBegin,
         end: quantizedNow,
         trace_ids: reqTraceIds,
+        formulas: activeFormulas.length > 0 ? activeFormulas : null,
         tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
 
       const cacheKey = await hashRequest(req, (window as any).perf?.fetch_anomalies_from_sql);
       const db = new TraceDatabase();
-      const cached = await db.get(cacheKey);
+      // TODO(b/381280000): Investigate if/how we can safely cache responses containing active formulas.
+      const cached = activeFormulas.length === 0 ? await db.get(cacheKey) : null;
       if (requestId !== this._latestRequestId) return;
       if (cached) {
         console.log('Serving from cache:', cacheKey);
-
-        if (cached.anomalymap) {
-          const nextRegressions = { ...this._regressions };
-          for (const [traceId, commitMap] of Object.entries(cached.anomalymap)) {
-            if (!commitMap) continue;
-
-            const primaryKey = traceId;
-
-            if (!nextRegressions[primaryKey]) {
-              nextRegressions[primaryKey] = {};
-            }
-            for (const [commit, anomaly] of Object.entries(commitMap)) {
-              nextRegressions[primaryKey][Number(commit)] = this._mapAnomalyFields(anomaly);
-            }
-          }
-          this._regressions = nextRegressions;
-        }
+        this._updateRegressionsFromResponse(cached.anomalymap);
 
         if (cached.dataframe) {
           const newSeries = this._translateDataFrame(cached.dataframe);
@@ -1327,21 +1390,8 @@ export class ExploreMultiV2Sk extends LitElement {
         return;
       }
 
-      if (response && response.anomalymap) {
-        const nextRegressions = { ...this._regressions };
-        for (const [traceId, commitMap] of Object.entries(response.anomalymap)) {
-          if (!commitMap) continue;
-
-          const primaryKey = traceId;
-
-          if (!nextRegressions[primaryKey]) {
-            nextRegressions[primaryKey] = {};
-          }
-          for (const [commit, anomaly] of Object.entries(commitMap)) {
-            nextRegressions[primaryKey][Number(commit)] = this._mapAnomalyFields(anomaly);
-          }
-        }
-        this._regressions = nextRegressions;
+      if (response) {
+        this._updateRegressionsFromResponse(response.anomalymap);
       }
 
       if (response && response.dataframe) {
@@ -1388,25 +1438,7 @@ export class ExploreMultiV2Sk extends LitElement {
     return { min, max };
   }
 
-  private async _prefetchHistory(requestId: number): Promise<void> {
-    console.log(
-      `[_prefetchHistory] initiating background prefetch from -${this._summaryBeginOffsetSec}s to +${this._summaryEndOffsetSec}s`
-    );
-    if (this._prefetchAbortController) {
-      this._prefetchAbortController.abort();
-    }
-    this._prefetchAbortController = new AbortController();
-    const signal = this._prefetchAbortController.signal;
-
-    const startIdx = this._tracePage * this._pageSize;
-    const endIdx = startIdx + this._pageSize;
-    const visibleIds = this._showAllTraces
-      ? this._matchingTraceIds.slice(0, 500)
-      : this._matchingTraceIds.slice(startIdx, endIdx);
-
-    if (visibleIds.length === 0) return;
-
-    const { end } = this._resolveTimeRange();
+  private _getPrefetchBounds(end: number): { begin: number; end: number } {
     let prefetchBegin = end - this._summaryBeginOffsetSec;
     let prefetchEnd = end + this._summaryEndOffsetSec;
 
@@ -1420,17 +1452,36 @@ export class ExploreMultiV2Sk extends LitElement {
       }
     }
 
-    const quantizedBegin = Math.floor(prefetchBegin / 3600) * 3600;
-    const quantizedEnd = Math.floor(prefetchEnd / 3600) * 3600;
+    return {
+      begin: Math.floor(prefetchBegin / 3600) * 3600,
+      end: Math.floor(prefetchEnd / 3600) * 3600,
+    };
+  }
 
-    let reqTraceIds = [...visibleIds];
+  private async _prefetchHistory(requestId: number): Promise<void> {
+    console.log(
+      `[_prefetchHistory] initiating background prefetch from -${this._summaryBeginOffsetSec}s to +${this._summaryEndOffsetSec}s`
+    );
+    if (this._prefetchAbortController) {
+      this._prefetchAbortController.abort();
+    }
+    this._prefetchAbortController = new AbortController();
+    const signal = this._prefetchAbortController.signal;
 
-    reqTraceIds = Array.from(new Set(reqTraceIds));
+    const visibleIds = this._getVisibleTraceIds();
+    if (visibleIds.length === 0) return;
+
+    const { end } = this._resolveTimeRange();
+    const bounds = this._getPrefetchBounds(end);
+
+    const activeFormulas = this._getActiveFormulas();
+    const reqTraceIds = this._getRequiredTraceIds(visibleIds);
 
     const req: FrameRequest = {
-      begin: quantizedBegin,
-      end: quantizedEnd,
+      begin: bounds.begin,
+      end: bounds.end,
       trace_ids: reqTraceIds,
+      formulas: activeFormulas.length > 0 ? activeFormulas : null,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
 
@@ -1502,19 +1553,14 @@ export class ExploreMultiV2Sk extends LitElement {
     return { start: Number(start), end: Number(end) };
   }
 
-  /**
-   * Calculates the viewport range [minCommit - PADDING, maxCommit + PADDING] covering all
-   * (or highlighted) anomalies in _regressions.
-   */
-  private _getAnomalyViewportRange(): { minCommit: number; maxCommit: number } | null {
-    if (!this._regressions || Object.keys(this._regressions).length === 0) {
-      return null;
+  private _getFilteredRegressions(): { reg: Regression; commit: number }[] {
+    if (!this._regressions) {
+      return [];
     }
 
-    let minCommit = Infinity;
-    let maxCommit = -Infinity;
     const hasHighlightFilter =
       Array.isArray(this.highlightAnomalies) && this.highlightAnomalies.length > 0;
+    const result: { reg: Regression; commit: number }[] = [];
 
     for (const commitMap of Object.values(this._regressions)) {
       if (!commitMap) continue;
@@ -1526,14 +1572,32 @@ export class ExploreMultiV2Sk extends LitElement {
         ) {
           continue;
         }
+        result.push({ reg, commit: Number(commitStr) });
+      }
+    }
+    return result;
+  }
 
-        const bounds = this._getRegressionCommitBounds(reg, Number(commitStr));
-        if (!isNaN(bounds.start) && bounds.start < minCommit) {
-          minCommit = bounds.start;
-        }
-        if (!isNaN(bounds.end) && bounds.end > maxCommit) {
-          maxCommit = bounds.end;
-        }
+  /**
+   * Calculates the viewport range [minCommit - PADDING, maxCommit + PADDING] covering all
+   * (or highlighted) anomalies in _regressions.
+   */
+  private _getAnomalyViewportRange(): { minCommit: number; maxCommit: number } | null {
+    const regs = this._getFilteredRegressions();
+    if (regs.length === 0) {
+      return null;
+    }
+
+    let minCommit = Infinity;
+    let maxCommit = -Infinity;
+
+    for (const { reg, commit } of regs) {
+      const bounds = this._getRegressionCommitBounds(reg, commit);
+      if (!isNaN(bounds.start) && bounds.start < minCommit) {
+        minCommit = bounds.start;
+      }
+      if (!isNaN(bounds.end) && bounds.end > maxCommit) {
+        maxCommit = bounds.end;
       }
     }
 
@@ -1962,8 +2026,8 @@ export class ExploreMultiV2Sk extends LitElement {
     const keys = Object.keys(df.traceset);
     console.log('[_translateDataFrame] keys count:', keys.length);
 
-    // Cap at 500 traces as requested
-    const limitedKeys = keys.slice(0, 500);
+    // Cap at MAX_VISIBLE_TRACES traces as requested
+    const limitedKeys = keys.slice(0, MAX_VISIBLE_TRACES);
 
     limitedKeys.forEach((key) => {
       const traceValues = df.traceset[key];
@@ -1989,24 +2053,28 @@ export class ExploreMultiV2Sk extends LitElement {
       const stat = params['stat'];
       console.log('[_translateDataFrame] key:', key, 'stat:', stat);
 
+      const isFormula = this._isFormulaKey(key);
       const primaryParams = { ...params };
-      let primaryKey = key;
-      try {
-        primaryKey = makeKey(primaryParams);
-      } catch (e) {
-        console.error('[_translateDataFrame] makeKey failed for', primaryParams, e);
+      let primaryKey = key.trim();
+      if (!isFormula) {
+        try {
+          primaryKey = makeKey(primaryParams);
+        } catch (e) {
+          console.error('[_translateDataFrame] makeKey failed for', primaryParams, e);
+        }
       }
 
-      let s = seriesMap.get(primaryKey);
+      const s = seriesMap.get(primaryKey);
       if (!s) {
-        s = {
+        const newSeries: TraceSeries = {
           id: primaryKey,
           color: '', // Will assign color later
           rows: rows,
           allStats: {},
           originalId: key,
-        };
-        seriesMap.set(primaryKey, s);
+          isFormula: isFormula,
+        } as any;
+        seriesMap.set(primaryKey, newSeries);
       }
     });
 
@@ -2023,7 +2091,22 @@ export class ExploreMultiV2Sk extends LitElement {
     return result;
   }
 
+  private _isFormulaKey(key: string): boolean {
+    if (!key) return false;
+    const trimmed = key.trim();
+    return (
+      trimmed.startsWith('formula(') ||
+      trimmed.includes('filter(') ||
+      /^(ave|avg|sum|min|max|count|ratio|geo|norm|fill|log|step|iqrr|scale_by_ave|scale_by_avg|trace_ave|trace_avg|trace_cov|trace_stddev)\(/.test(
+        trimmed
+      )
+    );
+  }
+
   private _parseTraceKey(key: string): Record<string, string> {
+    if (this._isFormulaKey(key)) {
+      return { formula: key.trim() };
+    }
     const params: Record<string, string> = {};
     const parts = key.split(',');
     parts.forEach((part) => {
@@ -2105,12 +2188,21 @@ export class ExploreMultiV2Sk extends LitElement {
     return Array.from(existingMap.values());
   }
 
+  private _shouldKeepSeries(s: TraceSeries): boolean {
+    return !this.queries.some((q, qIdx) => {
+      return (
+        this._isQueryFormulaActive(qIdx) && this._traceMatchesQuery(s.id, q, this.queries.length)
+      );
+    });
+  }
+
   /**
    * Merges new series into state, calculates loaded bounds, and initializes
    * viewport bounds if they are currently unset.
    */
   private _processNewSeries(newSeries: TraceSeries[], updateViewport = true) {
-    this._updateSeriesData(this._mergeSeriesWithStats(this._seriesData, newSeries));
+    const baseSeries = this._seriesData.filter((s) => this._shouldKeepSeries(s));
+    this._updateSeriesData(this._mergeSeriesWithStats(baseSeries, newSeries));
     this._updateLoadedBounds();
     if (updateViewport && (this.viewportMinX === null || this.viewportMaxX === null)) {
       const visibleSeries = this._seriesData.filter((s) => !s.hidden);
@@ -2319,6 +2411,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _onAddQuery() {
     this.queries = [...this.queries, { ...this._defaultParamSelections }];
+    this._formulasPerQuery = [...this._formulasPerQuery, []];
     if (this.queries.length > 3) {
       this._queriesExpanded = true;
     }
@@ -2337,6 +2430,7 @@ export class ExploreMultiV2Sk extends LitElement {
   private _onRemoveQueryBar(idx: number) {
     if (this.queries.length > 1) {
       this.queries = this.queries.filter((_, i) => i !== idx);
+      this._formulasPerQuery = this._formulasPerQuery.filter((_, i) => i !== idx);
       this._suggestionsForQueryBar = this._suggestionsForQueryBar.filter((_, i) => i !== idx);
     }
   }
@@ -2351,6 +2445,10 @@ export class ExploreMultiV2Sk extends LitElement {
     const newQueries = [...this.queries];
     newQueries.splice(idx + 1, 0, clonedQuery);
     this.queries = newQueries;
+
+    const newFormulas = [...this._formulasPerQuery];
+    newFormulas.splice(idx + 1, 0, [...(this._formulasPerQuery[idx] || [])]);
+    this._formulasPerQuery = newFormulas;
 
     const newSuggestions = [...this._suggestionsForQueryBar];
     newSuggestions.splice(idx + 1, 0, []);
@@ -2477,6 +2575,68 @@ export class ExploreMultiV2Sk extends LitElement {
 
   private _handleReorderSplitKeys(e: CustomEvent<{ keys: string[] }>) {
     this.splitKeys = new Set(e.detail.keys);
+  }
+
+  private _traceMatchesQuery(id: string, q: Record<string, string[]>, totalQueries = 1): boolean {
+    // If there is only one query bar, all traces currently displayed must belong
+    // to it. Returning true here allows us to quickly clear all traces when the
+    // query or its pipeline changes, without performing key matching.
+    if (totalQueries === 1) return true;
+    if (!q || Object.keys(q).length === 0) return false;
+    const parts = id.split(',').filter(Boolean);
+    return Object.entries(q).every(([k, vals]) => {
+      if (!vals || vals.length === 0) return true;
+      return vals.some((v) => parts.includes(`${k}=${v}`));
+    });
+  }
+
+  private _isQueryFormulaActive(qIdx: number): boolean {
+    const pipeline = this._formulasPerQuery[qIdx] || [];
+    return pipeline.length > 0;
+  }
+
+  private _getActiveFormulas(): string[] {
+    const formulas: string[] = [];
+    this.queries.forEach((q, idx) => {
+      const pipeline = this._formulasPerQuery[idx] || [];
+      if (pipeline.length > 0 && Object.keys(q).length > 0) {
+        const qStr = fromParamSet(q);
+        if (qStr) {
+          let expr = `filter("${qStr}")`;
+          pipeline.forEach((step) => {
+            expr = `${step}(${expr})`;
+          });
+          formulas.push(expr);
+        }
+      }
+    });
+    return formulas;
+  }
+
+  private _isFormulaMatchingQuery(formulaId: string, q: Record<string, string[]>): boolean {
+    const qStr = fromParamSet(q);
+    if (!qStr) return false;
+    return formulaId.includes(`filter("${qStr}")`) || formulaId.includes(`filter('${qStr}')`);
+  }
+
+  private _handlePipelineChange(idx: number, e: CustomEvent<{ pipeline: string[] }>) {
+    const formulas = [...this._formulasPerQuery];
+    formulas[idx] = e.detail.pipeline;
+    this._formulasPerQuery = formulas;
+    this._seriesData = this._seriesData.filter((s) => {
+      if (this._isFormulaKey(s.id)) {
+        return !this._isFormulaMatchingQuery(s.id, this.queries[idx]);
+      }
+      return !this._traceMatchesQuery(s.id, this.queries[idx], this.queries.length);
+    });
+    this._stateHasChanged();
+    void this._fetchData(this._latestRequestId);
+  }
+
+  private _handleFormulaChange(idx: number, e: CustomEvent<{ formula: string }>) {
+    const formula = e.detail.formula;
+    const pipeline = formula && formula !== 'none' ? [formula] : [];
+    this._handlePipelineChange(idx, new CustomEvent('pipeline-change', { detail: { pipeline } }));
   }
 
   private _handleDiffBase(e: CustomEvent<{ key: string; value: string }>) {
@@ -2661,12 +2821,17 @@ export class ExploreMultiV2Sk extends LitElement {
     const startIdx = clampedPage * this._pageSize;
     const endIdx = startIdx + this._pageSize;
     const currentVisibleIds = this._showAllTraces
-      ? new Set(this._matchingTraceIds.slice(0, 500).map((id) => this._getPrimaryKey(id)))
+      ? new Set(
+          this._matchingTraceIds.slice(0, MAX_VISIBLE_TRACES).map((id) => this._getPrimaryKey(id))
+        )
       : new Set(
           this._matchingTraceIds.slice(startIdx, endIdx).map((id) => this._getPrimaryKey(id))
         );
 
     const currentPageTraces = displaySeries.filter((s) => {
+      if ((s as any).isFormula || this._isFormulaKey(s.id)) {
+        return true;
+      }
       // Note: We cannot simply use `(s as any).originalId || s.id`.
       // For original series, `s.id` is the collapsed primary key (e.g. without `stat=min/max`),
       // while `s.originalId` is the un-collapsed raw database key (containing `stat=`).
@@ -2732,6 +2897,11 @@ export class ExploreMultiV2Sk extends LitElement {
                 .includeParams=${this._includeParams}
                 .defaults=${this._defaults}
                 .showRemoveQueryButton=${this.queries.length > 1}
+                .formula=${(this._formulasPerQuery[idx] &&
+                  this._formulasPerQuery[idx][this._formulasPerQuery[idx].length - 1]) ||
+                'none'}
+                .pipeline=${this._formulasPerQuery[idx] || []}
+                @pipeline-change=${(e: CustomEvent) => this._handlePipelineChange(idx, e)}
                 .externalSuggestions=${this._suggestionsForQueryBar[idx] || null}
                 .loading=${this._isCalculatingCounts}
                 @suggest=${(e: CustomEvent) => this._handleSuggest(idx, e)}
@@ -2741,6 +2911,7 @@ export class ExploreMultiV2Sk extends LitElement {
                 @remove-key=${(e: CustomEvent) => this._handleRemoveKey(idx, e)}
                 @split=${(e: CustomEvent) => this._handleSplit(e)}
                 @diff-base=${(e: CustomEvent) => this._handleDiffBase(e)}
+                @formula-change=${(e: CustomEvent) => this._handleFormulaChange(idx, e)}
                 @clear-query=${() => this._onRemoveQueryBar(idx)}
                 @clone-query=${() => this._onCloneQueryBar(idx)}></query-bar-sk>
             </div>

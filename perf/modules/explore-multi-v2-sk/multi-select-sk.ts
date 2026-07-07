@@ -220,9 +220,7 @@ export class MultiSelectSk extends LitElement {
       background: var(--surface);
       backdrop-filter: blur(12px);
       border-radius: 12px;
-      box-shadow:
-        0 10px 25px -5px var(--transparent-overlay),
-        0 8px 10px -6px var(--transparent-overlay);
+      box-shadow: none;
       z-index: 2000;
       overflow: hidden;
       display: flex;

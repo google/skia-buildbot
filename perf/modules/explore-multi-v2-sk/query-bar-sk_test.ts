@@ -20,6 +20,40 @@ describe('query-bar-sk', () => {
     expect(input.length).to.be.greaterThan(0);
   });
 
+  it('dispatches pipeline-change event when formula step is added', async () => {
+    let detail: any = null;
+    element.addEventListener('pipeline-change', (e: any) => {
+      detail = e.detail;
+    });
+
+    const addBtn = element.shadowRoot!.querySelector('.qb-add-formula-btn') as HTMLButtonElement;
+    expect(addBtn).to.not.be.null;
+    addBtn.click();
+    await element.updateComplete;
+
+    const item = element.shadowRoot!.querySelector('.qb-formula-item') as HTMLButtonElement;
+    expect(item).to.not.be.null;
+    item.click();
+
+    expect(detail).to.deep.equal({ pipeline: ['fill'] });
+  });
+
+  it('renders pipeline arrows between steps but not trailing', async () => {
+    element.pipeline = ['fill', 'ave'];
+    await element.updateComplete;
+
+    const arrows = element.shadowRoot!.querySelectorAll('.qb-pipeline-arrow');
+    expect(arrows.length).to.equal(1); // 2 steps -> 1 arrow between them
+  });
+
+  it('renders no pipeline arrows for single step', async () => {
+    element.pipeline = ['fill'];
+    await element.updateComplete;
+
+    const arrows = element.shadowRoot!.querySelectorAll('.qb-pipeline-arrow');
+    expect(arrows.length).to.equal(0);
+  });
+
   it('uses Material Design variables for suggestions dropdown', async () => {
     (element as any)['_isOpen'] = true;
     (element as any)['_suggestions'] = [

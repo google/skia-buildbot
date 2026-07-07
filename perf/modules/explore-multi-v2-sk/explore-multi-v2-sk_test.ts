@@ -1106,6 +1106,63 @@ describe('explore-multi-v2-sk', () => {
     }
   });
 
+  it('loads formulas from a shortcut ID', async () => {
+    const mockShortcutConfigs = [
+      { queries: ['test=A'], formulas: ['norm(ave(fill(filter("test=A"))))'], keys: '' },
+    ];
+    const originalGetShortcut = DataService.prototype.getShortcut;
+    DataService.prototype.getShortcut = async () => mockShortcutConfigs as any;
+
+    try {
+      await element['_loadShortcut']('mock-shortcut-formula');
+      expect(element['queries'].length).to.equal(1);
+      expect(element['_formulasPerQuery'][0]).to.deep.equal(['fill', 'ave', 'norm']);
+    } finally {
+      DataService.prototype.getShortcut = originalGetShortcut;
+    }
+  });
+
+  it('loads formulas with aliases from a shortcut ID and normalizes them', async () => {
+    const mockShortcutConfigs = [
+      {
+        queries: ['test=A'],
+        formulas: ['scale_by_avg(trace_avg(avg(filter("test=A"))))'],
+        keys: '',
+      },
+    ];
+    const originalGetShortcut = DataService.prototype.getShortcut;
+    DataService.prototype.getShortcut = async () => mockShortcutConfigs as any;
+
+    try {
+      await element['_loadShortcut']('mock-shortcut-formula-alias');
+      expect(element['queries'].length).to.equal(1);
+      expect(element['_formulasPerQuery'][0]).to.deep.equal(['ave', 'trace_ave', 'scale_by_ave']);
+    } finally {
+      DataService.prototype.getShortcut = originalGetShortcut;
+    }
+  });
+
+  it('constructs active formula strings correctly', () => {
+    element['queries'] = [{ test: ['A'] }, { benchmark: ['B'] }];
+    element['_formulasPerQuery'] = [['fill', 'ave', 'norm'], []];
+    const active = element['_getActiveFormulas']();
+    expect(active).to.deep.equal(['norm(ave(fill(filter("test=A"))))']);
+  });
+
+  it('translates dataframes containing backend formula keys correctly', () => {
+    const mockDf = {
+      header: [{ offset: 100, timestamp: 1000 }],
+      traceset: {
+        ' ave(filter("bot=linux32&stat=value")) ': [12.5],
+      },
+    };
+    const series = element['_translateDataFrame'](mockDf);
+    expect(series.length).to.equal(1);
+    expect(series[0].id).to.equal('ave(filter("bot=linux32&stat=value"))');
+    expect((series[0] as any).isFormula).to.be.true;
+    expect(series[0].rows[0].val).to.equal(12.5);
+  });
+
   it('updates the shortcut ID in state and URL when queries change', async () => {
     const originalUpdateShortcut = DataService.prototype.updateShortcut;
     let updateConfigs: any = null;
@@ -1656,6 +1713,116 @@ describe('explore-multi-v2-sk', () => {
       // Expected range: [750 - 100, 800 + 100] = [650, 900]
       expect(element.viewportMinX).to.equal(650);
       expect(element.viewportMaxX).to.equal(900);
+    });
+  });
+
+  it('fetches raw traces for search bar 2 when search bar 1 has an active formula', async () => {
+    let sentRequest: any = null;
+    const mockDataService = {
+      getLinksBatch: async () => ({}),
+      sendFrameRequest: async (req: any) => {
+        sentRequest = req;
+        return {
+          dataframe: {
+            header: [{ offset: 10, timestamp: 1000 }],
+            traceset: {
+              ',bot=linux64,stat=value,': [1.0],
+              'ave(fill(filter("bot=linux32&stat=value")))': [2.0],
+            },
+          },
+        };
+      },
+    };
+    const oldInstance = (DataService as any).instance;
+    (DataService as any).instance = mockDataService;
+
+    try {
+      element.queries = [
+        { bot: ['linux32'], stat: ['value'] },
+        { bot: ['linux64'], stat: ['value'] },
+      ];
+      element['_formulasPerQuery'] = [['fill', 'ave'], []];
+      element['_matchingTraceIds'] = [',bot=linux32,stat=value,', ',bot=linux64,stat=value,'];
+      element['_tracePage'] = 0;
+      element['_pageSize'] = 10;
+
+      await element.updateComplete;
+      await element['_fetchData'](element['_latestRequestId']);
+
+      expect(sentRequest).to.not.be.null;
+      expect(sentRequest.formulas).to.deep.equal(['ave(fill(filter("bot=linux32&stat=value")))']);
+      expect(sentRequest.trace_ids).to.deep.equal([',bot=linux64,stat=value,']);
+      expect(element['_seriesData'].length).to.equal(2);
+    } finally {
+      (DataService as any).instance = oldInstance;
+    }
+  });
+
+  it('removes formula traces matching the query when pipeline changes', async () => {
+    const mockDataService = {
+      sendFrameRequest: async () => ({ dataframe: { traceset: {} } }),
+    };
+    const oldInstance = (DataService as any).instance;
+    (DataService as any).instance = mockDataService;
+
+    try {
+      element.queries = [{ arch: ['x86'] }];
+      element['_formulasPerQuery'] = [['fill']];
+
+      const formulaTrace: any = {
+        id: 'fill(filter("arch=x86"))',
+        color: '',
+        rows: [],
+      };
+      const normalTrace: any = {
+        id: ',arch=x86,device=moto,',
+        color: '',
+        rows: [],
+      };
+      element['_seriesData'] = [formulaTrace, normalTrace];
+
+      element['_handlePipelineChange'](
+        0,
+        new CustomEvent('pipeline-change', { detail: { pipeline: [] } })
+      );
+
+      expect(element['_seriesData'].length).to.equal(0);
+    } finally {
+      (DataService as any).instance = oldInstance;
+    }
+  });
+
+  describe('_traceMatchesQuery', () => {
+    it('returns true if totalQueries is 1', () => {
+      expect(element['_traceMatchesQuery'](',arch=x86,', { arch: ['x86'] }, 1)).to.be.true;
+    });
+
+    it('returns false if query is empty and totalQueries > 1', () => {
+      expect(element['_traceMatchesQuery'](',arch=x86,', {}, 2)).to.be.false;
+    });
+
+    it('returns true if trace matches query key-value exactly', () => {
+      const q = { arch: ['x86'] };
+      expect(element['_traceMatchesQuery'](',arch=x86,device=moto,', q, 2)).to.be.true;
+    });
+
+    it('returns false if trace ID has partial value match but not exact key-value match', () => {
+      const q = { arch: ['x86'] };
+      // arch=x86_64 contains 'x86' but should NOT match query arch=x86
+      expect(element['_traceMatchesQuery'](',arch=x86_64,device=moto,', q, 2)).to.be.false;
+    });
+
+    it('returns true if any option in query match trace ID', () => {
+      const q = { arch: ['x64', 'x86'] };
+      expect(element['_traceMatchesQuery'](',arch=x86,device=moto,', q, 2)).to.be.true;
+      expect(element['_traceMatchesQuery'](',arch=x64,device=moto,', q, 2)).to.be.true;
+      expect(element['_traceMatchesQuery'](',arch=arm,device=moto,', q, 2)).to.be.false;
+    });
+
+    it('requires all keys in query to match', () => {
+      const q = { arch: ['x86'], device: ['moto'] };
+      expect(element['_traceMatchesQuery'](',arch=x86,device=moto,', q, 2)).to.be.true;
+      expect(element['_traceMatchesQuery'](',arch=x86,device=pixel,', q, 2)).to.be.false;
     });
   });
 });

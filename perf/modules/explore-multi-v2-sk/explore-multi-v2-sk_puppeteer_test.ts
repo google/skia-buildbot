@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { loadCachedTestBed, TestBed } from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { poll } from '../common/puppeteer-test-util';
 import { ExploreMultiV2SkPO } from './explore-multi-v2-sk_po';
 import { ElementHandle } from 'puppeteer';
@@ -310,6 +310,132 @@ describe('explore-multi-v2-sk', () => {
 
     expect(query).to.deep.equal({ test: ['A'], stat: ['value'] });
   });
+
+  it('should update state when formula pipeline step is added', async () => {
+    const page = testBed.page;
+
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      const addBtn = queryBar?.shadowRoot?.querySelector(
+        '.qb-add-formula-btn'
+      ) as HTMLButtonElement;
+      if (addBtn) {
+        addBtn.click();
+      }
+    });
+
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      return queryBar?.shadowRoot?.querySelector('.qb-formula-item') !== null;
+    });
+
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      const item = queryBar?.shadowRoot?.querySelector('.qb-formula-item') as HTMLButtonElement;
+      if (item) {
+        item.click();
+      }
+    });
+
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      return (
+        explore &&
+        explore._formulasPerQuery &&
+        explore._formulasPerQuery[0] &&
+        explore._formulasPerQuery[0].includes('fill')
+      );
+    });
+
+    const formulaState = await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      return explore._formulasPerQuery[0];
+    });
+
+    expect(formulaState).to.deep.equal(['fill']);
+  });
+
+  it('should take screenshots of formula popover and formula pipeline steps', async () => {
+    const page = testBed.page;
+
+    // 1. Open formula popover
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      const addBtn = queryBar?.shadowRoot?.querySelector(
+        '.qb-add-formula-btn'
+      ) as HTMLButtonElement;
+      if (addBtn) addBtn.click();
+    });
+
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      return queryBar?.shadowRoot?.querySelector('.qb-formula-popover') !== null;
+    });
+
+    await takeScreenshot(testBed.page, 'perf', 'explore-multi-v2-sk_formula_popover');
+
+    // 2. Click formula item to add fill() step 1
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      const items = queryBar?.shadowRoot?.querySelectorAll(
+        '.qb-formula-item'
+      ) as NodeListOf<HTMLButtonElement>;
+      items[0]?.click(); // fill()
+    });
+
+    // 3. Open popover again and click ave() to add step 2
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      const addBtn = queryBar?.shadowRoot?.querySelector(
+        '.qb-add-formula-btn'
+      ) as HTMLButtonElement;
+      if (addBtn) addBtn.click();
+    });
+
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      return queryBar?.shadowRoot?.querySelector('.qb-formula-popover') !== null;
+    });
+
+    await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      const queryBar = explore?.shadowRoot?.querySelector('query-bar-sk') as any;
+      const items = Array.from(
+        queryBar?.shadowRoot?.querySelectorAll('.qb-formula-item') || []
+      ) as HTMLButtonElement[];
+      const aveBtn = items.find((btn) => btn.textContent?.includes('ave'));
+      if (aveBtn) aveBtn.click();
+    });
+
+    // Verify chained formula pipeline in state
+    await page.waitForFunction(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      return (
+        explore &&
+        explore._formulasPerQuery &&
+        explore._formulasPerQuery[0] &&
+        explore._formulasPerQuery[0].length === 2
+      );
+    });
+
+    const pipelineState = await page.evaluate(() => {
+      const explore = document.querySelector('explore-multi-v2-sk') as any;
+      return explore._formulasPerQuery[0];
+    });
+
+    expect(pipelineState).to.deep.equal(['fill', 'ave']);
+
+    await takeScreenshot(testBed.page, 'perf', 'explore-multi-v2-sk_formula_pipeline');
+  });
+
   it('should update URL with default begin and end on load if not present', async () => {
     const page = testBed.page;
 

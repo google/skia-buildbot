@@ -95,6 +95,8 @@ func NewContext(rowsFromQuery RowsFromQuery, rowsFromShortcut RowsFromShortcut) 
 			"fill":         fillFunc,
 			"ave":          aveFunc,
 			"avg":          aveFunc,
+			"min":          minFunc,
+			"max":          maxFunc,
 			"count":        countFunc,
 			"ratio":        ratioFunc,
 			"sum":          sumFunc,
