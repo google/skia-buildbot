@@ -64,12 +64,13 @@ func InstanceConfigFromFile(filename string) (*config.InstanceConfig, []string, 
 
 // Validate the config.
 func Validate(i config.InstanceConfig) error {
+	// TODO(b/532004967) unify IssueNotify and MarkdownIssueTracker fields below.
 	if i.NotifyConfig.Notifications == notifytypes.MarkdownIssueTracker {
-		if i.NotifyConfig.IssueTrackerAPIKeySecretProject == "" {
-			return skerr.Fmt("issue_tracker_api_key_secret_project must be supplied when `notifications` is set to %q", i.NotifyConfig.Notifications)
+		if i.IssueTrackerConfig.IssueTrackerAPIKeySecretProject == "" {
+			return skerr.Fmt("IssueTrackerConfig.issue_tracker_api_key_secret_project must be supplied when `notifications` is set to %q", i.NotifyConfig.Notifications)
 		}
-		if i.NotifyConfig.IssueTrackerAPIKeySecretName == "" {
-			return skerr.Fmt("issue_tracker_api_key_secret_name must be supplied when `notifications` is set to %q", i.NotifyConfig.Notifications)
+		if i.IssueTrackerConfig.IssueTrackerAPIKeySecretName == "" {
+			return skerr.Fmt("IssueTrackerConfig.issue_tracker_api_key_secret_name must be supplied when `notifications` is set to %q", i.NotifyConfig.Notifications)
 		}
 	}
 

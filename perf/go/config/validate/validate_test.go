@@ -66,6 +66,7 @@ func TestInstanceConfigValidate_MarkdownIssueTrackerButAPIKeySecretProjectNotSet
 		NotifyConfig: config.NotifyConfig{
 			Notifications: notifytypes.MarkdownIssueTracker,
 		},
+		IssueTrackerConfig: config.IssueTrackerConfig{},
 	}
 	require.Contains(t, Validate(i).Error(), "issue_tracker_api_key_secret_project must be supplied")
 }
@@ -73,7 +74,9 @@ func TestInstanceConfigValidate_MarkdownIssueTrackerButAPIKeySecretProjectNotSet
 func TestInstanceConfigValidate_MarkdownIssueTrackerButAPIKeySecretNameNotSet_ReturnsError(t *testing.T) {
 	i := config.InstanceConfig{
 		NotifyConfig: config.NotifyConfig{
-			Notifications:                   notifytypes.MarkdownIssueTracker,
+			Notifications: notifytypes.MarkdownIssueTracker,
+		},
+		IssueTrackerConfig: config.IssueTrackerConfig{
 			IssueTrackerAPIKeySecretProject: "skia-public",
 		},
 	}
