@@ -74,12 +74,15 @@ async function fetchAndCacheAssets(
 
   const wasmModule = wasmInstantiated.module;
 
-  postStatus('Saving assets to local cache...');
-  await Promise.all([
+  // Save assets to local IndexedDB cache asynchronously in the background so it doesn't block
+  // worker initialization, WASM loading, or UI rendering on the critical path.
+  void Promise.all([
     db.set(`static:params:${version}`, params),
     db.set(`static:wasm:${version}`, wasmBytes),
     db.set(`static:traces:${version}`, tracesBuffer),
-  ]);
+  ]).catch((err) => {
+    console.warn('Background caching to IndexedDB failed:', err);
+  });
 
   return { params, wasmModule, tracesBuffer };
 }
@@ -106,8 +109,9 @@ function processInitialParams(meta: Meta, params: Param[]): ProcessedParams {
     }
   }
 
+  // Fast string comparison instead of expensive localeCompare
   Object.keys(groupedParams).forEach((k) =>
-    groupedParams[k].sort((a, b) => a.value.localeCompare(b.value))
+    groupedParams[k].sort((a, b) => (a.value < b.value ? -1 : a.value > b.value ? 1 : 0))
   );
 
   return { flatParams, groupedParams };
@@ -543,7 +547,8 @@ async function handleSuggest(
   currentQuery: Query,
   requestId: number,
   idx: number,
-  availableParams?: Param[]
+  availableParams?: Param[],
+  includeParams?: string[]
 ) {
   try {
     if (requestId !== latestSuggestRequestId) return;
@@ -558,7 +563,8 @@ async function handleSuggest(
       availableParams || null,
       loadedData?.traceData ?? null,
       () => requestId !== latestSuggestRequestId,
-      loadedData?.wasmFilter ?? null
+      loadedData?.wasmFilter ?? null,
+      includeParams || null
     );
 
     if (suggestions && requestId === latestSuggestRequestId) {
@@ -698,7 +704,8 @@ self.onmessage = (e: MessageEvent) => {
       e.data.currentQuery,
       e.data.requestId,
       e.data.idx,
-      e.data.availableParams
+      e.data.availableParams,
+      e.data.includeParams
     );
   }
 };

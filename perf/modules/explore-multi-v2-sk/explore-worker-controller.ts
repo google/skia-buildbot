@@ -124,7 +124,13 @@ export class ExploreWorkerController {
     return finalRequestId;
   }
 
-  public suggest(query: string, currentQuery: any, idx: number, availableParams?: any[]): number {
+  public suggest(
+    query: string,
+    currentQuery: any,
+    idx: number,
+    availableParams?: any[],
+    includeParams?: string[]
+  ): number {
     if (!this.worker || !this.ready) {
       console.warn('WorkerController: Worker not ready for suggestions');
       return 0;
@@ -137,6 +143,7 @@ export class ExploreWorkerController {
       requestId: this.workerRequestId,
       idx: idx,
       availableParams: availableParams,
+      includeParams: includeParams,
     });
     return this.workerRequestId;
   }

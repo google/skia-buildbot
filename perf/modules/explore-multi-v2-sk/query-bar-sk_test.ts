@@ -494,6 +494,32 @@ describe('query-bar-sk', () => {
       expect(addedQueries).to.have.lengthOf(2);
       expect(addedQueries[0]).to.deep.equal({ key: 'os', value: 'Android' });
       expect(addedQueries[1]).to.deep.equal({ key: 'device', value: 'Pixel6' });
+      expect(pasteEvent.defaultPrevented).to.be.true;
+    });
+
+    it('does not intercept paste if pasted text does not contain "="', async () => {
+      const addedQueries: { key: string; value: string }[] = [];
+      element.addEventListener('add-query', (e: any) => {
+        addedQueries.push({ key: e.detail.key, value: e.detail.value });
+      });
+
+      const pasteData = 'ComposeBenchmark';
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData('text', pasteData);
+
+      const pasteEvent = new ClipboardEvent('paste', {
+        bubbles: true,
+        cancelable: true,
+        clipboardData: dataTransfer,
+      });
+
+      const input = element.shadowRoot!.querySelector('.query-input') as HTMLElement;
+      input.dispatchEvent(pasteEvent);
+
+      await element.updateComplete;
+
+      expect(addedQueries).to.have.lengthOf(0);
+      expect(pasteEvent.defaultPrevented).to.be.false;
     });
 
     it('deletes selected pills on Backspace', async () => {

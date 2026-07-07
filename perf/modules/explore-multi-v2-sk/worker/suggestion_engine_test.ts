@@ -198,4 +198,86 @@ describe('suggestion_engine memory-lookup path', () => {
     expect(suggestions!.length).to.equal(1);
     expect(suggestions![0].params[0]).to.deep.equal({ id: 2, key: 'os', value: 'linux_official' });
   });
+
+  it('should rank Android fully qualified class names correctly for Compose search (b/531657261)', async () => {
+    const androidParams: Param[] = [
+      { id: 1, key: 'stat', value: 'value' },
+      { id: 2, key: 'unit', value: 'ms' },
+      { id: 3, key: 'test_class', value: 'androidx.compose.runtime.ComposeBenchmark' },
+      {
+        id: 4,
+        key: 'test_class',
+        value: 'androidx.compose.foundation.benchmark.LazyListScrollingBenchmark',
+      },
+    ];
+
+    const suggestions = await computeSuggestions(
+      'Compose',
+      {},
+      androidParams,
+      null,
+      null,
+      dummyShouldAbort
+    );
+
+    expect(suggestions).to.not.be.null;
+    expect(suggestions!.length).to.be.greaterThan(0);
+    const topVal = suggestions![0].params[0].value;
+    expect(topVal).to.equal('androidx.compose.runtime.ComposeBenchmark');
+  });
+
+  it('should suggest exact class name for test_class=ComposeBenchmark (b/531657261)', async () => {
+    const androidParams: Param[] = [
+      { id: 1, key: 'test_class', value: 'androidx.compose.runtime.ComposeBenchmark' },
+      { id: 2, key: 'test_class', value: 'androidx.compose.foundation.CanvasTest' },
+    ];
+
+    const suggestions = await computeSuggestions(
+      'test_class=ComposeBenchmark',
+      {},
+      androidParams,
+      null,
+      null,
+      dummyShouldAbort
+    );
+
+    expect(suggestions).to.not.be.null;
+    expect(suggestions!.length).to.be.greaterThan(0);
+    expect(suggestions![0].params[0].value).to.equal('androidx.compose.runtime.ComposeBenchmark');
+  });
+
+  it('should rank suggestions based on includeParams priority', async () => {
+    const params: Param[] = [
+      { id: 1, key: 'arch', value: 'arm64' },
+      { id: 2, key: 'os', value: 'android' },
+    ];
+    // Query 'a' matches both 'arm64' (arch) and 'android' (os).
+    // With includeParams = ['os', 'arch'], 'os' (android) should rank higher.
+    const suggestions1 = await computeSuggestions(
+      'a',
+      {},
+      params,
+      null,
+      null,
+      dummyShouldAbort,
+      null,
+      ['os', 'arch']
+    );
+    expect(suggestions1).to.not.be.null;
+    expect(suggestions1![0].params[0].key).to.equal('os');
+
+    // With includeParams = ['arch', 'os'], 'arch' (arm64) should rank higher.
+    const suggestions2 = await computeSuggestions(
+      'a',
+      {},
+      params,
+      null,
+      null,
+      dummyShouldAbort,
+      null,
+      ['arch', 'os']
+    );
+    expect(suggestions2).to.not.be.null;
+    expect(suggestions2![0].params[0].key).to.equal('arch');
+  });
 });

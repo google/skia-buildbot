@@ -1,7 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state, query } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { scoreParamAny, fuzzyScore } from './fuzzy';
+import { scoreParamAny, fuzzyScore, MAX_SUGGESTIONS } from './fuzzy';
 import './multi-select-sk';
 
 import '@material/web/textfield/outlined-text-field';
@@ -269,7 +269,7 @@ export class QueryBarSk extends LitElement {
       top: 100%;
       left: 0;
       min-width: 350px;
-      max-height: 300px;
+      max-height: 450px;
       overflow-y: auto;
       background: var(--md-sys-color-surface);
       border: 1px solid var(--md-sys-color-outline-variant);
@@ -717,7 +717,7 @@ export class QueryBarSk extends LitElement {
       const matches = scored.filter((s) => s.score > -Infinity);
       matches.sort((a, b) => b.score - a.score);
 
-      this._suggestions = matches.slice(0, 50).map((s) => ({
+      this._suggestions = matches.slice(0, MAX_SUGGESTIONS).map((s) => ({
         params: [s.p],
         score: s.score,
         count: s.p.count,
@@ -795,7 +795,7 @@ export class QueryBarSk extends LitElement {
         }
 
         globSuggestions.sort((a, b) => b.score - a.score);
-        this._suggestions = globSuggestions.slice(0, 50);
+        this._suggestions = globSuggestions.slice(0, MAX_SUGGESTIONS);
         return;
       } catch (_e) {
         this._suggestions = [];
@@ -817,7 +817,7 @@ export class QueryBarSk extends LitElement {
     this._boostPriorityScores(matches);
     matches.sort((a, b) => b.score - a.score);
 
-    this._suggestions = matches.slice(0, 50).map((s) => ({
+    this._suggestions = matches.slice(0, MAX_SUGGESTIONS).map((s) => ({
       params: [s.p],
       score: s.score,
       count: s.p.count,
@@ -1023,13 +1023,15 @@ export class QueryBarSk extends LitElement {
   }
 
   private _handlePasteEvent(e: ClipboardEvent) {
-    if (
-      this._inputValue === '' ||
-      (this._selectionAnchor !== null && this._selectionFocus !== null)
-    ) {
-      e.preventDefault();
-      const text = e.clipboardData?.getData('text') || '';
-      this._handlePaste(text);
+    const text = e.clipboardData?.getData('text') || '';
+    if (text.includes('=')) {
+      if (
+        this._inputValue === '' ||
+        (this._selectionAnchor !== null && this._selectionFocus !== null)
+      ) {
+        e.preventDefault();
+        this._handlePaste(text);
+      }
     }
   }
 

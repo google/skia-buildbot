@@ -1,25 +1,39 @@
-export function fuzzyScore(text: string, query: string): number {
-  if (!query) return 0;
-  if (!text) return -Infinity;
+export const MAX_SUGGESTIONS = 100;
+export const EXACT_MATCH_SCORE = 100000;
 
-  const lowerText = text.toLowerCase();
-  const lowerQuery = query.toLowerCase();
+const PRIORITY_BOOST_MULTIPLIER = 10;
 
-  if (lowerQuery === lowerText) return 100000; // Exact match
+export const MAX_CACHE_SIZE = 1000;
+export const globRegexCache = new Map<string, RegExp[]>();
 
-  let score = 0;
-  let textIdx = 0;
-  let prevMatchIdx = -1;
-  let consecutive = 0;
+const LAST_SEGMENT_BOOST = 100;
 
-  for (let i = 0; i < lowerQuery.length; i++) {
+function getStartBoundaryBonus(text: string, lowerText: string, startIdx: number): number {
+  if (startIdx === 0) return 50;
+  if (/[^a-z0-9]/.test(lowerText[startIdx - 1])) return 30;
+  if (/[A-Z]/.test(text[startIdx])) return 25;
+  return 0;
+}
+
+function scoreFromStartPos(
+  text: string,
+  lowerText: string,
+  lowerQuery: string,
+  startIdx: number
+): number {
+  let score = getStartBoundaryBonus(text, lowerText, startIdx);
+
+  // The first character matched at startIdx.
+  // Initialize state for the match of the first character.
+  let textIdx = startIdx + 1;
+  let prevMatchIdx = startIdx;
+  let consecutive = 1; // We have matched 1 character consecutively so far.
+
+  for (let i = 1; i < lowerQuery.length; i++) {
     const char = lowerQuery[i];
-    // Find char in text starting from textIdx
     const matchIdx = lowerText.indexOf(char, textIdx);
+    if (matchIdx === -1) return -Infinity;
 
-    if (matchIdx === -1) return -Infinity; // Not found
-
-    // Scoring
     if (matchIdx === prevMatchIdx + 1) {
       consecutive++;
       score += 10 * consecutive; // Consecutive bonus
@@ -28,11 +42,11 @@ export function fuzzyScore(text: string, query: string): number {
       score -= matchIdx - prevMatchIdx; // Distance penalty
     }
 
-    // Start of word bonus
-    if (matchIdx === 0) {
-      score += 50; // Strong bonus for start of string
-    } else if (/[^a-z0-9]/.test(lowerText[matchIdx - 1])) {
-      score += 20; // Standard bonus for start of word boundary
+    // Word boundary bonus during matching
+    if (matchIdx > 0 && /[^a-z0-9]/.test(lowerText[matchIdx - 1])) {
+      score += 15; // Standard bonus for start of word boundary
+    } else if (matchIdx > 0 && /[A-Z]/.test(text[matchIdx])) {
+      score += 10; // Bonus for CamelCase capital
     }
 
     textIdx = matchIdx + 1;
@@ -40,68 +54,150 @@ export function fuzzyScore(text: string, query: string): number {
   }
 
   // Tie-breaker: prefer shorter matches (closer to exact match)
-  score -= (lowerText.length - lowerQuery.length) * 0.001;
-
-  return score;
+  return score - (lowerText.length - lowerQuery.length) * 0.001;
 }
 
-export function scoreParam(p: { key: string; value: string }, token: string): number {
-  const eqIdx = token.indexOf('=');
-  if (eqIdx === -1) {
-    // Value only
-    return fuzzyScore(p.value, token);
-  } else {
-    // Key=Value
-    const kPart = token.substring(0, eqIdx);
-    const vPart = token.substring(eqIdx + 1);
+function fuzzyScoreSingle(text: string, query: string): number {
+  if (!query) return 0;
+  if (!text) return -Infinity;
 
-    let total = 0;
+  const lowerQuery = query.toLowerCase();
+  const lowerText = text.toLowerCase();
 
-    if (kPart.length > 0) {
-      const s = fuzzyScore(p.key, kPart);
-      if (s === -Infinity) return -Infinity;
-      total += s;
+  if (lowerQuery === lowerText) return EXACT_MATCH_SCORE;
+
+  const firstChar = lowerQuery[0];
+  let pos = lowerText.indexOf(firstChar);
+  if (pos === -1) return -Infinity;
+
+  let bestScore = -Infinity;
+
+  while (pos !== -1) {
+    const score = scoreFromStartPos(text, lowerText, lowerQuery, pos);
+    if (score > bestScore) {
+      bestScore = score;
     }
+    pos = lowerText.indexOf(firstChar, pos + 1);
+  }
 
-    if (vPart.length > 0) {
-      const hasGlobChar = vPart.includes('*') || vPart.includes('?') || vPart.includes(',');
-      if (hasGlobChar) {
-        try {
-          const parts = vPart
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean);
-          const regexes = parts.map((part) => {
-            const escaped = part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const pattern = '^' + escaped.replace(/\\\*/g, '.*').replace(/\\\?/g, '.') + '$';
-            return new RegExp(pattern, 'i');
-          });
+  return bestScore;
+}
 
-          const matchesRegex = regexes.some((r) => r.test(p.value));
-          if (!matchesRegex) return -Infinity;
+export function fuzzyScore(text: string, query: string): number {
+  if (!query) return 0;
+  if (!text) return -Infinity;
 
-          total += 1000; // Bonus for explicit glob match
-        } catch (_e) {
-          return -Infinity;
+  const fullScore = fuzzyScoreSingle(text, query);
+
+  const lastDotIdx = text.lastIndexOf('.');
+  if (lastDotIdx !== -1 && lastDotIdx < text.length - 1) {
+    const lastSegment = text.substring(lastDotIdx + 1);
+    const segmentScore = fuzzyScoreSingle(lastSegment, query);
+    if (segmentScore > -Infinity) {
+      return Math.max(fullScore, segmentScore + LAST_SEGMENT_BOOST);
+    }
+  }
+
+  return fullScore;
+}
+
+function scoreGlobValue(value: string, vPart: string): number {
+  try {
+    let regexes = globRegexCache.get(vPart);
+    if (!regexes) {
+      const parts = vPart
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      regexes = parts.map((part) => {
+        const escaped = part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const pattern = '^' + escaped.replace(/\\\*/g, '.*').replace(/\\\?/g, '.') + '$';
+        return new RegExp(pattern, 'i');
+      });
+
+      if (globRegexCache.size >= MAX_CACHE_SIZE) {
+        const oldestKey = globRegexCache.keys().next().value;
+        if (oldestKey !== undefined) {
+          globRegexCache.delete(oldestKey);
         }
-      } else {
-        const s = fuzzyScore(p.value, vPart);
-        if (s === -Infinity) return -Infinity;
-        total += s;
       }
+      globRegexCache.set(vPart, regexes);
+    } else {
+      // Move to end to mark as recently used (LRU)
+      globRegexCache.delete(vPart);
+      globRegexCache.set(vPart, regexes);
     }
 
-    return total;
+    const matchesRegex = regexes.some((r) => r.test(value));
+    return matchesRegex ? 1000 : -Infinity;
+  } catch (_e) {
+    return -Infinity;
   }
 }
 
-export function scoreParamAny(p: { key: string; value: string }, token: string): number {
+function scoreKeyValueToken(
+  p: { key: string; value: string },
+  kPart: string,
+  vPart: string
+): number {
+  let total = 0;
+  if (kPart.length > 0) {
+    const s = fuzzyScore(p.key, kPart);
+    if (s === -Infinity) return -Infinity;
+    total += s;
+  }
+
+  if (vPart.length > 0) {
+    const hasGlobChar = vPart.includes('*') || vPart.includes('?') || vPart.includes(',');
+    const s = hasGlobChar ? scoreGlobValue(p.value, vPart) : fuzzyScore(p.value, vPart);
+    if (s === -Infinity) return -Infinity;
+    total += s;
+  }
+
+  return total;
+}
+
+function getParamBoost(key: string, includeParams?: string[] | null): number {
+  if (includeParams && includeParams.length > 0) {
+    const idx = includeParams.indexOf(key);
+    if (idx !== -1) {
+      // Higher priority (earlier in list) gets higher boost.
+      return (includeParams.length - idx) * PRIORITY_BOOST_MULTIPLIER;
+    }
+  }
+  return 0;
+}
+
+export function scoreParam(
+  p: { key: string; value: string },
+  token: string,
+  includeParams?: string[] | null
+): number {
   const eqIdx = token.indexOf('=');
   if (eqIdx === -1) {
-    // Search BOTH Key and Value, return best match
-    return Math.max(fuzzyScore(p.key, token), fuzzyScore(p.value, token));
-  } else {
-    // Fallback to strict if = is explicit
-    return scoreParam(p, token);
+    let score = fuzzyScore(p.value, token);
+    if (score > -Infinity) {
+      score += getParamBoost(p.key, includeParams);
+    }
+    return score;
   }
+
+  return scoreKeyValueToken(p, token.substring(0, eqIdx), token.substring(eqIdx + 1));
+}
+
+export function scoreParamAny(
+  p: { key: string; value: string },
+  token: string,
+  includeParams?: string[] | null
+): number {
+  const eqIdx = token.indexOf('=');
+  if (eqIdx === -1) {
+    let valScore = fuzzyScore(p.value, token);
+    if (valScore > -Infinity) {
+      valScore += getParamBoost(p.key, includeParams);
+    }
+    const keyScore = fuzzyScore(p.key, token);
+    return Math.max(keyScore, valScore);
+  }
+  return scoreParam(p, token, includeParams);
 }

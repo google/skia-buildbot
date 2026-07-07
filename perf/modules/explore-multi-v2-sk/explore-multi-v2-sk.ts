@@ -1407,7 +1407,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
         // If traceset is empty, render empty chart.
         this._processNewSeries(newSeries, true);
-        await db.set(cacheKey, response);
+        void db.set(cacheKey, response).catch((err) => console.warn('Cache set failed:', err));
         void this._prefetchHistory(requestId);
       }
     } catch (e) {
@@ -1509,7 +1509,9 @@ export class ExploreMultiV2Sk extends LitElement {
       });
 
       if (response && response.dataframe) {
-        await db.set(cacheKey, response);
+        void db
+          .set(cacheKey, response)
+          .catch((err) => console.warn('Prefetch cache set failed:', err));
       }
 
       if (requestId !== this._latestRequestId) {
@@ -2470,7 +2472,13 @@ export class ExploreMultiV2Sk extends LitElement {
           : this._availableParams;
 
     const reqId =
-      this._workerController?.suggest(queryInput, currentQuery, idx, availableParams) || 0;
+      this._workerController?.suggest(
+        queryInput,
+        currentQuery,
+        idx,
+        availableParams,
+        this._includeParams
+      ) || 0;
     this._latestSuggestRequestIds[idx] = reqId;
   }
 

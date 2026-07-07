@@ -1,6 +1,13 @@
 import { Param, TraceData, WasmExports, Query } from './worker-types';
-import { scoreParamAny, fuzzyScore } from '../fuzzy';
+import { scoreParamAny, fuzzyScore, MAX_SUGGESTIONS, EXACT_MATCH_SCORE } from '../fuzzy';
 import { scanWasmBatch } from './wasm_utils';
+
+// If an exact match (score >= 100k) is found, we use this absolute minimum score
+// threshold for fuzzy suggestions. We cannot use a relative cutoff (like bestScore - tolerance)
+// because the 100k exact match score is artificially high and would evict all valid
+// fuzzy matches (which typically score < 1000).
+const MIN_FUZZY_SCORE_WHEN_EXACT_MATCH = 50;
+const FUZZY_MATCH_CUTOFF_TOLERANCE = 500;
 
 export interface SuggestionResult {
   params: Param[];
@@ -22,7 +29,8 @@ export async function computeSuggestions(
   availableParams: Param[] | null,
   traceData: TraceData | null,
   shouldAbort: () => boolean,
-  wasmFilter: WasmExports | null = null
+  wasmFilter: WasmExports | null = null,
+  includeParams: string[] | null = null
 ): Promise<SuggestionResult[] | null> {
   if (shouldAbort()) return null;
 
@@ -99,20 +107,23 @@ export async function computeSuggestions(
         }
 
         matches.sort((a, b) => b.score - a.score);
-        return matches.slice(0, 50).map((m) => ({ p: m.p, score: m.score }));
+        return matches.slice(0, MAX_SUGGESTIONS).map((m) => ({ p: m.p, score: m.score }));
       } catch (_e) {
         return [];
       }
     }
 
-    const scored = pool.map((p) => ({ p, score: scoreParamAny(p, token) }));
+    const scored = pool.map((p) => ({ p, score: scoreParamAny(p, token, includeParams) }));
     const matches = scored.filter((s) => s.score > -Infinity);
     console.log('[computeSuggestions] matches count for token', token, ':', matches.length);
     matches.sort((a, b) => b.score - a.score);
 
     if (matches.length > 0) {
       const bestScore = matches[0].score;
-      const cutoff = bestScore >= 100000 ? 50 : bestScore - 40;
+      const cutoff =
+        bestScore >= EXACT_MATCH_SCORE
+          ? MIN_FUZZY_SCORE_WHEN_EXACT_MATCH
+          : bestScore - FUZZY_MATCH_CUTOFF_TOLERANCE;
       const qualified = matches.filter((m) => m.score >= cutoff);
       return qualified.slice(0, 1000).map((m) => ({ p: m.p, score: m.score }));
     }
@@ -225,8 +236,8 @@ export async function computeSuggestions(
   // Sort suggestions by their fuzzy score in descending order
   suggestions.sort((a, b) => b.score - a.score);
 
-  // Phase 2: O(N) exact Wasm-accelerated counting scan ONLY for the top 20 suggestions
-  const topSuggestions = suggestions.slice(0, 20);
+  // Phase 2: O(N) exact Wasm-accelerated counting scan ONLY for the top MAX_SUGGESTIONS suggestions
+  const topSuggestions = suggestions.slice(0, MAX_SUGGESTIONS);
   const finalSuggestions: SuggestionResult[] = [];
 
   // Resolve currentQuery values to IDs for fast matching
