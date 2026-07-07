@@ -1851,7 +1851,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "wnkddQtd4RQpz0KxF9DzSHhOCW6RfucoVkFVErJ2+AE=",
+        "usagesDigest": "DGR8IzzKQXA+3yyV2RNdRGg41HrQOSy9x9ZELS/oIck=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -2240,6 +2240,35 @@
               "reproducible": true
             }
           },
+          "temporal-ui_linux_amd64": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "temporalio/ui",
+              "identifier": "sha256:d81f01279a536b63427686c8c97b690475e518910716e1b3b87695880ceb569e",
+              "platform": "linux/amd64",
+              "target_name": "temporal-ui_linux_amd64",
+              "bazel_tags": []
+            }
+          },
+          "temporal-ui": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
+            "attributes": {
+              "target_name": "temporal-ui",
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "temporalio/ui",
+              "identifier": "sha256:d81f01279a536b63427686c8c97b690475e518910716e1b3b87695880ceb569e",
+              "platforms": {
+                "@@platforms//cpu:x86_64": "@temporal-ui_linux_amd64"
+              },
+              "bzlmod_repository": "temporal-ui",
+              "reproducible": true
+            }
+          },
           "oci_crane_darwin_amd64": {
             "repoRuleId": "@@rules_oci+//oci:repositories.bzl%crane_repositories",
             "attributes": {
@@ -2372,7 +2401,9 @@
             "temporal-server",
             "temporal-server_linux_amd64",
             "temporal-admin-tools",
-            "temporal-admin-tools_linux_amd64"
+            "temporal-admin-tools_linux_amd64",
+            "temporal-ui",
+            "temporal-ui_linux_amd64"
           ],
           "explicitRootModuleDirectDevDeps": [],
           "useAllRepos": "NO",

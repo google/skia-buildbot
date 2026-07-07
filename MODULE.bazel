@@ -534,12 +534,22 @@ oci.pull(
     image = "docker.io/temporalio/admin-tools",
     platforms = ["linux/amd64"],
 )
+
+# docker.io/temporalio/ui:2.28.0 (compatible with 1.24.2) as of 07/07/2026.
+oci.pull(
+    name = "temporal-ui",
+    digest = "sha256:d81f01279a536b63427686c8c97b690475e518910716e1b3b87695880ceb569e",
+    image = "docker.io/temporalio/ui",
+    platforms = ["linux/amd64"],
+)
 use_repo(
     oci,
     "debian-testing-slim_linux_amd64",
     "temporal-admin-tools",
     "temporal-admin-tools_linux_amd64",
     "temporal-server_linux_amd64",
+    "temporal-ui",
+    "temporal-ui_linux_amd64",
 )
 
 ####################################################################################################

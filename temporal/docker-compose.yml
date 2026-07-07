@@ -95,7 +95,7 @@ services:
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
-    image: docker.io/temporalio/ui@sha256:bb9e9bc2ecb4962f43ef72b7f03a3d3f22f0df3eb5ec7c409bcae3d0135b88bc
+    image: docker.io/temporalio/ui@sha256:d81f01279a536b63427686c8c97b690475e518910716e1b3b87695880ceb569e
     networks:
       - temporal-network
     ports:

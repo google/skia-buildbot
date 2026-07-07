@@ -49,3 +49,11 @@ skia_app_container(
     repository = "skia-public/temporal",
     workdir = "/etc/temporal",
 )
+
+# Docker image with Temporal UI.
+skia_app_container(
+    name = "temporal-ui",
+    base_image = "@temporal-ui",
+    dirs = {},
+    repository = "skia-public/temporal-ui",
+)
