@@ -92,9 +92,12 @@ describe('cluster-page-sk', () => {
     await setupElement();
 
     // Set offset to avoid disabled Run button
-    (element as any).state.offset = 100;
-    (element as any).state.query = 'config=8888';
-    (element as any)._render();
+    (element as any).state = {
+      ...(element as any).state,
+      offset: 100,
+      query: 'config=8888',
+    };
+    await (element as any).updateComplete;
 
     const response: ConfirmedRegression = {
       summary: {
@@ -164,6 +167,7 @@ describe('cluster-page-sk', () => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     const __ = await fetchMock.flush(true);
     await new Promise((resolve) => setTimeout(resolve, 0));
+    await (element as any).updateComplete;
 
     const clusters = element.querySelectorAll('cluster-summary2-sk');
     assert.equal(clusters.length, 1);
@@ -203,9 +207,12 @@ describe('cluster-page-sk', () => {
   it('handles undefined results (no confirmed regressions found) without error', async () => {
     await setupElement();
 
-    (element as any).state.offset = 100;
-    (element as any).state.query = 'config=8888';
-    (element as any)._render();
+    (element as any).state = {
+      ...(element as any).state,
+      offset: 100,
+      query: 'config=8888',
+    };
+    await (element as any).updateComplete;
 
     fetchMock.post('/_/cluster/start', {
       id: 'request-789',
@@ -227,6 +234,7 @@ describe('cluster-page-sk', () => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     const __ = await fetchMock.flush(true);
     await new Promise((resolve) => setTimeout(resolve, 0));
+    await (element as any).updateComplete;
 
     assert.include(element.textContent, 'No clusters found.');
   });
