@@ -349,7 +349,7 @@ func TestStepFit_Percent_DefendAgainstNegativeInf(t *testing.T) {
 		},
 	}
 	sf := EvaluateRule([]float32{0, 0, 1, 1}, minStdDev, rule)
-	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, 2, sf.TurningPoint)
 	assert.Equal(t, float32(-math.MaxFloat32), sf.StepSize)
 	assert.Equal(t, HIGH, sf.Status)
 	assert.Equal(t, float32(-math.MaxFloat32), sf.Regression)
@@ -363,7 +363,7 @@ func TestStepFit_Percent_DefendAgainstInf(t *testing.T) {
 		},
 	}
 	sf := EvaluateRule([]float32{0, 0, -1, -1}, minStdDev, rule)
-	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, 2, sf.TurningPoint)
 	assert.Equal(t, float32(math.MaxFloat32), sf.StepSize)
 	assert.Equal(t, LOW, sf.Status)
 	assert.Equal(t, float32(math.MaxFloat32), sf.Regression)
@@ -377,7 +377,7 @@ func TestStepFit_Percent_DefendAgainstNaN(t *testing.T) {
 		},
 	}
 	sf := EvaluateRule([]float32{0, 0, 0, 0}, minStdDev, rule)
-	assert.Equal(t, 1, sf.TurningPoint)
+	assert.Equal(t, 2, sf.TurningPoint)
 	assert.Equal(t, float32(0), sf.StepSize)
 	assert.Equal(t, UNINTERESTING, sf.Status)
 	assert.Equal(t, float32(0), sf.Regression)
@@ -612,7 +612,7 @@ func TestStepFit_PercentMedian_RobustToOutlier(t *testing.T) {
 		},
 	}
 	sf := EvaluateRule([]float32{1, 1, 10, 1, 1, 2, 2, 2, 2, 2}, minStdDev, rule)
-	assert.Equal(t, 4, sf.TurningPoint)
+	assert.Equal(t, 5, sf.TurningPoint)
 	assert.Equal(t, float32(-1.0), sf.StepSize)
 	assert.Equal(t, HIGH, sf.Status)
 	assert.Equal(t, float32(-1.0), sf.Regression)

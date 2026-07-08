@@ -101,8 +101,13 @@ func evaluateSimpleRule(trace []float32, stddevThreshold float32, simpleRule *al
 		vec32.Norm(workTrace, stddevThreshold)
 	} else {
 		// For all non-ORIGINAL_STEP regression types we use a symmetric (2*N)
-		// trace, while in ORIGINAL_STEP uses the 2*N+1 length trace supplied.
-		workTrace = trace[0 : len(trace)-1]
+		// trace. If the supplied trace has an odd length, drop the last element;
+		// otherwise use trace as-is.
+		if len(trace)%2 != 0 {
+			workTrace = trace[0 : len(trace)-1]
+		} else {
+			workTrace = trace
+		}
 	}
 
 	isValid, anomalyResult := CalculateStepFitValues(workTrace, stddevThreshold, simpleRule)
@@ -163,4 +168,35 @@ func NewSimpleRule(step types.StepDetection, threshold float32) *alerts.AnomalyD
 			Threshold: threshold,
 		},
 	}
+}
+
+// UsesOriginalStep returns true if step or rule uses OriginalStep algorithm.
+func UsesOriginalStep(step types.StepDetection, rule *alerts.AnomalyDetectionRule) bool {
+	if step == types.OriginalStep && rule == nil {
+		return true
+	}
+	if rule == nil {
+		return false
+	}
+	return TraverseRule(rule,
+		func(check *alerts.AlgorithmCheck) bool {
+			return check != nil && check.Step == types.OriginalStep
+		},
+		func(results []bool, _ string) bool {
+			for _, r := range results {
+				if r {
+					return true
+				}
+			}
+			return false
+		})
+}
+
+// GetWindowSize returns the working window size for the given radius, step detection, and rule.
+// For OriginalStep, it is 2*radius + 1, and for all other algorithms it is 2*radius.
+func GetWindowSize(radius int, step types.StepDetection, rule *alerts.AnomalyDetectionRule) int {
+	if UsesOriginalStep(step, rule) {
+		return 2*radius + 1
+	}
+	return 2 * radius
 }

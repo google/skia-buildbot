@@ -35,7 +35,7 @@ func TestDfTraceSlicer(t *testing.T) {
 	}
 
 	// Test with radius 1 (window size 3).
-	slicer := NewStepFitDfTraceSlicer(df, 1)
+	slicer := NewStepFitDfTraceSlicer(df, 3)
 
 	// Expected results. Keys are sorted, so traceID2 comes first.
 	expected := []struct {
@@ -73,7 +73,7 @@ func TestDfTraceSlicer(t *testing.T) {
 	require.Equal(t, len(expected), i)
 
 	// Test with radius 0 (window size 1).
-	slicer = NewStepFitDfTraceSlicer(df, 0)
+	slicer = NewStepFitDfTraceSlicer(df, 1)
 	count := 0
 	for slicer.Next() {
 		_, err := slicer.Value(ctx)
@@ -83,7 +83,7 @@ func TestDfTraceSlicer(t *testing.T) {
 	require.Equal(t, 10, count) // 5 for each of 2 traces
 
 	// Test with a window larger than the trace length.
-	slicer = NewStepFitDfTraceSlicer(df, 5) // window size 11
+	slicer = NewStepFitDfTraceSlicer(df, 11) // window size 11
 	require.False(t, slicer.Next())
 }
 
@@ -94,7 +94,7 @@ func TestNewDfTraceSlicer_EmptyDataFrame_ReturnsNoData(t *testing.T) {
 		Header:   []*dataframe.ColumnHeader{},
 		ParamSet: paramtools.NewReadOnlyParamSet(),
 	}
-	slicer := NewStepFitDfTraceSlicer(df, 1)
+	slicer := NewStepFitDfTraceSlicer(df, 3)
 	require.False(t, slicer.Next())
 }
 
@@ -122,7 +122,7 @@ func TestNewDfTraceSlicer_Non_EmptyDataFrame_ReturnsNoData(t *testing.T) {
 		},
 		ParamSet: ps.Freeze(),
 	}
-	slicer := NewStepFitDfTraceSlicer(df, 3)
+	slicer := NewStepFitDfTraceSlicer(df, 7)
 	require.False(t, slicer.Next())
 	require.False(t, slicer.Next())
 	require.Panics(t, func() {
@@ -150,9 +150,9 @@ func TestDfTraceSlicer_MatchesDataFrameSlicerLegacy(t *testing.T) {
 		ParamSet: ps.Freeze(),
 	}
 
-	radius := 1
-	slicer := NewStepFitDfTraceSlicer(df, radius)
-	lSlicer := NewKmeansDataframeSlicer(df, radius)
+	windowSize := 3
+	slicer := NewStepFitDfTraceSlicer(df, windowSize)
+	lSlicer := NewKmeansDataframeSlicer(df, windowSize)
 
 	for {
 		slicerHasNext := slicer.Next()
@@ -195,7 +195,7 @@ func TestStepFitDfTraceSlicerWithMissingData(t *testing.T) {
 	}
 
 	// Test with radius 1 (window size 3).
-	slicer := NewStepFitDfTraceSlicer(df, 1)
+	slicer := NewStepFitDfTraceSlicer(df, 3)
 
 	// Expected results.
 	expected := []struct {
@@ -327,7 +327,7 @@ func TestStepFitDfTraceSlicerWithMoreMissingData(t *testing.T) {
 				ParamSet: ps.Freeze(),
 			}
 
-			slicer := NewStepFitDfTraceSlicer(df, 1) // window size 3
+			slicer := NewStepFitDfTraceSlicer(df, 3) // window size 3
 
 			i := 0
 			for slicer.Next() {

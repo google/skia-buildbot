@@ -102,21 +102,16 @@ func TestIntegration_between_DetectRegressionsOnDataFrame_and_AnomalyBoundsRefin
 	// 6. Verify final output
 	require.NoError(t, err)
 
+	prevCommitNumbers := []int{15, 21, 43, 154, 202, 212, 222, 241}
+	curtCommitNumbers := []int{16, 22, 44, 155, 203, 213, 223, 242}
+
 	// We should see a consolidated number of anomalies
-	assert.Equal(t, 5, len(confirmed))
+	assert.Equal(t, len(curtCommitNumbers), len(confirmed))
+	// Sanity check against malformed tests
+	assert.Equal(t, len(curtCommitNumbers), len(prevCommitNumbers))
 
-	assert.Equal(t, types.CommitNumber(14), confirmed[0].PrevCommitNumber)
-	assert.Equal(t, types.CommitNumber(15), confirmed[0].CommitNumber)
-
-	assert.Equal(t, types.CommitNumber(34), confirmed[1].PrevCommitNumber)
-	assert.Equal(t, types.CommitNumber(35), confirmed[1].CommitNumber)
-
-	assert.Equal(t, types.CommitNumber(154), confirmed[2].PrevCommitNumber)
-	assert.Equal(t, types.CommitNumber(155), confirmed[2].CommitNumber)
-
-	assert.Equal(t, types.CommitNumber(202), confirmed[3].PrevCommitNumber)
-	assert.Equal(t, types.CommitNumber(203), confirmed[3].CommitNumber)
-
-	assert.Equal(t, types.CommitNumber(212), confirmed[4].PrevCommitNumber)
-	assert.Equal(t, types.CommitNumber(213), confirmed[4].CommitNumber)
+	for i, cn := range curtCommitNumbers {
+		assert.Equal(t, types.CommitNumber(prevCommitNumbers[i]), confirmed[i].PrevCommitNumber)
+		assert.Equal(t, types.CommitNumber(cn), confirmed[i].CommitNumber)
+	}
 }

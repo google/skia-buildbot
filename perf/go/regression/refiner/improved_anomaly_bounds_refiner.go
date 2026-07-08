@@ -335,17 +335,11 @@ func (r *ImprovedAnomalyBoundsRefiner) findPreviousRegression(traceName string, 
 
 // extractRightData extracts the right side data points from the centroid of the
 // right-most regression in the group.
-func extractRightData(cr *regression.ConfirmedRegression, step types.StepDetection) ([]float32, []types.CommitNumber) {
+func extractRightData(cr *regression.ConfirmedRegression) ([]float32, []types.CommitNumber) {
 	tpIndex := cr.RightMostSummary.Clusters[0].StepFit.TurningPoint
 	var cleanRightData []float32
 	var rightCommits []types.CommitNumber
 	end := len(cr.RightMostSummary.Clusters[0].Centroid)
-	// OriginalStep uses one additional point at the end of the centroid,
-	// while other algorithms do not. We decrement end for other algorithms
-	// to match their expected data length.
-	if step != types.OriginalStep {
-		end--
-	}
 	for i := tpIndex; i < end; i++ {
 		v := cr.RightMostSummary.Clusters[0].Centroid[i]
 		cleanRightData = append(cleanRightData, v)
@@ -435,11 +429,7 @@ func (r *ImprovedAnomalyBoundsRefiner) extractData(cr *regression.ConfirmedRegre
 		return nil, nil, nil, nil
 	}
 
-	algo := cfg.Step
-	if len(cr.Summary.Clusters[0].StepFit.RuleEvaluations) > 0 {
-		algo = types.StepDetection(cr.Summary.Clusters[0].StepFit.RuleEvaluations[0].AlgoName)
-	}
-	rightData, rightCommits := extractRightData(cr, algo)
+	rightData, rightCommits := extractRightData(cr)
 	if len(rightData) < 3 {
 		return nil, nil, nil, nil
 	}

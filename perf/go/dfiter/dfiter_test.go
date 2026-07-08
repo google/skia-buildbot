@@ -151,6 +151,68 @@ func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *tes
 	require.False(t, iter.Next())
 }
 
+func TestNewDataFrameIterator_NonOriginalStep_IncludesLastWindow(t *testing.T) {
+	config.Config = &config.InstanceConfig{}
+	ctx := context.Background()
+	dfb := dataframe_mocks.NewDataFrameBuilder(t)
+	g := git_mocks.NewGit(t)
+
+	alert := &alerts.Alert{
+		Radius: 1,
+		Step:   types.PercentStep,
+	}
+	domain := types.Domain{
+		End:    time.Unix(100, 0),
+		N:      4,
+		Offset: 0,
+	}
+	q := "arch=x86"
+
+	header := []*dataframe.ColumnHeader{
+		{Offset: 1},
+		{Offset: 2},
+		{Offset: 3},
+		{Offset: 4},
+	}
+	expectedDf := &dataframe.DataFrame{
+		Header: header,
+		TraceSet: types.TraceSet{
+			",arch=x86,config=565,": types.Trace{2.1, 2.2, 2.5, 2.6},
+		},
+	}
+
+	dfb.On("NewNFromQuery", testutils.AnyContext, domain.End, mock.Anything, int32(4), mock.Anything).Return(expectedDf, nil).Once()
+
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert, defaultAnomalyConfig, nil)
+	require.NoError(t, err)
+
+	// Window 1 (size 2*radius = 2): [2.1, 2.2]
+	require.True(t, iter.Next())
+	df, err := iter.Value(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,": types.Trace{2.1, 2.2},
+	}, df.TraceSet)
+
+	// Window 2: [2.2, 2.5]
+	require.True(t, iter.Next())
+	df, err = iter.Value(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,": types.Trace{2.2, 2.5},
+	}, df.TraceSet)
+
+	// Window 3 (last window, ending at last point 2.6): [2.5, 2.6]
+	require.True(t, iter.Next())
+	df, err = iter.Value(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,": types.Trace{2.5, 2.6},
+	}, df.TraceSet)
+
+	require.False(t, iter.Next())
+}
+
 func TestNewDataFrameIterator_MultipleDataframes_TwoFramesOfLengthTwo(t *testing.T) {
 	ctx, dfb, g, _ := newForTest(t)
 
@@ -286,7 +348,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit
 	pc := &progressCapture{}
 	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, q, domain, alert, defaultAnomalyConfig, nil)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
-	require.Equal(t, "Not a valid commit number 31. Make sure you choose a commit old enough to have 1 commits before it and 0 commits after it.", pc.message)
+	require.Equal(t, "Not a valid commit number 31. Make sure you choose a commit old enough to have 1 commits before it and 1 commits after it.", pc.message)
 }
 
 func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
@@ -363,7 +425,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstComm
 	pc := &progressCapture{}
 	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, q, domain, alert, defaultAnomalyConfig, nil)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
-	require.Equal(t, "Not a valid commit number -4. Make sure you choose a commit old enough to have 1 commits before it and 0 commits after it.", pc.message)
+	require.Equal(t, "Not a valid commit number -4. Make sure you choose a commit old enough to have 1 commits before it and 1 commits after it.", pc.message)
 }
 
 func TestNewDataFrameIterator_MultipleDataframes_ErrIfWeSearchBeforeFirstCommit(t *testing.T) {

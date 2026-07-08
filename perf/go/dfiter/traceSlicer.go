@@ -91,8 +91,8 @@ func (d *stepFitDfTraceSlicer) Value(ctx context.Context) (*dataframe.DataFrame,
 // NewStepFitDfTraceSlicer creates a new stepFitDfTraceSlicer.
 //
 // df - The DataFrame to iterate over.
-// radius - The radius used to calculate the sliding window size.
-func NewStepFitDfTraceSlicer(df *dataframe.DataFrame, radius int) *stepFitDfTraceSlicer {
+// windowSize - The size of the sliding window.
+func NewStepFitDfTraceSlicer(df *dataframe.DataFrame, windowSize int) *stepFitDfTraceSlicer {
 	keys := make([]string, 0, len(df.TraceSet))
 	filteredTraces := map[string][]float32{}
 	filteredHeaders := map[string][]*dataframe.ColumnHeader{}
@@ -119,7 +119,7 @@ func NewStepFitDfTraceSlicer(df *dataframe.DataFrame, radius int) *stepFitDfTrac
 	sort.Strings(keys)
 	return &stepFitDfTraceSlicer{
 		keys:              keys,
-		windowSize:        2*radius + 1,
+		windowSize:        windowSize,
 		currentTraceIndex: 0,
 		currentOffset:     0,
 		filteredTraces:    filteredTraces,
@@ -149,10 +149,10 @@ func (d *kmeansDataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame
 	return df, nil
 }
 
-func NewKmeansDataframeSlicer(df *dataframe.DataFrame, radius int) *kmeansDataframeSlicer {
+func NewKmeansDataframeSlicer(df *dataframe.DataFrame, windowSize int) *kmeansDataframeSlicer {
 	return &kmeansDataframeSlicer{
 		df:     df,
-		size:   2*radius + 1,
+		size:   windowSize,
 		offset: 0,
 	}
 }

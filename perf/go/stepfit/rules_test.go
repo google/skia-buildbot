@@ -254,3 +254,61 @@ func TestEvaluateComplexRule_CohenAndPercent_OR_Success(t *testing.T) {
 	assert.True(t, foundPercent)
 	assert.True(t, foundCohen)
 }
+
+func TestGetWindowSize_And_UsesOriginalStep(t *testing.T) {
+	assert.True(t, UsesOriginalStep(types.OriginalStep, nil))
+	assert.False(t, UsesOriginalStep(types.PercentStep, nil))
+	assert.False(t, UsesOriginalStep(types.CohenStep, nil))
+
+	assert.Equal(t, 7, GetWindowSize(3, types.OriginalStep, nil))
+	assert.Equal(t, 6, GetWindowSize(3, types.PercentStep, nil))
+	assert.Equal(t, 6, GetWindowSize(3, types.CohenStep, nil))
+
+	complexWithOriginal := &alerts.AnomalyDetectionRule{
+		ComplexRule: &alerts.ComplexRule{
+			Op: "OR",
+			Rules: []*alerts.AnomalyDetectionRule{
+				NewSimpleRule(types.CohenStep, 2.0),
+				NewSimpleRule(types.OriginalStep, 0.5),
+			},
+		},
+	}
+	assert.True(t, UsesOriginalStep(types.CohenStep, complexWithOriginal))
+	assert.Equal(t, 7, GetWindowSize(3, types.CohenStep, complexWithOriginal))
+}
+
+func TestEvaluateComplexRule_OriginalAndPercent_OR(t *testing.T) {
+	// 7 elements: OriginalStep uses all 7; PercentStep drops the 7th and uses first 6.
+	trace := []float32{10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0}
+	stddevThreshold := float32(0.01)
+
+	rule := &alerts.AnomalyDetectionRule{
+		ComplexRule: &alerts.ComplexRule{
+			Op: "OR",
+			Rules: []*alerts.AnomalyDetectionRule{
+				NewSimpleRule(types.OriginalStep, 0.5),
+				NewSimpleRule(types.PercentStep, 0.5),
+			},
+		},
+	}
+
+	stepFit := EvaluateRule(trace, stddevThreshold, rule)
+	assert.NotNil(t, stepFit)
+	assert.NotEqual(t, UNINTERESTING, stepFit.Status)
+
+	results := stepFit.RuleEvaluations
+	assert.Len(t, results, 2)
+
+	var foundOriginal, foundPercent bool
+	for _, res := range results {
+		if res.AlgoName == string(types.OriginalStep) {
+			foundOriginal = true
+			assert.True(t, res.IsAnomaly)
+		} else if res.AlgoName == string(types.PercentStep) {
+			foundPercent = true
+			assert.True(t, res.IsAnomaly)
+		}
+	}
+	assert.True(t, foundOriginal)
+	assert.True(t, foundPercent)
+}

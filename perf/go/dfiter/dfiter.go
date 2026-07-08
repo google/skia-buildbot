@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/progress"
+	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -76,7 +77,8 @@ func NewDataFrameIterator(
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	minPoints := int(2*alert.Radius + 1)
+	windowSize := stepfit.GetWindowSize(alert.Radius, alert.Step, alert.DetectionRule)
+	minPoints := windowSize
 	var df *dataframe.DataFrame
 	if !domain.IsSingleCommitMode() {
 		if anomalyConfig.SettlingTime != 0 {
@@ -107,35 +109,24 @@ func NewDataFrameIterator(
 	} else {
 		// We can get an iterator that returns just a single dataframe by making
 		// sure that the size of the origin dataframe is the same size as the
-		// slicer size, so we set them both to 2*Radius+1.
-		// Need to find an End time, which is the commit time of the commit at
-		// Offset+Radius.
-		//
-		// That is, for example, we are looking at commit 21 with a Radius of 3
-		// to request an endpoint of 24:
-		//
-		//    [ 18, 19, 20, 21, 22, 23, 24]
-		//
-		// That way we have the right number of points for types.OriginalStep
-		// (2*n+1), and by chopping down the length of the result by 1 we can
-		// get a dataframe of the right length for the rest of the step finding
-		// algorithms, i.e.:
-		//
-		//    [ 18, 19, 20, 21, 22, 23 ]
-		//
-		// All of these contortions are to keep the detection algorithms
-		// consistent. Eventually types.OriginalStep should be changed to work
-		// on a dataframe of length 2*n like all the rest.
-		endCommit := types.CommitNumber(int(domain.Offset) + alert.Radius)
+		// slicer size, so we set them both to windowSize (2*Radius+1 for OriginalStep, 2*Radius for others).
+		// Need to find an End time, which is the commit time of the commit at:
+		// Offset+Radius for OriginalStep (window [Offset-Radius .. Offset+Radius], size 2R+1)
+		// Offset+Radius-1 for non-OriginalStep (window [Offset-Radius .. Offset+Radius-1], size 2R)
+		endOffset := alert.Radius
+		if !stepfit.UsesOriginalStep(alert.Step, alert.DetectionRule) {
+			endOffset = alert.Radius - 1
+		}
+		endCommit := types.CommitNumber(int(domain.Offset) + endOffset)
 		commit, err := perfGit.CommitFromCommitNumber(ctx, endCommit)
 		if err != nil {
 			if regressionStateCallback != nil {
-				regressionStateCallback(fmt.Sprintf("Not a valid commit number %d. Make sure you choose a commit old enough to have %d commits before it and %d commits after it.", endCommit, alert.Radius, alert.Radius-1))
+				regressionStateCallback(fmt.Sprintf("Not a valid commit number %d. Make sure you choose a commit old enough to have %d commits before it and %d commits after it.", endCommit, alert.Radius, endOffset))
 			}
 
 			return nil, skerr.Wrapf(err, "Failed to look up CommitNumber of a single cluster request.")
 		}
-		df, err = dfBuilder.NewNFromQuery(ctx, time.Unix(commit.Timestamp, 0), q, int32(minPoints), progress)
+		df, err = dfBuilder.NewNFromQuery(ctx, time.Unix(commit.Timestamp, 0), q, int32(windowSize), progress)
 		if err != nil {
 			if regressionStateCallback != nil {
 				regressionStateCallback("Failed querying the data due to an internal error.")
@@ -144,7 +135,7 @@ func NewDataFrameIterator(
 		}
 	}
 	// For single-commit validation (domain.IsSingleCommitMode() is true), we only query a window of size
-	// 2*Radius+1, so minPoints must stay at 2*Radius+1. We only increase the required
+	// windowSize, so minPoints must stay at windowSize. We only increase the required
 	// minPoints for refinement/localization when performing continuous detection (!domain.IsSingleCommitMode()).
 	if !domain.IsSingleCommitMode() && (anomalyConfig.UseAnomalyLocalization || anomalyConfig.UseImprovedAnomalyBoundsRefiner) {
 		refinerMinPoints := int(math.Ceil(minRadiusRatioForRefinement * float64(alert.Radius)))
@@ -167,8 +158,8 @@ func NewDataFrameIterator(
 
 	// The DfTraceSlicer will only work for stepfit (i.e individual and not kmeans)
 	if alert.Algo == types.StepFitGrouping {
-		return NewStepFitDfTraceSlicer(df, alert.Radius), nil
+		return NewStepFitDfTraceSlicer(df, windowSize), nil
 	} else {
-		return NewKmeansDataframeSlicer(df, alert.Radius), nil
+		return NewKmeansDataframeSlicer(df, windowSize), nil
 	}
 }
