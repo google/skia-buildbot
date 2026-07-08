@@ -33,6 +33,9 @@ case "$PLATFORM" in
     m4)
         PLATFORM="mac-m4-mini-perf-cbb"
         ;;
+    m5)
+        PLATFORM="mac-m5-pro-perf-cbb"
+        ;;
     victus)
         PLATFORM="win-victus-perf-cbb"
         ;;
@@ -49,7 +52,7 @@ esac
 
 # Validate platform argument
 VALID_PLATFORMS=(\
-    "mac-m3-pro-perf-cbb" "mac-m4-mini-perf-cbb" \
+    "mac-m3-pro-perf-cbb" "mac-m4-mini-perf-cbb" "mac-m5-pro-perf-cbb" \
     "win-victus-perf-cbb" "win-arm64-snapdragon-elite-perf-cbb" \
     "android-pixel10-perf-cbb" "android-pixel-tangor-perf-cbb" \
 )

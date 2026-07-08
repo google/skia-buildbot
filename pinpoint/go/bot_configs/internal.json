@@ -149,6 +149,35 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+  "mac-m5-pro-perf-cbb": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Mac arm Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint-cbb"
+      },
+      {
+        "key": "mac_model",
+        "value": "Mac17,9"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Mac17,9_arm64-64-Apple_M5_Pro_apple m5 pro_24576_APPLE SSD AP1024Z"
+      },
+      {
+        "key": "os",
+        "value": "Mac"
+      },
+      {
+        "key": "cpu",
+        "value": "arm"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
   "win-arm64-snapdragon-elite-perf": {
     "browser": "release",
     "bucket": "luci.chrome.try",
