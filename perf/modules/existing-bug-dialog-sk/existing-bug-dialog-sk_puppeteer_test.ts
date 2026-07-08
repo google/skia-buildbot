@@ -55,10 +55,16 @@ describe('existing-bug-dialog-sk', () => {
     await existingBugDialogSk.evaluate((el: any) => {
       el.open();
     });
+    const eventFiredPromise = existingBugDialogSk.evaluate(
+      (el: any) =>
+        new Promise((resolve) => {
+          el.addEventListener('anomaly-changed', (e: any) => resolve(e.detail), { once: true });
+        })
+    );
     await existingBugDialogSkPO.setBugId('12345');
     await existingBugDialogSkPO.clickSubmitBtn();
-    // We can't assert that a new tab was opened, but we can check that the dialog closes.
-    expect(await existingBugDialogSkPO.isDialogOpen()).to.equal(true);
+    await eventFiredPromise;
+    expect(await existingBugDialogSkPO.isDialogOpen()).to.equal(false);
   });
 
   it('should close dialog', async () => {

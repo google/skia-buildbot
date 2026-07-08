@@ -68,8 +68,6 @@ export class ExistingBugDialogSk extends LitElement {
 
   private allProjectIdOptions: ProjectId[] = ['chromium'];
 
-  private bug_url: string = '';
-
   @state()
   private _active: boolean = false;
 
@@ -130,7 +128,6 @@ export class ExistingBugDialogSk extends LitElement {
           </div>
           <div class="bug-list">${this.associatedBugListTemplate()}</div>
           <div class="footer">
-            ${this.bug_url ? html`<a href="${this.bug_url}" target="_blank">Bug added!</a>` : ''}
             <button id="file-button" class="submit" @click=${
               this.addAnomalyWithExistingBug
             } type="submit" ?disabled=${this._busy}>Submit</button>
@@ -210,11 +207,10 @@ export class ExistingBugDialogSk extends LitElement {
         }
         this._busy = false;
 
-        this.bug_url = `https://issues.chromium.org/issues/${this.bug_id as number}`;
-
         // Update anomalies to reflected the existing Bug Id.
         const newAnomalies = this.anomalies.map((a) => ({ ...a, bug_id: this.bug_id as number }));
         this.anomalies = newAnomalies; // Triggers update if we were open
+        this.closeDialog();
 
         // Let explore-simple-sk and chart-tooltip-sk that anomalies have changed and we need to re-render.
         this.dispatchEvent(
