@@ -449,7 +449,7 @@
     "//bazel:gcs_mirror.bzl%gcs_mirror": {
       "general": {
         "bzlTransitiveDigest": "jdW+wRYbJnW1LhtYTEmLeaqbAiWx9f3njqO9DpL7HVM=",
-        "usagesDigest": "WGAychZikRjJ3a3I1Jsi0zuBs72nDyWZUqO2aDXzkXk=",
+        "usagesDigest": "eyn07l0UgzWu1v0VG3AExJRW7VFT+xrUK/WVXGRY7gY=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -506,11 +506,11 @@
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
               "build_file_content": "\nload(\"@rules_pkg//:pkg.bzl\", \"pkg_tar\")\n\npkg_tar(\n    name = \"schemas\",\n    srcs = glob([\n        \"schema/postgresql/v96/**/*.sql\",\n        \"schema/postgresql/v96/**/*.json\",\n        \"schema/postgresql/v12/**/*.sql\",\n        \"schema/postgresql/v12/**/*.json\",\n    ], allow_empty = True),\n    strip_prefix = \"external/+gcs_mirror+com_github_temporal\",\n    package_dir = \"/etc/temporal\",\n    visibility = [\"//visibility:public\"],\n)\n",
-              "sha256": "95ce3305d734fa45b401804bcdafe3f7cc38dd0e2cdea0881215f270ae017dd8",
-              "strip_prefix": "./temporal-1.26.2",
+              "sha256": "386b33f987bc930036d9e765dad5aa4fbd867ac2c132ce76795f071cd988215a",
+              "strip_prefix": "./temporal-1.29.2",
               "urls": [
-                "https://cdn.skia.org/bazel/95ce3305d734fa45b401804bcdafe3f7cc38dd0e2cdea0881215f270ae017dd8.tar.gz",
-                "https://github.com/temporalio/temporal/archive/refs/tags/v1.26.2.tar.gz"
+                "https://cdn.skia.org/bazel/386b33f987bc930036d9e765dad5aa4fbd867ac2c132ce76795f071cd988215a.tar.gz",
+                "https://github.com/temporalio/temporal/archive/refs/tags/v1.29.2.tar.gz"
               ]
             }
           },
@@ -1851,7 +1851,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "XFtZgDJuop2uIdAFCGwJBy3RW3s6g9m/0Jt+fj3EDsk=",
+        "usagesDigest": "S7IB23m3XBSE3K3QtjklJG6syGNBZWjjBR+mGHL9Qcc=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -2189,7 +2189,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/server",
-              "identifier": "sha256:d8b9f0c8c2680f7f26510f8e6954bb28835bb941b4a6e68db20ed746f91df55a",
+              "identifier": "sha256:846c6f50f53ac39ff7399ab9e20e583b993b14c1bca4c3d77dab87b8c2821055",
               "platform": "linux/amd64",
               "target_name": "temporal-server_linux_amd64",
               "bazel_tags": []
@@ -2203,7 +2203,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/server",
-              "identifier": "sha256:d8b9f0c8c2680f7f26510f8e6954bb28835bb941b4a6e68db20ed746f91df55a",
+              "identifier": "sha256:846c6f50f53ac39ff7399ab9e20e583b993b14c1bca4c3d77dab87b8c2821055",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@temporal-server_linux_amd64"
               },
@@ -2218,7 +2218,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/admin-tools",
-              "identifier": "sha256:b43c0dedb329f42f24bd087047c18b1d33d36fbb4cf918282b3aa03c27b8137b",
+              "identifier": "sha256:67ee116b6442fd467168081509debecd61bafa506f56aa78e0ee6b6ad3c54691",
               "platform": "linux/amd64",
               "target_name": "temporal-admin-tools_linux_amd64",
               "bazel_tags": []
@@ -2232,7 +2232,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/admin-tools",
-              "identifier": "sha256:b43c0dedb329f42f24bd087047c18b1d33d36fbb4cf918282b3aa03c27b8137b",
+              "identifier": "sha256:67ee116b6442fd467168081509debecd61bafa506f56aa78e0ee6b6ad3c54691",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@temporal-admin-tools_linux_amd64"
               },
@@ -2247,7 +2247,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/ui",
-              "identifier": "sha256:665dc293e3690d20f31504ae4eed7c41df2e4aea2250c20e9ca2424e0ea22cf7",
+              "identifier": "sha256:8c43757f169c94051398fa2abcf8fca05405ca492d0b44cff0ed059537cd33de",
               "platform": "linux/amd64",
               "target_name": "temporal-ui_linux_amd64",
               "bazel_tags": []
@@ -2261,7 +2261,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/ui",
-              "identifier": "sha256:665dc293e3690d20f31504ae4eed7c41df2e4aea2250c20e9ca2424e0ea22cf7",
+              "identifier": "sha256:8c43757f169c94051398fa2abcf8fca05405ca492d0b44cff0ed059537cd33de",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@temporal-ui_linux_amd64"
               },
