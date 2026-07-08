@@ -140,11 +140,11 @@ func TestProvider_RegressionFound_BuildUrlDiff(t *testing.T) {
 	assert.Equal(t, "Link: https://android-build.corp.google.com/range_search/cls/from_id/12345/to_id/67890/?s=menu&includeTo=0&includeFrom=1", notificationData.Body)
 }
 
-func TestProvider_Android2Config_Success(t *testing.T) {
-	// Read the value from the checked in config for android2 instance.
-	android2Config := filepath.Join("..", "..", "configs", "spanner", "android2.json")
+func TestProvider_AndroidConfig_Success(t *testing.T) {
+	// Read the value from the checked in config for android instance.
+	androidConfig := filepath.Join("..", "..", "configs", "spanner", "android.json")
 	var cfg config.InstanceConfig
-	err := util.WithReadFile(android2Config, func(r io.Reader) error {
+	err := util.WithReadFile(androidConfig, func(r io.Reader) error {
 		b, err := io.ReadAll(r)
 		if err != nil {
 			return skerr.Wrapf(err, "failed to read bytes")
@@ -192,11 +192,11 @@ func TestProvider_Android2Config_Success(t *testing.T) {
 	require.NotNil(t, notificationData)
 }
 
-func TestProvider_Android2Config_Format(t *testing.T) {
-	// Read the value from the checked in config for android2 instance.
-	android2Config := filepath.Join("..", "..", "configs", "spanner", "android2.json")
+func TestProvider_AndroidConfig_Format(t *testing.T) {
+	// Read the value from the checked in config for android instance.
+	androidConfig := filepath.Join("..", "..", "configs", "spanner", "android.json")
 	var cfg config.InstanceConfig
-	err := util.WithReadFile(android2Config, func(r io.Reader) error {
+	err := util.WithReadFile(androidConfig, func(r io.Reader) error {
 		b, err := io.ReadAll(r)
 		if err != nil {
 			return skerr.Wrapf(err, "failed to read bytes")
@@ -247,10 +247,10 @@ func TestProvider_Android2Config_Format(t *testing.T) {
 	require.NotNil(t, notificationData)
 }
 
-func TestProvider_Android2Config_MultipleTraces_Format(t *testing.T) {
-	android2Config := filepath.Join("..", "..", "configs", "spanner", "android2.json")
+func TestProvider_AndroidConfig_MultipleTraces_Format(t *testing.T) {
+	androidConfig := filepath.Join("..", "..", "configs", "spanner", "android.json")
 	var cfg config.InstanceConfig
-	err := util.WithReadFile(android2Config, func(r io.Reader) error {
+	err := util.WithReadFile(androidConfig, func(r io.Reader) error {
 		b, err := io.ReadAll(r)
 		if err != nil {
 			return skerr.Wrapf(err, "failed to read bytes")

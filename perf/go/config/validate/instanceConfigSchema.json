@@ -579,12 +579,6 @@
         "notifications": {
           "type": "string"
         },
-        "issue_tracker_api_key_secret_project": {
-          "type": "string"
-        },
-        "issue_tracker_api_key_secret_name": {
-          "type": "string"
-        },
         "subject": {
           "type": "string"
         },
