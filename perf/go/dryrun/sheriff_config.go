@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
-	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/chromeperf/compat"
 	"go.skia.org/infra/perf/go/config"
@@ -150,7 +149,6 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 
 					reg.Id = fmt.Sprintf("%d", cr.CommitNumber)
 					if reg.Low != nil {
-						reg.IsImprovement = (alertReq.Alert.DirectionAsString == alerts.DOWN)
 						if reg.Low.Shortcut != "" {
 							reg.Id = reg.Low.Shortcut
 						}
@@ -158,7 +156,6 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 							reg.MedianBefore, reg.MedianAfter = calcMedian(reg.Low.Centroid, reg.Low.StepFit.TurningPoint)
 						}
 					} else if reg.High != nil {
-						reg.IsImprovement = (alertReq.Alert.DirectionAsString == alerts.UP)
 						if reg.High.Shortcut != "" {
 							reg.Id = reg.High.Shortcut
 						}
@@ -166,6 +163,7 @@ func (d *Requests) StartSheriffConfigHandler(w http.ResponseWriter, r *http.Requ
 							reg.MedianBefore, reg.MedianAfter = calcMedian(reg.High.Centroid, reg.High.StepFit.TurningPoint)
 						}
 					}
+					reg.IsImprovement = reg.DetermineIsImprovement(string(alertReq.Alert.DirectionAsString))
 
 					req.Progress.Message("Step", fmt.Sprintf("%d/%d", queryRequest.Step+1, queryRequest.TotalQueries))
 					req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query()))

@@ -535,7 +535,9 @@ ${ele.runningStatus}</pre
       }
       if (this.mode === 'sheriff') {
         this.detectedAnomalies = finalProg.results || [];
-        this.runningStatus += `\nFinished. Found ${this.detectedAnomalies.length} anomalies.`;
+        const improvements = this.detectedAnomalies.filter((a) => a.is_improvement).length;
+        const regressions = this.detectedAnomalies.length - improvements;
+        this.runningStatus += `\nFinished. Found ${regressions} regressions and ${improvements} improvements.`;
       } else {
         this.regressions = finalProg.results || [];
         this.runningStatus += `\nFinished. Found ${this.regressions.length} regressions.`;

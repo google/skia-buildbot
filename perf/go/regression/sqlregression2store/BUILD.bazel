@@ -18,7 +18,6 @@ go_library(
         "//perf/go/config",
         "//perf/go/regression",
         "//perf/go/sql/spanner",
-        "//perf/go/stepfit",
         "//perf/go/subscription/proto/v1",
         "//perf/go/types",
         "//perf/go/ui/frame",

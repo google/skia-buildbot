@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
@@ -163,4 +165,43 @@ func (r *Regression) GetClusterTypeAndSummaryAndTriageStatus() (ClusterType, *cl
 	} else {
 		return NoneClusterType, nil, TriageStatus{}
 	}
+}
+
+// DetermineIsImprovement returns true if the regression is an improvement.
+// It uses the improvement_direction in the paramset and the step fit status.
+// If improvement_direction is not present (or Frame is missing), it falls back to fallbackDirection.
+func (r *Regression) DetermineIsImprovement(fallbackDirection string) bool {
+	_, clusterSummary, _ := r.GetClusterTypeAndSummaryAndTriageStatus()
+	if clusterSummary == nil || clusterSummary.StepFit == nil {
+		return false
+	}
+	var paramset map[string][]string
+	if r.Frame != nil && r.Frame.DataFrame != nil {
+		paramset = r.Frame.DataFrame.ParamSet
+	}
+	return IsRegressionImprovement(paramset, clusterSummary.StepFit.Status, fallbackDirection)
+}
+
+// IsRegressionImprovement returns true if the metric has moved towards the improvement direction.
+// If paramset is nil or improvement_direction is not present, it falls back to fallbackDirection.
+func IsRegressionImprovement(paramset map[string][]string, stepFitStatus stepfit.StepFitStatus, fallbackDirection string) bool {
+	if paramset != nil {
+		if _, ok := paramset["improvement_direction"]; ok {
+			improvementDirection := paramset["improvement_direction"]
+			if len(improvementDirection) > 0 {
+				return improvementDirection[0] == "down" && stepFitStatus == stepfit.LOW || improvementDirection[0] == "up" && stepFitStatus == stepfit.HIGH
+			}
+		}
+	}
+
+	if fallbackDirection != "" {
+		if stepFitStatus == stepfit.LOW {
+			return fallbackDirection == string(alerts.DOWN)
+		}
+		if stepFitStatus == stepfit.HIGH {
+			return fallbackDirection == string(alerts.UP)
+		}
+	}
+
+	return false
 }

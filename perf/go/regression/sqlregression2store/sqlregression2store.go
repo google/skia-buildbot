@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/sql/spanner"
-	"go.skia.org/infra/perf/go/stepfit"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -1267,7 +1266,7 @@ func (s *SQLRegression2Store) populateRegression2Fields(regression *regression.R
 	medianAfter, _, _, _ := vec32.TwoSidedStdDev(clusterSummary.Centroid[regressionPointIndex:])
 	regression.MedianAfter = medianAfter
 
-	regression.IsImprovement = isRegressionImprovement(regression.Frame.DataFrame.ParamSet, clusterSummary.StepFit.Status)
+	regression.IsImprovement = regression.DetermineIsImprovement("")
 
 	return nil
 }
@@ -1290,16 +1289,6 @@ func getTraceIdFromTraceSet(traceset types.TraceSet) (string, error) {
 		break
 	}
 	return string(types.TraceIDForSQLFromTraceName(traceName)), nil
-}
-
-// isRegressionImprovement returns true if the metric has moved towards the improvement direction.
-func isRegressionImprovement(paramset map[string][]string, stepFitStatus stepfit.StepFitStatus) bool {
-	if _, ok := paramset["improvement_direction"]; ok {
-		improvementDirection := paramset["improvement_direction"]
-		return improvementDirection[0] == "down" && stepFitStatus == stepfit.LOW || improvementDirection[0] == "up" && stepFitStatus == stepfit.HIGH
-	}
-
-	return false
 }
 
 // DeleteByCommit implements the regression.Store interface. Deletes a regression via commit number.
