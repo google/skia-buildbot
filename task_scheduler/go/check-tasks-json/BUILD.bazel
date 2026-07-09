@@ -8,12 +8,10 @@ go_library(
     deps = [
         "//go/auth",
         "//go/httputils",
-        "//go/skerr",
         "//go/sklog",
         "//go/swarming/v2:swarming",
-        "//go/util",
+        "//task_scheduler/go/orphaned_tasks_machines",
         "//task_scheduler/go/specs",
-        "@org_chromium_go_luci//swarming/proto/api_v2",
         "@org_golang_x_oauth2//google",
     ],
 )
