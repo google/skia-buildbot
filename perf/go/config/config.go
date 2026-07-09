@@ -327,11 +327,6 @@ type GitRepoConfig struct {
 	// Dir is the directory into which the repo should be checked out.
 	Dir string `json:"dir"`
 
-	// FileChangeMarker is a path in the git repo to watch for changes. If the
-	// file indicated changes in a commit then a marker will be displayed on the
-	// graph at that commit.
-	FileChangeMarker string `json:"file_change_marker,omitempty"`
-
 	// DebouceCommitURL signals if a link to a Git commit needs to be specially
 	// dereferenced. That is, some repos are synthetic and just contain a single
 	// file that changes, with a commit message that is a URL that points to the

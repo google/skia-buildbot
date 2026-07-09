@@ -47,7 +47,6 @@
       "url": "https://fuchsia.googlesource.com/integration",
       "dir": "/tmp/checkout",
       "debounce_commit_url": false,
-      "file_change_marker": "",
       "start_commit": "a3b0fd61c1926bef019904ab5680aa2a78263711"
     },
     "query_config": {

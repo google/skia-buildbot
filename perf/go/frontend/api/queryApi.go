@@ -173,7 +173,6 @@ func (f *queryApi) initpageHandler(w http.ResponseWriter, _ *http.Request) {
 		DataFrame: &dataframe.DataFrame{
 			ParamSet: f.getParamSet(),
 		},
-		Skps: []int{},
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

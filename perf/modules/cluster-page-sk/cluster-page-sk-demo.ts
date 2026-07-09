@@ -56,7 +56,6 @@ fetchMock.get('/_/initpage/?tz=America/New_York', () => ({
     skip: 0,
   },
   ticks: [],
-  skps: [],
   msg: '',
 }));
 

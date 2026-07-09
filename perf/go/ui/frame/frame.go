@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/chromeperf"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/pivot"
@@ -107,7 +106,6 @@ func NewFrameRequest() *FrameRequest {
 // FrameResponse is serialized to JSON as the response to frame requests.
 type FrameResponse struct {
 	DataFrame   *dataframe.DataFrame  `json:"dataframe"`
-	Skps        []int                 `json:"skps"`
 	Msg         string                `json:"msg"`
 	DisplayMode ResponseDisplayMode   `json:"display_mode"`
 	AnomalyMap  chromeperf.AnomalyMap `json:"anomalymap"`
@@ -173,7 +171,7 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit
 	truncate := !hasValidPivot && len(req.TraceIDs) == 0
 	resp, err := ResponseFromDataFrame(ctx, req.Pivot, df, ret.perfGit, truncate, ret.request.Progress)
 	if err != nil {
-		return ret.reportError(err, "Failed to get skps.")
+		return ret.reportError(err, "Failed to get response from dataframe.")
 	}
 
 	if metadataStore != nil {
@@ -298,46 +296,15 @@ func (p *frameRequestProcess) run(ctx context.Context) (*dataframe.DataFrame, er
 	return df, nil
 }
 
-// getSkps returns the indices where the SKPs have been updated given
-// the ColumnHeaders.
-//
-// TODO(jcgregorio) Rename this functionality to something more generic.
-func getSkps(ctx context.Context, headers []*dataframe.ColumnHeader, perfGit perfgit.Git) ([]int, error) {
-	if perfGit == nil {
-		return []int{}, nil
-	}
-	if config.Config == nil || config.Config.GitRepoConfig.FileChangeMarker == "" {
-		return []int{}, nil
-	}
-	begin := types.CommitNumber(headers[0].Offset)
-	end := types.CommitNumber(headers[len(headers)-1].Offset)
-
-	commitNumbers, err := perfGit.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, begin, end, config.Config.GitRepoConfig.FileChangeMarker)
-	if err != nil {
-		return []int{}, skerr.Wrapf(err, "Failed to find skp changes for range: %d-%d", begin, end)
-	}
-	ret := make([]int, len(commitNumbers))
-	for i, n := range commitNumbers {
-		ret[i] = int(n)
-	}
-
-	return ret, nil
-}
-
 // ResponseFromDataFrame fills out the rest of a FrameResponse for the given DataFrame.
 //
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
+// TODO(mordeckimarcin) remove perfgit from here.
 func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df *dataframe.DataFrame, perfGit perfgit.Git, truncate bool, progress progress.Progress) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
-	}
-
-	// Determine where SKP changes occurred.
-	skps, err := getSkps(ctx, df.Header, perfGit)
-	if err != nil {
-		sklog.Errorf("Failed to load skps: %s", err)
 	}
 
 	// Truncate the result if it's too large.
@@ -367,7 +334,6 @@ func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df 
 
 	return &FrameResponse{
 		DataFrame:   df,
-		Skps:        skps,
 		DisplayMode: displayMode,
 	}, nil
 }

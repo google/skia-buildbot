@@ -47,7 +47,6 @@
         "provider": "gitiles",
         "url": "https://skia.googlesource.com/skia",
         "dir": "/tmp/skiaperf",
-        "debounce_commit_url": false,
-        "file_change_marker": "infra/bots/assets/skp/VERSION"
+        "debounce_commit_url": false
     }
 }

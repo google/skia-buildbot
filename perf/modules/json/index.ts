@@ -251,7 +251,6 @@ export interface Anomaly {
 
 export interface FrameResponse {
 	dataframe: DataFrame | null;
-	skps: number[] | null;
 	msg: string;
 	display_mode: FrameResponseDisplayMode;
 	anomalymap: AnomalyMap;

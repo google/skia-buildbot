@@ -374,7 +374,6 @@ export const normalTracesResponse = {
       bands: [],
     },
     ticks: [],
-    skps: [],
     msg: '',
     display_mode: 'display_plot',
     anomalymap: {
@@ -449,7 +448,6 @@ export function setUpExploreDemoEnv() {
       skip: 0,
     },
     ticks: [],
-    skps: [],
     msg: '',
   }));
 

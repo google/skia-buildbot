@@ -306,9 +306,6 @@
         "dir": {
           "type": "string"
         },
-        "file_change_marker": {
-          "type": "string"
-        },
         "debounce_commit_url": {
           "type": "boolean"
         },

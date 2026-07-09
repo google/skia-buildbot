@@ -77,7 +77,6 @@ describe('triage-page-sk', () => {
               skip: 0,
               traceMetadata: [],
             },
-            skps: [],
             msg: '',
             display_mode: 'display_plot',
             anomalymap: {},

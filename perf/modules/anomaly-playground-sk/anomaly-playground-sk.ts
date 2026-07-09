@@ -270,7 +270,6 @@ export class AnomalyPlaygroundSk extends ElementSk {
 
     const frameResponse: FrameResponse = {
       dataframe: this.dataframe,
-      skps: [],
       msg: '',
       display_mode: 'display_plot',
       anomalymap: {},
@@ -358,7 +357,6 @@ export class AnomalyPlaygroundSk extends ElementSk {
 
       const frameResponse: FrameResponse = {
         dataframe: this.dataframe,
-        skps: [],
         msg: '',
         display_mode: 'display_plot',
         anomalymap: anomalymap,

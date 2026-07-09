@@ -2914,7 +2914,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       return;
     }
 
-    const header = dataframe.header;
     if (selectedRange === null) {
       selectedRange = this.calculateSelectionFromState();
     }
@@ -2923,13 +2922,6 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       selectedRange!,
       this._state.domain as 'commit' | 'date'
     );
-    // Normalize bands to be just offsets.
-    const bands: number[] = [];
-    header!.forEach((h, i) => {
-      if (json.skps!.indexOf(h!.offset) !== -1) {
-        bands.push(i);
-      }
-    });
     const googleChart = this.googleChartPlot.value;
     if (googleChart) {
       // Populate the xbar if present.

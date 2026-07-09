@@ -21,8 +21,6 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dataframe/mocks"
-	perfgit "go.skia.org/infra/perf/go/git"
-	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/pivot"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -93,65 +91,6 @@ var testPathes = []string{testPath1, testPath2}
 var errMock = errors.New("this is my mock test error")
 
 var ctx = context.Background()
-
-func TestGetSkps_Success(t *testing.T) {
-	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, false, db, instanceConfig)
-	require.NoError(t, err)
-
-	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"
-	config.Config = instanceConfig
-
-	skps, err := getSkps(ctx, []*dataframe.ColumnHeader{
-		{
-			Offset: 0,
-		},
-		{
-			Offset: 7,
-		},
-	}, g)
-	require.NoError(t, err)
-	assert.Equal(t, []int{3, 6}, skps)
-}
-
-func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
-	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, false, db, instanceConfig)
-	require.NoError(t, err)
-
-	instanceConfig.GitRepoConfig.FileChangeMarker = ""
-	config.Config = instanceConfig
-
-	skps, err := getSkps(ctx, []*dataframe.ColumnHeader{
-		{
-			Offset: 0,
-		},
-		{
-			Offset: 7,
-		},
-	}, g)
-	require.NoError(t, err)
-	assert.Empty(t, skps)
-}
-
-func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
-	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	g, err := perfgit.New(ctx, false, db, instanceConfig)
-	require.NoError(t, err)
-
-	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"
-	config.Config = instanceConfig
-
-	_, err = getSkps(ctx, []*dataframe.ColumnHeader{
-		{
-			Offset: -3,
-		},
-		{
-			Offset: -1,
-		},
-	}, g)
-	require.Error(t, err)
-}
 
 func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
 	config.Config = &config.InstanceConfig{}

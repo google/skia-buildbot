@@ -380,7 +380,6 @@ describe('updateShortcut', () => {
         skip: 0,
       },
       ticks: [],
-      skps: [],
       msg: '',
     }));
 
@@ -473,7 +472,6 @@ describe('Default values', () => {
         skip: 0,
       },
       ticks: [],
-      skps: [],
       msg: '',
     }));
   });
@@ -703,7 +701,6 @@ describe('updateTestPickerUrl', () => {
     const initialFrameResponse: FrameResponse = {
       dataframe: initialDataFrame,
       anomalymap: {},
-      skps: [],
       msg: '',
       display_mode: 'display_plot',
     };
@@ -722,7 +719,6 @@ describe('updateTestPickerUrl', () => {
     const newFrameResponse: FrameResponse = {
       dataframe: newDataFrame,
       anomalymap: {},
-      skps: [],
       msg: '',
       display_mode: 'display_plot',
     };
@@ -935,7 +931,6 @@ describe('updateTestPickerUrl', () => {
             ],
             paramset: {},
           },
-          skps: [],
           msg: '',
         },
         messages: [],

@@ -829,7 +829,6 @@ export class ExploreMultiSk extends ElementSk {
             ),
             display_mode: 'display_plot',
             msg: '',
-            skps: [],
           };
           this.allFrameResponses[index] = updatedResponse;
           this.allFrameRequests[index] = updatedRequest;
@@ -1299,7 +1298,6 @@ export class ExploreMultiSk extends ElementSk {
       anomalymap: anomalyMap,
       display_mode: 'display_plot',
       msg: '',
-      skps: [],
     };
     return response;
   }

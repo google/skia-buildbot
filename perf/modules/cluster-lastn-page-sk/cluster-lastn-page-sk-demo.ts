@@ -52,7 +52,6 @@ fetchMock.get('/_/initpage/', () => ({
     skip: 0,
   },
   ticks: [],
-  skps: [],
   msg: '',
 }));
 

@@ -55,7 +55,6 @@
       "url": "https://turquoise-internal.googlesource.com/integration/",
       "dir": "/tmp/checkout",
       "debounce_commit_url": false,
-      "file_change_marker": "",
         "start_commit": "a6d8ddf98b7419331049209ba89e3ac06455a016"
     },
     "anomaly_config": {

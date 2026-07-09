@@ -83,7 +83,6 @@ describe('anomaly-playground-sk', () => {
         skip: 0,
       },
       ticks: [],
-      skps: [],
       msg: '',
     });
     fetchMock.post('/_/count/', {
@@ -145,7 +144,6 @@ describe('anomaly-playground-sk', () => {
         traceMetadata: [],
       },
       anomalymap: initialAnomalies,
-      skps: [],
       msg: '',
       display_mode: 'display_plot',
     };

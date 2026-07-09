@@ -40,7 +40,6 @@ const filteredResults = {
     [TRACE_KEY]: normalTracesResponse.results.anomalymap![MOCK_TRACE_KEY_1],
   },
   ticks: normalTracesResponse.results.ticks,
-  skps: normalTracesResponse.results.skps,
   msg: normalTracesResponse.results.msg,
   display_mode: normalTracesResponse.results.display_mode,
 };
