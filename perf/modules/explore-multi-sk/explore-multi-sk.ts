@@ -1635,18 +1635,18 @@ export class ExploreMultiSk extends ElementSk {
         !!this.allFrameResponses[i] ||
         (explore && Object.keys(explore.getTraceset() || {}).length > 0);
 
-      // Logic:
-      // 1. Default: Query if we are allowed to (doNotQueryData is false) AND we don't have a
-      //    response yet.
-      // 2. Manual Mode Override: If we are adding a graph (doNotQueryData is true), we DO want to
-      //    query
-      //    for the main graph (i === 0) because it's the new one and has no response yet.
-      const shouldQueryDataForThisGraph =
-        (!doNotQueryData && !hasResponse) ||
-        (this.state.manual_plot_mode && doNotQueryData && i === 0 && !hasResponse);
+      // Determine whether the graph should be flagged with doNotQueryData in its state.
+      // - Standard mode: doNotQueryData is determined by the caller (false for active graphs).
+      // - Manual plot mode:
+      //   a) Initial load / URL change (doNotQueryData = false): all graphs start with doNotQueryData = false so they fetch data.
+      //   b) Adding a graph (doNotQueryData = true): newly added graph (index 0 with no response yet) gets doNotQueryData = false, while existing graphs (index > 0) get doNotQueryData = true.
+      //   c) Re-rendering after data load or graph removal (doNotQueryData = true): graphs that already have data (hasResponse = true) retain doNotQueryData = true so that re-renders or shifting graph indices do not trigger unnecessary re-queries or rangeChangeImpl calls.
+      const graphDoNotQueryData =
+        (doNotQueryData && !this.state.manual_plot_mode) ||
+        (this.state.manual_plot_mode && doNotQueryData && (i > 0 || hasResponse));
 
       this.currentPageExploreElements.push(explore);
-      this.addStateToExplore(explore, graphConfig, !shouldQueryDataForThisGraph, i);
+      this.addStateToExplore(explore, graphConfig, graphDoNotQueryData, i);
       fragment.appendChild(explore);
     }
 
