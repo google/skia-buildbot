@@ -899,3 +899,196 @@ func TestGetGroupReportLegacy_PublicFiltering(t *testing.T) {
 	assert.Equal(t, "1", resp.Anomalies[0].Id)
 	assert.Equal(t, "3", resp.Anomalies[1].Id)
 }
+
+func TestGetAnomalyList_PublicFiltering(t *testing.T) {
+	configFileBytes := testutils.ReadFileBytes(t, "config.json")
+	err := json.Unmarshal(configFileBytes, &config.Config)
+	require.NoError(t, err)
+	anomBefore := config.Config.FetchAnomaliesFromSql
+	config.Config.FetchAnomaliesFromSql = true
+	defer func() {
+		config.Config.FetchAnomaliesFromSql = anomBefore
+	}()
+
+	loginMock := alogin_mocks.NewLogin(t)
+	subStore := subscription_mocks.NewStore(t)
+	alertStore := alerts_mock.NewStore(t)
+	regStore := reg_mocks.NewStore(t)
+
+	mockStore := visibility_store_mocks.NewStore(t)
+	mockStore.On("GetAll", mock.Anything).Return([]visibility_schema.PublicTraceRulesSchema{
+		{RuleExpression: "bot=bot-public"},
+		{RuleExpression: "benchmark=benchmark-public"},
+	}, nil).Once()
+
+	api := anomaliesApi{
+		loginProvider:        loginMock,
+		subStore:             subStore,
+		alertStore:           alertStore,
+		regStore:             regStore,
+		visibilityStore:      mockStore,
+		showOnlyPublicTraces: true,
+	}
+
+	sheriff := "test-sheriff"
+	loginMock.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@google.com"))
+
+	sub := &pb.Subscription{Name: sheriff}
+	subStore.On("GetActiveSubscription", mock.Anything, sheriff).Return(sub, nil)
+	alertStore.On("ListForSubscription", mock.Anything, sheriff).Return([]*alerts.Alert{}, nil)
+
+	regressions := []*regression.Regression{
+		{
+			Id: "1",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						",master=master1,bot=bot-public,benchmark=benchmark1,test=test1,": []float32{1.0},
+					},
+				},
+			},
+		},
+		{
+			Id: "2",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						",master=master1,bot=bot-private,benchmark=benchmark1,test=test2,": []float32{1.0},
+					},
+				},
+			},
+		},
+		{
+			Id: "3",
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						",master=master1,bot=bot-private,benchmark=benchmark-public,test=test3,": []float32{1.0},
+					},
+				},
+			},
+		},
+	}
+
+	reqPayload := regression.GetAnomalyListRequest{
+		SubName: sheriff,
+	}
+	regStore.On("GetRegressionsBySubName", mock.Anything, reqPayload, regressionsPageSize).Return(regressions, nil)
+
+	req := httptest.NewRequest("GET", "/_/anomalies/anomaly_list?sheriff="+sheriff, nil)
+	w := httptest.NewRecorder()
+
+	api.GetAnomalyList(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	var resp GetAnomaliesResponse
+	err = json.NewDecoder(w.Body).Decode(&resp)
+	require.NoError(t, err)
+
+	require.Len(t, resp.Anomalies, 2)
+	assert.Equal(t, "master1/bot-public/benchmark1/test1", resp.Anomalies[0].TestPath)
+	assert.Equal(t, "master1/bot-private/benchmark-public/test3", resp.Anomalies[1].TestPath)
+}
+
+func TestGetGroupReport_PublicFiltering(t *testing.T) {
+	configFileBytes := testutils.ReadFileBytes(t, "config.json")
+	err := json.Unmarshal(configFileBytes, &config.Config)
+	require.NoError(t, err)
+	anomBefore := config.Config.FetchAnomaliesFromSql
+	config.Config.FetchAnomaliesFromSql = true
+	defer func() {
+		config.Config.FetchAnomaliesFromSql = anomBefore
+	}()
+
+	loginMock := alogin_mocks.NewLogin(t)
+	regStore := reg_mocks.NewStore(t)
+
+	mockStore := visibility_store_mocks.NewStore(t)
+	mockStore.On("GetAll", mock.Anything).Return([]visibility_schema.PublicTraceRulesSchema{
+		{RuleExpression: "bot=bot-public"},
+		{RuleExpression: "benchmark=benchmark-public"},
+	}, nil).Once()
+
+	// Mock perfgit.Git
+	mockGit := &perfgit_mocks.Git{}
+	startCommit := provider.Commit{Timestamp: 1672531200}
+	endCommit := provider.Commit{Timestamp: 1672617600}
+	mockGit.On("CommitFromCommitNumber", mock.Anything, types.CommitNumber(12345)).Return(startCommit, nil)
+	mockGit.On("CommitFromCommitNumber", mock.Anything, types.CommitNumber(54321)).Return(endCommit, nil)
+
+	api := anomaliesApi{
+		loginProvider:        loginMock,
+		regStore:             regStore,
+		visibilityStore:      mockStore,
+		perfGit:              mockGit,
+		showOnlyPublicTraces: true,
+	}
+
+	loginMock.On("LoggedInAs", mock.Anything).Return(alogin.EMail("user@google.com"))
+
+	regressions := []*regression.Regression{
+		{
+			Id:               "1",
+			PrevCommitNumber: 12344,
+			CommitNumber:     54321,
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						",master=master1,bot=bot-public,benchmark=benchmark1,test=test1,": []float32{1.0},
+					},
+					Header: []*dataframe.ColumnHeader{
+						{Offset: 12345},
+					},
+				},
+			},
+		},
+		{
+			Id:               "2",
+			PrevCommitNumber: 12344,
+			CommitNumber:     54321,
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						",master=master1,bot=bot-private,benchmark=benchmark1,test=test2,": []float32{1.0},
+					},
+					Header: []*dataframe.ColumnHeader{
+						{Offset: 12345},
+					},
+				},
+			},
+		},
+		{
+			Id:               "3",
+			PrevCommitNumber: 12344,
+			CommitNumber:     54321,
+			Frame: &frame.FrameResponse{
+				DataFrame: &dataframe.DataFrame{
+					TraceSet: types.TraceSet{
+						",master=master1,bot=bot-private,benchmark=benchmark-public,test=test3,": []float32{1.0},
+					},
+					Header: []*dataframe.ColumnHeader{
+						{Offset: 12345},
+					},
+				},
+			},
+		},
+	}
+
+	reqBody := `{"anomalyIDs":"1"}`
+	req := httptest.NewRequest("POST", "/_/anomalies/group_report", bytes.NewBufferString(reqBody))
+	w := httptest.NewRecorder()
+
+	regStore.On("GetByIDs", mock.Anything, []string{"1"}).Return(regressions, nil)
+	regStore.On("GetBugIdsForRegressions", mock.Anything, regressions).Return(regressions, nil)
+
+	api.GetGroupReport(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	var resp GetGroupReportResponse
+	err = json.NewDecoder(w.Body).Decode(&resp)
+	require.NoError(t, err)
+
+	require.Len(t, resp.Anomalies, 2)
+	assert.Equal(t, "master1/bot-public/benchmark1/test1", resp.Anomalies[0].TestPath)
+	assert.Equal(t, "master1/bot-private/benchmark-public/test3", resp.Anomalies[1].TestPath)
+}

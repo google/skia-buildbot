@@ -539,6 +539,15 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if api.showOnlyPublicTraces {
+		filtered, err := api.filterAnomaliesByPublicRules(ctx, getAnomaliesResponse.Anomalies)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to filter anomalies by public rules.", http.StatusInternalServerError)
+			return
+		}
+		getAnomaliesResponse.Anomalies = filtered
+	}
+
 	if err := json.NewEncoder(w).Encode(getAnomaliesResponse); err != nil {
 		httputils.ReportError(w, err, "Failed to write get anomalies response.", http.StatusInternalServerError)
 		return
@@ -604,6 +613,16 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to clean up test name by regex.", http.StatusInternalServerError)
 		sklog.Debugf("[SkiaTriage] Failed to clean up test name by regex: %v", err)
 		return
+	}
+
+	if api.showOnlyPublicTraces {
+		filtered, err := api.filterAnomaliesByPublicRules(ctx, groupReportResponse.Anomalies)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to filter anomalies by public rules.", http.StatusInternalServerError)
+			sklog.Debugf("[SkiaTriage] Failed to filter anomalies by public rules: %v", err)
+			return
+		}
+		groupReportResponse.Anomalies = filtered
 	}
 
 	if groupReportRequest.Sid != "" || groupReportRequest.AnomalyIDs != "" {
