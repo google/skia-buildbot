@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"os/user"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -89,7 +90,12 @@ func main() {
 	}
 	defer c.Close()
 
-	w := worker.New(c, *taskQueue, worker.Options{})
+	workerOpts := worker.Options{}
+	if buildID := os.Getenv("TEMPORAL_WORKER_BUILD_ID"); buildID != "" {
+		workerOpts.BuildID = buildID
+		workerOpts.UseBuildIDForVersioning = true
+	}
+	w := worker.New(c, *taskQueue, workerOpts)
 
 	// Only register writeback activity if flag is set to true
 	// TODO(b/439651172) Consider setting to always true when database is fully
@@ -134,6 +140,9 @@ func main() {
 	w.RegisterActivity(internal.CheckCombinedCommitEqualActivity)
 	w.RegisterActivity(internal.ReportStatusActivity)
 	w.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
+
+	// TODO(sergeirudenkov): remove this after Demo
+	w.RegisterWorkflow(DemoVersioningWorkflow)
 
 	w.RegisterActivity(internal.FindAvailableBotsActivity)
 	w.RegisterActivity(internal.ComparePairwiseActivity)
