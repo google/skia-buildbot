@@ -50,6 +50,7 @@ const DropSpannerIndices = `
   DROP INDEX IF EXISTS by_trace_id_tv2;
   DROP INDEX IF EXISTS by_commit_and_prev_commit;
 	DROP INDEX IF EXISTS by_trace_id_and_commit;
+	DROP INDEX IF EXISTS by_traceid_commit_number_desc_include_val;
   DROP INDEX IF EXISTS idx_alerts_subname;
   DROP INDEX IF EXISTS by_sub_name_creation_time;
 	DROP INDEX IF EXISTS by_sub_name_triage_status_creation_time_asc;
@@ -83,6 +84,14 @@ CREATE TABLE IF NOT EXISTS AnomalyGroups (
   reported_issue_id TEXT,
   culprit_ids TEXT ARRAY,
   last_modified_time TIMESTAMPTZ,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
+CREATE TABLE IF NOT EXISTS Autobisections (
+  job_id TEXT PRIMARY KEY,
+  anomaly_group_id TEXT,
+  anomaly_id TEXT,
+	regression_status TEXT,
+	workflow_id TEXT,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Commits (

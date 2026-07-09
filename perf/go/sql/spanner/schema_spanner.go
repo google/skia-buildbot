@@ -216,6 +216,7 @@ CREATE INDEX IF NOT EXISTS by_trace_id_and_commit on Regressions2 (trace_id, com
 CREATE INDEX IF NOT EXISTS by_legacy_key on Regressions2 (legacy_key);
 CREATE INDEX IF NOT EXISTS by_source_file on SourceFiles (source_file, source_file_id);
 CREATE INDEX IF NOT EXISTS by_source_file_id on TraceValues (source_file_id, trace_id);
+CREATE INDEX IF NOT EXISTS by_traceid_commit_number_desc_include_val on TraceValues (trace_id, commit_number DESC) INCLUDE(val);
 CREATE INDEX IF NOT EXISTS by_trace_id_tv2 on TraceValues2 (trace_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3);
 `
 

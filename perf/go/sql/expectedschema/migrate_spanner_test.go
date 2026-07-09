@@ -121,6 +121,7 @@ func Test_TraceParamsRemoveColAndIdx_Spanner(t *testing.T) {
 	assert.Equal(t, 0, len(actualIdxs))
 }
 
+// TODO(mordeckimarcin) this is duplicated in sql_test.go in perf/go/sql
 const dropAllTablesAndIndices = `
   DROP INDEX IF EXISTS by_revision;
   DROP INDEX IF EXISTS by_user_id;
@@ -135,6 +136,7 @@ const dropAllTablesAndIndices = `
   DROP INDEX IF EXISTS by_trace_id_tv2;
   DROP INDEX IF EXISTS by_commit_and_prev_commit;
   DROP INDEX IF EXISTS by_trace_id_and_commit;
+  DROP INDEX IF EXISTS by_traceid_commit_number_desc_include_val;
   DROP INDEX IF EXISTS idx_alerts_subname;
   DROP INDEX IF EXISTS by_sub_name_creation_time;
   DROP INDEX IF EXISTS by_sub_name_triage_status_creation_time_asc;

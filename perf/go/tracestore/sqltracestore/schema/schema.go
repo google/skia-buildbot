@@ -7,12 +7,13 @@ import (
 
 // TraceValuesSchema describes the SQL schema of the TraceValues table.
 type TraceValuesSchema struct {
-	TraceID           []byte   `sql:"trace_id BYTES"`
-	CommitNumber      int64    `sql:"commit_number INT"`
-	Value             float32  `sql:"val REAL"`
-	SourceFileID      int64    `sql:"source_file_id INT"`
-	primaryKey        struct{} `sql:"PRIMARY KEY (trace_id, commit_number)"`
-	bySourceFileIndex struct{} `sql:"INDEX by_source_file_id (source_file_id, trace_id)"`
+	TraceID              []byte   `sql:"trace_id BYTES"`
+	CommitNumber         int64    `sql:"commit_number INT"`
+	Value                float32  `sql:"val REAL"`
+	SourceFileID         int64    `sql:"source_file_id INT"`
+	primaryKey           struct{} `sql:"PRIMARY KEY (trace_id, commit_number)"`
+	bySourceFileIndex    struct{} `sql:"INDEX by_source_file_id (source_file_id, trace_id)"`
+	byTraceIDCNDescIndex struct{} `sql:"INDEX by_traceid_commit_number_desc_include_val (trace_id, commit_number DESC) INCLUDE(val)"`
 }
 
 type TraceValues2Schema struct {
