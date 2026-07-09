@@ -59,7 +59,7 @@
         "start_commit": "a6d8ddf98b7419331049209ba89e3ac06455a016"
     },
     "anomaly_config": {
-      "use_anomaly_localization": true
+      "default_refiner": "anomaly_bounds"
     },
     "query_config": {
       "include_params": [

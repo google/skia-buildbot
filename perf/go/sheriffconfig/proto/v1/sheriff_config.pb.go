@@ -734,6 +734,8 @@ type AnomalyConfig struct {
 	// This is a replacement for step and threshold.
 	// Specifying both step/threshold and detection_rule is a config validation error.
 	DetectionRule *AnomalyDetectionRule `protobuf:"bytes,12,opt,name=detection_rule,json=detectionRule,proto3" json:"detection_rule,omitempty"`
+	// Name of the regression refiner to use.
+	Refiner       *string `protobuf:"bytes,13,opt,name=refiner,proto3,oneof" json:"refiner,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -850,6 +852,13 @@ func (x *AnomalyConfig) GetDetectionRule() *AnomalyDetectionRule {
 		return x.DetectionRule
 	}
 	return nil
+}
+
+func (x *AnomalyConfig) GetRefiner() string {
+	if x != nil && x.Refiner != nil {
+		return *x.Refiner
+	}
+	return ""
 }
 
 // A Subscription describes a configuration through which we determine:
@@ -1063,7 +1072,7 @@ const file_sheriff_config_proto_rawDesc = "" +
 	"\fcomplex_rule\x18\x01 \x01(\v2\x1e.sheriff_config.v1.ComplexRuleH\x00R\vcomplexRule\x12D\n" +
 	"\vsimple_rule\x18\x02 \x01(\v2!.sheriff_config.v1.AlgorithmCheckH\x00R\n" +
 	"simpleRuleB\x06\n" +
-	"\x04rule\"\x91\a\n" +
+	"\x04rule\"\xbc\a\n" +
 	"\rAnomalyConfig\x129\n" +
 	"\x04step\x18\x01 \x01(\x0e2%.sheriff_config.v1.AnomalyConfig.StepR\x04step\x12\x1b\n" +
 	"\x06radius\x18\x02 \x01(\x05H\x00R\x06radius\x88\x01\x01\x12\x1c\n" +
@@ -1078,7 +1087,8 @@ const file_sheriff_config_proto_rawDesc = "" +
 	"\x04algo\x18\n" +
 	" \x01(\x0e2%.sheriff_config.v1.AnomalyConfig.AlgoR\x04algo\x12.\n" +
 	"\x05rules\x18\v \x01(\v2\x18.sheriff_config.v1.RulesR\x05rules\x12N\n" +
-	"\x0edetection_rule\x18\f \x01(\v2'.sheriff_config.v1.AnomalyDetectionRuleR\rdetectionRule\"\x9a\x01\n" +
+	"\x0edetection_rule\x18\f \x01(\v2'.sheriff_config.v1.AnomalyDetectionRuleR\rdetectionRule\x12\x1d\n" +
+	"\arefiner\x18\r \x01(\tH\x05R\arefiner\x88\x01\x01\"\x9a\x01\n" +
 	"\x04Step\x12\x11\n" +
 	"\rORIGINAL_STEP\x10\x00\x12\x11\n" +
 	"\rABSOLUTE_STEP\x10\x01\x12\x0e\n" +
@@ -1108,7 +1118,9 @@ const file_sheriff_config_proto_rawDesc = "" +
 	"\f_minimum_numB\t\n" +
 	"\a_sparseB\x04\n" +
 	"\x02_kB\v\n" +
-	"\t_group_by\"\xe5\x04\n" +
+	"\t_group_byB\n" +
+	"\n" +
+	"\b_refiner\"\xe5\x04\n" +
 	"\fSubscription\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
 	"\rcontact_email\x18\x02 \x01(\tR\fcontactEmail\x12\x1d\n" +

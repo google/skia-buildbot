@@ -423,13 +423,9 @@ type AnomalyConfig struct {
 	// or attributed to a series of different CLs as new data arrives.
 	SettlingTime DurationAsString `json:"settling_time,omitempty"`
 
-	// UseAnomalyLocalization enables the new AnomalyBoundsRefiner logic.
-	// If false, the traditional DefaultRegressionRefiner is used.
-	UseAnomalyLocalization bool `json:"use_anomaly_localization,omitempty"`
-
-	// UseImprovedAnomalyBoundsRefiner enables the improved anomaly bounds refiner logic.
-	// This is an experimental flag.
-	UseImprovedAnomalyBoundsRefiner bool `json:"use_improved_anomaly_bounds_refiner,omitempty"`
+	// DefaultRefiner specifies the name of the default regression refiner to use.
+	// Supported values: "default", "anomaly_bounds", "improved". "changepoint" is a future supported value.
+	DefaultRefiner string `json:"default_refiner,omitempty"`
 
 	// StepFitUnaligned enables unaligned step fitting.
 	// This is an experimental flag.

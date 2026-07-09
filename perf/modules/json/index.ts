@@ -51,6 +51,7 @@ export interface Alert {
 	action?: AlertAction;
 	sub_name?: string;
 	sub_revision?: string;
+	refiner?: string;
 }
 
 export interface AlertsStatus {

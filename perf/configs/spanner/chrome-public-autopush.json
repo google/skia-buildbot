@@ -26,7 +26,7 @@
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     },
     "anomaly_config": {
-        "use_anomaly_localization": true
+        "default_refiner": "anomaly_bounds"
     },
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"

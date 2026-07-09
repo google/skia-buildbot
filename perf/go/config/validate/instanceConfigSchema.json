@@ -8,11 +8,8 @@
         "settling_time": {
           "$ref": "#/$defs/DurationAsString"
         },
-        "use_anomaly_localization": {
-          "type": "boolean"
-        },
-        "use_improved_anomaly_bounds_refiner": {
-          "type": "boolean"
+        "default_refiner": {
+          "type": "string"
         },
         "stepfit_unaligned": {
           "type": "boolean"

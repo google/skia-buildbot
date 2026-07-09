@@ -301,7 +301,7 @@ func TestNewDataFrameIterator_RefinerInsufficientData_ReturnsError(t *testing.T)
 	query := "arch=x86"
 	pc := &progressCapture{}
 	anomalyConfig := config.AnomalyConfig{
-		UseAnomalyLocalization: true,
+		DefaultRefiner: "anomaly_bounds",
 	}
 	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, query, domain, alert, anomalyConfig, nil)
 	require.Error(t, err)
@@ -323,7 +323,7 @@ func TestNewDataFrameIterator_ImprovedRefinerInsufficientData_ReturnsError(t *te
 	query := "arch=x86"
 	pc := &progressCapture{}
 	anomalyConfig := config.AnomalyConfig{
-		UseImprovedAnomalyBoundsRefiner: true,
+		DefaultRefiner: "improved",
 	}
 	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, pc.callback, query, domain, alert, anomalyConfig, nil)
 	require.Error(t, err)
@@ -504,7 +504,7 @@ func TestNewDataFrameIterator_OffsetWithRefiner_Success(t *testing.T) {
 	}
 	q := "arch=x86"
 	anomalyConfig := config.AnomalyConfig{
-		UseAnomalyLocalization: true,
+		DefaultRefiner: "anomaly_bounds",
 	}
 
 	// 100 + 10 = 110.
@@ -551,7 +551,7 @@ func TestNewDataFrameIterator_OffsetZeroWithRefiner_InsufficientData(t *testing.
 	}
 	q := "arch=x86"
 	anomalyConfig := config.AnomalyConfig{
-		UseAnomalyLocalization: true,
+		DefaultRefiner: "anomaly_bounds",
 	}
 
 	// Radius is 10, so minPoints = 3.5 * Radius = 35.
@@ -589,7 +589,7 @@ func TestNewDataFrameIterator_OffsetZeroWithRefiner_Success(t *testing.T) {
 	}
 	q := "arch=x86"
 	anomalyConfig := config.AnomalyConfig{
-		UseAnomalyLocalization: true,
+		DefaultRefiner: "anomaly_bounds",
 	}
 
 	// Radius is 10, so minPoints = 3.5 * Radius = 35.

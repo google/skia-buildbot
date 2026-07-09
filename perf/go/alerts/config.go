@@ -176,6 +176,9 @@ type Alert struct {
 	// Subscription fields.
 	SubscriptionName     string `json:"sub_name,omitempty"`
 	SubscriptionRevision string `json:"sub_revision,omitempty"`
+
+	// Refiner overrides the default refiner for this specific alert configuration.
+	Refiner string `json:"refiner,omitempty"`
 }
 
 type AlertsStatus struct {

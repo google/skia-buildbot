@@ -453,6 +453,11 @@ func createAlert(query string, anomalyConfig *pb.AnomalyConfig, subscription *pb
 		groupBy = *anomalyConfig.GroupBy
 	}
 
+	refiner := ""
+	if anomalyConfig.Refiner != nil {
+		refiner = *anomalyConfig.Refiner
+	}
+
 	cfg := &alerts.Alert{
 		IDAsString:  "-1",
 		DisplayName: query,
@@ -479,6 +484,7 @@ func createAlert(query string, anomalyConfig *pb.AnomalyConfig, subscription *pb
 
 		SubscriptionName:     subscription.Name,
 		SubscriptionRevision: revision,
+		Refiner:              refiner,
 	}
 	return cfg
 }

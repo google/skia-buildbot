@@ -516,12 +516,12 @@ func TestRangeFiltered_Overlap(t *testing.T) {
 	)
 	alertsProvider := alerts_mock.NewConfigProvider(t)
 
-	// Enable UseAnomalyLocalization to use the new range overlap query
+	// Enable anomaly_bounds refiner to use the new range overlap query
 	instanceConfig := &config.InstanceConfig{
 		AllowMultipleRegressionsPerAlertId: true,
 		Experiments:                        config.Experiments{RegressionsTraceIdField: false},
 		AnomalyConfig: config.AnomalyConfig{
-			UseAnomalyLocalization: true,
+			DefaultRefiner: "anomaly_bounds",
 		},
 	}
 	db := sqltest.NewSpannerDBForTests(t, "regstore")

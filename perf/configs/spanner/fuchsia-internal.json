@@ -51,7 +51,7 @@
       "fallback_to_lucicfg": false
     },
     "anomaly_config": {
-      "use_anomaly_localization": true
+      "default_refiner": "anomaly_bounds"
     },
     "git_repo_config": {
       "provider": "gitiles",

@@ -137,7 +137,11 @@ func NewDataFrameIterator(
 	// For single-commit validation (domain.IsSingleCommitMode() is true), we only query a window of size
 	// windowSize, so minPoints must stay at windowSize. We only increase the required
 	// minPoints for refinement/localization when performing continuous detection (!domain.IsSingleCommitMode()).
-	if !domain.IsSingleCommitMode() && (anomalyConfig.UseAnomalyLocalization || anomalyConfig.UseImprovedAnomalyBoundsRefiner) {
+	refinerName := alert.Refiner
+	if refinerName == "" {
+		refinerName = anomalyConfig.DefaultRefiner
+	}
+	if !domain.IsSingleCommitMode() && (refinerName == "anomaly_bounds" || refinerName == "improved") {
 		refinerMinPoints := int(math.Ceil(minRadiusRatioForRefinement * float64(alert.Radius)))
 		if refinerMinPoints > minPoints {
 			minPoints = refinerMinPoints

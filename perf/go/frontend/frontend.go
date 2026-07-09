@@ -949,20 +949,8 @@ func (f *Frontend) initialize() {
 
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
-	var regressionRefiner regression.RegressionRefiner
-	if config.Config.AnomalyConfig.UseImprovedAnomalyBoundsRefiner {
-		regressionRefiner = refiner.NewImprovedAnomalyBoundsRefiner(f.anomalyStore, f.regStore, f.traceStore, f.perfGit, config.MinStdDev, false)
-	} else if config.Config.AnomalyConfig.UseAnomalyLocalization {
-		regressionRefiner = refiner.NewAnomalyBoundsRefiner(config.MinStdDev)
-	} else {
-		regressionRefiner = refiner.NewDefaultRegressionRefiner()
-	}
-
-	var dryRunRefiner regression.RegressionRefiner
-	dryRunRefiner = regressionRefiner
-	if config.Config.AnomalyConfig.UseImprovedAnomalyBoundsRefiner {
-		dryRunRefiner = refiner.NewImprovedAnomalyBoundsRefiner(f.anomalyStore, f.regStore, f.traceStore, f.perfGit, config.MinStdDev, true)
-	}
+	regressionRefiner := f.resolveRegressionRefiner(false)
+	dryRunRefiner := f.resolveRegressionRefiner(true)
 
 	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider, dryRunRefiner)
 
@@ -1581,4 +1569,38 @@ func (f *Frontend) GetTemplates() *template.Template {
 // MockDistHandler serves the /dist files using the production logic.
 func (f *Frontend) MockDistHandler(w http.ResponseWriter, r *http.Request) {
 	f.makeDistHandler()(w, r)
+}
+
+type delegatingRegressionRefiner struct {
+	refiners map[string]regression.RegressionRefiner
+}
+
+func (f *Frontend) resolveRegressionRefiner(dryRun bool) regression.RegressionRefiner {
+	refiners := map[string]regression.RegressionRefiner{
+		"improved":       refiner.NewImprovedAnomalyBoundsRefiner(f.anomalyStore, f.regStore, f.traceStore, f.perfGit, config.MinStdDev, dryRun),
+		"anomaly_bounds": refiner.NewAnomalyBoundsRefiner(config.MinStdDev),
+		"default":        refiner.NewDefaultRegressionRefiner(),
+	}
+
+	return &delegatingRegressionRefiner{
+		refiners: refiners,
+	}
+}
+
+func (d *delegatingRegressionRefiner) Process(ctx context.Context, cfg *alerts.Alert, responses []*regression.RegressionDetectionResponse) ([]*regression.ConfirmedRegression, error) {
+	refinerName := cfg.Refiner
+	if refinerName == "" {
+		refinerName = config.Config.AnomalyConfig.DefaultRefiner
+	}
+
+	if refinerName == "" {
+		refinerName = "default"
+	}
+
+	actualRefiner, ok := d.refiners[refinerName]
+	if !ok {
+		actualRefiner = d.refiners["default"]
+	}
+
+	return actualRefiner.Process(ctx, cfg, responses)
 }
