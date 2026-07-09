@@ -312,6 +312,12 @@ export class ChartTooltipSk extends LitElement {
               <span id="tooltip-text"> ${this.anomaly!.multiplicity} </span>
             </li>`
           : ''}
+        ${this.anomaly!.is_legacy
+          ? html` <li>
+              <span id="tooltip-key">Legacy anomaly</span>
+              <span id="tooltip-text"> </span>
+            </li>`
+          : ''}
         ${this.anomaly!.bug_id
           ? html` <li>
               <span id="tooltip-key">Bug ID</span>

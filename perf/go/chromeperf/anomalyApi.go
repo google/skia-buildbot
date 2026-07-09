@@ -86,6 +86,7 @@ type Anomaly struct {
 	BisectIDs           []string `json:"bisect_ids"`
 	Timestamp           string   `json:"timestamp,omitempty"`
 	Multiplicity        int      `json:"multiplicity,omitempty"`
+	IsLegacy            bool     `json:"is_legacy,omitempty"`
 }
 
 // UnmarshalJSON handles the fact that anomaly IDs can be sent as either a

@@ -246,6 +246,7 @@ export interface Anomaly {
 	bisect_ids: string[] | null;
 	timestamp?: string;
 	multiplicity?: number;
+	is_legacy?: boolean;
 }
 
 export interface FrameResponse {

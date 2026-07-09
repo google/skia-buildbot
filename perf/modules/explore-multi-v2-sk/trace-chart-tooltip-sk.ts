@@ -815,6 +815,13 @@ export class TraceChartTooltipSk extends LitElement {
                     </div>
                   `
                 : ''}
+              ${(regression as any).is_legacy
+                ? html`
+                    <div class="tooltip-row">
+                      <strong>Legacy anomaly</strong>
+                    </div>
+                  `
+                : ''}
               ${(regression as any).bisect_ids && (regression as any).bisect_ids.length > 0
                 ? html`
                     <div class="tooltip-row">
