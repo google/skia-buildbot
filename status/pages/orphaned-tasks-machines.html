@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{.Title}}</title>
+    <link
+      id="dynamicFavicon"
+      rel="shortcut icon"
+      href="/dist/img/favicon-open.ico"
+    />
+    <script>
+      window.StatusSettings = {
+        swarmingUrl: '{{.SwarmingURL}}',
+        logsUrlTemplate: '{{.LogsURLTemplate}}',
+        taskSchedulerUrl: '{{.TaskSchedulerURL}}',
+        defaultRepo: '{{.DefaultRepo}}',
+        repos: new Map([
+          {{range $repo, $url := .Repos}}
+            ['{{$repo}}', '{{$url}}'],
+          {{end}}
+        ]),
+        repoToProject: new Map([
+          {{range $repo, $project := .RepoToProject}}
+            ['{{$repo}}', '{{$project}}'],
+          {{end}}
+        ]),
+      };
+    </script>
+  </head>
+  <body class="body-sk">
+    <orphaned-tasks-machines-sk></orphaned-tasks-machines-sk>
+  </body>
+</html>

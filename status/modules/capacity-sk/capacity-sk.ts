@@ -21,6 +21,7 @@ import '../../../elements-sk/modules/icons/dashboard-icon-sk';
 import '../../../elements-sk/modules/icons/devices-icon-sk';
 import '../../../elements-sk/modules/icons/arrow-drop-down-icon-sk';
 import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
+import '../navigation-sk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
@@ -94,24 +95,7 @@ export class CapacitySk extends ElementSk {
       </header>
       <aside>
         <div>
-          <div class="table">
-            <a class="tr" href="/">
-              <span class="td">
-                <dashboard-icon-sk class="icon"></dashboard-icon-sk> Status Tree
-              </span>
-            </a>
-            <a class="tr" href="https://goto.google.com/skbl">
-              <span class="td">
-                <devices-icon-sk class="icon"></devices-icon-sk> Swarming Bots
-              </span>
-            </a>
-            <a class="tr" href="/capacity">
-              <span class="td">
-                <battery-charging-80-icon-sk class="icon"></battery-charging-80-icon-sk>
-                Capacity Stats
-              </span>
-            </a>
-          </div>
+          <navigation-sk></navigation-sk>
         </div>
       </aside>
 

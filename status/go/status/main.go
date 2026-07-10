@@ -19,7 +19,6 @@ import (
 	"sync"
 	"text/template"
 	"time"
-	"unicode"
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
@@ -53,6 +52,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	"go.skia.org/infra/task_scheduler/go/orphaned_tasks_machines"
 	"go.skia.org/infra/task_scheduler/go/window"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -66,20 +66,22 @@ const (
 )
 
 var (
-	autogardenerDB      autogardener_db.AutoGardenerDB = nil
-	autorollMtx         sync.RWMutex
-	autorollStatusTwirp *rpc.GetAutorollerStatusesResponse = nil
-	capacityClient      *capacity.CapacityClientImpl       = nil
-	capacityTemplate    *template.Template                 = nil
-	commitsTemplate     *template.Template                 = nil
-	iCache              *incremental.IncrementalCacheImpl  = nil
-	lkgrObj             *lkgr.LKGR                         = nil
-	taskDb              db.RemoteDB                        = nil
-	taskDriverDb        task_driver_db.DB                  = nil
-	taskDriverLogs      *logs.LogsManager                  = nil
-	tasksPerCommit      *tasksPerCommitCache               = nil
-	tCache              cache.TaskCache                    = nil
-	plogin              alogin.Login
+	autogardenerDB             autogardener_db.AutoGardenerDB = nil
+	autorollMtx                sync.RWMutex
+	autorollStatusTwirp        *rpc.GetAutorollerStatusesResponse = nil
+	capacityClient             *capacity.CapacityClientImpl       = nil
+	capacityTemplate           *template.Template                 = nil
+	commitsTemplate            *template.Template                 = nil
+	tasksMachinesTemplate      *template.Template                 = nil
+	iCache                     *incremental.IncrementalCacheImpl  = nil
+	lkgrObj                    *lkgr.LKGR                         = nil
+	taskDb                     db.RemoteDB                        = nil
+	taskDriverDb               task_driver_db.DB                  = nil
+	taskDriverLogs             *logs.LogsManager                  = nil
+	tasksPerCommit             *tasksPerCommitCache               = nil
+	tCache                     cache.TaskCache                    = nil
+	plogin                     alogin.Login
+	orphanedTasksMachinesCache *orphaned_tasks_machines.Cache = nil
 
 	// autorollerIDsToNames maps autoroll frontend host to maps of roller IDs to
 	// their human-friendly display names.
@@ -113,7 +115,6 @@ var (
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	secretProject               = flag.String("secret-project", "skia-infra-public", "Name of the GCP project used for secret management.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
 	taskLogsUrlTemplate         = flag.String("task_logs_url_template", "https://ci.chromium.org/raw/build/logs.chromium.org/{{LogsProject}}/{{TaskID}}/+/annotations", "Template URL for direct link to logs, with {{LogsProject}} and {{TaskID}} as placeholders.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
@@ -128,16 +129,6 @@ var (
 	repoNameToProject map[string]string
 )
 
-// StringIsInteresting returns true iff the string contains non-whitespace characters.
-func StringIsInteresting(s string) bool {
-	for _, c := range s {
-		if !unicode.IsSpace(c) {
-			return true
-		}
-	}
-	return false
-}
-
 func reloadTemplates() {
 	// Change the current working directory to two directories up from this source file so that we
 	// can read templates and serve static (res/) files.
@@ -150,6 +141,9 @@ func reloadTemplates() {
 	))
 	capacityTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "dist", "capacity.html"),
+	))
+	tasksMachinesTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "dist", "orphaned-tasks-machines.html"),
 	))
 }
 
@@ -316,11 +310,13 @@ func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter.With(httputils.LoggingGzipRequestResponse).Route("/", func(r chi.Router) {
 		r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
 		r.HandleFunc("/capacity", capacityHandler)
+		r.HandleFunc("/orphaned-tasks-machines", orphanedTasksMachinesHandler)
 		r.HandleFunc("/lkgr", lkgrHandler)
 		r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 		r.HandleFunc("/dist/*", httputils.MakeResourceHandler(*resourcesDir))
 		handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 		r.HandleFunc("/json/task-summary/{taskId}", taskSummaryHandler)
+		r.HandleFunc("/json/orphaned-tasks-machines", orphanedTasksMachinesCache.Handler())
 	})
 	var h http.Handler = topLevelRouter
 	if !*testing {
@@ -440,6 +436,13 @@ func main() {
 	capacityClient = capacity.New(tasksPerCommit.tcc, tCache, repos)
 	capacityClient.StartLoading(ctx, *capacityRecalculateInterval)
 
+	// Orphaned tasks/machines.
+	orphanedTasksMachinesCache, err = orphaned_tasks_machines.New(ctx, *swarmingUrl)
+	if err != nil {
+		sklog.Fatalf("failed to create orphaned tasks/machines cache: %s", err)
+	}
+	orphanedTasksMachinesCache.Start(ctx, 10*time.Minute)
+
 	// Periodically obtain the autoroller statuses.
 	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatalf("Failed to initialize datastore: %s", err)
@@ -515,4 +518,37 @@ func main() {
 
 	// Run the server.
 	runServer(serverURL, twirpServer)
+}
+
+func orphanedTasksMachinesHandler(w http.ResponseWriter, _ *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	defaultRepo := repoUrlToName((*repoUrls)[0])
+
+	if *testing {
+		reloadTemplates()
+	}
+
+	d := struct {
+		Title            string
+		SwarmingURL      string
+		LogsURLTemplate  string
+		TaskSchedulerURL string
+		DefaultRepo      string
+		Repos            map[string]string
+		RepoToProject    map[string]string
+	}{
+		Title:            "Orphaned Tasks/Machines",
+		SwarmingURL:      *swarmingUrl,
+		LogsURLTemplate:  *taskLogsUrlTemplate,
+		TaskSchedulerURL: *taskSchedulerUrl,
+		DefaultRepo:      defaultRepo,
+		Repos:            repoURLsByName,
+		RepoToProject:    repoNameToProject,
+	}
+
+	if err := tasksMachinesTemplate.Execute(w, d); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
+	}
 }

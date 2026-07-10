@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "orphaned_tasks_machines",
@@ -6,10 +7,31 @@ go_library(
     importpath = "go.skia.org/infra/task_scheduler/go/orphaned_tasks_machines",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/git",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/metrics2",
         "//go/skerr",
+        "//go/sklog",
         "//go/swarming/v2:swarming",
         "//go/util",
         "//task_scheduler/go/specs",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "orphaned_tasks_machines_test",
+    srcs = ["orphaned_tasks_machines_test.go"],
+    embed = [":orphaned_tasks_machines"],
+    deps = [
+        "//go/swarming/v2/mocks",
+        "//task_scheduler/go/specs",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )

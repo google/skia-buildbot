@@ -1,0 +1,92 @@
+@use '../styles';
+
+orphaned-tasks-machines-sk {
+  font-size: 16px;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 5px 0 20px;
+  }
+
+  td,
+  th {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+
+  th {
+    background-color: var(--surface-1dp);
+    font-weight: bold;
+  }
+
+  h2 {
+    margin-top: 30px;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 5px;
+  }
+
+  ul {
+    margin: 5px 0;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 3px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    margin-right: 5px;
+  }
+
+  .loading-msg {
+    padding: 20px;
+    font-style: italic;
+    color: var(--secondary);
+    font-size: 18px;
+  }
+
+  .error-msg {
+    padding: 20px;
+    background: var(--failure-alpha);
+    color: var(--on-failure);
+    border-radius: 4px;
+    margin: 10px;
+  }
+
+  alogin-sk * {
+    color: var(--header-font-color) !important;
+  }
+
+  a {
+    color: var(--primary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .dimension-tag {
+    display: inline-block;
+    background: var(--surface-2dp);
+    border: 1px solid var(--surface-1dp);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    margin: 2px;
+    font-family: monospace;
+  }
+}
+
+.darkmode {
+  orphaned-tasks-machines-sk {
+    --sidebar-background-color: var(--surface-1dp);
+  }
+}

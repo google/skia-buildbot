@@ -2,16 +2,28 @@ package orphaned_tasks_machines
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"golang.org/x/oauth2/google"
 )
 
 type Report struct {
@@ -30,6 +42,18 @@ type Group struct {
 type Machine struct {
 	ID         string
 	Dimensions []string
+}
+
+func GenerateReportFromGitiles(ctx context.Context, gitilesRepo gitiles.GitilesRepo, swarm swarmingv2.SwarmingV2Client) (*Report, error) {
+	contents, err := gitilesRepo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, git.MainBranch)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to read tasks.json from tip of main")
+	}
+	tasksCfg, err := specs.ParseTasksCfg(string(contents))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to parse tasks.json")
+	}
+	return GenerateReport(ctx, tasksCfg, swarm)
 }
 
 func GenerateReport(ctx context.Context, tasksCfg *specs.TasksCfg, swarm swarmingv2.SwarmingV2Client) (*Report, error) {
@@ -198,4 +222,68 @@ func findLastTask(ctx context.Context, swarm swarmingv2.SwarmingV2Client, taskNa
 		}
 	}
 	return lastTask, nil
+}
+
+// Cache is used for repeatedly generating reports.
+type Cache struct {
+	mtx         sync.RWMutex
+	repo        gitiles.GitilesRepo
+	report      *Report
+	swarmClient swarmingv2.SwarmingV2Client
+}
+
+func New(ctx context.Context, swarmingURL string) (*Cache, error) {
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	gitilesRepo, err := gitiles.NewRepoWithClient(common.REPO_SKIA, client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	u, err := url.Parse(swarmingURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	swarmClient := swarmingv2.NewDefaultClient(client, u.Host)
+	return &Cache{
+		swarmClient: swarmClient,
+		repo:        gitilesRepo,
+	}, nil
+}
+
+func (c *Cache) Start(ctx context.Context, interval time.Duration) {
+	go util.RepeatCtx(ctx, interval, func(ctx context.Context) {
+		sklog.Info("Generating orphaned tasks/machines report")
+		report, err := GenerateReportFromGitiles(ctx, c.repo, c.swarmClient)
+		if err != nil {
+			sklog.Errorf("Failed to generating orphaned tasks/machines report: %s", err)
+			return
+		}
+		c.mtx.Lock()
+		defer c.mtx.Unlock()
+		c.report = report
+		sklog.Info("Successfully generated orphaned tasks/machines report")
+	})
+}
+
+func (c *Cache) Handler() http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		defer metrics2.FuncTimer().Stop()
+		w.Header().Set("Content-Type", "application/json")
+
+		c.mtx.RLock()
+		defer c.mtx.RUnlock()
+
+		if c.report == nil {
+			_, _ = w.Write([]byte(`{"status": "loading"}`))
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(c.report); err != nil {
+			httputils.ReportError(w, err, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	}
 }

@@ -15,3 +15,11 @@ sk_page(
     sk_element_deps = ["//status/modules/status-sk"],
     ts_entry_point = "status.ts",
 )
+
+sk_page(
+    name = "orphaned-tasks-machines",
+    assets_serving_path = "/dist",
+    html_file = "orphaned-tasks-machines.html",
+    sk_element_deps = ["//status/modules/orphaned-tasks-machines-sk"],
+    ts_entry_point = "orphaned-tasks-machines.ts",
+)
