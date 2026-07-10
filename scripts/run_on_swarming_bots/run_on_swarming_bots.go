@@ -144,7 +144,7 @@ func main() {
 	}
 
 	// Trigger the task on each bot.
-	cmd := []string{"python", "-u", scriptName}
+	cmd := []string{"python3", "-u", scriptName}
 	group := fmt.Sprintf("%s_%s", *taskName, uuid.New())
 	tags := []string{
 		fmt.Sprintf("group:%s", group),
