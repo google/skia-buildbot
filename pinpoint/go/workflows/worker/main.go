@@ -94,6 +94,11 @@ func main() {
 	if buildID := os.Getenv("TEMPORAL_WORKER_BUILD_ID"); buildID != "" {
 		workerOpts.BuildID = buildID
 		workerOpts.UseBuildIDForVersioning = true
+		if deploymentName := os.Getenv("TEMPORAL_DEPLOYMENT_NAME"); deploymentName != "" {
+			workerOpts.DeploymentOptions = worker.DeploymentOptions{
+				DeploymentSeriesName: deploymentName,
+			}
+		}
 	}
 	w := worker.New(c, *taskQueue, workerOpts)
 

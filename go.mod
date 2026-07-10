@@ -103,8 +103,8 @@ require (
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/bridge/opencensus v1.34.0
 	go.opentelemetry.io/otel/sdk v1.37.0
-	go.temporal.io/api v1.38.0
-	go.temporal.io/sdk v1.29.1
+	go.temporal.io/api v1.43.0
+	go.temporal.io/sdk v1.32.1
 	go.temporal.io/sdk/contrib/opentelemetry v0.5.0
 	golang.org/x/exp v0.0.0-20250210185358-939b2ce775ac
 	golang.org/x/net v0.43.0
@@ -224,7 +224,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
-	github.com/nexus-rpc/sdk-go v0.0.10 // indirect
+	github.com/nexus-rpc/sdk-go v0.1.0 // indirect
 	github.com/nxadm/tail v1.4.5 // indirect
 	github.com/onsi/ginkgo v1.14.2 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
