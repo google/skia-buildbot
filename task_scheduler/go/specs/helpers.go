@@ -309,3 +309,9 @@ func (b *TasksCfgBuilder) MustFinish() {
 		os.Exit(1)
 	}
 }
+
+// Config returns a copy of the stored TasksCfg. Intended to be run for
+// additional testing after Finish() is called.
+func (b *TasksCfgBuilder) Config() *TasksCfg {
+	return b.cfg.Copy()
+}
