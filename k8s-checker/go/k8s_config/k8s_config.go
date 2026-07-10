@@ -9,6 +9,7 @@ import (
 	batch "k8s.io/api/batch/v1beta1"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 )
 
@@ -24,6 +25,7 @@ const (
 	ServiceKind            = "Service"
 	ServiceAccountKind     = "ServiceAccount"
 	StatefulSetKind        = "StatefulSet"
+	WorkerDeploymentKind   = "WorkerDeployment"
 
 	// Unsupported kinds.
 	BackendConfigKind        = "BackendConfig"
@@ -47,6 +49,20 @@ type K8sConfigFile struct {
 	Service            []*core.Service
 	ServiceAccount     []*core.ServiceAccount
 	StatefulSet        []*apps.StatefulSet
+	WorkerDeployment   []*TemporalWorkerDeployment
+}
+
+// TemporalWorkerDeployment is a minimal representation of the Temporal
+// WorkerDeployment CRD used for deploying workers.
+type TemporalWorkerDeployment struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec TemporalWorkerDeploymentSpec `json:"spec,omitempty"`
+}
+
+type TemporalWorkerDeploymentSpec struct {
+	Template core.PodTemplateSpec `json:"template"`
 }
 
 type ByteRange struct {
@@ -200,6 +216,13 @@ func parseYamlDoc(yamlDoc []byte, rv *K8sConfigFile) (interface{}, error) {
 			return nil, skerr.Wrapf(err, "failed to parse config file")
 		}
 		rv.StatefulSet = append(rv.StatefulSet, v)
+		return v, nil
+	case WorkerDeploymentKind:
+		v := new(TemporalWorkerDeployment)
+		if err := yaml.Unmarshal(yamlDoc, v); err != nil {
+			return nil, skerr.Wrapf(err, "failed to parse config file")
+		}
+		rv.WorkerDeployment = append(rv.WorkerDeployment, v)
 		return v, nil
 	case BackendConfigKind, ClusterPodMonitoringKind, ClusterRulesKind, ConfigMapKind, IngressKind, OperatorConfigKind, PodDisruptionBudgetKind, StorageClassKind:
 		// We ignore these Kinds because we don't do anything with them at

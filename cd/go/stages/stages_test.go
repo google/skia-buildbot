@@ -529,3 +529,46 @@ spec:
 	require.Contains(t, err.Error(), "updating containers of status")
 	assertFileContents(t, ctx, fs, deploymentPath, initialDeploymentContentsWithDuplicateImages)
 }
+
+func TestPromoteStage_WorkerDeployment(t *testing.T) {
+	ctx, sm, fs, _, _, cleanup := setup(t)
+	defer cleanup()
+
+	workerDeploymentYAML := `
+apiVersion: temporal.io/v1alpha1
+kind: WorkerDeployment
+metadata:
+  name: perf-bisect-worker
+  namespace: perf
+spec:
+  template:
+    metadata:
+      annotations:
+        skia.org/stage: 'status:prod'
+    spec:
+      containers:
+        - name: status
+          image: gcr.io/skia-public/status@sha256:1a1ea5d8514940de464c7893c6ba1ceb847b711a06dba6a940b15d30ea06db45
+`
+	workerDeploymentPath := "skia-infra-public-dev/perf-bisect-worker.yaml"
+	require.NoError(t, vfs.WriteFile(ctx, fs, workerDeploymentPath, []byte(workerDeploymentYAML)))
+
+	require.NoError(t, sm.PromoteStage(ctx, fakeImage, "latest", "prod"))
+
+	assertFileContents(t, ctx, fs, workerDeploymentPath, `
+apiVersion: temporal.io/v1alpha1
+kind: WorkerDeployment
+metadata:
+  name: perf-bisect-worker
+  namespace: perf
+spec:
+  template:
+    metadata:
+      annotations:
+        skia.org/stage: 'status:prod'
+    spec:
+      containers:
+        - name: status
+          image: gcr.io/skia-public/status@sha256:4a75315fabbfe385da4cdebc9d0db6a742ef8d41319fe3100dd435a6e4bc58c2
+`)
+}

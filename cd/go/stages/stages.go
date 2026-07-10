@@ -335,6 +335,11 @@ func updateK8sConfig(sf *StageFile, k8sConfig *k8s_config.K8sConfigFile, byteRan
 			return nil, skerr.Wrap(err)
 		}
 	}
+	for _, workerDeployment := range k8sConfig.WorkerDeployment {
+		if err := update(workerDeployment, workerDeployment.Name, &workerDeployment.Spec.Template); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
 	return newContents, nil
 }
 
