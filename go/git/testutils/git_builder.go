@@ -19,11 +19,12 @@ import (
 
 // GitBuilder creates commits and branches in a git repo.
 type GitBuilder struct {
-	t      sktest.TestingT
-	dir    string
-	branch string
-	git    string
-	rng    *rand.Rand
+	t               sktest.TestingT
+	dir             string
+	branch          string
+	git             string
+	rng             *rand.Rand
+	DisableAutoPush bool
 }
 
 // GitInit calls GitInitWithDefaultBranch with MainBranch.
@@ -126,6 +127,11 @@ func (g *GitBuilder) push(ctx context.Context) {
 	g.Git(ctx, "push", git_common.DefaultRemote, g.branch)
 }
 
+// Push pushes the current branch to the default remote.
+func (g *GitBuilder) Push(ctx context.Context) {
+	g.push(ctx)
+}
+
 // genString returns a string with arbitrary content.
 func (g *GitBuilder) genString() string {
 	return fmt.Sprintf("%d", g.rng.Int())
@@ -156,7 +162,9 @@ func (g *GitBuilder) CommitMsgAt(ctx context.Context, msg string, time time.Time
 		Args: []string{"commit", "-m", msg},
 		Env:  []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", time.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", time.Unix())},
 	})
-	g.push(ctx)
+	if !g.DisableAutoPush {
+		g.push(ctx)
+	}
 	return g.lastCommitHash(ctx)
 }
 

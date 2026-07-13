@@ -13,7 +13,6 @@ go_library(
         "//perf/go/git/provider",
         "//perf/go/git/providers/git_checkout",
         "//perf/go/sql/sqltest",
-        "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
 )

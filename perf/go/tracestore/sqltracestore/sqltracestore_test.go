@@ -2,6 +2,9 @@ package sqltracestore
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -10,15 +13,72 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sql/pool"
+	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 )
+
+// Note: Tests in this file should not use t.Parallel() because they share the same Spanner database
+// instance and rely on clearDatabase being called between test runs.
+var (
+	sharedDB         pool.Pool
+	sharedDBOnce     sync.Once
+	sharedGitCtx     context.Context
+	sharedGitConfig  *config.InstanceConfig
+	sharedGitOnce    sync.Once
+	sharedGitCleanup func()
+)
+
+func TestMain(m *testing.M) {
+	code := m.Run()
+	if sharedDB != nil {
+		sharedDB.Close()
+	}
+	if sharedGitCleanup != nil {
+		sharedGitCleanup()
+	}
+	os.Exit(code)
+}
+
+func getSharedDB(t *testing.T) pool.Pool {
+	sharedDBOnce.Do(func() {
+		sharedDB = sqltest.NewSpannerDBForTestsWithCleanup(t, "tracestore", false)
+	})
+	if sharedDB == nil {
+		t.Fatalf("Failed to initialize shared database.")
+	}
+	return sharedDB
+}
+
+func getSharedGit(t *testing.T, db pool.Pool) (context.Context, *config.InstanceConfig) {
+	sharedGitOnce.Do(func() {
+		var err error
+		sharedGitCtx, _, _, _, sharedGitConfig, sharedGitCleanup = gittest.NewForTestWithDBNoCleanup(t, db)
+		_, err = git.New(sharedGitCtx, false, db, sharedGitConfig)
+		require.NoError(t, err)
+	})
+	return sharedGitCtx, sharedGitConfig
+}
+
+func clearDatabase(t *testing.T, db pool.Pool) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	for _, tableName := range schema.TableNames(sql.Tables{}) {
+		if tableName == "commits" {
+			continue
+		}
+		_, err := db.Exec(ctx, fmt.Sprintf("DELETE FROM %s", tableName))
+		require.NoError(t, err)
+	}
+}
 
 const (
 	// e is a shorter more readable stand-in for the wordy vec32.MISSING_DATA_SENTINEL.
@@ -42,7 +102,9 @@ var (
 
 func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore) {
 	ctx := context.Background()
-	db := sqltest.NewSpannerDBForTests(t, "tracestore")
+	db := getSharedDB(t)
+	clearDatabase(t, db)
+
 	traceParamStore := NewTraceParamStore(db)
 	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
 	require.NoError(t, err)
@@ -59,9 +121,10 @@ func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTr
 }
 
 func commonTestSetupWithCommits(t *testing.T) (context.Context, *SQLTraceStore) {
-	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
-	_, err := git.New(ctx, false, db, instanceConfig)
-	require.NoError(t, err)
+	db := getSharedDB(t)
+	clearDatabase(t, db)
+
+	ctx, _ := getSharedGit(t, db)
 
 	traceParamStore := NewTraceParamStore(db)
 	inMemoryTraceParams, err := NewInMemoryTraceParams(ctx, db, 12*60*60, false)
@@ -795,7 +858,8 @@ func TestGetSourceIds_Success(t *testing.T) {
 
 func TestGetParamSet_ShowOnlyPublicTraces_Success(t *testing.T) {
 	ctx := context.Background()
-	db := sqltest.NewSpannerDBForTests(t, "tracestore")
+	db := getSharedDB(t)
+	clearDatabase(t, db)
 	traceStore := NewTraceParamStore(db)
 
 	publicTraceName := ",arch=x86,config=8888,"
@@ -853,7 +917,8 @@ func TestGetParamSet_ShowOnlyPublicTraces_Success(t *testing.T) {
 
 func TestVisibilityDirectLookup_ShowOnlyPublicTraces_BypassesBlocked(t *testing.T) {
 	ctx := context.Background()
-	db := sqltest.NewSpannerDBForTests(t, "tracestore")
+	db := getSharedDB(t)
+	clearDatabase(t, db)
 	traceStore := NewTraceParamStore(db)
 
 	publicTraceName := ",arch=x86,config=8888,"

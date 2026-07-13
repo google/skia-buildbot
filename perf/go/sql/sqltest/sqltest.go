@@ -19,8 +19,15 @@ import (
 )
 
 // NewSpannerDBForTests returns a connection to a local spanner emulator database to
-// be used for executing unit tests.
+// be used for executing unit tests. The database will be automatically closed
+// after the test finishes.
 func NewSpannerDBForTests(t *testing.T, databaseNamePrefix string) pool.Pool {
+	return NewSpannerDBForTestsWithCleanup(t, databaseNamePrefix, true)
+}
+
+// NewSpannerDBForTestsWithCleanup returns a connection to a local spanner emulator database.
+// If useCleanup is true, the database will be automatically closed after the test finishes.
+func NewSpannerDBForTestsWithCleanup(t *testing.T, databaseNamePrefix string, useCleanup bool) pool.Pool {
 	// Ensure that both spanner emulator and pgadapter are running first.
 	gcp_emulator.RequireSpanner(t)
 	pgadapter.Require(t)
@@ -44,10 +51,16 @@ func NewSpannerDBForTests(t *testing.T, databaseNamePrefix string) pool.Pool {
 			fmt.Printf("Error while applying database migration: %v", err)
 		}
 		return err == nil
-	}, 30*time.Second, 1*time.Second)
+	}, 10*time.Second, 1*time.Second)
 	// Wrap the db pool in a ContextTimeout which checks that every context has
 	// a timeout.
 	conn := timeout.New(rawConn)
+
+	if useCleanup {
+		t.Cleanup(func() {
+			conn.Close()
+		})
+	}
 
 	return conn
 }
