@@ -96,7 +96,8 @@ func main() {
 		workerOpts.UseBuildIDForVersioning = true
 		if deploymentName := os.Getenv("TEMPORAL_DEPLOYMENT_NAME"); deploymentName != "" {
 			workerOpts.DeploymentOptions = worker.DeploymentOptions{
-				DeploymentSeriesName: deploymentName,
+				DeploymentSeriesName:      deploymentName,
+				DefaultVersioningBehavior: workflow.VersioningBehaviorAutoUpgrade,
 			}
 		}
 	}
