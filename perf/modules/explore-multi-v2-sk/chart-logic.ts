@@ -301,9 +301,19 @@ export function computeTraceDiffs(
 
 export function computeSplitGroups(
   series: { id: string; rows: any[] }[],
-  splitKeys: Set<string>
-): { id: string; title: string; series: { id: string; rows: any[] }[] }[] {
+  splitKeys: Set<string>,
+  splitAll?: boolean
+): { id: string; title: string; series: { id: string; rows: any[] }[]; values: string[] }[] {
   if (series.length === 0) return [];
+
+  if (splitAll) {
+    return series.map((s) => ({
+      id: s.id,
+      title: s.id,
+      series: [s],
+      values: [s.id],
+    }));
+  }
 
   const effectiveKeys = Array.from(splitKeys);
 
@@ -360,11 +370,7 @@ export function computeSplitGroups(
       return 0;
     });
 
-  return sortedGroups.map((g) => ({
-    id: g.id,
-    title: g.title,
-    series: g.series,
-  }));
+  return sortedGroups;
 }
 
 /**

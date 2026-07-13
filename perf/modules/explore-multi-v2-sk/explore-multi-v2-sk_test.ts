@@ -101,12 +101,14 @@ describe('explore-multi-v2-sk', () => {
   });
 
   it('syncs all toolbar checkboxes to URL', async () => {
-    (element as any)._showSparklines = true;
-    (element as any)._showRegressions = false;
+    element.showSparklines = true;
+    element.onlyRegressions = true;
+    element.splitAll = true;
+    element.showRegressions = false;
     (element as any)._tooltipDiffs = true;
     (element as any).dateMode = true;
     (element as any)._tracePage = 3;
-    (element as any)._pageSize = 25;
+    element.pageSize = 25;
     (element as any)._showAllTraces = true;
     (element as any)._selectedSubrepo = 'Skia';
     (element as any)._edgeDetectionFactor = 0.75;
@@ -117,6 +119,8 @@ describe('explore-multi-v2-sk', () => {
 
     const url = new URL(window.location.href);
     expect(url.searchParams.get('sparklines')).to.equal('true');
+    expect(url.searchParams.get('onlyRegressions')).to.equal('true');
+    expect(url.searchParams.get('splitAll')).to.equal('true');
     expect(url.searchParams.get('regressions')).to.equal('false');
     expect(url.searchParams.get('tooltipDiffs')).to.equal('true');
     expect(url.searchParams.get('dateMode')).to.equal('true');
@@ -135,6 +139,16 @@ describe('explore-multi-v2-sk', () => {
     };
 
     stateChangedCalled = false;
+    element.onlyRegressions = true;
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
+
+    stateChangedCalled = false;
+    element.splitAll = true;
+    await element.updateComplete;
+    expect(stateChangedCalled).to.be.true;
+
+    stateChangedCalled = false;
     element['dateMode'] = true;
     await element.updateComplete;
     expect(stateChangedCalled).to.be.true;
@@ -145,7 +159,7 @@ describe('explore-multi-v2-sk', () => {
     expect(stateChangedCalled).to.be.true;
 
     stateChangedCalled = false;
-    element['_pageSize'] = 50;
+    element.pageSize = 50;
     await element.updateComplete;
     expect(stateChangedCalled).to.be.true;
 
@@ -279,7 +293,7 @@ describe('explore-multi-v2-sk', () => {
       element['_seriesData'] = [];
       element['_matchingTraceIds'] = ['t1'];
       element['_tracePage'] = 0;
-      element['_pageSize'] = 10;
+      element.pageSize = 10;
 
       await element['_fetchData'](element['_latestRequestId']);
 
@@ -310,7 +324,7 @@ describe('explore-multi-v2-sk', () => {
     try {
       element['_matchingTraceIds'] = ['t1'];
       element['_tracePage'] = 0;
-      element['_pageSize'] = 10;
+      element.pageSize = 10;
       element['_seriesData'] = [{ id: 't1', rows: [], color: '#fff' }];
       element['_loadedBounds'] = { t1: { min: 100000, max: 104000 } };
       element['_globalBounds'] = { t1: { min: 90000, max: 110000 } };
@@ -342,7 +356,7 @@ describe('explore-multi-v2-sk', () => {
     try {
       element['_matchingTraceIds'] = ['t1'];
       element['_tracePage'] = 0;
-      element['_pageSize'] = 10;
+      element.pageSize = 10;
       element['_seriesData'] = [];
       element['_loadedBounds'] = {};
       element['_globalBounds'] = {};
@@ -377,7 +391,7 @@ describe('explore-multi-v2-sk', () => {
     try {
       element['_matchingTraceIds'] = ['t1'];
       element['_tracePage'] = 0;
-      element['_pageSize'] = 10;
+      element.pageSize = 10;
       element['_seriesData'] = [
         {
           id: 't1',
@@ -538,7 +552,7 @@ describe('explore-multi-v2-sk', () => {
     try {
       element['_matchingTraceIds'] = Array.from({ length: 20 }, (_, i) => `t${i}`);
       element['_tracePage'] = 0;
-      element['_pageSize'] = 10;
+      element.pageSize = 10;
       element['_seriesData'] = [];
 
       await element.updateComplete;
@@ -657,7 +671,7 @@ describe('explore-multi-v2-sk', () => {
 
       expect(newElement.dateMode).to.be.true;
       expect((newElement as any)._evenXAxisSpacing).to.be.true;
-      expect((newElement as any)._showSparklines).to.be.true;
+      expect(newElement.showSparklines).to.be.true;
       expect((newElement as any)._showZero).to.be.true;
 
       document.body.removeChild(newElement);
@@ -867,7 +881,7 @@ describe('explore-multi-v2-sk', () => {
     try {
       element['_matchingTraceIds'] = [',benchmark=A,test=B,stat=value,'];
       element['_tracePage'] = 0;
-      element['_pageSize'] = 10;
+      element.pageSize = 10;
       element['_seriesData'] = [
         {
           id: ',benchmark=A,test=B,stat=value,',
@@ -937,7 +951,7 @@ describe('explore-multi-v2-sk', () => {
     try {
       element['_matchingTraceIds'] = [',benchmark=A,test=B,'];
       element['_tracePage'] = 0;
-      element['_pageSize'] = 10;
+      element.pageSize = 10;
       element['_seriesData'] = [{ id: ',benchmark=A,test=B,', rows: [], color: '#fff' }];
       element['_loadedBounds'] = { ',benchmark=A,test=B,': { min: 100, max: 200 } };
       element['_globalBounds'] = {};
@@ -995,7 +1009,7 @@ describe('explore-multi-v2-sk', () => {
     try {
       element['_matchingTraceIds'] = [',benchmark=A,test=B,stat=median,'];
       element['_tracePage'] = 0;
-      element['_pageSize'] = 10;
+      element.pageSize = 10;
       element['_seriesData'] = [
         { id: ',benchmark=A,test=B,stat=median,', rows: [], color: '#fff' },
       ];
@@ -1472,7 +1486,7 @@ describe('explore-multi-v2-sk', () => {
 
       try {
         element['_tracePage'] = 0;
-        element['_pageSize'] = 10;
+        element.pageSize = 10;
         element['_seriesData'] = [];
 
         // Start Fetch 1 (requestId = 1)
@@ -1774,7 +1788,7 @@ describe('explore-multi-v2-sk', () => {
       element['_formulasPerQuery'] = [['fill', 'ave'], []];
       element['_matchingTraceIds'] = [',bot=linux32,stat=value,', ',bot=linux64,stat=value,'];
       element['_tracePage'] = 0;
-      element['_pageSize'] = 10;
+      element.pageSize = 10;
 
       await element.updateComplete;
       await element['_fetchData'](element['_latestRequestId']);

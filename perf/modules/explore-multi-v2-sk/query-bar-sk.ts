@@ -142,6 +142,10 @@ export class QueryBarSk extends LitElement {
 
   @property({ type: Array }) pipeline: string[] = [];
 
+  @property({ type: Boolean }) onlyRegressions = false;
+
+  @property({ type: Boolean }) splitAll = false;
+
   @property({ type: Array }) externalSuggestions: Suggestion[] | null = null;
 
   @state() private _showFormulaPopover = false;
@@ -1518,6 +1522,42 @@ export class QueryBarSk extends LitElement {
         </div>
 
         <div class="query-actions" @click=${(e: Event) => e.stopPropagation()}>
+          ${(window as any).perf?.enable_only_regressions_option
+            ? html`
+                <md-icon-button
+                  class="qb-only-regressions-btn ${this.onlyRegressions ? 'active' : ''}"
+                  @click=${(e: Event) => {
+                    e.stopPropagation();
+                    this.dispatchEvent(
+                      new CustomEvent('toggle-only-regressions', { bubbles: true, composed: true })
+                    );
+                  }}
+                  title=${this.onlyRegressions
+                    ? 'Show all traces'
+                    : 'Filter to traces with regressions only'}
+                  aria-label="Toggle only regressions">
+                  <md-icon>${this.onlyRegressions ? 'filter_alt' : 'filter_alt_off'}</md-icon>
+                </md-icon-button>
+              `
+            : ''}
+          ${(window as any).perf?.enable_split_all_option
+            ? html`
+                <md-icon-button
+                  class="qb-split-all-btn ${this.splitAll ? 'active' : ''}"
+                  @click=${(e: Event) => {
+                    e.stopPropagation();
+                    this.dispatchEvent(
+                      new CustomEvent('toggle-split-all', { bubbles: true, composed: true })
+                    );
+                  }}
+                  title=${this.splitAll
+                    ? 'Group traces into shared graphs'
+                    : 'Split every trace into its own graph'}
+                  aria-label="Toggle split all traces">
+                  <md-icon>${this.splitAll ? 'view_module' : 'grid_view'}</md-icon>
+                </md-icon-button>
+              `
+            : ''}
           <md-icon-button
             class="qb-clone-query-btn"
             @click=${(e: Event) => {

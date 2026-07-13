@@ -891,5 +891,23 @@ describe('ReportPageSk', () => {
       assert.isTrue(redirectStub.calledOnce);
       assert.include(redirectStub.firstCall.args[0], 'v2=false');
     });
+
+    it('groups anomalies by common path in V2 mode', async () => {
+      await initializeElement();
+      const key1 = (element as any).getCommonPathGroupKey('ChromiumPerf/linux/jetstream/test1');
+      const key2 = (element as any).getCommonPathGroupKey('ChromiumPerf/linux/jetstream/test2');
+      const key3 = (element as any).getCommonPathGroupKey('ChromiumPerf/linux/jetstream2/test3');
+      const key4 = (element as any).getCommonPathGroupKey(',arch=arm,config=8888,test=test1,');
+      const key5 = (element as any).getCommonPathGroupKey(',arch=arm,config=8888,test=test2,');
+
+      assert.strictEqual(key1, 'ChromiumPerf/linux/jetstream');
+      assert.strictEqual(key2, 'ChromiumPerf/linux/jetstream');
+      assert.strictEqual(key3, 'ChromiumPerf/linux/jetstream2');
+      assert.strictEqual(key1, key2);
+      assert.notEqual(key1, key3);
+      assert.strictEqual(key4, ',arch=arm,config=8888,');
+      assert.strictEqual(key5, ',arch=arm,config=8888,');
+      assert.strictEqual(key4, key5);
+    });
   });
 });

@@ -499,6 +499,12 @@
         "default_to_explore_v2": {
           "type": "boolean"
         },
+        "enable_only_regressions_option": {
+          "type": "boolean"
+        },
+        "enable_split_all_option": {
+          "type": "boolean"
+        },
         "default_to_manual_plot_mode": {
           "type": "boolean"
         },

@@ -102,4 +102,15 @@ describe('computeSplitGroups', () => {
     expect(groups.length).to.equal(1);
     expect(groups[0].title).to.equal('benchmark=A');
   });
+
+  it('should split every trace into its own graph when splitAll is true', () => {
+    const series = [
+      { id: 'benchmark=A,unit=ms', rows: [] },
+      { id: 'benchmark=A,unit=s', rows: [] },
+    ];
+    const groups = computeSplitGroups(series as any, new Set(), true);
+    expect(groups.length).to.equal(2);
+    expect(groups[0].id).to.equal('benchmark=A,unit=ms');
+    expect(groups[1].id).to.equal('benchmark=A,unit=s');
+  });
 });

@@ -85,6 +85,10 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @property({ type: Array }) highlightAnomalies: string[] = [];
 
+  @property({ type: Boolean }) onlyRegressions = false;
+
+  @property({ type: Boolean }) splitAll = false;
+
   @state() private _queriesExpanded = false;
 
   @state() private _formulasPerQuery: string[][] = [[]];
@@ -214,6 +218,10 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @property({ type: Boolean }) dateMode = false;
 
+  @property({ type: Boolean }) showSparklines = false;
+
+  @property({ type: Number }) pageSize = 10;
+
   @state() private _edgeDetectionFactor = 1.0;
 
   @state() private _edgeLookahead = 3;
@@ -242,11 +250,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @state() private _diffBase: { key: string; value: string } | null = null;
 
-  @state() private _pageSize = 10;
-
-  @state() private _showRegressions = true;
-
-  @state() private _showSparklines = false;
+  @property({ type: Boolean }) showRegressions = true;
 
   @state() private _summaryLoading = false;
 
@@ -324,16 +328,18 @@ export class ExploreMultiV2Sk extends LitElement {
           dots: this._showDots,
           split: Array.from(this.splitKeys).join(','),
           diff_base: this._diffBase ? `${this._diffBase.key}=${this._diffBase.value}` : '',
-          sparklines: this._showSparklines,
+          sparklines: this.showSparklines,
+          onlyRegressions: this.onlyRegressions,
+          splitAll: this.splitAll,
 
-          regressions: this._showRegressions,
+          regressions: this.showRegressions,
           tooltipDiffs: this._tooltipDiffs,
           evenXAxisSpacing: this._evenXAxisSpacing,
           showZero: this._showZero,
           transformPreset: this._transformPreset,
           dateMode: this.dateMode,
           page: this._tracePage,
-          pageSize: this._pageSize,
+          pageSize: this.pageSize,
           showAll: this._showAllTraces,
           subrepo: this._selectedSubrepo,
           edgeFactor: this._edgeDetectionFactor,
@@ -416,9 +422,11 @@ export class ExploreMultiV2Sk extends LitElement {
         } else {
           this._diffBase = null;
         }
-        if (stateObj.sparklines !== undefined) this._showSparklines = stateObj.sparklines;
+        if (stateObj.sparklines !== undefined) this.showSparklines = stateObj.sparklines;
+        if (stateObj.onlyRegressions !== undefined) this.onlyRegressions = stateObj.onlyRegressions;
+        if (stateObj.splitAll !== undefined) this.splitAll = stateObj.splitAll;
 
-        if (stateObj.regressions !== undefined) this._showRegressions = stateObj.regressions;
+        if (stateObj.regressions !== undefined) this.showRegressions = stateObj.regressions;
         if (stateObj.tooltipDiffs !== undefined) this._tooltipDiffs = stateObj.tooltipDiffs;
         if (stateObj.evenXAxisSpacing !== undefined)
           this._evenXAxisSpacing = stateObj.evenXAxisSpacing;
@@ -427,7 +435,7 @@ export class ExploreMultiV2Sk extends LitElement {
           this._transformPreset = stateObj.transformPreset;
         if (stateObj.dateMode !== undefined) this.dateMode = stateObj.dateMode;
         if (stateObj.page !== undefined) this._tracePage = stateObj.page;
-        if (stateObj.pageSize !== undefined) this._pageSize = stateObj.pageSize;
+        if (stateObj.pageSize !== undefined) this.pageSize = stateObj.pageSize;
         if (stateObj.showAll !== undefined) this._showAllTraces = stateObj.showAll;
         if (stateObj.subrepo !== undefined) this._selectedSubrepo = stateObj.subrepo;
         if (stateObj.edgeFactor !== undefined) this._edgeDetectionFactor = stateObj.edgeFactor;
@@ -981,10 +989,16 @@ export class ExploreMultiV2Sk extends LitElement {
         this._showDots = stringToBool(urlVals.dots);
       }
       if (urlVals.sparklines !== undefined && !urlParams.has('sparklines')) {
-        this._showSparklines = stringToBool(urlVals.sparklines);
+        this.showSparklines = stringToBool(urlVals.sparklines);
+      }
+      if (urlVals.onlyRegressions !== undefined && !urlParams.has('onlyRegressions')) {
+        this.onlyRegressions = stringToBool(urlVals.onlyRegressions);
+      }
+      if (urlVals.splitAll !== undefined && !urlParams.has('splitAll')) {
+        this.splitAll = stringToBool(urlVals.splitAll);
       }
       if (urlVals.regressions !== undefined && !urlParams.has('regressions')) {
-        this._showRegressions = stringToBool(urlVals.regressions);
+        this.showRegressions = stringToBool(urlVals.regressions);
       }
       if (urlVals.tooltipDiffs !== undefined && !urlParams.has('tooltipDiffs')) {
         this._tooltipDiffs = stringToBool(urlVals.tooltipDiffs);
@@ -1005,7 +1019,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
     const pageOrSizeChanged =
       changedProperties.has('_tracePage') ||
-      changedProperties.has('_pageSize') ||
+      changedProperties.has('pageSize') ||
       changedProperties.has('_showAllTraces');
 
     const needsNewRequest = queriesChanged || (!queriesChanged && pageOrSizeChanged);
@@ -1054,7 +1068,7 @@ export class ExploreMultiV2Sk extends LitElement {
     if (
       changedProperties.has('_seriesData') ||
       (!queriesChanged &&
-        (changedProperties.has('_tracePage') || changedProperties.has('_pageSize')))
+        (changedProperties.has('_tracePage') || changedProperties.has('pageSize')))
     ) {
       if (this._debounceDelay === 0) {
         void this._fetchMetadataForVisibleTraces(currentRequestId);
@@ -1078,21 +1092,26 @@ export class ExploreMultiV2Sk extends LitElement {
       changedProperties.has('_showDots') ||
       changedProperties.has('splitKeys') ||
       changedProperties.has('_diffBase') ||
-      changedProperties.has('_showSparklines') ||
+      changedProperties.has('showSparklines') ||
+      changedProperties.has('onlyRegressions') ||
+      changedProperties.has('splitAll') ||
       changedProperties.has('dateMode') ||
       changedProperties.has('_tracePage') ||
-      changedProperties.has('_pageSize') ||
+      changedProperties.has('pageSize') ||
       changedProperties.has('_showAllTraces') ||
       changedProperties.has('_selectedSubrepo') ||
       changedProperties.has('_edgeDetectionFactor') ||
       changedProperties.has('_edgeLookahead') ||
-      changedProperties.has('_showRegressions') ||
+      changedProperties.has('showRegressions') ||
       changedProperties.has('_tooltipDiffs') ||
       changedProperties.has('_evenXAxisSpacing') ||
       changedProperties.has('begin') ||
       changedProperties.has('end')
     ) {
       this._stateHasChanged();
+      this.dispatchEvent(
+        new CustomEvent('explore-state-change', { bubbles: true, composed: true })
+      );
     }
   }
 
@@ -1292,8 +1311,8 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   private _getVisibleTraceIds(): string[] {
-    const startIdx = this._tracePage * this._pageSize;
-    const endIdx = startIdx + this._pageSize;
+    const startIdx = this._tracePage * this.pageSize;
+    const endIdx = startIdx + this.pageSize;
     return this._showAllTraces
       ? this._matchingTraceIds.slice(0, MAX_VISIBLE_TRACES)
       : this._matchingTraceIds.slice(startIdx, endIdx);
@@ -1548,7 +1567,7 @@ export class ExploreMultiV2Sk extends LitElement {
   }
 
   private _handleToggleRegressions(e: any) {
-    this._showRegressions = e.target.checked;
+    this.showRegressions = e.target.checked;
   }
 
   private _getRegressionCommitBounds(
@@ -1874,8 +1893,8 @@ export class ExploreMultiV2Sk extends LitElement {
     const detail = e.detail as { minCommit: number; maxCommit: number };
     const { minCommit, maxCommit } = detail;
 
-    const startIdx = this._tracePage * this._pageSize;
-    const endIdx = startIdx + this._pageSize;
+    const startIdx = this._tracePage * this.pageSize;
+    const endIdx = startIdx + this.pageSize;
     const visibleIds = this._matchingTraceIds.slice(startIdx, endIdx);
     const loadedIds = new Set(this._seriesData.map((s) => s.id));
 
@@ -2674,8 +2693,8 @@ export class ExploreMultiV2Sk extends LitElement {
     if (requestId !== this._latestRequestId) return;
     if (!this._seriesData || this._seriesData.length === 0) return;
 
-    const startIdx = this._tracePage * this._pageSize;
-    const endIdx = startIdx + this._pageSize;
+    const startIdx = this._tracePage * this.pageSize;
+    const endIdx = startIdx + this.pageSize;
     const currentVisibleIds = new Set(
       this._matchingTraceIds.slice(startIdx, endIdx).map((id) => this._getPrimaryKey(id))
     );
@@ -2831,14 +2850,11 @@ export class ExploreMultiV2Sk extends LitElement {
       displaySeries = computeCustomTransforms(displaySeries, this._transformPreset);
     }
 
-    const totalMatchedPages = Math.max(
-      1,
-      Math.ceil(this._matchingTraceIds.length / this._pageSize)
-    );
+    const totalMatchedPages = Math.max(1, Math.ceil(this._matchingTraceIds.length / this.pageSize));
     const clampedPage = Math.max(0, Math.min(this._tracePage, totalMatchedPages - 1));
 
-    const startIdx = clampedPage * this._pageSize;
-    const endIdx = startIdx + this._pageSize;
+    const startIdx = clampedPage * this.pageSize;
+    const endIdx = startIdx + this.pageSize;
     const currentVisibleIds = this._showAllTraces
       ? new Set(
           this._matchingTraceIds.slice(0, MAX_VISIBLE_TRACES).map((id) => this._getPrimaryKey(id))
@@ -2847,6 +2863,7 @@ export class ExploreMultiV2Sk extends LitElement {
           this._matchingTraceIds.slice(startIdx, endIdx).map((id) => this._getPrimaryKey(id))
         );
 
+    const regressionTraceIds = new Set(Object.keys(this._regressions || {}));
     const currentPageTraces = displaySeries.filter((s) => {
       if ((s as any).isFormula || this._isFormulaKey(s.id)) {
         return true;
@@ -2858,9 +2875,19 @@ export class ExploreMultiV2Sk extends LitElement {
       // original traces would check for un-collapsed keys and discard all traces from the graph.
       // Therefore, we only fallback to `originalId` if the series is a transformed series.
       const primaryKey = s.id.includes('special=transform') ? (s as any).originalId : s.id;
-      return currentVisibleIds.has(primaryKey);
+      if (!currentVisibleIds.has(primaryKey)) {
+        return false;
+      }
+
+      if (this.onlyRegressions) {
+        const regKeys = [(s as any).originalId, s.id, primaryKey].filter(Boolean);
+        return regKeys.some(
+          (k) => regressionTraceIds.has(k) && Object.keys(this._regressions[k] || {}).length > 0
+        );
+      }
+      return true;
     });
-    const groups = computeSplitGroups(currentPageTraces, this.splitKeys);
+    const groups = computeSplitGroups(currentPageTraces, this.splitKeys, this.splitAll);
 
     return html`
       ${this.embedded
@@ -2921,6 +2948,8 @@ export class ExploreMultiV2Sk extends LitElement {
                 'none'}
                 .pipeline=${this._formulasPerQuery[idx] || []}
                 @pipeline-change=${(e: CustomEvent) => this._handlePipelineChange(idx, e)}
+                .onlyRegressions=${this.onlyRegressions}
+                .splitAll=${this.splitAll}
                 .externalSuggestions=${this._suggestionsForQueryBar[idx] || null}
                 .loading=${this._isCalculatingCounts}
                 @suggest=${(e: CustomEvent) => this._handleSuggest(idx, e)}
@@ -2931,6 +2960,12 @@ export class ExploreMultiV2Sk extends LitElement {
                 @split=${(e: CustomEvent) => this._handleSplit(e)}
                 @diff-base=${(e: CustomEvent) => this._handleDiffBase(e)}
                 @formula-change=${(e: CustomEvent) => this._handleFormulaChange(idx, e)}
+                @toggle-only-regressions=${() => {
+                  this.onlyRegressions = !this.onlyRegressions;
+                }}
+                @toggle-split-all=${() => {
+                  this.splitAll = !this.splitAll;
+                }}
                 @clear-query=${() => this._onRemoveQueryBar(idx)}
                 @clone-query=${() => this._onCloneQueryBar(idx)}></query-bar-sk>
             </div>
@@ -3007,11 +3042,13 @@ export class ExploreMultiV2Sk extends LitElement {
           .normalizeCentre=${this._normalizeCentre}
           .smooth=${this._smooth}
           .showDots=${this._showDots}
-          .showSparklines=${this._showSparklines}
+          .showSparklines=${this.showSparklines}
+          .onlyRegressions=${this.onlyRegressions}
+          .splitAll=${this.splitAll}
           .evenXAxisSpacing=${this._evenXAxisSpacing}
           .showZero=${this._showZero}
           .transformPreset=${this._transformPreset}
-          .showRegressions=${this._showRegressions}
+          .showRegressions=${this.showRegressions}
           .tooltipDiffs=${this._tooltipDiffs}
           .dateMode=${this.dateMode}
           .hoverMode=${this._hoverMode}
@@ -3020,7 +3057,7 @@ export class ExploreMultiV2Sk extends LitElement {
           .edgeLookahead=${this._edgeLookahead}
           .availableSplitKeys=${this._availableSplitKeys}
           .activeSplitKeys=${Array.from(this.splitKeys)}
-          .pageSize=${this._pageSize}
+          .pageSize=${this.pageSize}
           @control-change=${this._handleControlChange}
           @split=${this._handleSplit}
           @reset-zoom=${this._onResetZoom}></explore-toolbar-sk>
@@ -3036,17 +3073,17 @@ export class ExploreMultiV2Sk extends LitElement {
             `
           : ''}
 
-        <div class="${this._showSparklines ? 'sparklines-grid' : 'charts-container'}">
+        <div class="${this.showSparklines ? 'sparklines-grid' : 'charts-container'}">
           ${groups.map(
             (g) => html`
               <trace-chart-sk
                 .title=${g.title}
-                .canvasHeight=${this._showSparklines ? 150 : 300}
-                .isSparkline=${this._showSparklines}
+                .canvasHeight=${this.showSparklines ? 150 : 300}
+                .isSparkline=${this.showSparklines}
                 .loading=${this._loading}
                 .series=${g.series}
                 .dateMode=${this.dateMode}
-                .regressions=${this._showRegressions ? this._regressions : {}}
+                .regressions=${this.showRegressions ? this._regressions : {}}
                 .normalizeCentre=${this._normalizeCentre}
                 .normalizeScale=${this._normalizeScale}
                 .hoverMode=${this._hoverMode}

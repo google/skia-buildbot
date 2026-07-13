@@ -143,6 +143,14 @@ export class ReportPageSk extends ElementSk {
 
   private _highlightAnomaliesV2: string[] = [];
 
+  private _onlyRegressionsV2 = true;
+
+  private _splitAllV2 = true;
+
+  private _showSparklinesV2 = true;
+
+  private _pageSizeV2 = 250;
+
   private get isV2Enabled(): boolean {
     const urlParams = new URLSearchParams(window.location.search);
     // URL parameters take precedence to allow forcing a specific version (V1 vs V2) via links.
@@ -217,6 +225,11 @@ export class ReportPageSk extends ElementSk {
               .begin=${ele._beginV2}
               .end=${ele._endV2}
               .highlightAnomalies=${ele._highlightAnomaliesV2}
+              .onlyRegressions=${ele._onlyRegressionsV2}
+              .splitAll=${ele._splitAllV2}
+              .showSparklines=${ele._showSparklinesV2}
+              .pageSize=${ele._pageSizeV2}
+              @explore-state-change=${() => ele._syncFromMultiExplore()}
               .embedded=${true}>
             </explore-multi-v2-sk>
           `
@@ -556,7 +569,48 @@ export class ReportPageSk extends ElementSk {
     return this.getSortedQueryString(query) === this.getSortedQueryString(defaults);
   }
 
-  private updateMultiExploreStateV2(toggledAnomalies?: Anomaly[], checked?: boolean): void {
+  private getCommonPathGroupKey(testPath: string): string {
+    if (testPath.includes('/')) {
+      const trimmed = testPath.replace(/\/+$/, '');
+      const lastSlash = trimmed.lastIndexOf('/');
+      return lastSlash !== -1 ? trimmed.substring(0, lastSlash) : trimmed;
+    }
+    if (testPath.startsWith(',') || testPath.includes('=')) {
+      const parts = testPath.split(',').filter(Boolean);
+      const prefixParts = parts.filter(
+        (p) => !p.startsWith('test=') && !p.startsWith('subtest_') && !p.startsWith('stat=')
+      );
+      if (prefixParts.length > 0) {
+        return ',' + prefixParts.join(',') + ',';
+      }
+      if (parts.length > 1) {
+        return ',' + parts.slice(0, -1).join(',') + ',';
+      }
+    }
+    return testPath;
+  }
+
+  private mergeAnomalyQueries(anomalies: Anomaly[]): Record<string, string[]> {
+    const merged: Record<string, string[]> = {};
+    anomalies.forEach((anomaly) => {
+      const parsed = this.applyDefaultsToParamSet(
+        this.parseAnomalyPathToParamSet(anomaly.test_path)
+      );
+      for (const [key, values] of Object.entries(parsed)) {
+        if (!merged[key]) {
+          merged[key] = [];
+        }
+        for (const val of values) {
+          if (!merged[key].includes(val)) {
+            merged[key].push(val);
+          }
+        }
+      }
+    });
+    return merged;
+  }
+
+  private updateMultiExploreStateV2(_toggledAnomalies?: Anomaly[], _checked?: boolean): void {
     if (!this.isV2Enabled) return;
 
     const selectedAnomalies = this.anomalyTracker.getSelectedAnomalies();
@@ -574,47 +628,22 @@ export class ReportPageSk extends ElementSk {
 
     const multiExplore = this.querySelector<any>('#multi-explore');
 
-    // --- Update _queriesV2 ---
-    if (toggledAnomalies !== undefined && checked !== undefined) {
-      const defaultQuery = this.applyDefaultsToParamSet({});
-      let currentQueries = multiExplore ? multiExplore.queries || [defaultQuery] : this._queriesV2;
-      toggledAnomalies.forEach((toggledAnomaly) => {
-        let anomalyQuery = this.parseAnomalyPathToParamSet(toggledAnomaly.test_path);
-        anomalyQuery = this.applyDefaultsToParamSet(anomalyQuery);
-        const anomalyQueryStr = this.getSortedQueryString(anomalyQuery);
-
-        if (checked) {
-          // Append if not already exists
-          const exists = currentQueries.some(
-            (q: Record<string, string[]>) => this.getSortedQueryString(q) === anomalyQueryStr
-          );
-          if (!exists) {
-            if (
-              currentQueries.length === 1 &&
-              this.isEmptyWithDefaults(currentQueries[0], defaultQuery)
-            ) {
-              currentQueries = [anomalyQuery];
-            } else {
-              currentQueries = [...currentQueries, anomalyQuery];
-            }
-          }
-        } else {
-          // Remove matching query
-          currentQueries = currentQueries.filter(
-            (q: Record<string, string[]>) => this.getSortedQueryString(q) !== anomalyQueryStr
-          );
-        }
-      });
-      if (currentQueries.length === 0) {
-        currentQueries = [this.applyDefaultsToParamSet({})];
+    // Group selected anomalies by common path
+    const groupsMap = new Map<string, Anomaly[]>();
+    selectedAnomalies.forEach((anomaly) => {
+      const groupKey = this.getCommonPathGroupKey(anomaly.test_path);
+      if (!groupsMap.has(groupKey)) {
+        groupsMap.set(groupKey, []);
       }
-      this._queriesV2 = currentQueries;
-    } else {
-      // Full regeneration (initial load or when no specific toggled anomalies are provided)
-      this._queriesV2 = selectedAnomalies.map((anomaly) => {
-        return this.applyDefaultsToParamSet(this.parseAnomalyPathToParamSet(anomaly.test_path));
-      });
-    }
+      groupsMap.get(groupKey)!.push(anomaly);
+    });
+
+    const mergedQueries: Record<string, string[]>[] = [];
+    groupsMap.forEach((anomaliesInGroup) => {
+      mergedQueries.push(this.mergeAnomalyQueries(anomaliesInGroup));
+    });
+
+    this._queriesV2 = mergedQueries.length > 0 ? mergedQueries : [this.applyDefaultsToParamSet({})];
 
     // --- Update _splitKeysV2, _viewportMinXV2, _viewportMaxXV2, _beginV2, _endV2 ---
     const shouldPreserveMultiExploreState =
@@ -626,6 +655,12 @@ export class ReportPageSk extends ElementSk {
       this._viewportMaxXV2 = multiExplore.viewportMaxX;
       this._beginV2 = multiExplore.begin;
       this._endV2 = multiExplore.end;
+      if (multiExplore.onlyRegressions !== undefined)
+        this._onlyRegressionsV2 = multiExplore.onlyRegressions;
+      if (multiExplore.splitAll !== undefined) this._splitAllV2 = multiExplore.splitAll;
+      if (multiExplore.showSparklines !== undefined)
+        this._showSparklinesV2 = multiExplore.showSparklines;
+      if (multiExplore.pageSize !== undefined) this._pageSizeV2 = multiExplore.pageSize;
     } else {
       let minCommit = Infinity;
       let maxCommit = -Infinity;
@@ -633,11 +668,9 @@ export class ReportPageSk extends ElementSk {
       let maxEnd = -Infinity;
 
       selectedAnomalies.forEach((anomaly) => {
-        // Compute min/max commit numbers
         if (anomaly.start_revision < minCommit) minCommit = anomaly.start_revision;
         if (anomaly.end_revision > maxCommit) maxCommit = anomaly.end_revision;
 
-        // Calculate min/max begin/end timestamps
         const timerange = this.anomalyTracker.getAnomaly(anomaly.id)!.timerange;
         if (timerange) {
           if (timerange.begin < minBegin) minBegin = timerange.begin;
@@ -645,8 +678,7 @@ export class ReportPageSk extends ElementSk {
         }
       });
 
-      this._splitKeysV2 = new Set(); // Remove default splitting
-
+      this._splitKeysV2 = new Set();
       this._viewportMinXV2 = Math.max(0, minCommit - 100);
       this._viewportMaxXV2 = maxCommit + 100;
 
@@ -663,6 +695,18 @@ export class ReportPageSk extends ElementSk {
     }
 
     this._render();
+  }
+
+  private _syncFromMultiExplore(): void {
+    const multiExplore = this.querySelector<any>('#multi-explore');
+    if (multiExplore) {
+      if (multiExplore.onlyRegressions !== undefined)
+        this._onlyRegressionsV2 = multiExplore.onlyRegressions;
+      if (multiExplore.splitAll !== undefined) this._splitAllV2 = multiExplore.splitAll;
+      if (multiExplore.showSparklines !== undefined)
+        this._showSparklinesV2 = multiExplore.showSparklines;
+      if (multiExplore.pageSize !== undefined) this._pageSizeV2 = multiExplore.pageSize;
+    }
   }
 
   // findRequestedAnomalies returns a list of requested anomaly objects .

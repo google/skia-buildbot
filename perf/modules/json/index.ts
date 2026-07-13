@@ -503,6 +503,8 @@ export interface SkPerfConfig {
 	schema_version?: number;
 	enable_v2_ui: boolean;
 	default_to_explore_v2?: boolean;
+	enable_only_regressions_option?: boolean;
+	enable_split_all_option?: boolean;
 	dev_mode: boolean;
 	extra_links: ExtraLinks | null;
 	disable_shortcut_update?: boolean;

@@ -1188,6 +1188,10 @@ type InstanceConfig struct {
 	// DefaultToExploreV2 if true will default to V2 for explore-multi and report-page.
 	DefaultToExploreV2 bool `json:"default_to_explore_v2,omitempty"`
 
+	// Feature flags for Explore Multi V2 options
+	EnableOnlyRegressionsOption bool `json:"enable_only_regressions_option,omitempty"`
+	EnableSplitAllOption        bool `json:"enable_split_all_option,omitempty"`
+
 	// DefaultToManualPlotMode if true will include manual_plot_mode=true in Multigraph link references.
 	DefaultToManualPlotMode bool `json:"default_to_manual_plot_mode,omitempty"`
 

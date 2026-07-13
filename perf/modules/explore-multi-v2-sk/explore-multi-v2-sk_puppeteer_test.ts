@@ -92,7 +92,7 @@ describe('explore-multi-v2-sk', () => {
       const exploreEl = explore as any;
       exploreEl._matchingTraceIds = ['t1', 't2'];
       exploreEl._seriesData = [];
-      exploreEl._pageSize = 10;
+      exploreEl.pageSize = 10;
       exploreEl._tracePage = 0;
       exploreEl.dateMode = true;
       exploreEl._globalBounds = {};
@@ -503,7 +503,7 @@ describe('explore-multi-v2-sk', () => {
       );
       const explore = document.querySelector('explore-multi-v2-sk') as any;
       explore._matchingTraceIds = [',arch=arm,config=8888,os=Android,project=Skia,'];
-      explore._pageSize = 10;
+      explore.pageSize = 10;
       explore._tracePage = 0;
       explore.dateMode = true;
       explore._loadedBounds = {};
@@ -553,7 +553,7 @@ describe('explore-multi-v2-sk', () => {
       );
       const explore = document.querySelector('explore-multi-v2-sk') as any;
       explore._matchingTraceIds = [',arch=arm,config=8888,os=Android,project=Skia,'];
-      explore._pageSize = 10;
+      explore.pageSize = 10;
       explore._tracePage = 0;
       explore._dateMode = false;
       explore._loadedBounds = {};
@@ -785,7 +785,7 @@ describe('explore-multi-v2-sk', () => {
             },
           },
         };
-        explore._showRegressions = true;
+        explore.showRegressions = true;
         explore.requestUpdate();
       });
 

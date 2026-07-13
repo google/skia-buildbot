@@ -10,6 +10,8 @@
     "trace_sample_proportion": 0.1,
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
+    "enable_only_regressions_option": true,
+    "enable_split_all_option": true,
     "fetch_anomalies_from_sql": true,
     "switch_between_anomaly_sources": true,
     "use_regression2_schema": true,

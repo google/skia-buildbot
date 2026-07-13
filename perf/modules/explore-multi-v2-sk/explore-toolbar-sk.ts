@@ -22,11 +22,15 @@ export class ExploreToolbarSk extends LitElement {
 
   @property({ type: Boolean }) showSparklines = false;
 
+  @property({ type: Boolean }) onlyRegressions = false;
+
+  @property({ type: Boolean }) splitAll = false;
+
   @property({ type: Array }) availableSplitKeys: string[] = [];
 
   @property({ type: Array }) activeSplitKeys: string[] = [];
 
-  @property({ type: Number }) pageSize = 30;
+  @property({ type: Number }) pageSize = 10;
 
   @property({ type: Boolean }) showRegressions = true;
 
@@ -419,6 +423,31 @@ export class ExploreToolbarSk extends LitElement {
             <span class="checkmark"></span>
             Tooltip Diffs
           </label>
+
+          ${window.perf?.enable_only_regressions_option
+            ? html`
+                <label class="custom-checkbox only-regressions-checkbox">
+                  <input
+                    type="checkbox"
+                    .checked=${this.onlyRegressions}
+                    @change=${(e: any) => this._emitChange('onlyRegressions', e.target.checked)} />
+                  <span class="checkmark"></span>
+                  Only Regressions
+                </label>
+              `
+            : ''}
+          ${window.perf?.enable_split_all_option
+            ? html`
+                <label class="custom-checkbox split-all-checkbox">
+                  <input
+                    type="checkbox"
+                    .checked=${this.splitAll}
+                    @change=${(e: any) => this._emitChange('splitAll', e.target.checked)} />
+                  <span class="checkmark"></span>
+                  Split by All Keys
+                </label>
+              `
+            : ''}
 
           <div class="toolbar-group">
             <span class="label">Hover:</span>
