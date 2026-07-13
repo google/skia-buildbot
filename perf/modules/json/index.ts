@@ -496,6 +496,7 @@ export interface SkPerfConfig {
 	show_json_file_display: boolean;
 	show_triage_link: boolean;
 	show_bisect_btn: boolean;
+	show_new_pinpoint_backend_checkbox?: boolean;
 	show_hash_ranges_in_tooltip?: boolean;
 	always_show_commit_info: boolean;
 	app_version: string;
@@ -725,11 +726,13 @@ export interface BisectJobCreateRequest {
 	statistic: string;
 	comparison_magnitude: string;
 	pin: string;
-	project: string;
+	project?: string;
 	bug_id: string;
 	user: string;
 	alert_ids: string;
 	test_path: string;
+	extra_test_args?: string;
+	use_new_pinpoint: boolean;
 }
 
 export interface TryJobCreateRequest {
@@ -741,10 +744,12 @@ export interface TryJobCreateRequest {
 	configuration: string;
 	benchmark: string;
 	story: string;
-	extra_test_args: string;
+	extra_test_args?: string;
 	repository: string;
 	bug_id: string;
 	user: string;
+	project?: string;
+	use_new_pinpoint: boolean;
 }
 
 export interface CreatePinpointResponse {

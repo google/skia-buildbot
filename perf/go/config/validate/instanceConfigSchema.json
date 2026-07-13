@@ -487,6 +487,9 @@
         "show_bisect_btn": {
           "type": "boolean"
         },
+        "show_new_pinpoint_backend_checkbox": {
+          "type": "boolean"
+        },
         "show_hash_ranges_in_tooltip": {
           "type": "boolean"
         },
@@ -773,6 +776,9 @@
     "TemporalConfig": {
       "properties": {
         "host_port": {
+          "type": "string"
+        },
+        "ui_host_url": {
           "type": "string"
         },
         "namespace": {

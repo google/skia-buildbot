@@ -20,6 +20,10 @@ var (
 		"The connection string for the Pairwise backend database.")
 	prodAssetsDir = flag.String("prod_assest_dir", "pinpoint/ui/pages/production",
 		"The resource/assets directory.")
+	hostPort  = flag.String("host_port", "", "The temporal host port.")
+	namespace = flag.String("namespace", "", "The temporal namespace.")
+	taskQueue = flag.String("task_queue", "", "The temporal task queue.")
+	devMode   = flag.Bool("dev_mode", false, "Whether to run in dev mode.")
 )
 
 func main() {
@@ -35,7 +39,7 @@ func main() {
 	}
 	js := jobstore.NewJobStore(pool)
 
-	service, err := jobs.New(ctx, js, nil, nil, *prodAssetsDir)
+	service, err := jobs.New(ctx, js, nil, nil, *prodAssetsDir, *hostPort, *namespace, *taskQueue, *devMode)
 	if err != nil {
 		sklog.Fatalf("failed to connect create Jobs Service: %s", err)
 	}

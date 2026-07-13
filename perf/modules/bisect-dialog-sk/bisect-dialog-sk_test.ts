@@ -108,6 +108,7 @@ describe('bisect-dialog-sk', () => {
         comparison_magnitude: '',
         pin: '',
         user: 'test@example.com',
+        use_new_pinpoint: false,
       };
       assert.deepEqual(bisectBody, expected);
     });

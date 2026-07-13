@@ -171,6 +171,7 @@ export class PinpointTryJobDialogSk extends LitElement {
       bug_id: '',
       user: this.user,
       extra_test_args: `["--extra-chrome-categories","${this.traceArgs}"]`,
+      use_new_pinpoint: false,
     };
     req.name = `${req.name} on ${req.configuration}/${req.benchmark}/${req.story}`;
 

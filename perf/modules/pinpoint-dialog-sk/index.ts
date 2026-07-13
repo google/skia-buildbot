@@ -1,0 +1,1 @@
+import './pinpoint-dialog-sk';

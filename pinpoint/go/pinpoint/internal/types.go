@@ -13,10 +13,12 @@ type TryJobCreateRequest struct {
 	Configuration   string `json:"configuration"`
 	Benchmark       string `json:"benchmark"`
 	Story           string `json:"story"`
-	ExtraTestArgs   string `json:"extra_test_args"`
+	ExtraTestArgs   string `json:"extra_test_args,omitempty"`
 	Repository      string `json:"repository"`
 	BugId           string `json:"bug_id"`
 	User            string `json:"user"`
+	Project         string `json:"project,omitempty"`
+	UseNewPinpoint  bool   `json:"use_new_pinpoint"`
 }
 
 type BisectJobCreateRequest struct {
@@ -30,11 +32,13 @@ type BisectJobCreateRequest struct {
 	Statistic           string `json:"statistic"`
 	ComparisonMagnitude string `json:"comparison_magnitude"`
 	Pin                 string `json:"pin"`
-	Project             string `json:"project"`
+	Project             string `json:"project,omitempty"`
 	BugId               string `json:"bug_id"`
 	User                string `json:"user"`
 	AlertIDs            string `json:"alert_ids"`
 	TestPath            string `json:"test_path"`
+	ExtraTestArgs       string `json:"extra_test_args,omitempty"`
+	UseNewPinpoint      bool   `json:"use_new_pinpoint"`
 }
 
 type CreatePinpointResponse struct {

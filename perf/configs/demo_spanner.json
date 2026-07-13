@@ -138,5 +138,13 @@
             }
         }
     },
+    "show_new_pinpoint_backend_checkbox": true,
+    "temporal_config": {
+        "host_port": "temporal-dev.corp.goog:7233",
+        "ui_host_url": "https://temporal-ui-dev.corp.goog",
+        "namespace": "perf-internal",
+        "grouping_task_queue": "perf.perf-chrome-internal.grouping",
+        "pinpoint_task_queue": "perf.perf-chrome-public.bisect"
+    },
     "need_alert_action": true
 }

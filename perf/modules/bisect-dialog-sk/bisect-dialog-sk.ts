@@ -180,6 +180,7 @@ export class BisectDialogSk extends LitElement {
       user: this.user,
       alert_ids: '[' + this.anomalyId + ']',
       test_path: this.testPath,
+      use_new_pinpoint: false,
     };
 
     const validations = [

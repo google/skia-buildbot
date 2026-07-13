@@ -17,9 +17,9 @@ type pinpointService struct {
 }
 
 // NewPinpointService returns a new instance of the pinpoint service.
-func NewPinpointService(t tpr_client.TemporalProvider, l *rate.Limiter) *pinpointService {
+func NewPinpointService(t tpr_client.TemporalProvider, l *rate.Limiter, hostPort string, namespace string, taskQueue string, devMode bool) *pinpointService {
 	return &pinpointService{
-		PinpointServer: pinpoint_service.New(t, l),
+		PinpointServer: pinpoint_service.New(t, l, hostPort, namespace, taskQueue, devMode),
 	}
 }
 

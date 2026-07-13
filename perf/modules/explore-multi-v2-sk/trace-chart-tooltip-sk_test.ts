@@ -7,6 +7,13 @@ describe('trace-chart-tooltip-sk', () => {
   let element: TraceChartTooltipSk;
 
   beforeEach(async () => {
+    if (!(window as any).perf) {
+      (window as any).perf = {};
+    }
+    (window as any).perf.commit_range_url = '';
+    fetchMock.post('/_/cid/', { commitSlice: [] });
+    fetchMock.post('/_/details/?results=false', { cid: '', anomalies: [] });
+    fetchMock.post('/_/links/', {});
     element = document.createElement('trace-chart-tooltip-sk') as TraceChartTooltipSk;
     element.bug_host_url = 'https://issues.chromium.org';
     document.body.appendChild(element);
@@ -175,16 +182,19 @@ describe('trace-chart-tooltip-sk', () => {
     };
     await element.updateComplete;
 
-    const bisectDialog = element.shadowRoot!.querySelector('#bisect-dialog-sk') as any;
-    expect(bisectDialog).to.not.be.null;
+    const pinpointDialog = element.shadowRoot!.querySelector('#pinpoint-dialog-sk') as any;
+    expect(pinpointDialog).to.not.be.null;
 
+    let calledMode: string | null = null;
     let calledParams: any = null;
-    bisectDialog.setBisectInputParams = (params: any) => {
+    pinpointDialog.open = (mode: string, params: any) => {
+      calledMode = mode;
       calledParams = params;
     };
 
     (element as any)['openBisectDialog']();
 
+    expect(calledMode).to.equal('bisect');
     expect(calledParams).to.not.be.null;
     expect(calledParams.testPath).to.equal('Chromium/linux/blink_perf/layout/story1');
     expect(calledParams.startCommit).to.equal('100');
@@ -211,16 +221,19 @@ describe('trace-chart-tooltip-sk', () => {
     };
     await element.updateComplete;
 
-    const tryJobDialog = element.shadowRoot!.querySelector('#pinpoint-try-job-dialog-sk') as any;
-    expect(tryJobDialog).to.not.be.null;
+    const pinpointDialog = element.shadowRoot!.querySelector('#pinpoint-dialog-sk') as any;
+    expect(pinpointDialog).to.not.be.null;
 
+    let calledMode: string | null = null;
     let calledParams: any = null;
-    tryJobDialog.setTryJobInputParams = (params: any) => {
+    pinpointDialog.open = (mode: string, params: any) => {
+      calledMode = mode;
       calledParams = params;
     };
 
     (element as any)['openTryJobDialog']();
 
+    expect(calledMode).to.equal('try');
     expect(calledParams).to.not.be.null;
     expect(calledParams.testPath).to.equal('Chromium/linux/blink_perf/layout/story1');
     expect(calledParams.baseCommit).to.equal('100');
@@ -401,7 +414,7 @@ describe('trace-chart-tooltip-sk', () => {
       test: {
         100: {
           id: '123',
-          bug_id: 456,
+          bugs: [{ bug_id: '456', bug_type: 'BUGANIZER' }],
           is_improvement: false,
           median_before: 5.0,
           median_after: 10.0,
@@ -418,7 +431,7 @@ describe('trace-chart-tooltip-sk', () => {
     const rows = [{ commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' }];
     const regression = {
       id: '123',
-      bug_id: 456,
+      bugs: [{ bug_id: '456', bug_type: 'BUGANIZER' }],
       is_improvement: false,
       median_before: 5.0,
       median_after: 10.0,
@@ -454,6 +467,6 @@ describe('trace-chart-tooltip-sk', () => {
     expect(anomalyChangedDetail).to.not.be.null;
     expect(anomalyChangedDetail.editAction).to.equal('RESET');
     expect(anomalyChangedDetail.traceNames).to.deep.equal(['test']);
-    expect(regression.bug_id).to.equal(0);
+    expect((regression as any).bug_id === 0 || regression.bugs?.length === 0).to.be.true;
   });
 });

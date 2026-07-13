@@ -418,53 +418,54 @@ func (f *Frontend) loadTemplates() error {
 // SkPerfConfig is the configuration data that will appear
 // in Javascript under the window.perf variable.
 type SkPerfConfig struct {
-	InstanceUrl                 string             `json:"instance_url"`                          // The root host url of the running instance.
-	InstanceName                string             `json:"instance_name"`                         // The name of the instance.
-	HeaderImageURL              string             `json:"header_image_url"`                      // The URL of the image to display in the header.
-	Radius                      int                `json:"radius"`                                // The number of commits when doing clustering.
-	KeyOrder                    []string           `json:"key_order"`                             // The order of the keys to appear first in query-sk elements.
-	NumShift                    int                `json:"num_shift"`                             // The number of commits the shift navigation buttons should jump.
-	Interesting                 float32            `json:"interesting"`                           // The threshold for a cluster to be interesting.
-	StepUpOnly                  bool               `json:"step_up_only"`                          // If true then only regressions that are a step up are displayed.
-	CommitRangeURL              string             `json:"commit_range_url"`                      // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
-	Demo                        bool               `json:"demo"`                                  // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
-	DisplayGroupBy              bool               `json:"display_group_by"`                      // True if the Group By section of Alert config should be displayed.
-	HideListOfCommitsOnExplore  bool               `json:"hide_list_of_commits_on_explore"`       // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
-	Notifications               notifytypes.Type   `json:"notifications"`                         // The type of notifications that can be sent.
-	FetchChromePerfAnomalies    bool               `json:"fetch_chrome_perf_anomalies"`           // If true explore-sk will show the bisect button
-	FetchAnomaliesFromSql       bool               `json:"fetch_anomalies_from_sql"`              // If true new anomalies API will be used.
-	BothAnomalySources          bool               `json:"both_anomaly_sources,omitempty"`        // If true, both anomaly sources are configured and available to be toggled.
-	FeedbackURL                 string             `json:"feedback_url"`                          // The URL for the Provide Feedback link
-	ChatURL                     string             `json:"chat_url"`                              // The URL for the Ask the Team link
-	HelpURLOverride             string             `json:"help_url_override"`                     // If specified, this URL will override the help link
-	TraceFormat                 config.TraceFormat `json:"trace_format"`                          // Trace formatter to use
-	NeedAlertAction             bool               `json:"need_alert_action"`                     // Action to take for the alert.
-	BugHostURL                  string             `json:"bug_host_url"`                          // The URL for the bug host for the instance.
-	GitRepoUrl                  string             `json:"git_repo_url"`                          // The URL for the associated git repo.
-	KeysForCommitRange          []string           `json:"keys_for_commit_range"`                 // The link keys for commit range url display of individual points.
-	KeysForUsefulLinks          []string           `json:"keys_for_useful_links"`                 // The link keys for useful information of individual points i.e. build page, tracing.
-	SkipCommitDetailDisplay     bool               `json:"skip_commit_detail_display"`            // Do not display commit detail
-	ImageTag                    string             `json:"image_tag"`                             // The image tag that the running instance is built from, typically a git commit hash.
-	RemoveDefaultStatValue      bool               `json:"remove_default_stat_value"`             // experimental flag to remove the default stat=value on queries.
-	EnableSkiaBridgeAggregation bool               `json:"enable_skia_bridge_aggregation"`        // experimental flag to enable aggregation at skia_bridge.
-	ShowJsonResourceDisplay     bool               `json:"show_json_file_display"`                // Boolean to display json commit detail or not
-	ShowTriageLink              bool               `json:"show_triage_link"`                      // Boolean to display traige link on side panel or not
-	ShowBisectBtn               bool               `json:"show_bisect_btn"`                       // Boolean to display bisect button or not
-	ShowHashRangesInTooltip     bool               `json:"show_hash_ranges_in_tooltip,omitempty"` // Boolean to display hash ranges instead of commit positions in tooltip.
-	AlwaysShowCommitInfo        bool               `json:"always_show_commit_info"`               // Boolean to display commit author and hash.
-	AppVersion                  string             `json:"app_version"`                           // The git revision of the buildbot repo this instance was built from.
-	BuildDate                   string             `json:"build_date,omitempty"`                  // The date the build was created.
-	SchemaVersion               int                `json:"schema_version,omitempty"`              // The current SQL database schema version.
-	EnableV2UI                  bool               `json:"enable_v2_ui"`                          // True if V2 UI can be toggled.
-	DefaultToExploreV2          bool               `json:"default_to_explore_v2,omitempty"`       // True if V2 is default for explore-multi and report-page.
-	EnableOnlyRegressionsOption bool               `json:"enable_only_regressions_option,omitempty"`
-	EnableSplitAllOption        bool               `json:"enable_split_all_option,omitempty"`
-	DevMode                     bool               `json:"dev_mode"`
-	ExtraLinks                  *config.ExtraLinks `json:"extra_links"` // Extra links to be display on a dedicated page.
-	DisableShortcutUpdate       bool               `json:"disable_shortcut_update,omitempty"`
-	DefaultToManualPlotMode     bool               `json:"default_to_manual_plot_mode,omitempty"`
-	SheriffConfigUrl            string             `json:"sheriff_config_url,omitempty"`
-	TraceTransform              bool               `json:"trace_transform,omitempty"` // True if custom trace transformations are enabled.
+	InstanceUrl                    string             `json:"instance_url"`                                 // The root host url of the running instance.
+	InstanceName                   string             `json:"instance_name"`                                // The name of the instance.
+	HeaderImageURL                 string             `json:"header_image_url"`                             // The URL of the image to display in the header.
+	Radius                         int                `json:"radius"`                                       // The number of commits when doing clustering.
+	KeyOrder                       []string           `json:"key_order"`                                    // The order of the keys to appear first in query-sk elements.
+	NumShift                       int                `json:"num_shift"`                                    // The number of commits the shift navigation buttons should jump.
+	Interesting                    float32            `json:"interesting"`                                  // The threshold for a cluster to be interesting.
+	StepUpOnly                     bool               `json:"step_up_only"`                                 // If true then only regressions that are a step up are displayed.
+	CommitRangeURL                 string             `json:"commit_range_url"`                             // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
+	Demo                           bool               `json:"demo"`                                         // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
+	DisplayGroupBy                 bool               `json:"display_group_by"`                             // True if the Group By section of Alert config should be displayed.
+	HideListOfCommitsOnExplore     bool               `json:"hide_list_of_commits_on_explore"`              // True if the commit-detail-panel-sk element on the Explore details tab should be hidden.
+	Notifications                  notifytypes.Type   `json:"notifications"`                                // The type of notifications that can be sent.
+	FetchChromePerfAnomalies       bool               `json:"fetch_chrome_perf_anomalies"`                  // If true explore-sk will show the bisect button
+	FetchAnomaliesFromSql          bool               `json:"fetch_anomalies_from_sql"`                     // If true new anomalies API will be used.
+	BothAnomalySources             bool               `json:"both_anomaly_sources,omitempty"`               // If true, both anomaly sources are configured and available to be toggled.
+	FeedbackURL                    string             `json:"feedback_url"`                                 // The URL for the Provide Feedback link
+	ChatURL                        string             `json:"chat_url"`                                     // The URL for the Ask the Team link
+	HelpURLOverride                string             `json:"help_url_override"`                            // If specified, this URL will override the help link
+	TraceFormat                    config.TraceFormat `json:"trace_format"`                                 // Trace formatter to use
+	NeedAlertAction                bool               `json:"need_alert_action"`                            // Action to take for the alert.
+	BugHostURL                     string             `json:"bug_host_url"`                                 // The URL for the bug host for the instance.
+	GitRepoUrl                     string             `json:"git_repo_url"`                                 // The URL for the associated git repo.
+	KeysForCommitRange             []string           `json:"keys_for_commit_range"`                        // The link keys for commit range url display of individual points.
+	KeysForUsefulLinks             []string           `json:"keys_for_useful_links"`                        // The link keys for useful information of individual points i.e. build page, tracing.
+	SkipCommitDetailDisplay        bool               `json:"skip_commit_detail_display"`                   // Do not display commit detail
+	ImageTag                       string             `json:"image_tag"`                                    // The image tag that the running instance is built from, typically a git commit hash.
+	RemoveDefaultStatValue         bool               `json:"remove_default_stat_value"`                    // experimental flag to remove the default stat=value on queries.
+	EnableSkiaBridgeAggregation    bool               `json:"enable_skia_bridge_aggregation"`               // experimental flag to enable aggregation at skia_bridge.
+	ShowJsonResourceDisplay        bool               `json:"show_json_file_display"`                       // Boolean to display json commit detail or not
+	ShowTriageLink                 bool               `json:"show_triage_link"`                             // Boolean to display traige link on side panel or not
+	ShowBisectBtn                  bool               `json:"show_bisect_btn"`                              // Boolean to display bisect button or not
+	ShowNewPinpointBackendCheckbox bool               `json:"show_new_pinpoint_backend_checkbox,omitempty"` // Boolean to show new pinpoint backend checkbox
+	ShowHashRangesInTooltip        bool               `json:"show_hash_ranges_in_tooltip,omitempty"`        // Boolean to display hash ranges instead of commit positions in tooltip.
+	AlwaysShowCommitInfo           bool               `json:"always_show_commit_info"`                      // Boolean to display commit author and hash.
+	AppVersion                     string             `json:"app_version"`                                  // The git revision of the buildbot repo this instance was built from.
+	BuildDate                      string             `json:"build_date,omitempty"`                         // The date the build was created.
+	SchemaVersion                  int                `json:"schema_version,omitempty"`                     // The current SQL database schema version.
+	EnableV2UI                     bool               `json:"enable_v2_ui"`                                 // True if V2 UI can be toggled.
+	DefaultToExploreV2             bool               `json:"default_to_explore_v2,omitempty"`              // True if V2 is default for explore-multi and report-page.
+	EnableOnlyRegressionsOption    bool               `json:"enable_only_regressions_option,omitempty"`
+	EnableSplitAllOption           bool               `json:"enable_split_all_option,omitempty"`
+	DevMode                        bool               `json:"dev_mode"`
+	ExtraLinks                     *config.ExtraLinks `json:"extra_links"` // Extra links to be display on a dedicated page.
+	DisableShortcutUpdate          bool               `json:"disable_shortcut_update,omitempty"`
+	DefaultToManualPlotMode        bool               `json:"default_to_manual_plot_mode,omitempty"`
+	SheriffConfigUrl               string             `json:"sheriff_config_url,omitempty"`
+	TraceTransform                 bool               `json:"trace_transform,omitempty"` // True if custom trace transformations are enabled.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -479,52 +480,53 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 	}
 
 	pc := SkPerfConfig{
-		InstanceUrl:                 config.Config.URL,
-		InstanceName:                config.Config.InstanceName,
-		HeaderImageURL:              config.Config.HeaderImageURL,
-		Radius:                      f.flags.Radius,
-		KeyOrder:                    strings.Split(f.flags.KeyOrder, ","),
-		NumShift:                    f.flags.NumShift,
-		Interesting:                 float32(f.flags.Interesting),
-		StepUpOnly:                  f.flags.StepUpOnly,
-		CommitRangeURL:              f.flags.CommitRangeURL,
-		Demo:                        config.Config.Demo,
-		DisplayGroupBy:              f.flags.DisplayGroupBy,
-		HideListOfCommitsOnExplore:  f.flags.HideListOfCommitsOnExplore,
-		Notifications:               config.Config.NotifyConfig.Notifications,
-		FetchChromePerfAnomalies:    config.Config.FetchChromePerfAnomalies,
-		FetchAnomaliesFromSql:       config.Config.FetchAnomaliesFromSql,
-		BothAnomalySources:          config.Config.SwitchBetweenAnomalySources,
-		FeedbackURL:                 config.Config.FeedbackURL,
-		ChatURL:                     config.Config.ChatURL,
-		HelpURLOverride:             config.Config.HelpURLOverride,
-		TraceFormat:                 config.Config.TraceFormat,
-		NeedAlertAction:             config.Config.NeedAlertAction,
-		BugHostURL:                  config.Config.BugHostUrl,
-		GitRepoUrl:                  config.Config.GitRepoConfig.URL,
-		KeysForCommitRange:          config.Config.DataPointConfig.KeysForCommitRange,
-		KeysForUsefulLinks:          config.Config.DataPointConfig.KeysForUsefulLinks,
-		SkipCommitDetailDisplay:     config.Config.DataPointConfig.SkipCommitDetailDisplay,
-		ImageTag:                    imageTag,
-		RemoveDefaultStatValue:      config.Config.Experiments.RemoveDefaultStatValue,
-		EnableSkiaBridgeAggregation: config.Config.Experiments.EnableSkiaBridgeAggregation,
-		ShowJsonResourceDisplay:     config.Config.DataPointConfig.ShowJsonResourceDisplay,
-		AlwaysShowCommitInfo:        config.Config.DataPointConfig.AlwaysShowCommitInfo,
-		ShowTriageLink:              config.Config.ShowTriageLink,
-		ShowBisectBtn:               config.Config.ShowBisectBtn,
-		ShowHashRangesInTooltip:     config.Config.ShowHashRangesInTooltip,
-		AppVersion:                  f.appVersion,
-		BuildDate:                   f.buildDate,
-		SchemaVersion:               int(atomic.LoadInt32(&f.schemaVersion)),
-		EnableV2UI:                  config.Config.EnableV2UI,
-		DefaultToExploreV2:          config.Config.DefaultToExploreV2,
-		EnableOnlyRegressionsOption: config.Config.EnableOnlyRegressionsOption,
-		EnableSplitAllOption:        config.Config.EnableSplitAllOption,
-		DevMode:                     f.flags.DevMode,
-		ExtraLinks:                  config.Config.ExtraLinks,
-		DisableShortcutUpdate:       f.flags.DisableShortcutUpdate,
-		DefaultToManualPlotMode:     config.Config.DefaultToManualPlotMode,
-		TraceTransform:              config.Config.Experiments.TraceTransform,
+		InstanceUrl:                    config.Config.URL,
+		InstanceName:                   config.Config.InstanceName,
+		HeaderImageURL:                 config.Config.HeaderImageURL,
+		Radius:                         f.flags.Radius,
+		KeyOrder:                       strings.Split(f.flags.KeyOrder, ","),
+		NumShift:                       f.flags.NumShift,
+		Interesting:                    float32(f.flags.Interesting),
+		StepUpOnly:                     f.flags.StepUpOnly,
+		CommitRangeURL:                 f.flags.CommitRangeURL,
+		Demo:                           config.Config.Demo,
+		DisplayGroupBy:                 f.flags.DisplayGroupBy,
+		HideListOfCommitsOnExplore:     f.flags.HideListOfCommitsOnExplore,
+		Notifications:                  config.Config.NotifyConfig.Notifications,
+		FetchChromePerfAnomalies:       config.Config.FetchChromePerfAnomalies,
+		FetchAnomaliesFromSql:          config.Config.FetchAnomaliesFromSql,
+		BothAnomalySources:             config.Config.SwitchBetweenAnomalySources,
+		FeedbackURL:                    config.Config.FeedbackURL,
+		ChatURL:                        config.Config.ChatURL,
+		HelpURLOverride:                config.Config.HelpURLOverride,
+		TraceFormat:                    config.Config.TraceFormat,
+		NeedAlertAction:                config.Config.NeedAlertAction,
+		BugHostURL:                     config.Config.BugHostUrl,
+		GitRepoUrl:                     config.Config.GitRepoConfig.URL,
+		KeysForCommitRange:             config.Config.DataPointConfig.KeysForCommitRange,
+		KeysForUsefulLinks:             config.Config.DataPointConfig.KeysForUsefulLinks,
+		SkipCommitDetailDisplay:        config.Config.DataPointConfig.SkipCommitDetailDisplay,
+		ImageTag:                       imageTag,
+		RemoveDefaultStatValue:         config.Config.Experiments.RemoveDefaultStatValue,
+		EnableSkiaBridgeAggregation:    config.Config.Experiments.EnableSkiaBridgeAggregation,
+		ShowJsonResourceDisplay:        config.Config.DataPointConfig.ShowJsonResourceDisplay,
+		AlwaysShowCommitInfo:           config.Config.DataPointConfig.AlwaysShowCommitInfo,
+		ShowTriageLink:                 config.Config.ShowTriageLink,
+		ShowBisectBtn:                  config.Config.ShowBisectBtn,
+		ShowNewPinpointBackendCheckbox: config.Config.ShowNewPinpointBackendCheckbox,
+		ShowHashRangesInTooltip:        config.Config.ShowHashRangesInTooltip,
+		AppVersion:                     f.appVersion,
+		BuildDate:                      f.buildDate,
+		SchemaVersion:                  int(atomic.LoadInt32(&f.schemaVersion)),
+		EnableV2UI:                     config.Config.EnableV2UI,
+		DefaultToExploreV2:             config.Config.DefaultToExploreV2,
+		EnableOnlyRegressionsOption:    config.Config.EnableOnlyRegressionsOption,
+		EnableSplitAllOption:           config.Config.EnableSplitAllOption,
+		DevMode:                        f.flags.DevMode,
+		ExtraLinks:                     config.Config.ExtraLinks,
+		DisableShortcutUpdate:          f.flags.DisableShortcutUpdate,
+		DefaultToManualPlotMode:        config.Config.DefaultToManualPlotMode,
+		TraceTransform:                 config.Config.Experiments.TraceTransform,
 	}
 
 	if config.Config.MaintenanceConfig.GitilesRepoUrl != "" && config.Config.MaintenanceConfig.SheriffConfigPath != "" {
@@ -1401,7 +1403,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	// TODO(ashwinpv): This should move to using the backend service.
 	// JSON handlers.
 	// Pinpoint JSON API handlers - /pinpoint/v1/...
-	if ph, err := pp_service.NewJSONHandler(context.Background(), pp_service.New(nil, nil)); err != nil {
+	if ph, err := pp_service.NewJSONHandler(context.Background(), pp_service.New(nil, nil, config.Config.TemporalConfig.HostPort, config.Config.TemporalConfig.Namespace, config.Config.TemporalConfig.PinpointTaskQueue, f.flags.DevMode)); err != nil {
 		// Only log the error, the service should continue to run.
 		sklog.Error("Fail to initalize pinpoint service %s.", err)
 	} else {
@@ -1465,7 +1467,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewTraceValuesApi(f.dfBuilder, f.perfGit, f.anomalyStore, f.chromeperfAnomalyStore),
 		api.NewShortCutsApi(f.shortcutStore, f.graphsShortcutStore),
 		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, config.Config.QueryConfig.MaxEmptyTilesForQuery, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.metadataStore, f.traceCache, f.shortcutStore, f.graphsShortcutStore, f.anomalyStore, f.chromeperfAnomalyStore, f.progressTracker, f.ingestedFS),
-		api.NewPinpointApi(f.loginProvider, f.pinpoint),
+		api.NewPinpointApi(f.loginProvider, f.pinpoint, f.flags.DevMode),
 		api.NewSheriffConfigApi(f.loginProvider),
 		api.NewTriageApi(f.loginProvider, triageBackendLegacy, triageBackendSkia, f.issuetracker),
 		api.NewUserIssueApi(f.loginProvider, f.userIssueStore, f.issuetracker),

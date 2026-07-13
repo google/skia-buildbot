@@ -63,6 +63,7 @@ func TestBuildBisectJobRequestUrlPopulatesAllFieldsForOldAnomaly(t *testing.T) {
 		User:                "user",
 		AlertIDs:            "456",
 		TestPath:            "test_path",
+		ExtraTestArgs:       "extra_args",
 	}
 
 	builtURL := buildBisectJobRequestURL(&req, false)
@@ -87,6 +88,7 @@ func TestBuildBisectJobRequestUrlPopulatesAllFieldsForOldAnomaly(t *testing.T) {
 		"user":                 []string{"user"},
 		"alert_ids":            []string{"456"},
 		"test_path":            []string{"test_path"},
+		"extra_test_args":      []string{"extra_args"},
 	}
 	assert.Equal(t, expected, parsedURL.Query())
 }
@@ -108,6 +110,7 @@ func TestBuildBisectJobRequestUrlPopulatesAllFieldsForNewAnomaly(t *testing.T) {
 		User:                "user",
 		AlertIDs:            "456",
 		TestPath:            "test_path",
+		ExtraTestArgs:       "extra_args",
 	}
 
 	builtURL := buildBisectJobRequestURL(&req, true)
@@ -132,6 +135,7 @@ func TestBuildBisectJobRequestUrlPopulatesAllFieldsForNewAnomaly(t *testing.T) {
 		"bug_id":               []string{"123"},
 		"user":                 []string{"user"},
 		"test_path":            []string{"test_path"},
+		"extra_test_args":      []string{"extra_args"},
 	}
 	assert.Equal(t, expected, parsedURL.Query())
 }
@@ -272,6 +276,7 @@ func TestBuildTryJobRequestUrlPopulatesRequiredFields(t *testing.T) {
 		Story:           "story",
 		ExtraTestArgs:   "args",
 		Repository:      "repo",
+		Project:         "chromium",
 		BugId:           "123",
 		User:            "user",
 	}
@@ -294,6 +299,7 @@ func TestBuildTryJobRequestUrlPopulatesRequiredFields(t *testing.T) {
 		"story":            []string{"story"},
 		"extra_test_args":  []string{"args"},
 		"repository":       []string{"repo"},
+		"project":          []string{"chromium"},
 		"bug_id":           []string{"123"},
 		"user":             []string{"user"},
 		"tags":             []string{"{\"origin\":\"skia_perf\"}"},

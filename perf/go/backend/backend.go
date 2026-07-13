@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/subscription"
 	tpr_client "go.skia.org/infra/temporal/go/client"
+	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -181,8 +182,12 @@ func (b *Backend) initialize(
 
 	sklog.Info("Configuring grpc services.")
 	// Add all the services that will be hosted here.
+	var limiter *rate.Limiter
+	if b.flags.DevMode {
+		limiter = rate.NewLimiter(rate.Inf, 0)
+	}
 	services := []BackendService{
-		NewPinpointService(nil, nil),
+		NewPinpointService(nil, limiter, config.Config.TemporalConfig.HostPort, config.Config.TemporalConfig.Namespace, config.Config.TemporalConfig.PinpointTaskQueue, b.flags.DevMode),
 		ag_service.New(anomalygroupStore, culpritStore, regressionStore, temporalClient),
 		autobisection_service.New(autobisectionStore),
 		culprit_service.New(anomalygroupStore, culpritStore, subscriptionStore, notifier, config.Config),
@@ -233,7 +238,7 @@ func (b *Backend) configureAuthorizationForService(service BackendService) error
 		return err
 	}
 	authPolicy := service.GetAuthorizationPolicy()
-	if authPolicy.AllowUnauthenticated {
+	if authPolicy.AllowUnauthenticated || b.flags.DevMode {
 		if err := servicePolicy.AuthorizeUnauthenticated(); err != nil {
 			sklog.Errorf("Error configuring unauthenticated access for service: %v", err)
 			return err

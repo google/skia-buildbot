@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"crypto/tls"
+	"strings"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/skerr"
@@ -44,9 +45,14 @@ func getGrpcConnection(backendServiceUrlOverride string, insecureConn bool) (*gr
 
 	opts := []grpc.DialOption{}
 	if insecureConn {
-		// Strictly validate that insecureConn is false in production configurations.
-		if config.Config != nil && !config.Config.Demo {
-			return nil, skerr.Fmt("insecure connection is not allowed in production configurations")
+		// Strictly validate that insecureConn is false in production configurations, unless connecting to localhost.
+		demo := false
+		if config.Config != nil {
+			demo = config.Config.Demo
+		}
+		sklog.Infof("getGrpcConnection: backendServiceUrl=%q, insecureConn=%v, Demo=%v", backendServiceUrl, insecureConn, demo)
+		if !demo && !strings.HasPrefix(backendServiceUrl, "localhost") && !strings.HasPrefix(backendServiceUrl, "127.0.0.1") && !strings.HasPrefix(backendServiceUrl, ":") {
+			return nil, skerr.Fmt("insecure connection is not allowed in production configurations (url=%q)", backendServiceUrl)
 		}
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	} else {
@@ -83,12 +89,12 @@ func getOauthCredentials(ctx context.Context) (oauth.TokenSource, error) {
 }
 
 // NewPinpointClient returns a new instance of a client for the pinpoint service.
-func NewPinpointClient(backendServiceUrlOverride string) (pinpoint.PinpointClient, error) {
+func NewPinpointClient(backendServiceUrlOverride string, insecureConn bool) (pinpoint.PinpointClient, error) {
 	if !isBackendEnabled(backendServiceUrlOverride) {
 		return nil, skerr.Fmt("Backend service is not enabled for this instance.")
 	}
 
-	conn, err := getGrpcConnection(backendServiceUrlOverride, false)
+	conn, err := getGrpcConnection(backendServiceUrlOverride, insecureConn)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,38 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+sk_element(
+    name = "pinpoint-dialog-sk",
+    sk_element_deps = [
+        "//infra-sk/modules/alogin-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/@lit/task",
+        "//:node_modules/@material/web",
+        "//:node_modules/lit",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/window:window_ts_lib",
+        "//perf/modules/common:test-path_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "pinpoint-dialog-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "pinpoint-dialog-sk_test",
+    src = "pinpoint-dialog-sk_test.ts",
+    deps = [
+        ":pinpoint-dialog-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//:node_modules/sinon",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)

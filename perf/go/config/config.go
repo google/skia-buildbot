@@ -890,6 +890,9 @@ type TemporalConfig struct {
 	// The host and port of the temporal instance.
 	HostPort string `json:"host_port,omitempty"`
 
+	// The web UI URL of the temporal instance.
+	UiHostUrl string `json:"ui_host_url,omitempty"`
+
 	// The namespace used in the temporal config.
 	Namespace string `json:"namespace,omitempty"`
 
@@ -1174,6 +1177,9 @@ type InstanceConfig struct {
 
 	// wheter or not to show Bisect button in the chart-tooltip
 	ShowBisectBtn bool `json:"show_bisect_btn,omitempty"`
+
+	// Whether to show the new pinpoint backend checkbox
+	ShowNewPinpointBackendCheckbox bool `json:"show_new_pinpoint_backend_checkbox,omitempty"`
 
 	// Whether to show commit range as hashes instead of positions.
 	ShowHashRangesInTooltip bool `json:"show_hash_ranges_in_tooltip,omitempty"`

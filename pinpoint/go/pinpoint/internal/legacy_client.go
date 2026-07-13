@@ -424,6 +424,7 @@ func buildTryJobRequestURL(req *TryJobCreateRequest) (string, error) {
 	setIfNotEmpty(params, "story", req.Story)
 	setIfNotEmpty(params, "extra_test_args", req.ExtraTestArgs)
 	setIfNotEmpty(params, "repository", req.Repository)
+	setIfNotEmpty(params, "project", req.Project)
 	setIfNotEmpty(params, "bug_id", req.BugId)
 	setIfNotEmpty(params, "user", req.User)
 	params.Set("tags", "{\"origin\":\"skia_perf\"}")
@@ -445,6 +446,7 @@ func buildBisectJobRequestURL(req *BisectJobCreateRequest, isNewAnomaly bool) st
 	setIfNotEmpty(params, "pin", req.Pin)
 	setIfNotEmpty(params, "project", req.Project)
 	setIfNotEmpty(params, "user", req.User)
+	setIfNotEmpty(params, "extra_test_args", req.ExtraTestArgs)
 	if !isNewAnomaly {
 		setIfNotEmpty(params, "alert_ids", req.AlertIDs)
 	}

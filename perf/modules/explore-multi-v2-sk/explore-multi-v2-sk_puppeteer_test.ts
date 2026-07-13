@@ -16,6 +16,7 @@ describe('explore-multi-v2-sk', () => {
   beforeEach(async () => {
     const page = testBed.page;
     page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
+    page.on('pageerror', (err) => console.log('PAGE ERROR:', err.toString()));
     await page.goto(testBed.baseUrl);
     const exploreMultiV2Sk = (await page.waitForSelector(
       'explore-multi-v2-sk'
@@ -29,6 +30,7 @@ describe('explore-multi-v2-sk', () => {
   afterEach(async () => {
     const page = testBed.page;
     page.removeAllListeners('console');
+    page.removeAllListeners('pageerror');
   });
 
   it('should display the correct static content', async () => {
@@ -645,7 +647,8 @@ describe('explore-multi-v2-sk', () => {
             body: JSON.stringify({
               dataframe: {
                 traceset: {
-                  ',arch=arm,config=8888,os=Ubuntu,project=Skia,': [10, 20, 30, 40, 50],
+                  ',master=ChromiumGPU,bot=GPU-Ubuntu,benchmark=blink_perf,test=layout,subtest_1=my_story,arch=arm,config=8888,os=Ubuntu,project=Skia,':
+                    [10, 20, 30, 40, 50],
                 },
                 header: [
                   {
@@ -708,6 +711,15 @@ describe('explore-multi-v2-sk', () => {
             status: 200,
             contentType: 'application/json',
             body: JSON.stringify({ email: 'test@google.com' }),
+          });
+        } else if (url.endsWith('/_/bisect/create')) {
+          await request.respond({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              jobId: '14ef827a',
+              jobUrl: 'https://pinpoint-dot-chromeperf.appspot.com/job/14ef827a',
+            }),
           });
         } else {
           await request.continue();
@@ -777,11 +789,16 @@ describe('explore-multi-v2-sk', () => {
             [row.commit_number]: {
               id: 'test-anomaly-id',
               bug_id: 12345,
-              bugs: [],
+              bugs: [{ bug_id: '12345', bug_type: 'BUGANIZER' }],
               is_improvement: false,
               commit_number: row.commit_number,
               median_after: 20.0,
               median_before: 10.0,
+              median_after_anomaly: 20.0,
+              median_before_anomaly: 10.0,
+              start_revision: row.commit_number - 1,
+              end_revision: row.commit_number,
+              test_path: 'Master/Bot/Benchmark/Test',
             },
           },
         };
@@ -982,10 +999,10 @@ describe('explore-multi-v2-sk', () => {
       expect(isTooltipOpen, 'tooltip should remain open after clicking inside it').to.be.true;
 
       // Click Bisect button
-      await page.evaluate(() => {
+      await page.evaluate(async () => {
         const explore = document.querySelector('explore-multi-v2-sk') as any;
         const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
-        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk');
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk') as any;
         const bisectBtn = tooltip ? (tooltip.shadowRoot.querySelector('#bisect') as any) : null;
         if (bisectBtn) {
           bisectBtn.click();
@@ -1001,19 +1018,70 @@ describe('explore-multi-v2-sk', () => {
           if (!traceChart) return false;
           const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk') as any;
           if (!tooltip) return false;
-          const bisectDialogSk = tooltip.shadowRoot.querySelector('#bisect-dialog-sk') as any;
-          if (!bisectDialogSk) return false;
-          const dialog = bisectDialogSk.querySelector('#bisect-dialog');
-          if (!dialog) return false;
-          const dialogRect = dialog.getBoundingClientRect();
-          return dialogRect.width > 0 && dialogRect.height > 0;
+          const pinpointDialogSk = tooltip.shadowRoot.querySelector('#pinpoint-dialog-sk') as any;
+          if (!pinpointDialogSk) return false;
+          const mdDialog = pinpointDialogSk.shadowRoot.querySelector('#dialog');
+          return mdDialog && mdDialog.open;
         },
-        { timeout: 5000 }
+        { timeout: 15000 }
       );
 
-      // Take a screenshot of the dialog
-      const screenshotDialog = await page.screenshot();
-      console.log('SCREENSHOT_DIALOG_BASE64:', screenshotDialog.toString('base64'));
+      // 1. Click on the dialog body to verify that it DOES NOT close (test event propagation fix!)
+      await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk') as any;
+        const pinpointDialogSk = tooltip.shadowRoot.querySelector('#pinpoint-dialog-sk') as any;
+        const dialog = pinpointDialogSk.shadowRoot.querySelector('#dialog');
+        dialog.click();
+      });
+
+      // Check dialog state: should remain open
+      const isDialogOpen = await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk') as any;
+        const pinpointDialogSk = tooltip.shadowRoot.querySelector('#pinpoint-dialog-sk') as any;
+        const dialog = pinpointDialogSk.shadowRoot.querySelector('#dialog');
+        return dialog && dialog.open;
+      });
+      expect(isDialogOpen).to.be.true;
+
+      // 2. Fill the bisection form fields (they are empty due to the simple mock trace key)
+      // and trigger form submit by clicking "Start Bisect" filled-button
+      await page.evaluate(() => {
+        const explore = document.querySelector('explore-multi-v2-sk') as any;
+        const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+        const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk') as any;
+        const pinpointDialogSk = tooltip.shadowRoot.querySelector('#pinpoint-dialog-sk') as any;
+
+        // Populate required fields to pass bisection validation
+        pinpointDialogSk.testPath = 'ChromiumGPU/GPU-Ubuntu/blink_perf/layout';
+        pinpointDialogSk.story = 'my_story';
+
+        const submitBtn = pinpointDialogSk.shadowRoot.querySelector(
+          'md-filled-button'
+        ) as HTMLElement;
+        submitBtn.click();
+      });
+
+      // 3. Wait for bisection success banner to appear
+      await page.waitForFunction(
+        () => {
+          const explore = document.querySelector('explore-multi-v2-sk') as any;
+          if (!explore) return false;
+          const traceChart = explore.shadowRoot.querySelector('trace-chart-sk') as any;
+          if (!traceChart) return false;
+          const tooltip = traceChart.shadowRoot.querySelector('trace-chart-tooltip-sk') as any;
+          if (!tooltip) return false;
+          const pinpointDialogSk = tooltip.shadowRoot.querySelector('#pinpoint-dialog-sk') as any;
+          if (!pinpointDialogSk) return false;
+
+          const successBanner = pinpointDialogSk.shadowRoot.querySelector('.success-banner');
+          return successBanner !== null;
+        },
+        { timeout: 15000 }
+      );
     } finally {
       await recorder.stop();
       page.off('request', requestHandler);

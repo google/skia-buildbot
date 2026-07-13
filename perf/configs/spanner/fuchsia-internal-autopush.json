@@ -86,6 +86,7 @@
     "show_triage_link": true,
     "new_alerts_page": true,
     "show_bisect_btn": true,
+    "show_new_pinpoint_backend_checkbox": true,
     "use_regression2_schema": true,
     "trace_format": "chrome",
     "default_to_manual_plot_mode": true

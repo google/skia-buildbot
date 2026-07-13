@@ -51,7 +51,7 @@ func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
 	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.CatapultBisect, mock.Anything).Return(wfm, nil)
 
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	resp, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{
 		StartGitHash: "fake-start",
@@ -64,7 +64,7 @@ func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
 func TestScheduleBisection_RateLimitedRequests_ReturnError(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1))
+	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1), "", "", "", false)
 
 	_, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
 	// invalid request should be rate limited.
@@ -79,7 +79,7 @@ func TestScheduleBisection_InvalidRequests_ShouldError(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	resp, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
 	assert.Nil(t, resp)
@@ -97,7 +97,7 @@ func TestScheduleCulpritFinder_ValidRequest_ReturnJobID(t *testing.T) {
 	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.CulpritFinderWorkflow, mock.Anything).Return(wfm, nil)
 
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	resp, err := svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{
 		StartGitHash:      "fake-start",
@@ -121,7 +121,7 @@ func TestScheduleCulpritFinder_RateLimitedRequests_ReturnError(t *testing.T) {
 	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.CulpritFinderWorkflow, mock.Anything).Return(wfm, nil)
 
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1))
+	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1), "", "", "", false)
 
 	resp, err := svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{
 		StartGitHash:  "fake-start",
@@ -145,7 +145,7 @@ func TestScheduleCulpritFinder_BadRequestParams_JobBlocked(t *testing.T) {
 			tpm, _ := newTemporalMock(t)
 
 			ctx := context.Background()
-			svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+			svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 			resp, err := svc.ScheduleCulpritFinder(ctx, req)
 			assert.Nil(t, resp)
@@ -228,7 +228,7 @@ func TestScheduleCulpritFinder_BadRequestParams_JobBlocked(t *testing.T) {
 func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	expect := func(req *pb.QueryBisectRequest, want *pb.BisectExecution, desc string) {
 		resp, err := svc.QueryBisection(ctx, req)
@@ -248,7 +248,7 @@ func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {
 func TestQueryBisection_NonExistingJob_ShouldError(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	resp, err := svc.QueryBisection(ctx, &pb.QueryBisectRequest{
 		JobId: "non-exist ID",
@@ -266,7 +266,7 @@ func TestQueryBisection_NonExistingJob_ShouldError(t *testing.T) {
 func TestCancelJob_InvalidInput_ReturnError(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
+	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1), "", "", "", false)
 
 	_, err := svc.CancelJob(ctx, &pb.CancelJobRequest{JobId: "job-id"})
 	require.ErrorContains(t, err, "bad request: missing Reason")
@@ -282,7 +282,7 @@ func TestCancelJob_JobCancelFailed_ReturnError(t *testing.T) {
 	tcm.On("CancelWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("internal error"))
 
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
+	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1), "", "", "", false)
 
 	resp, err := svc.CancelJob(ctx, &pb.CancelJobRequest{JobId: "job-id", Reason: "cancel reason"})
 	assert.Nil(t, resp)
@@ -297,7 +297,7 @@ func TestCancelJob_JobCancelled_ReturnSucceed(t *testing.T) {
 	tcm.On("CancelWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
+	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1), "", "", "", false)
 
 	resp, err := svc.CancelJob(ctx, &pb.CancelJobRequest{JobId: "job-id", Reason: "cancel reason"})
 	require.NoError(t, err)
@@ -308,7 +308,7 @@ func TestCancelJob_JobCancelled_ReturnSucceed(t *testing.T) {
 func TestQueryPairwise_InvalidRequest_ReturnsInternalError(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	resp, err := svc.QueryPairwise(ctx, &pb.QueryPairwiseRequest{JobId: ""})
 	assert.Nil(t, resp)
@@ -321,7 +321,7 @@ func TestQueryPairwise_InvalidRequest_ReturnsInternalError(t *testing.T) {
 func TestQueryPairwise_TemporalClientError_ReturnsClientError(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	expectedErr := errors.New("temporal client failed")
 	tpm.On("NewClient", mock.Anything, mock.Anything).Return(nil, func() {}, expectedErr)
@@ -338,7 +338,7 @@ func TestQueryPairwise_TemporalClientError_ReturnsClientError(t *testing.T) {
 func TestQueryPairwise_DescribeWorkflow_ReturnsInternalError(t *testing.T) {
 	tpm, tcm := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
 	expectedErr := errors.New("describe workflow failed")
@@ -360,7 +360,7 @@ func TestQueryPairwise_StatusCompleted_ReturnsCompleted(t *testing.T) {
 	wfrMock.Test(t)
 
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
 	expectedExecution := &pb.PairwiseExecution{
@@ -415,7 +415,7 @@ func TestQueryPairwise_StatusCompleted_ReturnsInternalError(t *testing.T) {
 	wfrMock := &temporal_mocks.WorkflowRun{}
 	wfrMock.Test(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
 	getError := errors.New("failed to get workflow results")
@@ -459,7 +459,7 @@ func TestQueryPairwise_OtherStatuses_ReturnsCorrectJobStatus(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tpm, tcm := newTemporalMock(t)
 			ctx := context.Background()
-			svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+			svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 			jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
 
@@ -483,7 +483,7 @@ func TestQueryPairwise_OtherStatuses_ReturnsCorrectJobStatus(t *testing.T) {
 func TestQueryPairwise_TemporalWorkflowStatusIsUnspecified_ReturnsInternalError(t *testing.T) {
 	tpm, tcm := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	jobID := "189ee4a7-fe14-4472-81eb-d201b17ddd9b"
 
@@ -512,7 +512,7 @@ func TestSchedulePairwise_ValidRequest_ReturnJobID(t *testing.T) {
 	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.PairwiseWorkflow, mock.Anything).Return(wfm, nil)
 
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0), "", "", "", false)
 
 	resp, err := svc.SchedulePairwise(ctx, &pb.SchedulePairwiseRequest{
 		StartCommit: &pb.CombinedCommit{

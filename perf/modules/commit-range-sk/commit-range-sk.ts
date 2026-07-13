@@ -218,7 +218,7 @@ export class CommitRangeSk extends LitElement {
 
   // Should be as close as possible to perf/go/formatter.
   private _buildUrl(): string {
-    let url = window.perf.commit_range_url;
+    let url = window.perf?.commit_range_url || '';
 
     // Always replace {end} with the second hash.
     if (url.includes('{end}')) {

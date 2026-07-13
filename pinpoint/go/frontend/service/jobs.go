@@ -47,10 +47,10 @@ type Service struct {
 }
 
 // New creates a new Service.
-func New(ctx context.Context, js jobstore.JobStore, t tpr_client.TemporalProvider, l *rate.Limiter, resourceDir string) (*Service, error) {
+func New(ctx context.Context, js jobstore.JobStore, t tpr_client.TemporalProvider, l *rate.Limiter, resourceDir, hostPort, namespace, taskQueue string, devMode bool) (*Service, error) {
 	s := &Service{
 		jobStore:       js,
-		pinpointServer: pinpoint_service.New(t, l), // gRPC service to handle temporal interaction
+		pinpointServer: pinpoint_service.New(t, l, hostPort, namespace, taskQueue, devMode), // gRPC service to handle temporal interaction
 	}
 
 	handler, err := pinpoint_service.NewJSONHandler(ctx, s.pinpointServer)

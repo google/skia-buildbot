@@ -10,8 +10,7 @@ import '../triage-menu-sk/triage-menu-sk';
 import { NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
 import '../point-links-sk/point-links-sk';
 import '../user-issue-sk/user-issue-sk';
-import '../bisect-dialog-sk/bisect-dialog-sk';
-import '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
+import '../pinpoint-dialog-sk/pinpoint-dialog-sk';
 import { AnomalyData } from '../common/anomaly-data';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import { makeEditAnomalyRequest } from '../anomalies-table-sk/triage-api';
@@ -666,10 +665,11 @@ export class TraceChartTooltipSk extends LitElement {
     const prevCommit = i > 0 ? s.rows[i - 1].commit_number : r.commit_number;
 
     const regression = this.regressions[s.id]?.[r.commit_number];
-    const bugId = (regression as any)?.bug_id ? String((regression as any).bug_id) : '';
-    const anomalyId = regression ? String((regression as any).id) : '';
+    const bugId =
+      regression?.bugs && regression.bugs.length > 0 ? String(regression.bugs[0].bug_id) : '';
+    const anomalyId = regression ? String(regression.id) : '';
 
-    const preloadBisectInputs = {
+    const preloadInputs = {
       testPath: testPath,
       startCommit: String(prevCommit),
       endCommit: String(r.commit_number),
@@ -678,10 +678,9 @@ export class TraceChartTooltipSk extends LitElement {
       story: story,
     };
 
-    const bisectDialog = this.shadowRoot?.querySelector('#bisect-dialog-sk') as any;
-    if (bisectDialog) {
-      bisectDialog.setBisectInputParams(preloadBisectInputs);
-      bisectDialog.open();
+    const pinpointDialog = this.shadowRoot?.querySelector('#pinpoint-dialog-sk') as any;
+    if (pinpointDialog) {
+      pinpointDialog.open('bisect', preloadInputs);
     }
   }
 
@@ -696,7 +695,7 @@ export class TraceChartTooltipSk extends LitElement {
     const prevCommit = i > 0 ? s.rows[i - 1].commit_number : r.commit_number;
 
     const params = fromKey(traceName);
-    const preloadTryJobInputs = {
+    const preloadInputs = {
       testPath: testPath,
       baseCommit: String(prevCommit),
       endCommit: String(r.commit_number),
@@ -705,10 +704,9 @@ export class TraceChartTooltipSk extends LitElement {
       benchmark: params.benchmark || '',
     };
 
-    const tryJobDialog = this.shadowRoot?.querySelector('#pinpoint-try-job-dialog-sk') as any;
-    if (tryJobDialog) {
-      tryJobDialog.setTryJobInputParams(preloadTryJobInputs);
-      tryJobDialog.open();
+    const pinpointDialog = this.shadowRoot?.querySelector('#pinpoint-dialog-sk') as any;
+    if (pinpointDialog) {
+      pinpointDialog.open('try', preloadInputs);
     }
   }
 
@@ -841,11 +839,18 @@ export class TraceChartTooltipSk extends LitElement {
                     </div>
                   `
                 : ''}
-              ${(regression as any).bug_id
+              ${regression.bugs && regression.bugs.length > 0
                 ? html`
                     <div class="tooltip-row">
                       <strong>Bug ID:</strong>
-                      <span> ${formatBug(this.bug_host_url, (regression as any).bug_id)} </span>
+                      <span>
+                        ${regression.bugs.map(
+                          (bug, index) => html`
+                            ${formatBug(this.bug_host_url, Number(bug.bug_id))}
+                            ${index < regression.bugs!.length - 1 ? ', ' : ''}
+                          `
+                        )}
+                      </span>
                       <close-icon-sk
                         id="unassociate-bug-button"
                         @click=${() => this.unassociateBug(s.originalId || s.id, regression)}>
@@ -859,9 +864,7 @@ export class TraceChartTooltipSk extends LitElement {
                   .anomalies=${[regression]}
                   .traceNames=${[s.originalId || s.id]}
                   .nudgeList=${this._nudgeList}
-                  ?hidden=${(regression as any).bug_id !== undefined &&
-                  (regression as any).bug_id !== null &&
-                  (regression as any).bug_id !== 0}>
+                  ?hidden=${regression.bugs && regression.bugs.length > 0}>
                 </triage-menu-sk>
               </div>
             `;
@@ -1026,8 +1029,7 @@ export class TraceChartTooltipSk extends LitElement {
             })()
           : ''}
       </div>
-      <bisect-dialog-sk id="bisect-dialog-sk"></bisect-dialog-sk>
-      <pinpoint-try-job-dialog-sk id="pinpoint-try-job-dialog-sk"></pinpoint-try-job-dialog-sk>
+      <pinpoint-dialog-sk id="pinpoint-dialog-sk"></pinpoint-dialog-sk>
     `;
   }
 }

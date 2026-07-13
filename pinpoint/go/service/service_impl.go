@@ -28,14 +28,18 @@ type server struct {
 	// Local rate limiter to only limit the traffic for migration temporarily.
 	limiter *rate.Limiter
 
-	temporal tpr_client.TemporalProvider
+	temporal  tpr_client.TemporalProvider
+	hostPort  string
+	namespace string
+	taskQueue string
+	devMode   bool
 }
 
 const (
 	// Those should be configurable for each instance.
-	hostPort  = "localhost:7233"
-	namespace = "perf-internal"
-	taskQueue = "perf.perf-chrome-public.bisect"
+	defaultHostPort  = "localhost:7233"
+	defaultNamespace = "perf-internal"
+	defaultTaskQueue = "perf.perf-chrome-public.bisect"
 	// TODO(b/352631333): Replace the rate limit with an actual queueing system
 	rateLimit = 30 * time.Minute // accept 1 request every 30 minutes
 	// arbitrary timeouts to ensure workflows will not run forever. Note that it is possible
@@ -46,7 +50,7 @@ const (
 	culpritFinderTimeout    = 16 * time.Hour
 )
 
-func New(t tpr_client.TemporalProvider, l *rate.Limiter) *server {
+func New(t tpr_client.TemporalProvider, l *rate.Limiter, hostPort, namespace, taskQueue string, devMode bool) *server {
 	if l == nil {
 		// 1 token every 30 minutes, this allow some buffer to drain the hot spots in the bots pool.
 		l = rate.NewLimiter(rate.Every(rateLimit), 1)
@@ -54,9 +58,22 @@ func New(t tpr_client.TemporalProvider, l *rate.Limiter) *server {
 	if t == nil {
 		t = tpr_client.DefaultTemporalProvider{}
 	}
+	if hostPort == "" {
+		hostPort = defaultHostPort
+	}
+	if namespace == "" {
+		namespace = defaultNamespace
+	}
+	if taskQueue == "" {
+		taskQueue = defaultTaskQueue
+	}
 	return &server{
-		limiter:  l,
-		temporal: t,
+		limiter:   l,
+		temporal:  t,
+		hostPort:  hostPort,
+		namespace: namespace,
+		taskQueue: taskQueue,
+		devMode:   devMode,
 	}
 }
 
@@ -78,7 +95,7 @@ func (s *server) CancelJob(ctx context.Context, req *pb.CancelJobRequest) (*pb.C
 		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing Reason")
 	}
 
-	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
+	c, cleanUp, err := s.temporal.NewClient(s.hostPort, s.namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}
@@ -128,7 +145,7 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
+	c, cleanUp, err := s.temporal.NewClient(s.hostPort, s.namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}
@@ -137,7 +154,7 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 
 	wo := client.StartWorkflowOptions{
 		ID:                       uuid.New().String(),
-		TaskQueue:                taskQueue,
+		TaskQueue:                s.taskQueue,
 		WorkflowExecutionTimeout: bisectionTimeout,
 		RetryPolicy: &temporal.RetryPolicy{
 			// We will only attempt to run the workflow exactly once as we expect any failure will be
@@ -147,7 +164,7 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 	}
 	wf, err := c.ExecuteWorkflow(ctx, wo, workflows.CatapultBisect, &workflows.BisectParams{
 		Request:    req,
-		Production: true,
+		Production: !s.devMode,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to start workflow (%v).", err)
@@ -171,7 +188,7 @@ func (s *server) ScheduleCulpritFinder(ctx context.Context, req *pb.ScheduleCulp
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
+	c, cleanUp, err := s.temporal.NewClient(s.hostPort, s.namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}
@@ -180,7 +197,7 @@ func (s *server) ScheduleCulpritFinder(ctx context.Context, req *pb.ScheduleCulp
 
 	wo := client.StartWorkflowOptions{
 		ID:        uuid.New().String(),
-		TaskQueue: taskQueue,
+		TaskQueue: s.taskQueue,
 		// arbitrary timeout to assure it's not going forever. Set to a few hours more than
 		// bisect timeout.
 		WorkflowExecutionTimeout: culpritFinderTimeout,
@@ -192,7 +209,7 @@ func (s *server) ScheduleCulpritFinder(ctx context.Context, req *pb.ScheduleCulp
 	}
 	wf, err := c.ExecuteWorkflow(ctx, wo, workflows.CulpritFinderWorkflow, &workflows.CulpritFinderParams{
 		Request:    req,
-		Production: true,
+		Production: !s.devMode,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to start workflow (%v).", err)
@@ -215,7 +232,7 @@ func (s *server) SchedulePairwise(ctx context.Context, req *pb.SchedulePairwiseR
 		return nil, status.Errorf(codes.InvalidArgument, "%s", err)
 	}
 
-	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
+	c, cleanUp, err := s.temporal.NewClient(s.hostPort, s.namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}
@@ -224,7 +241,7 @@ func (s *server) SchedulePairwise(ctx context.Context, req *pb.SchedulePairwiseR
 
 	workflowOptions := client.StartWorkflowOptions{
 		ID:        uuid.New().String(),
-		TaskQueue: taskQueue,
+		TaskQueue: s.taskQueue,
 		// A pairwise try job SLO is to complete sub 2 hours.
 		WorkflowExecutionTimeout: pairwiseTimeoutDuration,
 		RetryPolicy: &temporal.RetryPolicy{
@@ -255,7 +272,7 @@ func (s *server) QueryPairwise(ctx context.Context, req *pb.QueryPairwiseRequest
 		return nil, status.Errorf(codes.InvalidArgument, "%s", err)
 	}
 
-	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
+	c, cleanUp, err := s.temporal.NewClient(s.hostPort, s.namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}
