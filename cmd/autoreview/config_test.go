@@ -23,7 +23,7 @@ func TestParse(t *testing.T) {
 			expected: &Config{
 				GCPProject:   "skia-infra-corp",
 				Location:     "global",
-				Model:        "gemini-3.1-flash-lite-preview",
+				Model:        "gemini-3.5-flash",
 				BaseCommit:   "HEAD~1",
 				ContextLines: 10,
 				Timeout:      time.Minute,
