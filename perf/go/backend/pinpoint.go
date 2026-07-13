@@ -29,6 +29,8 @@ func (service *pinpointService) GetAuthorizationPolicy() shared.AuthorizationPol
 		AllowUnauthenticated: false,
 		AuthorizedRoles: []roles.Role{
 			roles.Editor,
+			roles.Bisecter,
+			roles.Admin,
 		},
 	}
 }
