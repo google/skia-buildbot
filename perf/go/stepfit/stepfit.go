@@ -23,9 +23,6 @@ const (
 
 	// UNINTERESTING means no step occurred.
 	UNINTERESTING StepFitStatus = "Uninteresting"
-
-	// MinTraceSize is the smallest trace length we can analyze.
-	MinTraceSize = 3
 )
 
 // AllStepFitStatus is the list of all StepFitStatus values.

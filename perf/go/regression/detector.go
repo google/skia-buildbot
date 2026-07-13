@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/dfiter"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/stepfit"
 	types "go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
@@ -268,14 +269,24 @@ func missing(tr types.Trace) bool {
 //
 // The criteria is if there is >50% missing data on either side of the target
 // commit, which sits at the center of the trace.
-func tooMuchMissingData(tr types.Trace) bool {
-	if len(tr) < 3 {
-		return false
+func tooMuchMissingData(tr types.Trace, isOriginalStep bool) bool {
+	// If it is an even window, but we got an odd length trace, truncate it
+	// to match what evaluateSimpleRule will do.
+	if !isOriginalStep && len(tr)%2 != 0 {
+		tr = tr[0 : len(tr)-1]
 	}
+
+	if len(tr) < 2 {
+		return true // Prevent panic in missing()
+	}
+
 	n := len(tr) / 2
+
+	// If the midpoint is missing, we don't detect for this dataframe's trace.
 	if tr[n] == vec32.MissingDataSentinel {
 		return true
 	}
+
 	return missing(tr[:n]) || missing(tr[len(tr)-n:])
 }
 
@@ -299,7 +310,10 @@ func (p *regressionDetectionProcess) detectRegressionsOnDataFrame(ctx context.Co
 	before := len(df.TraceSet)
 	// Filter out Traces with insufficient data. I.e. we need 50% or more data
 	// on either side of the target commit.
-	df.FilterOut(tooMuchMissingData)
+	algoUsesOriginalStep := stepfit.UsesOriginalStep(p.request.Alert.Step, p.request.Alert.DetectionRule)
+	df.FilterOut(func(tr types.Trace) bool {
+		return tooMuchMissingData(tr, algoUsesOriginalStep)
+	})
 	after := len(df.TraceSet)
 	message := fmt.Sprintf("Filtered Traces: Num Before: %d Num After: %d Delta: %d", before, after, before-after)
 	p.request.Progress.Message("Filtering", message)

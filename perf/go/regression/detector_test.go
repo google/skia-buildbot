@@ -29,7 +29,8 @@ var (
 )
 
 func TestTooMuchMissingData(t *testing.T) {
-	testCases := []struct {
+	// Test cases for OriginalStep (isOriginalStep = true)
+	testCasesOriginal := []struct {
 		value    types.Trace
 		expected bool
 		message  string
@@ -50,6 +51,42 @@ func TestTooMuchMissingData(t *testing.T) {
 			message:  "missing midpoint",
 		},
 		{
+			value:    types.Trace{e, 1, 1},
+			expected: true,
+			message:  "Radius = 1, missing left",
+		},
+		{
+			value:    types.Trace{1, 1},
+			expected: false, // tooMuchMissingData filters traces with len < 2 to prevent panics. Stricter algorithm-specific length checks (e.g., OriginalStep requires len >= 3) are handled by evaluateSimpleRule.
+			message:  "len(tr) < 3 for OriginalStep",
+		},
+		{
+			value:    types.Trace{1},
+			expected: true, // Filtered because len(tr) < 2 would cause panic in missing()
+			message:  "len(tr) < 2 for OriginalStep",
+		},
+	}
+
+	for _, tc := range testCasesOriginal {
+		t.Run("OriginalStep_"+tc.message, func(t *testing.T) {
+			if got, want := tooMuchMissingData(tc.value, true), tc.expected; got != want {
+				t.Errorf("Got %v Want %v", got, want)
+			}
+		})
+	}
+
+	// Test cases for non-OriginalStep (isOriginalStep = false)
+	testCasesNonOriginal := []struct {
+		value    types.Trace
+		expected bool
+		message  string
+	}{
+		{
+			value:    types.Trace{e, e, 1, 1, 1}, // Odd length 5, truncated to 4 [e, e, 1, 1] -> missing one side -> true
+			expected: true,
+			message:  "odd length, truncated, missing one side",
+		},
+		{
 			value:    types.Trace{e, e, 1, 1},
 			expected: true,
 			message:  "missing one side - even",
@@ -60,21 +97,33 @@ func TestTooMuchMissingData(t *testing.T) {
 			message:  "exactly 50% - even",
 		},
 		{
-			value:    types.Trace{e, 1, 1},
+			value:    types.Trace{1, 1},
+			expected: false,
+			message:  "length 2, both present",
+		},
+		{
+			value:    types.Trace{e, 1},
 			expected: true,
-			message:  "Radius = 1",
+			message:  "length 2, missing left",
+		},
+		{
+			value:    types.Trace{1, e},
+			expected: true,
+			message:  "length 2, missing right",
 		},
 		{
 			value:    types.Trace{1},
-			expected: false,
-			message:  "len(tr) < 3",
+			expected: true,
+			message:  "len(tr) < 2",
 		},
 	}
 
-	for _, tc := range testCases {
-		if got, want := tooMuchMissingData(tc.value), tc.expected; got != want {
-			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
-		}
+	for _, tc := range testCasesNonOriginal {
+		t.Run("NonOriginalStep_"+tc.message, func(t *testing.T) {
+			if got, want := tooMuchMissingData(tc.value, false), tc.expected; got != want {
+				t.Errorf("Got %v Want %v", got, want)
+			}
+		})
 	}
 }
 

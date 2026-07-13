@@ -312,3 +312,60 @@ func TestEvaluateComplexRule_OriginalAndPercent_OR(t *testing.T) {
 	assert.True(t, foundOriginal)
 	assert.True(t, foundPercent)
 }
+
+func TestMinSizeForAlgorithm(t *testing.T) {
+	assert.Equal(t, 3, MinSizeForAlgorithm(types.OriginalStep))
+	assert.Equal(t, 4, MinSizeForAlgorithm(types.CohenStep))
+	assert.Equal(t, 2, MinSizeForAlgorithm(types.PercentStep))
+	assert.Equal(t, 2, MinSizeForAlgorithm(types.PercentMedianStep))
+	assert.Equal(t, 2, MinSizeForAlgorithm(types.AbsoluteStep))
+	assert.Equal(t, 2, MinSizeForAlgorithm(types.Const))
+	assert.Equal(t, 2, MinSizeForAlgorithm(types.Stepiness))
+	assert.Equal(t, 2, MinSizeForAlgorithm(types.MannWhitneyU))
+}
+
+func TestEvaluateSimpleRule_TooShort_ReturnsFalse(t *testing.T) {
+	stddevThreshold := float32(0.01)
+
+	for _, step := range types.AllStepDetections {
+		name := string(step)
+		if name == "" {
+			name = "OriginalStep"
+		}
+		t.Run(name, func(t *testing.T) {
+			minSize := MinSizeForAlgorithm(step)
+			tooShortTrace := make([]float32, minSize-1)
+			rule := &alerts.AlgorithmCheck{
+				Step:      step,
+				Threshold: 0.5,
+			}
+			isTriggered, results := evaluateSimpleRule(tooShortTrace, stddevThreshold, rule)
+			assert.False(t, isTriggered)
+			assert.Nil(t, results)
+		})
+	}
+}
+
+func TestEvaluateSimpleRule_LongEnough_Evaluates(t *testing.T) {
+	stddevThreshold := float32(0.01)
+
+	for _, step := range types.AllStepDetections {
+		name := string(step)
+		if name == "" {
+			name = "OriginalStep"
+		}
+		t.Run(name, func(t *testing.T) {
+			minSize := MinSizeForAlgorithm(step)
+			trace := make([]float32, minSize)
+			for i := range trace {
+				trace[i] = float32(i)
+			}
+			rule := &alerts.AlgorithmCheck{
+				Step:      step,
+				Threshold: 0.5,
+			}
+			_, results := evaluateSimpleRule(trace, stddevThreshold, rule)
+			assert.NotNil(t, results, "Should have evaluated for step %s with length %d", step, len(trace))
+		})
+	}
+}

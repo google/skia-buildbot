@@ -84,13 +84,25 @@ func EvaluateRule(trace []float32, stddevThreshold float32, rule *alerts.Anomaly
 	return stepFit
 }
 
+// MinSizeForAlgorithm returns the minimum trace length required for the given step detection algorithm.
+func MinSizeForAlgorithm(step types.StepDetection) int {
+	switch step {
+	case types.OriginalStep:
+		return 3
+	case types.CohenStep:
+		return 4
+	default:
+		return 2
+	}
+}
+
 // evaluateSimpleRule evaluates a single algorithm check against the threshold.
 func evaluateSimpleRule(trace []float32, stddevThreshold float32, simpleRule *alerts.AlgorithmCheck) (bool, []AnomalyResult) {
 	if simpleRule == nil {
 		return false, nil
 	}
 
-	if len(trace) < MinTraceSize {
+	if len(trace) < MinSizeForAlgorithm(simpleRule.Step) {
 		return false, nil
 	}
 
