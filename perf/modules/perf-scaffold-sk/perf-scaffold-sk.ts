@@ -178,6 +178,9 @@ export class PerfScaffoldSk extends LitElement {
             </a>
           </div>
           <h1 class="name">${this.instanceTitleTemplate()}</h1>
+          <div id="migration">
+            ${window.perf.instance_name === 'V8' ? html`<p>Migration in progress</p>` : ''}
+          </div>
           <div class="spacer"></div>
           <button
             ?hidden=${!window.perf.both_anomaly_sources}
