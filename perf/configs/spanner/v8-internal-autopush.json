@@ -5,7 +5,6 @@
   "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
   "trace_sample_proportion": 0.01,
   "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
-  "fetch_chrome_perf_anomalies": true,
   "enable_only_regressions_option": true,
   "enable_split_all_option": true,
   "fetch_anomalies_from_sql": true,
