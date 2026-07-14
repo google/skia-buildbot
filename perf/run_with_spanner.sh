@@ -87,6 +87,7 @@ echo "Starting auth-proxy in the background..."
 ../_bazel_bin/kube/cmd/auth-proxy/auth-proxy_/auth-proxy \
   --prom-port=:20003 \
   --role=editor=google.com \
+  --role=bisecter=google.com \
   --authtype=mocked \
   --mock_user="${USER}@google.com" \
   --port=:8003 \

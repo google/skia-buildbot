@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"go.opencensus.io/trace"
@@ -13,10 +14,12 @@ import (
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/kube/go/authproxy"
 	backendClient "go.skia.org/infra/perf/go/backend/client"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/pinpoint/go/pinpoint"
 	pinpoint_pb "go.skia.org/infra/pinpoint/proto/v1"
+	"google.golang.org/grpc/metadata"
 )
 
 // pinpointApi provides a struct for handling Pinpoint requests.
@@ -69,10 +72,24 @@ func (api *pinpointApi) checkAuthorized(w http.ResponseWriter, r *http.Request, 
 	return true
 }
 
+func getContextWithAuthHeaders(r *http.Request, timeout time.Duration) (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithTimeout(r.Context(), timeout)
+	md := metadata.MD{}
+	if user := r.Header.Get(authproxy.WebAuthHeaderName); user != "" {
+		md.Set(authproxy.WebAuthHeaderName, user)
+	}
+	if roles := r.Header.Values(authproxy.WebAuthRoleHeaderName); len(roles) > 0 {
+		md.Set(authproxy.WebAuthRoleHeaderName, roles...)
+	} else if roleStr := r.Header.Get(authproxy.WebAuthRoleHeaderName); roleStr != "" {
+		md.Set(authproxy.WebAuthRoleHeaderName, roleStr)
+	}
+	return metadata.NewOutgoingContext(ctx, md), cancel
+}
+
 // createTryJobHandler takes the POST'd to create a Pinpoint try job request
 // then it calls legacy Pinpoint Service to create the job and returns the job id and job url.
 func (api *pinpointApi) createTryJobHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, cancel := getContextWithAuthHeaders(r, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -162,7 +179,7 @@ func (api *pinpointApi) createTryJobHandler(w http.ResponseWriter, r *http.Reque
 // createBisectHandler takes the POST'd create bisect request
 // then it calls Pinpoint Service API to create bisect job and returns the job id and job url.
 func (api *pinpointApi) createBisectHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, cancel := getContextWithAuthHeaders(r, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -242,7 +259,7 @@ func (api *pinpointApi) createBisectHandler(w http.ResponseWriter, r *http.Reque
 
 // pinpointBisectionHandler handles a pinpoint bisection request and passes it on to the backend service.
 func (api *pinpointApi) pinpointBisectionHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, cancel := getContextWithAuthHeaders(r, defaultDatabaseTimeout)
 	defer cancel()
 	ctx, span := trace.StartSpan(ctx, "schedulePinpointBisectionRequest")
 	defer span.End()

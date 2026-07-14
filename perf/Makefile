@@ -196,6 +196,7 @@ run-auth-proxy-before-demo-instance:
 	bazelisk run //kube/cmd/auth-proxy -- \
 		--prom-port=:20003 \
 		--role=editor=google.com \
+		--role=bisecter=google.com \
 		--authtype=mocked \
 		--mock_user=$(USER)@google.com \
 		--port=:8003 \
@@ -206,6 +207,7 @@ run-auth-proxy-before-backend:
 	bazelisk run //kube/cmd/auth-proxy -- \
 		--prom-port=:20003 \
 		--role=editor=google.com \
+		--role=bisecter=google.com \
 		--authtype=mocked \
 		--mock_user=$(USER)@google.com \
 		--port=:8003 \

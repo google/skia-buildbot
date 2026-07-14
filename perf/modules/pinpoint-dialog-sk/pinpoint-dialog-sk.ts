@@ -363,19 +363,22 @@ export class PinpointDialogSk extends LitElement {
   }
 
   submitTry(): void {
-    const config = this.configuration || this.testPath.split('/')[1] || '';
-    const bench = this.benchmark || this.testPath.split('/')[2] || '';
+    const parsedPath = parseTestPath(this.testPath);
+    const config =
+      this.configuration || parsedPath.configuration || this.testPath.split('/')[1] || '';
+    const bench = this.benchmark || parsedPath.benchmark || this.testPath.split('/')[2] || '';
+    const story = this.story || parsedPath.story || '';
     const { project, repo } = this._getProjectAndRepo();
 
     const req: TryJobCreateRequest = {
-      name: `Tracing Debug on ${config}/${bench}/${this.story}`,
+      name: `Tracing Debug on ${config}/${bench}/${story}`,
       base_git_hash: this.startCommit,
       end_git_hash: this.endCommit,
       base_patch: '',
       experiment_patch: '',
       configuration: config,
       benchmark: bench,
-      story: this.story,
+      story: story,
       repository: repo,
       bug_id: '',
       user: this.user,
@@ -386,6 +389,10 @@ export class PinpointDialogSk extends LitElement {
 
     if (!req.base_git_hash || !req.end_git_hash) {
       void errorMessage('Base and Experiment commits are required.');
+      return;
+    }
+    if (!req.story) {
+      void errorMessage('Story is required for try jobs.');
       return;
     }
     this._tryRequest = req;
