@@ -85,14 +85,16 @@ func infraAuthToAllowFromList(infra []string) []string {
 	for _, name := range infra {
 		if name == "anonymous:anonymous" {
 			continue
-		} else if strings.HasPrefix(name, "user:") {
-			name = name[5:]
-			name = strings.TrimPrefix(name, "*@")
-			if name == "" {
-				continue
-			}
-			ret = append(ret, name)
 		}
+		if strings.HasPrefix(name, "bot:") || strings.HasPrefix(name, "service:") {
+			continue
+		}
+		name = strings.TrimPrefix(name, "user:")
+		name = strings.TrimPrefix(name, "*@")
+		if name == "" {
+			continue
+		}
+		ret = append(ret, name)
 	}
 	sklog.Infof("Allowed list contains %d entries.", len(ret))
 	return ret

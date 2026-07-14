@@ -11,6 +11,7 @@ import (
 func TestInfraConvert(t *testing.T) {
 	infra := []string{
 		"user:*@google.com",
+		"*@chromium.org",
 		"user:test@example.com",
 		"anonymous:anonymous",
 		"bot:foo",
@@ -21,6 +22,7 @@ func TestInfraConvert(t *testing.T) {
 
 	expected := []string{
 		"google.com",
+		"chromium.org",
 		"test@example.com",
 		"last@example.org",
 	}
@@ -39,7 +41,7 @@ const JSON = `{
       "nested_group"
     ],
     "globs": [
-      "user:*@gotham.org"
+      "*@gotham.org"
     ]
   }
 }`
