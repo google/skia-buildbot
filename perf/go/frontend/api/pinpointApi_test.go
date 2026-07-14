@@ -37,6 +37,8 @@ func TestGetContextWithAuthHeaders(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/_/bisect/", nil)
 	r.Header.Set(authproxy.WebAuthHeaderName, "sruslan@google.com")
 	r.Header.Set(authproxy.WebAuthRoleHeaderName, "bisecter")
+	r.Header.Set(authproxy.EndpointAPIUserInfoHeaderName, "base64_proto_data")
+	r.Header.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, "accounts.google.com:sruslan@google.com")
 
 	ctx, cancel := getContextWithAuthHeaders(r, defaultDatabaseTimeout)
 	defer cancel()
@@ -45,4 +47,6 @@ func TestGetContextWithAuthHeaders(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, []string{"sruslan@google.com"}, md.Get(authproxy.WebAuthHeaderName))
 	require.Equal(t, []string{"bisecter"}, md.Get(authproxy.WebAuthRoleHeaderName))
+	require.Equal(t, []string{"base64_proto_data"}, md.Get(authproxy.EndpointAPIUserInfoHeaderName))
+	require.Equal(t, []string{"accounts.google.com:sruslan@google.com"}, md.Get(authproxy.GoogAuthenticatedUserEmailHeaderName))
 }

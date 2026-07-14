@@ -83,6 +83,12 @@ func getContextWithAuthHeaders(r *http.Request, timeout time.Duration) (context.
 	} else if roleStr := r.Header.Get(authproxy.WebAuthRoleHeaderName); roleStr != "" {
 		md.Set(authproxy.WebAuthRoleHeaderName, roleStr)
 	}
+	if epUser := r.Header.Get(authproxy.EndpointAPIUserInfoHeaderName); epUser != "" {
+		md.Set(authproxy.EndpointAPIUserInfoHeaderName, epUser)
+	}
+	if googUser := r.Header.Get(authproxy.GoogAuthenticatedUserEmailHeaderName); googUser != "" {
+		md.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, googUser)
+	}
 	return metadata.NewOutgoingContext(ctx, md), cancel
 }
 

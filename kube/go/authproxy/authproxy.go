@@ -78,6 +78,12 @@ const (
 	// WebAuthRoleHeaderName is the name of the header sent to the application
 	// that contains the users Roles.
 	WebAuthRoleHeaderName = "X-WEBAUTH-ROLES"
+
+	// EndpointAPIUserInfoHeaderName is the GCP Cloud Endpoints / ESP header containing user info.
+	EndpointAPIUserInfoHeaderName = "X-Endpoint-API-UserInfo"
+
+	// GoogAuthenticatedUserEmailHeaderName is the Google IAP header containing authenticated user email.
+	GoogAuthenticatedUserEmailHeaderName = "X-Goog-Authenticated-User-Email"
 )
 
 type proxy struct {
