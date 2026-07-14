@@ -96,16 +96,17 @@ func (r Roles) IsAuthorized(in Roles) bool {
 	return false
 }
 
-// RolesFromStrings parses multiple string values and returns Roles found.
+// RolesFromStrings parses multiple string values (including comma-separated header strings) and returns Roles found.
 func RolesFromStrings(s ...string) Roles {
 	var ret Roles
 	for _, r := range s {
-		if role := RoleFromString(strings.TrimSpace(r)); role != InvalidRole {
-			ret = append(ret, role)
+		for _, part := range strings.Split(r, ",") {
+			if role := RoleFromString(strings.TrimSpace(part)); role != InvalidRole {
+				ret = append(ret, role)
+			}
 		}
 	}
 	return ret
-
 }
 
 // FromHeader parses a Roles header value and returns Roles found.

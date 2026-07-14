@@ -38,6 +38,10 @@ func TestRolesFromStrings_ValidRole(t *testing.T) {
 	require.Equal(t, Roles{Viewer}, RolesFromStrings(string(Viewer)))
 }
 
+func TestRolesFromStrings_CommaSeparated(t *testing.T) {
+	require.Equal(t, Roles{Editor, Bisecter}, RolesFromStrings("editor,bisecter"))
+}
+
 func TestRoles_IsAuthorized(t *testing.T) {
 	require.False(t, Roles(nil).IsAuthorized(Roles{Editor}))
 	require.False(t, Roles{Viewer}.IsAuthorized(Roles(nil)))

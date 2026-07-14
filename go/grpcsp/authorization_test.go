@@ -128,6 +128,17 @@ func TestUnaryInterceptor_UserHasSufficientServiceWideRoles_Succeed(t *testing.T
 	assert.True(t, handleCalled, "control passed on to server handler")
 }
 
+func TestUnaryInterceptor_MultipleCallerRolesInHeader_Succeed(t *testing.T) {
+	desc, serverPolicy, servicePolicy := testSetupTwoMethods(t)
+	require.NoError(t, servicePolicy.AuthorizeRoles(roles.Roles{roles.Bisecter}))
+
+	ctx, interceptor := testSetupUnaryInterceptorWithCallerRoles(t, desc, serverPolicy, roles.Roles{roles.Editor, roles.Bisecter})
+
+	handleCalled, err := testMockServerCall(t, ctx, desc.ServiceName, MethodOneName, interceptor)
+	assert.NoError(t, err, "user with editor,bisecter roles in comma-separated header is authorized for bisecter")
+	assert.True(t, handleCalled, "control passed on to server handler")
+}
+
 func TestUnaryInterceptor_ServiceHasServiceWideRolesUserHasInsufficientRoles_Fail(t *testing.T) {
 	desc, serverPolicy, servicePolicy := testSetupTwoMethods(t)
 	require.NoError(t, servicePolicy.AuthorizeRoles(roles.Roles{roles.Admin}))
