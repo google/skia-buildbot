@@ -2,6 +2,7 @@ package authproxy
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -19,7 +20,12 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/roles"
+	"go.skia.org/infra/go/secret"
+	secretMocks "go.skia.org/infra/go/secret/mocks"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/kube/go/authproxy/auth/mocks"
+	"go.skia.org/infra/kube/go/authproxy/protoheader"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -419,4 +425,39 @@ func TestParseTargetPort_FullURLIsSupplied_LocalhostInNotAddedToDomain(t *testin
 	got, err := parseTargetPort("http://foo:8000")
 	require.NoError(t, err)
 	require.Equal(t, "http://foo:8000", got.String())
+}
+
+func TestProxyServeHTTP_ProtoHeader_CaseInsensitiveHTTP2Key_ExtractsEmailAndAssignsRoles(t *testing.T) {
+	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, []string{"user@google.com"}, r.Header.Values(WebAuthHeaderName))
+		require.Equal(t, []string{"bisecter"}, r.Header.Values(WebAuthRoleHeaderName))
+	})
+
+	h := &protoheader.Header{Email: "user@google.com"}
+	b, err := proto.Marshal(h)
+	require.NoError(t, err)
+	encoded := base64.RawURLEncoding.EncodeToString(b)
+
+	// Simulate gRPC / HTTP2 delivery of lowercase header name: x-endpoint-api-userinfo
+	r.Header["x-endpoint-api-userinfo"] = []string{encoded + ".sig"}
+
+	a := newEmptyApp()
+	a.criaClient = mockCriaClient(t)
+	a.roleFlags = []string{
+		"bisecter=google.com",
+	}
+	require.NoError(t, a.populateAllowedRoles())
+
+	// Create real ProtoHeader provider initialized with secret name "X-Endpoint-API-UserInfo"
+	client := secretMocks.NewClient(t)
+	client.On("Get", testutils.AnyContext, protoheader.Project, protoheader.HeaderSecretName, secret.VersionLatest).Return("X-Endpoint-API-UserInfo", nil)
+	client.On("Get", testutils.AnyContext, protoheader.Project, protoheader.LoginURNSecretName, secret.VersionLatest).Return("https://login.example.org", nil)
+	authProvider, err := protoheader.New(context.Background(), client)
+	require.NoError(t, err)
+
+	proxy := newProxy(u, authProvider, false, true, false, false, true)
+	proxy.allowedRoles = a.proxy.allowedRoles
+
+	proxy.ServeHTTP(w, r)
+	require.True(t, *called)
 }

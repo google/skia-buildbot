@@ -33,8 +33,13 @@ go_test(
         "//go/cleanup",
         "//go/mockhttpclient",
         "//go/roles",
+        "//go/secret",
+        "//go/secret/mocks",
+        "//go/testutils",
         "//kube/go/authproxy/auth/mocks",
+        "//kube/go/authproxy/protoheader",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_golang_google_protobuf//proto",
     ],
 )

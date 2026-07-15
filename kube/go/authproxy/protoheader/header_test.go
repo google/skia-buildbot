@@ -73,6 +73,22 @@ func TestLoggedInAs_HappyPath(t *testing.T) {
 	require.Equal(t, testEmail, email)
 }
 
+func TestLoggedInAs_CaseInsensitiveHeaderName(t *testing.T) {
+	b64 := base64.RawURLEncoding.EncodeToString(emailSerializedAsProto(t))
+	r := httptest.NewRequest("GET", "/", nil)
+	// Set header key in lowercase as HTTP/2 frames deliver it
+	r.Header["x-endpoint-api-userinfo"] = []string{b64 + ".sig"}
+
+	p := ProtoHeader{
+		headerName: "X-Endpoint-API-UserInfo",
+		loginURL:   testLoginURL,
+	}
+
+	email, err := p.LoggedInAs(r)
+	require.NoError(t, err)
+	require.Equal(t, testEmail, email)
+}
+
 func TestLoggedInAs_MissingPeriodInHash_ReturnsEmptyString(t *testing.T) {
 	p, r := protoHeaderMissingAPeriodInTheHeaderValueAndRequestForTest(t)
 

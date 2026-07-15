@@ -63,7 +63,7 @@ func (p ProtoHeader) Init(ctx context.Context) error {
 func (p ProtoHeader) LoggedInAs(r *http.Request) (string, error) {
 	// The header value contains a base64 encoded proto and then it's signed
 	// which adds a signature, separated by a period.
-	headerValue := r.Header.Get(p.headerName)
+	headerValue := getHeaderCaseInsensitive(r, p.headerName)
 	parts := strings.Split(headerValue, ".")
 	if len(parts) != 2 {
 		return "", errDotInHeaderRequired
@@ -88,3 +88,24 @@ func (p ProtoHeader) LoginURL(w http.ResponseWriter, r *http.Request) string {
 
 // Confirm we implement the interface.
 var _ auth.Auth = ProtoHeader{}
+
+// getHeaderCaseInsensitive performs a robust header lookup.
+// It first attempts standard MIME-canonical lookup via r.Header.Get(name).
+// If that returns empty (e.g. when HTTP/2 protocol frames deliver lowercased keys
+// like "x-endpoint-api-userinfo"), it falls back to a case-insensitive iteration
+// over the raw request header map.
+func getHeaderCaseInsensitive(r *http.Request, name string) string {
+	// 1. Try standard canonical lookup first
+	if val := r.Header.Get(name); val != "" {
+		return val
+	}
+
+	// 2. Fallback: Search the raw map keys case-insensitively using strings.ToLower
+	lowerName := strings.ToLower(name)
+	for k, v := range r.Header {
+		if strings.ToLower(k) == lowerName && len(v) > 0 {
+			return v[0]
+		}
+	}
+	return ""
+}

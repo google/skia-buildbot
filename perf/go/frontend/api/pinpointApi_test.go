@@ -39,25 +39,25 @@ func TestCreateTryJob_NotLoggedIn(t *testing.T) {
 
 func TestGetContextWithAuthHeaders(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/_/bisect/", nil)
-	r.Header.Set(authproxy.WebAuthHeaderName, "sruslan@google.com")
+	r.Header.Set(authproxy.WebAuthHeaderName, "user@google.com")
 	r.Header.Set(authproxy.WebAuthRoleHeaderName, "bisecter")
 	r.Header.Set(authproxy.EndpointAPIUserInfoHeaderName, "base64_proto_data")
-	r.Header.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, "accounts.google.com:sruslan@google.com")
+	r.Header.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, "accounts.google.com:user@google.com")
 
 	ctx, cancel := getContextWithAuthHeaders(r, defaultDatabaseTimeout)
 	defer cancel()
 
 	md, ok := metadata.FromOutgoingContext(ctx)
 	require.True(t, ok)
-	require.Equal(t, []string{"sruslan@google.com"}, md.Get(authproxy.WebAuthHeaderName))
+	require.Equal(t, []string{"user@google.com"}, md.Get(authproxy.WebAuthHeaderName))
 	require.Equal(t, []string{"bisecter"}, md.Get(authproxy.WebAuthRoleHeaderName))
 	require.Equal(t, []string{"base64_proto_data"}, md.Get(authproxy.EndpointAPIUserInfoHeaderName))
-	require.Equal(t, []string{"accounts.google.com:sruslan@google.com"}, md.Get(authproxy.GoogAuthenticatedUserEmailHeaderName))
+	require.Equal(t, []string{"accounts.google.com:user@google.com"}, md.Get(authproxy.GoogAuthenticatedUserEmailHeaderName))
 }
 
 func TestGetContextWithAuthHeaders_SynthesizesMissingHeadersFromGoogUser(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/_/bisect/", nil)
-	r.Header.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, "accounts.google.com:sruslan@google.com")
+	r.Header.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, "accounts.google.com:user@google.com")
 	r.Header.Set(authproxy.WebAuthRoleHeaderName, "bisecter")
 
 	ctx, cancel := getContextWithAuthHeaders(r, defaultDatabaseTimeout)
@@ -65,9 +65,9 @@ func TestGetContextWithAuthHeaders_SynthesizesMissingHeadersFromGoogUser(t *test
 
 	md, ok := metadata.FromOutgoingContext(ctx)
 	require.True(t, ok)
-	require.Equal(t, []string{"sruslan@google.com"}, md.Get(authproxy.WebAuthHeaderName))
+	require.Equal(t, []string{"user@google.com"}, md.Get(authproxy.WebAuthHeaderName))
 	require.Equal(t, []string{"bisecter"}, md.Get(authproxy.WebAuthRoleHeaderName))
-	require.Equal(t, []string{"accounts.google.com:sruslan@google.com"}, md.Get(authproxy.GoogAuthenticatedUserEmailHeaderName))
+	require.Equal(t, []string{"accounts.google.com:user@google.com"}, md.Get(authproxy.GoogAuthenticatedUserEmailHeaderName))
 
 	epUserList := md.Get(authproxy.EndpointAPIUserInfoHeaderName)
 	require.Len(t, epUserList, 1)
@@ -87,20 +87,20 @@ func TestGetContextWithAuthHeaders_SynthesizesMissingHeadersFromGoogUser(t *test
 	var h protoheader.Header
 	err = proto.Unmarshal(b, &h)
 	require.NoError(t, err)
-	require.Equal(t, "sruslan@google.com", h.Email)
+	require.Equal(t, "user@google.com", h.Email)
 }
 
 func TestGetContextWithAuthHeaders_SynthesizesMissingHeadersFromWebAuthUser(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, "/_/bisect/", nil)
-	r.Header.Set(authproxy.WebAuthHeaderName, "sruslan@google.com")
+	r.Header.Set(authproxy.WebAuthHeaderName, "user@google.com")
 
 	ctx, cancel := getContextWithAuthHeaders(r, defaultDatabaseTimeout)
 	defer cancel()
 
 	md, ok := metadata.FromOutgoingContext(ctx)
 	require.True(t, ok)
-	require.Equal(t, []string{"sruslan@google.com"}, md.Get(authproxy.WebAuthHeaderName))
-	require.Equal(t, []string{"accounts.google.com:sruslan@google.com"}, md.Get(authproxy.GoogAuthenticatedUserEmailHeaderName))
+	require.Equal(t, []string{"user@google.com"}, md.Get(authproxy.WebAuthHeaderName))
+	require.Equal(t, []string{"accounts.google.com:user@google.com"}, md.Get(authproxy.GoogAuthenticatedUserEmailHeaderName))
 
 	epUserList := md.Get(authproxy.EndpointAPIUserInfoHeaderName)
 	require.Len(t, epUserList, 1)
@@ -119,5 +119,5 @@ func TestGetContextWithAuthHeaders_SynthesizesMissingHeadersFromWebAuthUser(t *t
 	var h protoheader.Header
 	err = proto.Unmarshal(b, &h)
 	require.NoError(t, err)
-	require.Equal(t, "sruslan@google.com", h.Email)
+	require.Equal(t, "user@google.com", h.Email)
 }
