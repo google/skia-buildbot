@@ -41,6 +41,7 @@ go_library(
         "//go/util",
         "//go/vec32",
         "//kube/go/authproxy",
+        "//kube/go/authproxy/protoheader",
         "//perf/go/alertfilter",
         "//perf/go/alerts",
         "//perf/go/anomalies",
@@ -84,6 +85,7 @@ go_library(
         "@com_github_go_chi_chi_v5//:chi",
         "@io_opencensus_go//trace",
         "@org_golang_google_grpc//metadata",
+        "@org_golang_google_protobuf//proto",
         "@org_golang_x_sync//errgroup",
     ],
 )
@@ -118,6 +120,7 @@ go_test(
         "//go/skerr",
         "//go/testutils",
         "//kube/go/authproxy",
+        "//kube/go/authproxy/protoheader",
         "//perf/go/alerts",
         "//perf/go/alerts/mock",
         "//perf/go/anomalies/mock",
@@ -156,5 +159,6 @@ go_test(
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_grpc//metadata",
+        "@org_golang_google_protobuf//proto",
     ],
 )

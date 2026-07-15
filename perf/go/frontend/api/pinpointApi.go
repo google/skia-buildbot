@@ -2,9 +2,11 @@ package api
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -15,11 +17,13 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/kube/go/authproxy"
+	"go.skia.org/infra/kube/go/authproxy/protoheader"
 	backendClient "go.skia.org/infra/perf/go/backend/client"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/pinpoint/go/pinpoint"
 	pinpoint_pb "go.skia.org/infra/pinpoint/proto/v1"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
 )
 
 // pinpointApi provides a struct for handling Pinpoint requests.
@@ -75,20 +79,41 @@ func (api *pinpointApi) checkAuthorized(w http.ResponseWriter, r *http.Request, 
 func getContextWithAuthHeaders(r *http.Request, timeout time.Duration) (context.Context, context.CancelFunc) {
 	ctx, cancel := context.WithTimeout(r.Context(), timeout)
 	md := metadata.MD{}
-	if user := r.Header.Get(authproxy.WebAuthHeaderName); user != "" {
+
+	user := r.Header.Get(authproxy.WebAuthHeaderName)
+	if user == "" {
+		if googUser := r.Header.Get(authproxy.GoogAuthenticatedUserEmailHeaderName); googUser != "" {
+			user = strings.TrimPrefix(googUser, "accounts.google.com:")
+		}
+	}
+
+	if user != "" {
 		md.Set(authproxy.WebAuthHeaderName, user)
+
+		if epUser := r.Header.Get(authproxy.EndpointAPIUserInfoHeaderName); epUser != "" {
+			md.Set(authproxy.EndpointAPIUserInfoHeaderName, epUser)
+		} else {
+			h := &protoheader.Header{Email: user}
+			b, err := proto.Marshal(h)
+			if err != nil {
+				sklog.Errorf("Failed to marshal identity header proto for %s: %v", user, err)
+			} else {
+				encoded := base64.RawURLEncoding.EncodeToString(b)
+				md.Set(authproxy.EndpointAPIUserInfoHeaderName, encoded+".sig")
+			}
+		}
+
+		if googUser := r.Header.Get(authproxy.GoogAuthenticatedUserEmailHeaderName); googUser != "" {
+			md.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, googUser)
+		} else {
+			md.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, "accounts.google.com:"+user)
+		}
+
+		if roles := r.Header.Values(authproxy.WebAuthRoleHeaderName); len(roles) > 0 {
+			md.Set(authproxy.WebAuthRoleHeaderName, roles...)
+		}
 	}
-	if roles := r.Header.Values(authproxy.WebAuthRoleHeaderName); len(roles) > 0 {
-		md.Set(authproxy.WebAuthRoleHeaderName, roles...)
-	} else if roleStr := r.Header.Get(authproxy.WebAuthRoleHeaderName); roleStr != "" {
-		md.Set(authproxy.WebAuthRoleHeaderName, roleStr)
-	}
-	if epUser := r.Header.Get(authproxy.EndpointAPIUserInfoHeaderName); epUser != "" {
-		md.Set(authproxy.EndpointAPIUserInfoHeaderName, epUser)
-	}
-	if googUser := r.Header.Get(authproxy.GoogAuthenticatedUserEmailHeaderName); googUser != "" {
-		md.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, googUser)
-	}
+
 	return metadata.NewOutgoingContext(ctx, md), cancel
 }
 
