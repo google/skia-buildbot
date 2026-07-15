@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"os"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
@@ -55,7 +56,18 @@ func main() {
 		sklog.Fatalf("Unable to create client: %s", err)
 	}
 	defer c.Close()
-	w := worker.New(c, *taskQueue, worker.Options{})
+	workerOpts := worker.Options{}
+	if buildID := os.Getenv("TEMPORAL_WORKER_BUILD_ID"); buildID != "" {
+		workerOpts.BuildID = buildID
+		workerOpts.UseBuildIDForVersioning = true
+		if deploymentName := os.Getenv("TEMPORAL_DEPLOYMENT_NAME"); deploymentName != "" {
+			workerOpts.DeploymentOptions = worker.DeploymentOptions{
+				DeploymentSeriesName:      deploymentName,
+				DefaultVersioningBehavior: workflow.VersioningBehaviorAutoUpgrade,
+			}
+		}
+	}
+	w := worker.New(c, *taskQueue, workerOpts)
 	csa := internal.NewCulpritServiceActivity(*local)
 	w.RegisterActivity(csa)
 	w.RegisterWorkflowWithOptions(
