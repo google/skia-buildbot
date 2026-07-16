@@ -90,17 +90,13 @@ func getContextWithAuthHeaders(r *http.Request, timeout time.Duration) (context.
 	if user != "" {
 		md.Set(authproxy.WebAuthHeaderName, user)
 
-		if vals := getHeaderValuesCaseInsensitive(r, authproxy.EndpointAPIUserInfoHeaderName); len(vals) > 0 {
-			md.Set(authproxy.EndpointAPIUserInfoHeaderName, vals[0])
+		h := &protoheader.Header{Email: user}
+		b, err := proto.Marshal(h)
+		if err != nil {
+			sklog.Errorf("Failed to marshal identity header proto for %s: %v", user, err)
 		} else {
-			h := &protoheader.Header{Email: user}
-			b, err := proto.Marshal(h)
-			if err != nil {
-				sklog.Errorf("Failed to marshal identity header proto for %s: %v", user, err)
-			} else {
-				encoded := base64.RawURLEncoding.EncodeToString(b)
-				md.Set(authproxy.EndpointAPIUserInfoHeaderName, encoded+".sig")
-			}
+			encoded := base64.RawURLEncoding.EncodeToString(b)
+			md.Set(authproxy.EndpointAPIUserInfoHeaderName, encoded+".sig")
 		}
 
 		if vals := getHeaderValuesCaseInsensitive(r, authproxy.GoogAuthenticatedUserEmailHeaderName); len(vals) > 0 {
