@@ -101,19 +101,23 @@ func infraAuthToAllowFromList(infra []string) []string {
 }
 
 func (a *AllowedFromChromeInfraAuth) getMembers(group string) ([]string, error) {
-	resp, err := a.client.Get(fmt.Sprintf(GROUP_URL_TEMPLATE, group))
+	url := fmt.Sprintf(GROUP_URL_TEMPLATE, group)
+	sklog.Debugf("CrIA: Fetching group membership for group %q from endpoint %s", group, url)
+	resp, err := a.client.Get(url)
 	if err != nil {
+		sklog.Errorf("CrIA: Error fetching group %q: %v", group, err)
 		return nil, err
 	}
 	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Non-OK status: %s", resp.Status)
+		return nil, fmt.Errorf("Non-OK status from CrIA endpoint for group %q: %s", group, resp.Status)
 	}
 	var r Response
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
 		return nil, err
 	}
 	members := r.Group.Members
+	sklog.Debugf("CrIA: Group %q fetched: %d direct members, %d nested groups %v, %d globs", group, len(members), len(r.Group.Nested), r.Group.Nested, len(r.Group.Globs))
 	// Get all members from nested groups.
 	for _, nestedGroup := range r.Group.Nested {
 		indirectMembers, err := a.getMembers(nestedGroup)
@@ -130,6 +134,7 @@ func (a *AllowedFromChromeInfraAuth) getMembers(group string) ([]string, error) 
 }
 
 func (a *AllowedFromChromeInfraAuth) reload() error {
+	sklog.Debugf("CrIA: Reloading allowed list for group %q...", a.group)
 	members, err := a.getMembers(a.group)
 	if err != nil {
 		return err
@@ -139,7 +144,9 @@ func (a *AllowedFromChromeInfraAuth) reload() error {
 	defer a.mutex.Unlock()
 
 	// Convert infra auth format to AllowFromList format.
-	a.allowed = NewAllowedFromList(infraAuthToAllowFromList(members))
+	allowedList := infraAuthToAllowFromList(members)
+	a.allowed = NewAllowedFromList(allowedList)
+	sklog.Infof("CrIA: Reload complete for group %q with %d final member entries.", a.group, len(allowedList))
 	return nil
 }
 
@@ -147,7 +154,9 @@ func (a *AllowedFromChromeInfraAuth) Member(email string) bool {
 	a.mutex.RLock()
 	defer a.mutex.RUnlock()
 
-	return a.allowed.Member(email)
+	isMember := a.allowed.Member(email)
+	sklog.Debugf("CrIA: Evaluating group %q for email %q -> member=%t", a.group, email, isMember)
+	return isMember
 }
 
 func (a *AllowedFromChromeInfraAuth) Emails() []string {

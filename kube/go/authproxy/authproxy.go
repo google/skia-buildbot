@@ -181,20 +181,25 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			sklog.Infof("LoggedInAs failed: %s", err)
 		}
 	}
-	r.Header.Del(WebAuthHeaderName)
+	delHeaderCaseInsensitive(r.Header, WebAuthHeaderName)
 	r.Header.Add(WebAuthHeaderName, email)
+	sklog.Debugf("auth-proxy: Injected identity header %s=%q", WebAuthHeaderName, email)
 
 	p.mutex.RLock()
 	authorizedRoles := roles.Roles{}
 	for role, allowed := range p.allowedRoles {
-		if allowed.Member(email) {
+		isMember := allowed.Member(email)
+		sklog.Debugf("auth-proxy: Role %q evaluation for %q -> allowed=%t", role, email, isMember)
+		if isMember {
 			authorizedRoles = append(authorizedRoles, role)
 		}
 	}
 	p.mutex.RUnlock()
 
-	r.Header.Del(WebAuthRoleHeaderName)
-	r.Header.Add(WebAuthRoleHeaderName, authorizedRoles.ToHeader())
+	delHeaderCaseInsensitive(r.Header, WebAuthRoleHeaderName)
+	rolesHeaderValue := authorizedRoles.ToHeader()
+	r.Header.Add(WebAuthRoleHeaderName, rolesHeaderValue)
+	sklog.Debugf("auth-proxy: Injected final roles header %s=%q for user %q", WebAuthRoleHeaderName, rolesHeaderValue, email)
 
 	if r.Method == "POST" && p.allowPost {
 		p.reverseProxy.ServeHTTP(w, r)
@@ -511,4 +516,16 @@ func Main() error {
 	}
 
 	return app.Run(ctx)
+}
+
+// delHeaderCaseInsensitive removes all key entries from the http.Header map whose
+// case-insensitive name matches targetName. This prevents duplicate keys under HTTP/2.
+func delHeaderCaseInsensitive(h http.Header, targetName string) {
+	lower := strings.ToLower(targetName)
+	for k, v := range h {
+		if strings.ToLower(k) == lower {
+			sklog.Debugf("auth-proxy: Stripped incoming header key %q (val=%v) matching target %q", k, v, targetName)
+			delete(h, k)
+		}
+	}
 }
