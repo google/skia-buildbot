@@ -155,8 +155,19 @@ func (a *AllowedFromChromeInfraAuth) Member(email string) bool {
 	defer a.mutex.RUnlock()
 
 	isMember := a.allowed.Member(email)
-	sklog.Debugf("CrIA: Evaluating group %q for email %q -> member=%t", a.group, email, isMember)
+	sklog.Debugf("CrIA: Evaluating group %q for email %q -> member=%t", a.group, sanitizeEmail(email), isMember)
 	return isMember
+}
+
+func sanitizeEmail(email string) string {
+	if email == "" {
+		return ""
+	}
+	parts := strings.Split(email, "@")
+	if len(parts) == 2 {
+		return "***@" + parts[1]
+	}
+	return "***"
 }
 
 func (a *AllowedFromChromeInfraAuth) Emails() []string {

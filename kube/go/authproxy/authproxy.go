@@ -183,13 +183,13 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	delHeaderCaseInsensitive(r.Header, WebAuthHeaderName)
 	r.Header.Add(WebAuthHeaderName, email)
-	sklog.Debugf("auth-proxy: Injected identity header %s=%q", WebAuthHeaderName, email)
+	sklog.Debugf("auth-proxy: Injected identity header %s=%q", WebAuthHeaderName, sanitizeEmail(email))
 
 	p.mutex.RLock()
 	authorizedRoles := roles.Roles{}
 	for role, allowed := range p.allowedRoles {
 		isMember := allowed.Member(email)
-		sklog.Debugf("auth-proxy: Role %q evaluation for %q -> allowed=%t", role, email, isMember)
+		sklog.Debugf("auth-proxy: Role %q evaluation for %q -> allowed=%t", role, sanitizeEmail(email), isMember)
 		if isMember {
 			authorizedRoles = append(authorizedRoles, role)
 		}
@@ -199,7 +199,7 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	delHeaderCaseInsensitive(r.Header, WebAuthRoleHeaderName)
 	rolesHeaderValue := authorizedRoles.ToHeader()
 	r.Header.Add(WebAuthRoleHeaderName, rolesHeaderValue)
-	sklog.Debugf("auth-proxy: Injected final roles header %s=%q for user %q", WebAuthRoleHeaderName, rolesHeaderValue, email)
+	sklog.Debugf("auth-proxy: Injected final roles header %s=%q for user %q", WebAuthRoleHeaderName, rolesHeaderValue, sanitizeEmail(email))
 
 	if r.Method == "POST" && p.allowPost {
 		p.reverseProxy.ServeHTTP(w, r)
@@ -524,8 +524,31 @@ func delHeaderCaseInsensitive(h http.Header, targetName string) {
 	lower := strings.ToLower(targetName)
 	for k, v := range h {
 		if strings.ToLower(k) == lower {
-			sklog.Debugf("auth-proxy: Stripped incoming header key %q (val=%v) matching target %q", k, v, targetName)
+			sklog.Debugf("auth-proxy: Stripped incoming header key %q (val=%v) matching target %q", k, sanitizeHeaderVals(k, v), targetName)
 			delete(h, k)
 		}
 	}
+}
+
+func sanitizeHeaderVals(key string, vals []string) []string {
+	if strings.EqualFold(key, WebAuthHeaderName) || strings.EqualFold(key, GoogAuthenticatedUserEmailHeaderName) {
+		res := make([]string, len(vals))
+		for i, v := range vals {
+			email := strings.TrimPrefix(v, "accounts.google.com:")
+			res[i] = sanitizeEmail(email)
+		}
+		return res
+	}
+	return vals
+}
+
+func sanitizeEmail(email string) string {
+	if email == "" {
+		return ""
+	}
+	parts := strings.Split(email, "@")
+	if len(parts) == 2 {
+		return "***@" + parts[1]
+	}
+	return "***"
 }
