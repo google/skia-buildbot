@@ -1764,9 +1764,7 @@ export class TraceChartSk extends LitElement {
     const showOriginal = this.hoverMode === 'original' || this.hoverMode === 'both';
     const showSmoothed = this.hoverMode === 'smoothed' || this.hoverMode === 'both';
 
-    const targetDataX =
-      mapping.minX +
-      ((mouseX - mapping.padding.left) / mapping.graphWidth) * (mapping.maxX - mapping.minX);
+    const targetDataX = mapping.unmapX(mouseX);
 
     for (const s of this._processedSeries) {
       if (s.rows.length === 0) continue;
@@ -1893,11 +1891,8 @@ export class TraceChartSk extends LitElement {
 
         if (zoomMode === 'X_ONLY' || zoomMode === 'BOTH') {
           if (dx > DRAG_THRESHOLD_PX) {
-            const xRange = mapping.maxX - mapping.minX;
-            const dataX1 =
-              mapping.minX + ((startX - mapping.padding.left) / mapping.graphWidth) * xRange;
-            const dataX2 =
-              mapping.minX + ((currentX - mapping.padding.left) / mapping.graphWidth) * xRange;
+            const dataX1 = mapping.unmapX(startX);
+            const dataX2 = mapping.unmapX(currentX);
             newMinX = Math.min(dataX1, dataX2);
             newMaxX = Math.max(dataX1, dataX2);
             xZoomChanged = true;
@@ -1998,14 +1993,12 @@ export class TraceChartSk extends LitElement {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const { graphWidth, padding, minX, maxX, globalMinX, globalMaxX } =
-      this._getChartBoundsAndMapping(rect);
+    const { minX, maxX, globalMinX, globalMaxX, unmapX } = this._getChartBoundsAndMapping(rect);
 
     if (minX === Infinity || maxX === -Infinity) return;
 
     const mouseX = e.clientX - rect.left;
-    const ratio = Math.max(0, Math.min(1, (mouseX - padding.left) / graphWidth));
-    const cursorDataX = minX + ratio * (maxX - minX);
+    const cursorDataX = unmapX(mouseX);
 
     const ZOOM_FACTOR = 0.001;
     const delta = e.deltaY || e.deltaX;

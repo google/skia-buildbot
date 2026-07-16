@@ -150,6 +150,7 @@ describe('trace-chart-sk', () => {
       padding: { left: 0, top: 0, right: 0, bottom: 0 },
       graphWidth: 1000,
       graphHeight: 400,
+      unmapX: (x: number) => x,
       unmapY: (y: number) => y,
     });
 
@@ -203,6 +204,7 @@ describe('trace-chart-sk', () => {
       padding: { left: 0, top: 0, right: 0, bottom: 0 },
       graphWidth: 1000,
       graphHeight: 400,
+      unmapX: (x: number) => x,
       unmapY: (y: number) => y,
     });
 
@@ -254,6 +256,7 @@ describe('trace-chart-sk', () => {
       padding: { left: 0, top: 0, right: 0, bottom: 0 },
       graphWidth: 1000,
       graphHeight: 400,
+      unmapX: (x: number) => x,
       unmapY: (y: number) => y,
     });
 
@@ -329,6 +332,7 @@ describe('trace-chart-sk', () => {
       padding: { left: 0, top: 0, right: 0, bottom: 0 },
       graphWidth: 1000,
       graphHeight: 400,
+      unmapX: (x: number) => x,
       unmapY: (y: number) => y,
     });
 
@@ -794,5 +798,37 @@ describe('trace-chart-sk', () => {
 
     expect(eventDetail).to.not.be.null;
     expect(eventDetail.id).to.equal('benchmark=motion_mark');
+  });
+
+  it('detects hovered point correctly when evenXAxisSpacing is enabled with non-linear commits', async () => {
+    element.evenXAxisSpacing = true;
+    element.series = [
+      {
+        id: 'test',
+        color: '#fff',
+        rows: [
+          { commit_number: 10, val: 10, createdat: 1000 },
+          { commit_number: 20, val: 20, createdat: 2000 },
+          { commit_number: 100, val: 30, createdat: 3000 },
+        ],
+      },
+    ];
+    await element.updateComplete;
+
+    const canvas = element.shadowRoot!.querySelector('#chart-canvas') as HTMLCanvasElement;
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 400 }) as DOMRect;
+
+    const mapping = (element as any)['_getChartBoundsAndMapping'](canvas.getBoundingClientRect());
+    const x20 = mapping.mapX(20);
+    const y20 = mapping.mapY(20);
+
+    (element as any)['_handlePointerMove']({
+      clientX: x20,
+      clientY: y20,
+    } as PointerEvent);
+
+    const hoveredPoint = (element as any)['_hoveredPoint'];
+    expect(hoveredPoint).to.not.be.null;
+    expect(hoveredPoint.row.commit_number).to.equal(20);
   });
 });
