@@ -80,18 +80,18 @@ func getContextWithAuthHeaders(r *http.Request, timeout time.Duration) (context.
 	ctx, cancel := context.WithTimeout(r.Context(), timeout)
 	md := metadata.MD{}
 
-	user := r.Header.Get(authproxy.WebAuthHeaderName)
-	if user == "" {
-		if googUser := r.Header.Get(authproxy.GoogAuthenticatedUserEmailHeaderName); googUser != "" {
-			user = strings.TrimPrefix(googUser, "accounts.google.com:")
-		}
+	var user string
+	if vals := getHeaderValuesCaseInsensitive(r, authproxy.WebAuthHeaderName); len(vals) > 0 {
+		user = vals[0]
+	} else if vals := getHeaderValuesCaseInsensitive(r, authproxy.GoogAuthenticatedUserEmailHeaderName); len(vals) > 0 {
+		user = strings.TrimPrefix(vals[0], "accounts.google.com:")
 	}
 
 	if user != "" {
 		md.Set(authproxy.WebAuthHeaderName, user)
 
-		if epUser := r.Header.Get(authproxy.EndpointAPIUserInfoHeaderName); epUser != "" {
-			md.Set(authproxy.EndpointAPIUserInfoHeaderName, epUser)
+		if vals := getHeaderValuesCaseInsensitive(r, authproxy.EndpointAPIUserInfoHeaderName); len(vals) > 0 {
+			md.Set(authproxy.EndpointAPIUserInfoHeaderName, vals[0])
 		} else {
 			h := &protoheader.Header{Email: user}
 			b, err := proto.Marshal(h)
@@ -103,18 +103,31 @@ func getContextWithAuthHeaders(r *http.Request, timeout time.Duration) (context.
 			}
 		}
 
-		if googUser := r.Header.Get(authproxy.GoogAuthenticatedUserEmailHeaderName); googUser != "" {
-			md.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, googUser)
+		if vals := getHeaderValuesCaseInsensitive(r, authproxy.GoogAuthenticatedUserEmailHeaderName); len(vals) > 0 {
+			md.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, vals[0])
 		} else {
 			md.Set(authproxy.GoogAuthenticatedUserEmailHeaderName, "accounts.google.com:"+user)
 		}
 
-		if roles := r.Header.Values(authproxy.WebAuthRoleHeaderName); len(roles) > 0 {
+		if roles := getHeaderValuesCaseInsensitive(r, authproxy.WebAuthRoleHeaderName); len(roles) > 0 {
 			md.Set(authproxy.WebAuthRoleHeaderName, roles...)
 		}
 	}
 
 	return metadata.NewOutgoingContext(ctx, md), cancel
+}
+
+func getHeaderValuesCaseInsensitive(r *http.Request, name string) []string {
+	if vals := r.Header.Values(name); len(vals) > 0 && vals[0] != "" {
+		return vals
+	}
+	lowerName := strings.ToLower(name)
+	for k, v := range r.Header {
+		if strings.ToLower(k) == lowerName && len(v) > 0 {
+			return v
+		}
+	}
+	return nil
 }
 
 // createTryJobHandler takes the POST'd to create a Pinpoint try job request

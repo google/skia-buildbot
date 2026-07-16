@@ -171,8 +171,8 @@
         "show_json_file_display": false
     },
     "temporal_config": {
-        "host_port": "temporal-dev.corp.goog",
-        "ui_host_url": "https://temporal-ui-dev.corp.goog",
+        "host_port": "skia-temporal.corp.goog",
+        "ui_host_url": "https://skia-temporal-ui.corp.goog",
         "namespace": "perf-internal",
         "grouping_task_queue": "perf.perf-chrome-internal.grouping",
         "pinpoint_task_queue": "perf.perf-chrome-public.bisect"
