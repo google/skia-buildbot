@@ -29,31 +29,27 @@ type BazelOptions struct {
 	RepositoryCachePath string
 }
 
-// OverrideHomeAndWriteBazelRC masks the user .bazelrc file using the provided
-// configuration by overriding HOME. This makes it easy for all subsequent calls
-// to Bazel use the right command line args, even if Bazel is not invoked
-// directly from task_driver (e.g. from a Makefile). Returns a function which
-// should be run deferred for cleanup.
-func OverrideHomeAndWriteBazelRC(ctx context.Context, bazelOpts BazelOptions) (func(), error) {
-	homeDir, err := os.MkdirTemp("", "bazel-task-driver-tmp-home-")
+// OverrideBazelRC masks the user .bazelrc file using the provided configuration
+// by setting the BAZELRC environment variable. This makes it easy for all
+// subsequent calls to Bazel use the right command line args, even if Bazel is
+// not invoked directly from task_driver (e.g. from a Makefile). Returns a
+// function which should be run deferred for cleanup.
+func OverrideBazelRC(ctx context.Context, bazelOpts BazelOptions) (func(), error) {
+	tmp, err := os.MkdirTemp("", "")
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	oldHome := os.Getenv("HOME")
 	cleanup := func() {
-		if err := os.Setenv("HOME", oldHome); err != nil {
-			sklog.Errorf("Failed to set original HOME environment variable: %s", err)
-		}
-		if err := os_steps.RemoveAll(ctx, homeDir); err != nil {
-			sklog.Errorf("Failed to cleanup temporary Bazel HOME directory: %s", err)
+		if err := os_steps.RemoveAll(ctx, tmp); err != nil {
+			sklog.Errorf("Failed to cleanup temporary BazelRC directory: %s", err)
 		}
 	}
-	if err := os.Setenv("HOME", homeDir); err != nil {
+	tmpBazelRCPath := filepath.Join(tmp, ".bazelrc")
+	if err := WriteBazelRC(ctx, tmpBazelRCPath, bazelOpts); err != nil {
 		cleanup()
 		return nil, skerr.Wrap(err)
 	}
-	userBazelRCLocation := filepath.Join(homeDir, ".bazelrc")
-	if err := WriteBazelRC(ctx, userBazelRCLocation, bazelOpts); err != nil {
+	if err := os.Setenv("BAZELRC", tmpBazelRCPath); err != nil {
 		cleanup()
 		return nil, skerr.Wrap(err)
 	}
@@ -78,7 +74,7 @@ func WriteBazelRC(ctx context.Context, path string, bazelOpts BazelOptions) erro
 
 // New returns a new Bazel instance.
 func New(ctx context.Context, workspace, rbeCredentialFile string, opts BazelOptions) (*Bazel, error) {
-	cleanup, err := OverrideHomeAndWriteBazelRC(ctx, opts)
+	cleanup, err := OverrideBazelRC(ctx, opts)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
