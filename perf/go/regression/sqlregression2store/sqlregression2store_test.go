@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -2055,4 +2056,128 @@ func TestGetBatchRegressionsBefore_MultipleCommits(t *testing.T) {
 	// 61 -> 51
 	assert.NotNil(t, batch[traceKey][61])
 	assert.Equal(t, types.CommitNumber(51), batch[traceKey][61].CommitNumber)
+}
+
+func TestSetHighAndSetLow_InitialStatusBasedOnAnomalyGrouping(t *testing.T) {
+	ctx := context.Background()
+	alertIdStr := fmt.Sprintf("%d", alertId)
+
+	clusterSummary := &clustering2.ClusterSummary{
+		StepFit: &stepfit.StepFit{
+			Status: stepfit.HIGH,
+		},
+		Centroid: []float32{1.0, 2.0},
+	}
+	frameResponse := &frame.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			Header: []*dataframe.ColumnHeader{
+				{Offset: 1},
+				{Offset: 2},
+				{Offset: 3},
+			},
+			TraceSet: types.TraceSet{"test_trace_id": {}},
+		},
+	}
+
+	t.Run("Anomaly grouping enabled sets initial state to Pending", func(t *testing.T) {
+		alertsProvider := alerts_mock.NewConfigProvider(t)
+		alertsProvider.On("GetAlertConfig", alertId).Return(&alerts.Alert{
+			IDAsString:  alertIdStr,
+			DisplayName: "Test Alert Config",
+			Algo:        types.StepFitGrouping,
+		}, nil).Maybe()
+		store := setupStore(t, alertsProvider)
+		store.instanceConfig.NotifyConfig.Notifications = notifytypes.AnomalyGrouper
+
+		commitRangeHigh := regression.AnomalyCommitRange{
+			CommitNumber:        types.CommitNumber(100),
+			PrevCommitNumber:    types.CommitNumber(99),
+			DisplayCommitNumber: types.CommitNumber(100),
+		}
+		success, _, err := store.SetHigh(ctx, commitRangeHigh, alertIdStr, frameResponse, clusterSummary)
+		if skipTestIfSpannerEmulatorNotSupported(t, err) {
+			return
+		}
+		require.NoError(t, err)
+		assert.True(t, success)
+
+		regHigh := readSpecificRegressionFromDb(ctx, t, store, types.CommitNumber(100), alertIdStr)
+		require.NotNil(t, regHigh)
+		assert.Equal(t, regression.Pending, regHigh.HighStatus.Status)
+
+		commitRangeLow := regression.AnomalyCommitRange{
+			CommitNumber:        types.CommitNumber(200),
+			PrevCommitNumber:    types.CommitNumber(199),
+			DisplayCommitNumber: types.CommitNumber(200),
+		}
+		success, _, err = store.SetLow(ctx, commitRangeLow, alertIdStr, frameResponse, clusterSummary)
+		require.NoError(t, err)
+		assert.True(t, success)
+
+		regLow := readSpecificRegressionFromDb(ctx, t, store, types.CommitNumber(200), alertIdStr)
+		require.NotNil(t, regLow)
+		assert.Equal(t, regression.Pending, regLow.LowStatus.Status)
+	})
+
+	t.Run("Anomaly grouping disabled sets initial state to Untriaged", func(t *testing.T) {
+		alertsProvider := alerts_mock.NewConfigProvider(t)
+		alertsProvider.On("GetAlertConfig", alertId).Return(&alerts.Alert{
+			IDAsString:  alertIdStr,
+			DisplayName: "Test Alert Config",
+			Algo:        types.StepFitGrouping,
+		}, nil).Maybe()
+		store := setupStore(t, alertsProvider)
+		store.instanceConfig.NotifyConfig.Notifications = notifytypes.None
+
+		commitRangeHigh := regression.AnomalyCommitRange{
+			CommitNumber:        types.CommitNumber(300),
+			PrevCommitNumber:    types.CommitNumber(299),
+			DisplayCommitNumber: types.CommitNumber(300),
+		}
+		success, _, err := store.SetHigh(ctx, commitRangeHigh, alertIdStr, frameResponse, clusterSummary)
+		if skipTestIfSpannerEmulatorNotSupported(t, err) {
+			return
+		}
+		require.NoError(t, err)
+		assert.True(t, success)
+
+		regHigh := readSpecificRegressionFromDb(ctx, t, store, types.CommitNumber(300), alertIdStr)
+		require.NotNil(t, regHigh)
+		assert.Equal(t, regression.Untriaged, regHigh.HighStatus.Status)
+	})
+
+	t.Run("Existing regression state is not overwritten", func(t *testing.T) {
+		alertsProvider := alerts_mock.NewConfigProvider(t)
+		alertsProvider.On("GetAlertConfig", alertId).Return(&alerts.Alert{
+			IDAsString:  alertIdStr,
+			DisplayName: "Test Alert Config",
+			Algo:        types.StepFitGrouping,
+		}, nil).Maybe()
+		store := setupStore(t, alertsProvider)
+		store.instanceConfig.NotifyConfig.Notifications = notifytypes.AnomalyGrouper
+
+		commitRange := regression.AnomalyCommitRange{
+			CommitNumber:        types.CommitNumber(400),
+			PrevCommitNumber:    types.CommitNumber(399),
+			DisplayCommitNumber: types.CommitNumber(400),
+		}
+		success, _, err := store.SetHigh(ctx, commitRange, alertIdStr, frameResponse, clusterSummary)
+		if skipTestIfSpannerEmulatorNotSupported(t, err) {
+			return
+		}
+		require.NoError(t, err)
+		assert.True(t, success)
+
+		// Triage to Negative
+		err = store.TriageHigh(ctx, types.CommitNumber(400), alertIdStr, regression.TriageStatus{Status: regression.Negative})
+		require.NoError(t, err)
+
+		// Call SetHigh again (e.g. updating notification ID or cluster)
+		_, _, err = store.SetHigh(ctx, commitRange, alertIdStr, frameResponse, clusterSummary)
+		require.NoError(t, err)
+
+		reg := readSpecificRegressionFromDb(ctx, t, store, types.CommitNumber(400), alertIdStr)
+		require.NotNil(t, reg)
+		assert.Equal(t, regression.Negative, reg.HighStatus.Status)
+	})
 }

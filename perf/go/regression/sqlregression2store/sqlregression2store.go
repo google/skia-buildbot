@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/sql/spanner"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
@@ -531,7 +532,7 @@ func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitRange regressio
 		}
 		r.High = high
 		if r.HighStatus.Status == regression.None {
-			r.HighStatus.Status = regression.Untriaged
+			r.HighStatus.Status = s.defaultStatus()
 		}
 		return s.populateRegression2Fields(r)
 	})
@@ -552,12 +553,19 @@ func (s *SQLRegression2Store) SetLow(ctx context.Context, commitRange regression
 		}
 		r.Low = low
 		if r.LowStatus.Status == regression.None {
-			r.LowStatus.Status = regression.Untriaged
+			r.LowStatus.Status = s.defaultStatus()
 		}
 		return s.populateRegression2Fields(r)
 	})
 	s.regressionFoundCounterLow.Inc(1)
 	return ret, regressionID, err
+}
+
+func (s *SQLRegression2Store) defaultStatus() regression.Status {
+	if s.instanceConfig != nil && s.instanceConfig.NotifyConfig.Notifications == notifytypes.AnomalyGrouper {
+		return regression.Pending
+	}
+	return regression.Untriaged
 }
 
 // TriageLow implements the regression.Store interface.
