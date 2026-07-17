@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/kube/go/authproxy/auth"
 	"google.golang.org/protobuf/proto"
 )
@@ -59,24 +60,28 @@ func (p ProtoHeader) Init(ctx context.Context) error {
 	return nil
 }
 
-// LoggedInAs implements auth.Auth.
 func (p ProtoHeader) LoggedInAs(r *http.Request) (string, error) {
-	// The header value contains a base64 encoded proto and then it's signed
-	// which adds a signature, separated by a period.
-	headerValue := getHeaderCaseInsensitive(r, p.headerName)
+	headerName := strings.TrimSpace(p.headerName)
+	headerValue := getHeaderCaseInsensitive(r, headerName)
+	if headerValue == "" {
+		sklog.Debugf("ProtoHeader: Header %q not found in request headers", headerName)
+		return "", skerr.Fmt("header %q missing", headerName)
+	}
 	parts := strings.Split(headerValue, ".")
 	if len(parts) != 2 {
+		sklog.Debugf("ProtoHeader: Header %q value %q does not contain signature period separator", headerName, headerValue)
 		return "", errDotInHeaderRequired
 	}
-	// Only use the base64 encoded data before the period.
 	b, err := base64.RawURLEncoding.DecodeString(parts[0])
 	if err != nil {
-		return "", skerr.Wrapf(err, "decoding base64 header: %q", p.headerName)
+		sklog.Debugf("ProtoHeader: Header %q base64 decode error: %v", headerName, err)
+		return "", skerr.Wrapf(err, "decoding base64 header: %q", headerName)
 	}
 	var h Header
 	err = proto.Unmarshal(b, &h)
 	if err != nil {
-		return "", skerr.Wrapf(err, "decoding proto %q", p.headerName)
+		sklog.Debugf("ProtoHeader: Header %q proto unmarshal error: %v", headerName, err)
+		return "", skerr.Wrapf(err, "decoding proto %q", headerName)
 	}
 	return h.Email, nil
 }

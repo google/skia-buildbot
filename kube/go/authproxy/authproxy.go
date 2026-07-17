@@ -175,11 +175,7 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	email, err := p.authProvider.LoggedInAs(r)
 	if err != nil {
-		if !p.passive {
-			sklog.Errorf("LoggedInAs failed: %s", err)
-		} else if p.verbose {
-			sklog.Infof("LoggedInAs failed: %s", err)
-		}
+		sklog.Warningf("auth-proxy: LoggedInAs failed for %s: %v", r.URL.Path, err)
 	}
 	delHeaderCaseInsensitive(r.Header, WebAuthHeaderName)
 	r.Header.Add(WebAuthHeaderName, email)
