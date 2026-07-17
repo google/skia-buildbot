@@ -1341,3 +1341,73 @@ exit 0
 	assert.False(t, ok)
 	assert.Contains(t, logs.String(), "Stylelint caused additional changes in: app/styles.scss. Please inspect them (git diff) and commit if ok.\n")
 }
+
+func TestCheckIdempotentDDL(t *testing.T) {
+	tempDir := t.TempDir()
+
+	migDir := filepath.Join(tempDir, "perf/go/sql/expectedschema/migrations")
+	assert.NoError(t, os.MkdirAll(migDir, 0755))
+
+	validFile := "perf/go/sql/expectedschema/migrations/0001_valid.sql"
+	validSQL := `
+CREATE TABLE IF NOT EXISTS test (id INT);
+-- this is a comment with a semicolon; it should be ignored
+ALTER TABLE test ADD COLUMN IF NOT EXISTS val TEXT, ADD COLUMN IF NOT EXISTS val2 TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS test_idx ON test(id);
+DROP TABLE IF EXISTS test;
+/* multi line comment ; */
+DROP INDEX IF EXISTS test_idx;
+CREATE SEQUENCE IF NOT EXISTS test_seq;
+-- test strings with semicolons
+ALTER TABLE test ADD COLUMN IF NOT EXISTS tricky_col TEXT DEFAULT 'some;string';
+DROP SEQUENCE IF EXISTS test_seq;
+ALTER TABLE test ADD CONSTRAINT some_constraint FOREIGN KEY (id) REFERENCES other(id);
+ALTER TABLE test DROP COLUMN IF EXISTS val, DROP COLUMN IF EXISTS val2;
+-- mix column and constraint
+ALTER TABLE test ADD COLUMN IF NOT EXISTS mix INT, ADD CONSTRAINT some_constraint2 FOREIGN KEY (mix) REFERENCES other(id);
+ALTER TABLE test DROP COLUMN IF EXISTS mix, DROP CONSTRAINT some_constraint2;
+`
+	err := os.WriteFile(filepath.Join(tempDir, validFile), []byte(validSQL), 0644)
+	assert.NoError(t, err)
+
+	invalidFile := "perf/go/sql/expectedschema/migrations/0002_invalid.sql"
+	invalidSQL := `
+CREATE TABLE test (id INT);
+ALTER TABLE test ADD val TEXT;
+ALTER TABLE test ADD COLUMN IF NOT EXISTS c1 INT, ADD COLUMN c2 INT;
+CREATE INDEX test_idx ON test(id);
+DROP TABLE test;
+DROP INDEX test_idx;
+CREATE SEQUENCE test_seq;
+DROP SEQUENCE test_seq;
+ALTER TABLE test DROP c1;
+ALTER TABLE test DROP COLUMN IF EXISTS c2, DROP COLUMN c3;
+-- mix column and constraint but missing IF NOT EXISTS
+ALTER TABLE test ADD COLUMN mix_bad INT, ADD CONSTRAINT some_constraint3 FOREIGN KEY (mix_bad) REFERENCES other(id);
+ALTER TABLE test DROP COLUMN mix_bad, DROP CONSTRAINT some_constraint3;
+`
+	err = os.WriteFile(filepath.Join(tempDir, invalidFile), []byte(invalidSQL), 0644)
+	assert.NoError(t, err)
+
+	ctx, logs := captureLogs()
+
+	// Test valid file
+	ok := checkIdempotentDDL(ctx, []fileWithChanges{{fileName: validFile}}, tempDir)
+	assert.True(t, ok)
+	assert.Empty(t, logs.String())
+
+	// Test invalid file
+	ok = checkIdempotentDDL(ctx, []fileWithChanges{{fileName: invalidFile}}, tempDir)
+	assert.False(t, ok)
+	out := logs.String()
+	assert.Contains(t, out, "CREATE TABLE must use IF NOT EXISTS. Statement: CREATE TABLE test (id INT)")
+	assert.Contains(t, out, "ALTER TABLE ADD [COLUMN] must use IF NOT EXISTS for every column. Statement: ALTER TABLE test ADD val TEXT")
+	assert.Contains(t, out, "ALTER TABLE ADD [COLUMN] must use IF NOT EXISTS for every column. Statement: ALTER TABLE test ADD COLUMN IF NOT EXISTS c1 INT, ADD COLUMN c2 INT")
+	assert.Contains(t, out, "ALTER TABLE DROP [COLUMN] must use IF EXISTS for every column. Statement: ALTER TABLE test DROP c1")
+	assert.Contains(t, out, "ALTER TABLE DROP [COLUMN] must use IF EXISTS for every column. Statement: ALTER TABLE test DROP COLUMN IF EXISTS c2, DROP COLUMN c3")
+	assert.Contains(t, out, "CREATE INDEX must use IF NOT EXISTS. Statement: CREATE INDEX test_idx ON test(id)")
+	assert.Contains(t, out, "DROP TABLE must use IF EXISTS. Statement: DROP TABLE test")
+	assert.Contains(t, out, "DROP INDEX must use IF EXISTS. Statement: DROP INDEX test_idx")
+	assert.Contains(t, out, "CREATE SEQUENCE must use IF NOT EXISTS. Statement: CREATE SEQUENCE test_seq")
+	assert.Contains(t, out, "DROP SEQUENCE must use IF EXISTS. Statement: DROP SEQUENCE test_seq")
+}

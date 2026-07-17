@@ -141,6 +141,7 @@ func main() {
 	runCheck("JSDebugging", func() bool { return checkJSDebugging(ctx, changedFiles) })
 	runCheck("GolangCILintForPinpoint", func() bool { return runGolangCILintForPinpoint(ctx, changedFiles, branchBaseCommit) })
 	runCheck("BetterAlignForPinpoint", func() bool { return runBetterAlignForPinpoint(ctx, changedFiles) })
+	runCheck("IdempotentDDL", func() bool { return checkIdempotentDDL(ctx, changedFiles, *repoDir) })
 	if !*commit {
 		runCheck("WorkflowCheck", func() bool { return runWorkflowCheck(ctx, changedFiles, *repoDir) })
 		runCheck("NonASCII", func() bool { return checkNonASCII(ctx, changedFiles) })
@@ -914,6 +915,208 @@ func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
 		}
 	}
 	return ok
+}
+
+// checkIdempotentDDL parses modified SQL migrations to ensure they are idempotent.
+// For example, it checks if CREATE TABLE uses IF NOT EXISTS (e.g. CREATE TABLE IF NOT EXISTS test (id INT);).
+func checkIdempotentDDL(ctx context.Context, files []fileWithChanges, repoDir string) bool {
+	ok := true
+	for _, f := range files {
+		if !strings.HasPrefix(f.fileName, "perf/go/sql/expectedschema/migrations/") || !strings.HasSuffix(f.fileName, ".sql") {
+			continue
+		}
+		content, err := os.ReadFile(filepath.Join(repoDir, f.fileName))
+		if err != nil {
+			continue
+		}
+
+		statements := splitSQLStatements(string(content))
+		for _, stmt := range statements {
+			stmt = strings.TrimSpace(stmt)
+			if stmt == "" {
+				continue
+			}
+
+			snippet := stmt
+			if len(snippet) > 100 {
+				snippet = snippet[:100] + "..."
+			}
+
+			// Normalize spaces and newlines for easier checking
+			normalized := strings.Join(strings.Fields(stmt), " ")
+			upperStmt := strings.ToUpper(normalized)
+
+			if strings.HasPrefix(upperStmt, "CREATE TABLE") && !strings.HasPrefix(upperStmt, "CREATE TABLE IF NOT EXISTS") {
+				logf(ctx, "%s: CREATE TABLE must use IF NOT EXISTS. Statement: %s\n", f.fileName, snippet)
+				ok = false
+			}
+			if strings.HasPrefix(upperStmt, "ALTER TABLE") {
+				if strings.Contains(upperStmt, " ADD ") {
+					normalizedForAdd := strings.ReplaceAll(upperStmt, " ADD COLUMN ", " ADD ")
+					addCount := strings.Count(normalizedForAdd, " ADD ")
+					addConstraintCount := strings.Count(normalizedForAdd, " ADD CONSTRAINT ")
+					addPolicyCount := strings.Count(normalizedForAdd, " ADD ROW DELETION POLICY ")
+
+					if (addCount - addConstraintCount - addPolicyCount) != strings.Count(normalizedForAdd, " IF NOT EXISTS ") {
+						logf(ctx, "%s: ALTER TABLE ADD [COLUMN] must use IF NOT EXISTS for every column. Statement: %s\n", f.fileName, snippet)
+						ok = false
+					}
+				}
+				if strings.Contains(upperStmt, " DROP ") {
+					normalizedForDrop := strings.ReplaceAll(upperStmt, " DROP COLUMN ", " DROP ")
+					dropCount := strings.Count(normalizedForDrop, " DROP ")
+					dropConstraintCount := strings.Count(normalizedForDrop, " DROP CONSTRAINT ")
+					dropPolicyCount := strings.Count(normalizedForDrop, " DROP ROW DELETION POLICY ")
+
+					if (dropCount - dropConstraintCount - dropPolicyCount) != strings.Count(normalizedForDrop, " IF EXISTS ") {
+						logf(ctx, "%s: ALTER TABLE DROP [COLUMN] must use IF EXISTS for every column. Statement: %s\n", f.fileName, snippet)
+						ok = false
+					}
+				}
+			}
+			if (strings.HasPrefix(upperStmt, "CREATE INDEX") || strings.HasPrefix(upperStmt, "CREATE UNIQUE INDEX")) && !strings.Contains(upperStmt, "IF NOT EXISTS") {
+				logf(ctx, "%s: CREATE INDEX must use IF NOT EXISTS. Statement: %s\n", f.fileName, snippet)
+				ok = false
+			}
+			if strings.HasPrefix(upperStmt, "DROP TABLE") && !strings.HasPrefix(upperStmt, "DROP TABLE IF EXISTS") {
+				logf(ctx, "%s: DROP TABLE must use IF EXISTS. Statement: %s\n", f.fileName, snippet)
+				ok = false
+			}
+			if strings.HasPrefix(upperStmt, "DROP INDEX") && !strings.HasPrefix(upperStmt, "DROP INDEX IF EXISTS") {
+				logf(ctx, "%s: DROP INDEX must use IF EXISTS. Statement: %s\n", f.fileName, snippet)
+				ok = false
+			}
+			if strings.HasPrefix(upperStmt, "CREATE SEQUENCE") && !strings.HasPrefix(upperStmt, "CREATE SEQUENCE IF NOT EXISTS") {
+				logf(ctx, "%s: CREATE SEQUENCE must use IF NOT EXISTS. Statement: %s\n", f.fileName, snippet)
+				ok = false
+			}
+			if strings.HasPrefix(upperStmt, "DROP SEQUENCE") && !strings.HasPrefix(upperStmt, "DROP SEQUENCE IF EXISTS") {
+				logf(ctx, "%s: DROP SEQUENCE must use IF EXISTS. Statement: %s\n", f.fileName, snippet)
+				ok = false
+			}
+		}
+	}
+	return ok
+}
+
+// splitSQLStatements splits a SQL script into statements by semicolon,
+// correctly ignoring semicolons inside strings, identifiers, and comments.
+// TODO(msheshukov): Consider using a SQL parser which builds AST instead, like https://github.com/xwb1989/sqlparser
+func splitSQLStatements(content string) []string {
+	var statements []string
+	var currentStmt strings.Builder
+	inSingleQuote := false
+	inDoubleQuote := false
+	inBacktick := false
+	inSingleLineComment := false
+	inMultiLineComment := false
+
+	length := len(content)
+	for i := 0; i < length; i++ {
+		char := content[i]
+
+		if inSingleLineComment {
+			if char == '\n' {
+				inSingleLineComment = false
+			}
+			continue
+		}
+
+		if inMultiLineComment {
+			if char == '*' && i+1 < length && content[i+1] == '/' {
+				inMultiLineComment = false
+				i++ // skip '/'
+			}
+			continue
+		}
+
+		if inSingleQuote {
+			if char == '\\' {
+				if i+1 < length {
+					i++
+				}
+			} else if char == '\'' {
+				inSingleQuote = false
+				currentStmt.WriteByte(char)
+			}
+			continue
+		}
+
+		if inDoubleQuote {
+			if char == '\\' {
+				if i+1 < length {
+					i++
+				}
+			} else if char == '"' {
+				inDoubleQuote = false
+				currentStmt.WriteByte(char)
+			}
+			continue
+		}
+
+		if inBacktick {
+			if char == '\\' {
+				if i+1 < length {
+					i++
+				}
+			} else if char == '`' {
+				inBacktick = false
+				currentStmt.WriteByte(char)
+			}
+			continue
+		}
+
+		// Not in any string or comment
+		if char == '-' && i+1 < length && content[i+1] == '-' {
+			inSingleLineComment = true
+			i++                        // skip second '-'
+			currentStmt.WriteByte(' ') // replace comment with space
+			continue
+		}
+
+		if char == '/' && i+1 < length && content[i+1] == '*' {
+			inMultiLineComment = true
+			i++                        // skip '*'
+			currentStmt.WriteByte(' ') // replace comment with space
+			continue
+		}
+
+		if char == '\'' {
+			inSingleQuote = true
+			currentStmt.WriteByte(char)
+			continue
+		}
+
+		if char == '"' {
+			inDoubleQuote = true
+			currentStmt.WriteByte(char)
+			continue
+		}
+
+		if char == '`' {
+			inBacktick = true
+			currentStmt.WriteByte(char)
+			continue
+		}
+
+		if char == ';' {
+			stmt := strings.TrimSpace(currentStmt.String())
+			if stmt != "" {
+				statements = append(statements, stmt)
+			}
+			currentStmt.Reset()
+			continue
+		}
+
+		currentStmt.WriteByte(char)
+	}
+
+	stmt := strings.TrimSpace(currentStmt.String())
+	if stmt != "" {
+		statements = append(statements, stmt)
+	}
+
+	return statements
 }
 
 // checkJSDebugging goes through all touched lines and returns false if any TS or JS files contain
