@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
@@ -16,8 +17,11 @@ import (
 // Bazel provides a Task Driver API for working with Bazel (via the Bazelisk launcher, see
 // https://github.com/bazelbuild/bazelisk).
 type Bazel struct {
-	rbeCredentialFile string
-	workspace         string
+	cachePath           string
+	rbeCredentialFile   string
+	repositoryCachePath string
+	workspace           string
+	cleanup             func()
 }
 
 type BazelOptions struct {
@@ -25,10 +29,39 @@ type BazelOptions struct {
 	RepositoryCachePath string
 }
 
-// EnsureBazelRCFile makes sure the user .bazelrc file exists and matches the provided
-// configuration. This makes it easy for all subsequent calls to Bazel use the right command
-// line args, even if Bazel is not invoked directly from task_driver (e.g. from a Makefile).
-func EnsureBazelRCFile(ctx context.Context, bazelOpts BazelOptions) error {
+// OverrideHomeAndWriteBazelRC masks the user .bazelrc file using the provided
+// configuration by overriding HOME. This makes it easy for all subsequent calls
+// to Bazel use the right command line args, even if Bazel is not invoked
+// directly from task_driver (e.g. from a Makefile). Returns a function which
+// should be run deferred for cleanup.
+func OverrideHomeAndWriteBazelRC(ctx context.Context, bazelOpts BazelOptions) (func(), error) {
+	homeDir, err := os.MkdirTemp("", "bazel-task-driver-tmp-home-")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	oldHome := os.Getenv("HOME")
+	cleanup := func() {
+		if err := os.Setenv("HOME", oldHome); err != nil {
+			sklog.Errorf("Failed to set original HOME environment variable: %s", err)
+		}
+		if err := os_steps.RemoveAll(ctx, homeDir); err != nil {
+			sklog.Errorf("Failed to cleanup temporary Bazel HOME directory: %s", err)
+		}
+	}
+	if err := os.Setenv("HOME", homeDir); err != nil {
+		cleanup()
+		return nil, skerr.Wrap(err)
+	}
+	userBazelRCLocation := filepath.Join(homeDir, ".bazelrc")
+	if err := WriteBazelRC(ctx, userBazelRCLocation, bazelOpts); err != nil {
+		cleanup()
+		return nil, skerr.Wrap(err)
+	}
+	return cleanup, nil
+}
+
+// WriteBazelRC writes the given BazelOptions to the given file path.
+func WriteBazelRC(ctx context.Context, path string, bazelOpts BazelOptions) error {
 	var bazelRCLines []string
 	if bazelOpts.CachePath != "" {
 		// https://docs.bazel.build/versions/main/output_directories.html#current-layout
@@ -39,27 +72,18 @@ func EnsureBazelRCFile(ctx context.Context, bazelOpts BazelOptions) error {
 		// https://bazel.build/docs/build#repository-cache
 		bazelRCLines = append(bazelRCLines, fmt.Sprintf("build --repository_cache=%s", bazelOpts.RepositoryCachePath))
 	}
-
-	// https://docs.bazel.build/versions/main/guide.html#where-are-the-bazelrc-files
-	// We go for the user's .bazelrc file instead of the system one because the
-	// swarming user does not have access to write to /etc/bazel.bazelrc
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	userBazelRCLocation := filepath.Join(homeDir, ".bazelrc")
 	bazelRCContent := strings.Join(bazelRCLines, "\n")
-	return os_steps.WriteFile(ctx, userBazelRCLocation, []byte(bazelRCContent), 0666)
+	return os_steps.WriteFile(ctx, path, []byte(bazelRCContent), 0666)
 }
 
 // New returns a new Bazel instance.
 func New(ctx context.Context, workspace, rbeCredentialFile string, opts BazelOptions) (*Bazel, error) {
-	if err := EnsureBazelRCFile(ctx, opts); err != nil {
+	cleanup, err := OverrideHomeAndWriteBazelRC(ctx, opts)
+	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	absCredentialFile := ""
-	var err error
 	if rbeCredentialFile != "" {
 		absCredentialFile, err = os_steps.Abs(ctx, rbeCredentialFile)
 		if err != nil {
@@ -67,8 +91,11 @@ func New(ctx context.Context, workspace, rbeCredentialFile string, opts BazelOpt
 		}
 	}
 	return &Bazel{
-		rbeCredentialFile: absCredentialFile,
-		workspace:         workspace,
+		cachePath:           opts.CachePath,
+		rbeCredentialFile:   absCredentialFile,
+		repositoryCachePath: opts.RepositoryCachePath,
+		workspace:           workspace,
+		cleanup:             cleanup,
 	}, nil
 }
 
@@ -94,4 +121,9 @@ func (b *Bazel) DoOnRBE(ctx context.Context, subCmd string, args ...string) (str
 	cmd = append(cmd, args...)
 	return b.Do(ctx, subCmd, cmd...)
 
+}
+
+// Cleanup must be run after the caller is finished with this Bazel instance.
+func (b *Bazel) Cleanup() {
+	b.cleanup()
 }
