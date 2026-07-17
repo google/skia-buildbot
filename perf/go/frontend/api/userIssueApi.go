@@ -116,10 +116,12 @@ func (ui *userIssueApi) saveUserIssueHandler(w http.ResponseWriter, r *http.Requ
 
 	if len(saveReq.TraceKey) == 0 {
 		httputils.ReportError(w, skerr.Fmt("Invalid Argument: "), "trace_key", http.StatusBadRequest)
+		return
 	}
 
 	if saveReq.CommitPosition == 0 || saveReq.IssueId == 0 {
 		httputils.ReportError(w, skerr.Fmt("Invalid Argument: "), "commit position and issue id", http.StatusBadRequest)
+		return
 	}
 
 	userIssueObj := userissue.UserIssue{
@@ -193,6 +195,17 @@ func (ui *userIssueApi) createUserIssueHandler(w http.ResponseWriter, r *http.Re
 
 	if createReq.TraceKey == "" || createReq.CommitPosition == 0 {
 		httputils.ReportError(w, skerr.Fmt("Invalid Argument"), "trace_key, commit_position are required", http.StatusBadRequest)
+		return
+	}
+
+	// Check if a bug already exists for this trace key and commit position
+	existingIssues, err := ui.userIssueStore.GetUserIssuesForTraceKeys(ctx, []string{createReq.TraceKey}, createReq.CommitPosition, createReq.CommitPosition)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to check for existing issues", http.StatusInternalServerError)
+		return
+	}
+	if len(existingIssues) > 0 {
+		httputils.ReportError(w, skerr.Fmt("Issue already exists"), "An issue already exists for this data point.", http.StatusConflict)
 		return
 	}
 

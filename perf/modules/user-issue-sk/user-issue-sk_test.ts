@@ -6,13 +6,19 @@ import fetchMock from 'fetch-mock';
 import { formatBug } from '../common/anomaly';
 import { render } from 'lit-html';
 import sinon from 'sinon';
+import { resetLoggedInPromise } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 
 describe('user-issue-sk', () => {
   const newInstance = setUpElementUnderTest<UserIssueSk>('user-issue-sk');
 
   let element: UserIssueSk;
-  beforeEach(() => {
+  beforeEach(async () => {
+    resetLoggedInPromise();
+    fetchMock.get('/_/login/status', { email: '' });
+    fetchMock.post('/_/user_issues/', { UserIssues: [] });
     element = newInstance();
+    await fetchMock.flush(true);
+    await element.updateComplete;
     window.perf = {
       dev_mode: false,
       instance_url: '',
@@ -55,6 +61,9 @@ describe('user-issue-sk', () => {
 
   afterEach(() => {
     fetchMock.restore();
+    if ((window.open as sinon.SinonStub)?.restore) {
+      (window.open as sinon.SinonStub).restore();
+    }
   });
 
   describe('render', () => {
@@ -110,16 +119,20 @@ describe('user-issue-sk', () => {
 
   describe('saveissue', () => {
     it('finds an existing issue, displays it inline, and selects it', async () => {
-      fetchMock.post('/_/user_issues/', {
-        UserIssues: [
-          {
-            UserId: 'test@example.com',
-            TraceKey: 'test-trace',
-            CommitPosition: 100,
-            IssueId: 12345,
-          },
-        ],
-      });
+      fetchMock.post(
+        '/_/user_issues/',
+        {
+          UserIssues: [
+            {
+              UserId: 'test@example.com',
+              TraceKey: 'test-trace',
+              CommitPosition: 100,
+              IssueId: 12345,
+            },
+          ],
+        },
+        { overwriteRoutes: true }
+      );
 
       element.user_id = 'test@example.com';
       element.issueExists = false;
@@ -140,6 +153,7 @@ describe('user-issue-sk', () => {
       fetchMock.post('/_/user_issue/save', {});
       selectBtn.click();
       await fetchMock.flush(true);
+      await element.updateComplete;
 
       expect(element.bug_id).to.equal(12345);
       const bugLink = element.shadowRoot!.querySelector('a');
@@ -173,12 +187,12 @@ describe('user-issue-sk', () => {
       addNewBugBtn.click();
 
       await fetchMock.flush(true);
+      await element.updateComplete;
 
       expect(element.bug_id).to.equal(67890);
       expect(element.issueExists).to.be.true;
       expect(windowOpenStub.calledWith('https://issues.chromium.org/issues/67890', '_blank')).to.be
         .true;
-      windowOpenStub.restore();
     });
 
     it('dispatches user-issue-changed event on success', async () => {
@@ -205,8 +219,6 @@ describe('user-issue-sk', () => {
       expect(event.detail.bug_id).to.equal(67890);
       expect(event.detail.trace_key).to.equal('test-trace');
       expect(event.detail.commit_position).to.equal(100);
-
-      (window.open as sinon.SinonStub).restore();
     });
 
     it('handles errors during creation', async () => {
@@ -225,6 +237,7 @@ describe('user-issue-sk', () => {
 
       addNewBugBtn.click();
       await fetchMock.flush(true);
+      await element.updateComplete;
 
       expect(closeSpy.called).to.be.true;
       expect(element.issueExists).to.be.false;
@@ -243,6 +256,7 @@ describe('user-issue-sk', () => {
       deleteIcon.click();
 
       await fetchMock.flush(true);
+      await element.updateComplete;
       expect(element.bug_id).to.equal(0);
       expect(element.issueExists).to.equal(false);
 

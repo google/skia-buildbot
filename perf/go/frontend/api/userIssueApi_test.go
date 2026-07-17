@@ -117,6 +117,7 @@ func TestFrontendCreateUserIssueHandler_Success(t *testing.T) {
 	r := httptest.NewRequest("POST", "/_/user_issue/create", body)
 
 	uiMocks := userissueMocks.NewStore(t)
+	uiMocks.On("GetUserIssuesForTraceKeys", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything).Return([]userissue.UserIssue{}, nil)
 	uiMocks.On("Save", testutils.AnyContext, mock.Anything).Return(nil)
 
 	login := mocks.NewLogin(t)
@@ -157,4 +158,38 @@ func TestFrontendCreateUserIssueHandler_UnAuthorized(t *testing.T) {
 	ui.createUserIssueHandler(w, r)
 
 	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
+}
+
+func TestFrontendCreateUserIssueHandler_Conflict(t *testing.T) {
+	w := httptest.NewRecorder()
+	createReq := issuetracker.CreateUserIssueRequest{
+		TraceKey:       ",a=1,b=1,c=1,",
+		CommitPosition: 123,
+	}
+	uiBody, _ := json.Marshal(createReq)
+	body := bytes.NewReader(uiBody)
+	r := httptest.NewRequest("POST", "/_/user_issue/create", body)
+
+	// Mock returning an existing issue to trigger conflict
+	fakeUserIssues := []userissue.UserIssue{
+		{
+			UserId:         "nobody@example.org",
+			TraceKey:       ",a=1,b=1,c=1,",
+			CommitPosition: 123,
+			IssueId:        12345,
+		},
+	}
+	uiMocks := userissueMocks.NewStore(t)
+	uiMocks.On("GetUserIssuesForTraceKeys", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything).Return(fakeUserIssues, nil)
+
+	login := mocks.NewLogin(t)
+	login.On("LoggedInAs", r).Return(alogin.EMail("nobody@example.org"))
+
+	itMocks := issuetrackerMocks.NewIssueTracker(t)
+
+	ui := NewUserIssueApi(login, uiMocks, itMocks)
+
+	ui.createUserIssueHandler(w, r)
+
+	require.Equal(t, http.StatusConflict, w.Result().StatusCode)
 }

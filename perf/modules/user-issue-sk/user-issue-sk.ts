@@ -1,5 +1,5 @@
 import { LitElement, TemplateResult, css, html } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { formatBug } from '../common/anomaly';
 import '../window/window';
@@ -182,7 +182,8 @@ export class UserIssueSk extends LitElement {
 
   // bug_id = 0 signifies no buganizer issue available in the database for the
   // data point. bug_id > 0 means we have an existing buganizer issue.
-  @property({ attribute: true })
+  // bug_id = -1 signifies the component is completely disabled and hidden.
+  @property({ type: Number, attribute: true })
   bug_id: number = 0;
 
   // The trace_key of the selected data point. Format: ,a=1,b=2,c=3,
@@ -190,19 +191,19 @@ export class UserIssueSk extends LitElement {
   trace_key: string = '';
 
   // Commit position of the data point
-  @property({ attribute: true })
+  @property({ type: Number, attribute: true })
   commit_position: number = 0;
 
-  @property({ attribute: true })
+  @property({ type: Number, attribute: true })
   begin_commit_position: number = 0;
 
-  @property({ attribute: true })
+  @property({ type: Number, attribute: true })
   end_commit_position: number = 0;
 
-  @property({ state: true })
+  @state()
   issueExists = false;
 
-  @property({ state: true })
+  @state()
   _existing_issues: UserIssue[] = [];
 
   // Used for capturing number input values
@@ -217,15 +218,23 @@ export class UserIssueSk extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    if (this.user_id !== '') {
+    if (this.user_id === '') {
       LoggedIn().then((status: LoginStatus) => {
         this.user_id = status.email;
       });
     }
   }
 
-  firstUpdated() {
-    this.loadExistingIssues();
+  updated(changedProperties: Map<string | number | symbol, unknown>) {
+    super.updated(changedProperties);
+    if (
+      changedProperties.has('trace_key') ||
+      changedProperties.has('commit_position') ||
+      changedProperties.has('begin_commit_position') ||
+      changedProperties.has('end_commit_position')
+    ) {
+      this.loadExistingIssues();
+    }
   }
 
   render() {
@@ -284,7 +293,7 @@ export class UserIssueSk extends LitElement {
   }
 
   private async loadExistingIssues() {
-    if (!this.trace_key) {
+    if (!this.trace_key || this.bug_id === -1) {
       return;
     }
     const begin = this.begin_commit_position || this.commit_position;
@@ -296,11 +305,43 @@ export class UserIssueSk extends LitElement {
       end_commit_position: end,
     };
 
+    const currentTraceKey = this.trace_key;
+    const currentCommitPosition = this.commit_position;
+
+    // Synchronously clear stale UI state before an async fetch
+    this._existing_issues = [];
+    if (this.bug_id !== -1) {
+      this.bug_id = 0;
+    }
+    this.issueExists = false;
+
     try {
       const resp = await DataService.getInstance().getUserIssues(req);
+      if (this.trace_key !== currentTraceKey || this.commit_position !== currentCommitPosition) {
+        return; // Stale request
+      }
       this._existing_issues = resp.UserIssues || [];
+
+      const exactMatch = this._existing_issues.find(
+        (issue) => issue.CommitPosition === this.commit_position
+      );
+
+      if (exactMatch) {
+        this.bug_id = exactMatch.IssueId;
+        this.issueExists = true;
+      } else {
+        this.bug_id = 0;
+        this.issueExists = false;
+      }
     } catch (e) {
       console.error('Failed to fetch existing issues.', e);
+      if (this.trace_key === currentTraceKey && this.commit_position === currentCommitPosition) {
+        this._existing_issues = [];
+        if (this.bug_id !== -1) {
+          this.bug_id = 0;
+        }
+        this.issueExists = false;
+      }
     }
   }
 
