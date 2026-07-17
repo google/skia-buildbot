@@ -96,7 +96,9 @@ func getContextWithAuthHeaders(r *http.Request, timeout time.Duration) (context.
 			sklog.Errorf("Failed to marshal identity header proto for %s: %v", user, err)
 		} else {
 			encoded := base64.RawURLEncoding.EncodeToString(b)
-			md.Set(authproxy.EndpointAPIUserInfoHeaderName, encoded+".sig")
+			val := encoded + ".sig"
+			md.Set(authproxy.EndpointAPIUserInfoHeaderName, val)
+			md.Set("X-UberProxy-Signed-UpTick", val)
 		}
 
 		if vals := getHeaderValuesCaseInsensitive(r, authproxy.GoogAuthenticatedUserEmailHeaderName); len(vals) > 0 {
