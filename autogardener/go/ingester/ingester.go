@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	ts_db "go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/cache"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/errgroup"
@@ -30,11 +29,10 @@ type Ingester struct {
 	gemini     gemini.Client
 	httpClient *http.Client
 	repos      repograph.Map
-	tCache     cache.TaskCache
 	tsDB       ts_db.TaskReader
 }
 
-func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos repograph.Map, tCache cache.TaskCache, tsDB ts_db.TaskReader) (*Ingester, error) {
+func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos repograph.Map, tsDB ts_db.TaskReader) (*Ingester, error) {
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, datastore.ScopeDatastore)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -44,13 +42,12 @@ func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos 
 		gemini:     gemini,
 		httpClient: httputils.DefaultClientConfig().WithTokenSource(ts).Client(),
 		repos:      repos,
-		tCache:     tCache,
 		tsDB:       tsDB,
 	}, nil
 }
 
-func (i *Ingester) GetTaskSummariesForRepo(ctx context.Context, repoURL, branch string, numCommits int) ([]*types.TaskAndSummary, error) {
-	tasks, err := i.getFailedTasks(ctx, repoURL, branch, numCommits)
+func (i *Ingester) GetTaskSummariesForRepo(ctx context.Context, repoURL string, period time.Duration) ([]*types.TaskAndSummary, error) {
+	tasks, err := i.getFailedTasks(ctx, repoURL, period)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -77,7 +74,7 @@ func (i *Ingester) GetTaskSummariesForRepo(ctx context.Context, repoURL, branch 
 	return results, nil
 }
 
-func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoURL, branch string, numCommits int) {
+func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoURL string, period time.Duration) {
 	queue := newIngestionQueue(ctx)
 
 	// Primary ingestion mechanism: receive tasks from DB as they are updated.
@@ -87,7 +84,7 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 			select {
 			case tasks := <-modCh:
 				for _, task := range tasks {
-					if task.Done() && !task.Success() && task.Repo == repoURL && !task.IsTryJob() {
+					if task.Done() && !task.Success() && task.Repo == repoURL {
 						queue.Push(task)
 					}
 				}
@@ -100,7 +97,7 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 	// Secondary: fall back to periodically loading all failed tasks.
 	lv := metrics2.NewLiveness("liveness_autogardener_task_ingestion_fallback")
 	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
-		tasks, err := i.getFailedTasks(ctx, repoURL, branch, numCommits)
+		tasks, err := i.getFailedTasks(ctx, repoURL, period)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve tasks: %s", err)
 			return
@@ -153,40 +150,25 @@ func (i *Ingester) ingestTask(ctx context.Context, task *ts_types.Task) error {
 	return nil
 }
 
-func (i *Ingester) getFailedTasks(ctx context.Context, repoURL, branch string, numCommits int) ([]*ts_types.Task, error) {
-	// Retrieve the last N commits in the repo.
-	commits := make([]string, 0, numCommits)
-	if err := i.repos[repoURL].Get(branch).RecurseFirstParent(func(c *repograph.Commit) error {
-		commits = append(commits, c.Hash)
-		if len(commits) == numCommits {
-			return repograph.ErrStopRecursing
-		}
-		return nil
-	}); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
+func (i *Ingester) getFailedTasks(ctx context.Context, repoURL string, period time.Duration) ([]*ts_types.Task, error) {
 	// Retrieve tasks for all commits.
-	allTasks, err := i.tCache.GetTasksForCommits(repoURL, commits)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	// Filter out tasks which haven't failed. Deduplicate using a map.
-	taskMap := map[string]*ts_types.Task{}
-	for _, tasksForCommit := range allTasks {
-		for _, task := range tasksForCommit {
-			if task.Done() && !task.Success() {
-				taskMap[task.Id] = task
-			}
+	var allTasks []*ts_types.Task
+	end := time.Now()
+	start := end.Add(-period)
+	for _, status := range []ts_types.TaskStatus{ts_types.TASK_STATUS_FAILURE, ts_types.TASK_STATUS_MISHAP} {
+		tasks, err := i.tsDB.SearchTasks(ctx, &ts_db.TaskSearchParams{
+			TimeStart: &start,
+			TimeEnd:   &end,
+			Repo:      &repoURL,
+			Status:    &status,
+		})
+		if err != nil {
+			return nil, skerr.Wrap(err)
 		}
+		allTasks = append(allTasks, tasks...)
 	}
-	tasks := make([]*ts_types.Task, 0, len(taskMap))
-	for _, task := range taskMap {
-		tasks = append(tasks, task)
-	}
-	sklog.Infof("Found %d failing tasks.", len(tasks))
-	return tasks, nil
+	sklog.Infof("Found %d failing tasks for %s in last %s.", len(allTasks), repoURL, period)
+	return allTasks, nil
 }
 
 type ingestionQueue struct {

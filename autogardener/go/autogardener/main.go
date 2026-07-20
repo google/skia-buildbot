@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"os"
-	"time"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/autogardener/go/db"
@@ -12,16 +11,12 @@ import (
 	"go.skia.org/infra/autogardener/go/ingester"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db/cache"
 	ts_firestore "go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/window"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
@@ -47,7 +42,7 @@ var (
 	firestoreProject  = flag.String("firestore-project", firestore.FIRESTORE_PROJECT, "Project to use for firestore.")
 	firestoreInstance = flag.String("firestore-instance", "production", "Firestore instance to use.")
 	repoURLs          = common.NewMultiStringFlag("repo", nil, "Repositories for which to perform gardening.")
-	numCommits        = flag.Int("num-commits", 35, "Number of commits to load for each repo.")
+	timePeriod        = flag.String("time-window", "4d", "Time period to use.")
 	local             = flag.Bool("local", false, "True if running locally. Uses an emulator for writing to the DB.")
 	apiKeySecret      = flag.String("api-key-secret", "autogardener-gemini-api-key", "GCP secret containing the Gemini API key.")
 	gcsBucketDebug    = flag.String("gcs-bucket-debug", "", "Optional, GCS bucket name to upload debug information.")
@@ -60,6 +55,12 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.StructuredLogging(local),
 	)
+
+	// Parse the time period.
+	period, err := human.ParseDuration(*timePeriod)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	ctx := context.Background()
 
@@ -115,48 +116,19 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// Task DB and Cache.
+	// Task DB.
 	tsDB, err := ts_firestore.NewDBWithParams(ctx, *firestoreProject, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	w, err := window.New(ctx, 4*24*time.Hour, *numCommits, repos)
-	if err != nil {
-		sklog.Fatalf("Failed to create time window: %s", err)
-	}
-	tCache, err := cache.NewTaskCache(ctx, tsDB, w, nil)
-	if err != nil {
-		sklog.Fatalf("Failed to create task cache: %s", err)
-	}
-	lv := metrics2.NewLiveness("autogardener_update")
-	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
-		failed := false
-		if err := repos.Update(ctx); err != nil {
-			sklog.Errorf("Failed to update repos: %s", err)
-			failed = true
-		}
-		if err := w.Update(ctx); err != nil {
-			sklog.Errorf("Failed to update window: %s", err)
-			failed = true
-		}
-		if err := tCache.Update(ctx); err != nil {
-			sklog.Errorf("Failed to update task cache")
-			failed = true
-		}
-		if !failed {
-			lv.Reset()
-		}
-
-	})
-
-	ing, err := ingester.New(ctx, db, geminiClient, repos, tCache, tsDB)
+	ing, err := ingester.New(ctx, db, geminiClient, repos, tsDB)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
 	sklog.Infof("Setup complete. Starting loop.")
 	for _, repoURL := range *repoURLs {
-		ing.StartIngestingTaskSummariesForRepo(ctx, repoURL, git.MainBranch, *numCommits)
+		ing.StartIngestingTaskSummariesForRepo(ctx, repoURL, period)
 	}
 
 	httputils.RunHealthCheckServer(*port)
