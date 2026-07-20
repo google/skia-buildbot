@@ -357,7 +357,12 @@ describe('trace-chart-tooltip-sk', () => {
     expect(skeleton).to.not.be.null;
   });
 
-  it('renders subrepo skeleton when loading', async () => {
+  it('renders subrepo and useful links skeleton when loading with configured keys', async () => {
+    const origPerf = (window as any).perf;
+    (window as any).perf = {
+      keys_for_commit_range: ['V8', 'WebRTC', 'V8 Git Hash'],
+      keys_for_useful_links: ['Build Page', 'Tracing uri'],
+    };
     const rows = [{ commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' }];
     element.hoveredPoint = {
       series: { id: 'test', color: '#fff', rows: rows },
@@ -371,6 +376,31 @@ describe('trace-chart-tooltip-sk', () => {
 
     const subrepoSkeleton = element.shadowRoot!.querySelector('.subrepo-skeleton');
     expect(subrepoSkeleton).to.not.be.null;
+    const labels = Array.from(element.shadowRoot!.querySelectorAll('.subrepo-skeleton strong')).map(
+      (el) => el.textContent
+    );
+    // 'V8 Git Hash' is stripped of the ' Git...' suffix and deduplicated with 'V8'.
+    expect(labels).to.deep.equal(['V8:', 'WebRTC:', 'Build Page:', 'Tracing uri:']);
+    (window as any).perf = origPerf;
+  });
+
+  it('does not render skeleton when both keys_for_commit_range and keys_for_useful_links are empty', async () => {
+    const origPerf = (window as any).perf;
+    (window as any).perf = { keys_for_commit_range: [], keys_for_useful_links: [] };
+    const rows = [{ commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' }];
+    element.hoveredPoint = {
+      series: { id: 'test', color: '#fff', rows: rows },
+      row: rows[0],
+      x: 100,
+      y: 100,
+    };
+    // Simulate loading state
+    (element as any)._linksLoading = true;
+    await element.updateComplete;
+
+    const subrepoSkeleton = element.shadowRoot!.querySelector('.subrepo-skeleton');
+    expect(subrepoSkeleton).to.be.null;
+    (window as any).perf = origPerf;
   });
 
   it('stops propagation of pointer and mouse events', async () => {
@@ -428,7 +458,16 @@ describe('trace-chart-tooltip-sk', () => {
   });
 
   it('unassociates bug when unassociate button is clicked', async () => {
-    const rows = [{ commit_number: 100, val: 10.0, createdat: 1000, hash: 'hash100' }];
+    const rows = [
+      {
+        commit_number: 100,
+        val: 10.0,
+        createdat: 1000,
+        hash: 'hash100',
+        author: 'author',
+        message: 'message',
+      },
+    ];
     const regression = {
       id: '123',
       bugs: [{ bug_id: '456', bug_type: 'BUGANIZER' }],

@@ -440,7 +440,40 @@ describe('point-links-sk', () => {
         linkEl!.getAttribute('href'),
         'https://chrome-internal.googlesource.com/v8/v8-perf/+/f885626a1c24339760cf4fe96c3d5f4b1ef93048/benchmarks/JetStream/JetStream2.json'
       );
-      assert.equal(linkEl!.textContent?.trim(), 'Link');
+      assert.equal(linkEl!.textContent?.trim(), 'Benchmark config');
+    });
+
+    it('renders V8 link with commit ID fallback when linkText is missing', async () => {
+      const keysForCommitRange = [''];
+      const keysForUsefulLinks = ['V8'];
+      const returnLinks = {
+        V8: 'https://chromium.googlesource.com/v8/v8/+/ff9d99021c342533',
+      };
+      fetchMock.post('/_/details/?results=false', {
+        version: 1,
+        links: returnLinks,
+      });
+
+      await element.load(
+        CommitNumber(4),
+        null,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks,
+        []
+      );
+      await element.updateComplete;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const keyEl = element.querySelector('#tooltip-key');
+      const textEl = element.querySelector('#tooltip-text');
+      assert.isNotNull(keyEl);
+      assert.isNotNull(textEl);
+      assert.equal(keyEl!.textContent?.trim(), 'V8');
+
+      const linkEl = textEl!.querySelector('a');
+      assert.isNotNull(linkEl);
+      assert.equal(linkEl!.textContent?.trim(), 'ff9d99021');
     });
   });
 

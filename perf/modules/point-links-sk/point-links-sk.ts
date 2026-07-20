@@ -109,15 +109,29 @@ export class PointLinksSk extends LitElement {
 
     const mdLinkRegex = /^\[(.*?)\]\((.*?)\)$/;
     const match = link.match(mdLinkRegex);
+    let mdLinkText: string | undefined;
+    let mdLinkUrl: string | undefined;
+    if (match) {
+      [, mdLinkText, mdLinkUrl] = match;
+      if (mdLinkUrl) {
+        href = mdLinkUrl;
+      }
+    }
     // This is a specific change for just v8.
     if (keyText === 'V8') {
       const isRange = await this.isRange(link);
-      if (!isRange && linkText.includes(' - ')) {
+      if (!isRange && linkText && linkText.includes(' - ')) {
         linkText = linkText.split(' - ')[1];
       }
-    } else {
-      if (match) {
-        href = match[2];
+    }
+    if (!linkText) {
+      if (mdLinkText) {
+        linkText = mdLinkText;
+      } else if (href && (href.includes('googlesource.com') || href.includes('github.com'))) {
+        const commitId = TrimHash(this.getCommitIdFromCommitUrl(href));
+        if (commitId && commitId !== href) {
+          linkText = commitId;
+        }
       }
       if (!linkText) {
         linkText = 'Link';

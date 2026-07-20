@@ -254,6 +254,13 @@ export class TraceChartTooltipSk extends LitElement {
       animation: pulse 1.5s infinite;
     }
 
+    .subrepo-skeleton {
+      border-top: 1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
+      padding-top: 8px;
+      margin-top: 8px;
+      width: 100%;
+    }
+
     @keyframes pulse {
       0% {
         opacity: 0.6;
@@ -425,6 +432,29 @@ export class TraceChartTooltipSk extends LitElement {
     }
   }
 
+  private _getCommitRangeKeys(): string[] {
+    return (
+      (window as any).perf?.keys_for_commit_range ?? [
+        'V8',
+        'WebRTC',
+        'V8 Git Hash',
+        'WebRTC Git Hash',
+      ]
+    );
+  }
+
+  private _getUsefulLinksKeys(): string[] {
+    return (
+      (window as any).perf?.keys_for_useful_links ?? [
+        'Build Page',
+        'Tracing uri',
+        'Browser Version',
+        'Workflow',
+        'Swarming Tasks',
+      ]
+    );
+  }
+
   private _loadTooltipData() {
     if (!this.hoveredPoint) return;
     const commit = this.hoveredPoint.row.commit_number;
@@ -497,19 +527,8 @@ export class TraceChartTooltipSk extends LitElement {
                 commit,
                 prevCommitPos,
                 cleanTraceName,
-                (window as any).perf?.keys_for_commit_range || [
-                  'V8',
-                  'WebRTC',
-                  'V8 Git Hash',
-                  'WebRTC Git Hash',
-                ],
-                (window as any).perf?.keys_for_useful_links || [
-                  'Build Page',
-                  'Tracing uri',
-                  'Browser Version',
-                  'Workflow',
-                  'Swarming Tasks',
-                ],
+                this._getCommitRangeKeys(),
+                this._getUsefulLinksKeys(),
                 []
               )
               .then(() => {
@@ -919,22 +938,41 @@ export class TraceChartTooltipSk extends LitElement {
         </div>
         <div class="tooltip-row">
           <point-links-sk id="tooltip-point-links"></point-links-sk>
-          ${this._linksLoading
-            ? html`
-                <div
-                  class="subrepo-skeleton"
-                  style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px; width: 100%;">
-                  <div class="tooltip-row">
-                    <strong>V8:</strong>
-                    <span class="skeleton" style="width: 120px; height: 12px;"></span>
-                  </div>
-                  <div class="tooltip-row">
-                    <strong>WebRTC:</strong>
-                    <span class="skeleton" style="width: 120px; height: 12px;"></span>
-                  </div>
-                </div>
-              `
-            : ''}
+          ${(() => {
+            if (!this._linksLoading) return '';
+            const commitRangeKeys = Array.from(
+              new Set(
+                this._getCommitRangeKeys()
+                  .map((k) => k.replace(/ Git.*/i, '').trim())
+                  .filter(Boolean)
+              )
+            );
+            const usefulLinksKeys = Array.from(
+              new Set(
+                this._getUsefulLinksKeys()
+                  .map((k) => k.trim())
+                  .filter(Boolean)
+              )
+            );
+            const allKeys = [...commitRangeKeys, ...usefulLinksKeys];
+            const duplicateKeys = allKeys.filter((key, index) => allKeys.indexOf(key) !== index);
+            if (duplicateKeys.length > 0) {
+              console.error('Duplicate keys found in subrepo and useful links:', duplicateKeys);
+            }
+            if (allKeys.length === 0) return '';
+            return html`
+              <div class="subrepo-skeleton">
+                ${allKeys.map(
+                  (k) => html`
+                    <div class="tooltip-row">
+                      <strong>${k}:</strong>
+                      <span class="skeleton" style="width: 120px; height: 12px;"></span>
+                    </div>
+                  `
+                )}
+              </div>
+            `;
+          })()}
         </div>
         ${(window as any).perf?.show_json_file_display
           ? html`
