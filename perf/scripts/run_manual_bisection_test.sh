@@ -18,6 +18,7 @@ set -m
 TEMPORAL_PID=""
 BACKEND_PID=""
 WORKER_PID=""
+MOCKHOST_PID=""
 
 cleanup() {
   echo ""
@@ -29,6 +30,10 @@ cleanup() {
   if [ -n "${BACKEND_PID}" ]; then
     echo "Stopping backendserver (PGID: -${BACKEND_PID})..."
     kill -TERM -"${BACKEND_PID}" 2>/dev/null || true
+  fi
+  if [ -n "${MOCKHOST_PID}" ]; then
+    echo "Stopping mock issuetracker host (PGID: -${MOCKHOST_PID})..."
+    kill -TERM -"${MOCKHOST_PID}" 2>/dev/null || true
   fi
   if [ -n "${TEMPORAL_PID}" ]; then
     echo "Stopping local Temporal server (PGID: -${TEMPORAL_PID})..."
@@ -45,6 +50,8 @@ echo "Building initdemo..."
 bazelisk build --config=remote -c dbg //perf/go/initdemo:initdemo
 echo "Building perfserver..."
 bazelisk build --config=remote //perf/go/perfserver:perfserver
+echo "Building mock issuetracker host..."
+bazelisk build --config=remote //perf/go/issuetracker/mockhost:mock
 echo "Building backendserver..."
 bazelisk build --config=remote //perf/go/backend/backendserver:backendserver
 echo "Building workflows worker..."
@@ -91,13 +98,32 @@ fi
 echo "=== Step 3: Preparing Database Schema & Mock Records ==="
 ./scripts/setup_manual_bisection_test_db.sh
 
+echo "=== Step 3b: Launching Mock IssueTracker Host ==="
+bazelisk run --config=remote //perf/go/issuetracker/mockhost:mock > "${TESTLOGS_DIR}/autobisection_e2e_test_mockhost.log" 2>&1 &
+MOCKHOST_PID=$!
+
+echo "Waiting for mock issuetracker to listen on port 8081..."
+for i in {1..60}; do
+  if nc -z localhost 8081; then
+    break
+  fi
+  sleep 0.5
+done
+if ! nc -z localhost 8081; then
+  echo "Error: mock issuetracker failed to start on port 8081."
+  echo "See ${TESTLOGS_DIR}/autobisection_e2e_test_mockhost.log"
+  exit 1
+fi
+echo "Mock issuetracker started (PID: ${MOCKHOST_PID})"
+
 # Get absolute path to the config file to bypass Bazel run sandboxing
 CONFIG_PATH="$(pwd)/configs/demo_spanner.json"
 
-echo "=== Step 4: Launching backendserver ==="
+echo "=== Step 4: Launching backendserver with DevMode ==="
 bazelisk run --config=remote //perf/go/backend/backendserver:backendserver -- run \
   --config_filename="${CONFIG_PATH}" \
   --port=:8005 \
+  --dev_mode \
   --prom_port=:20002 > "${TESTLOGS_DIR}/autobisection_e2e_test_backendserver.log" 2>&1 &
 BACKEND_PID=$!
 
