@@ -14,7 +14,9 @@ import (
 	culprit_proto "go.skia.org/infra/perf/go/culprit/proto/v1"
 
 	"go.skia.org/infra/perf/go/workflows"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/pinpoint"
+	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
@@ -780,7 +782,7 @@ func TestExtractCulprits(t *testing.T) {
 	testCases := []struct {
 		name     string
 		jobState string
-		expected []string
+		expected []*pinpoint_proto.Commit
 	}{
 		{
 			name:     "EmptyResponse",
@@ -825,7 +827,12 @@ func TestExtractCulprits(t *testing.T) {
 					}
 				]
 			}`,
-			expected: []string{"commit2"},
+			expected: []*pinpoint_proto.Commit{
+				{
+					Repository: common.ChromiumSrcGit,
+					GitHash:    "commit2",
+				},
+			},
 		},
 		{
 			name: "WithDifferentComparison_MultipleCommits_MultipleRepos",
@@ -860,7 +867,26 @@ func TestExtractCulprits(t *testing.T) {
 					}
 				]
 			}`,
-			expected: []string{"commit1", "commit2"},
+			// v8 shorthand will not work in a real scenario. We need to add more mappings and use
+			// URLs, since that's what ParsePinpointCommit expects.
+			expected: []*pinpoint_proto.Commit{
+				{
+					Repository: common.ChromiumSrcGit,
+					GitHash:    "commit1",
+				},
+				{
+					Repository: "v8",
+					GitHash:    "commit11",
+				},
+				{
+					Repository: common.ChromiumSrcGit,
+					GitHash:    "commit2",
+				},
+				{
+					Repository: "v8",
+					GitHash:    "commit22",
+				},
+			},
 		},
 	}
 
@@ -869,9 +895,138 @@ func TestExtractCulprits(t *testing.T) {
 			var response pinpoint.FetchJobStateResponse
 			err := json.Unmarshal([]byte(tc.jobState), &response)
 			require.NoError(t, err)
-			culprits, err := extractCulprits(&response)
-			require.NoError(t, err)
+			culprits := extractCulpritCommits(&response)
 			require.Equal(t, tc.expected, culprits)
 		})
 	}
+}
+
+func TestExtractCulpritCommits(t *testing.T) {
+	jobState := &pinpoint.FetchJobStateResponse{
+		State: []pinpoint.StateItem{
+			{
+				Comparisons: map[string]string{"prev": "different"},
+				Change: pinpoint.Change{
+					Commits: []pinpoint.Commit{
+						{Repository: "chromium", GitHash: "commit1"},
+						{Repository: "https://v8.googlesource.com/v8/v8.git", GitHash: "commit2"},
+					},
+				},
+			},
+		},
+	}
+	commits := extractCulpritCommits(jobState)
+	require.Len(t, commits, 2)
+	require.Equal(t, "commit1", commits[0].GitHash)
+	require.Equal(t, "https://chromium.googlesource.com/chromium/src.git", commits[0].Repository)
+	require.Equal(t, "commit2", commits[1].GitHash)
+	require.Equal(t, "https://v8.googlesource.com/v8/v8.git", commits[1].Repository)
+}
+
+func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_WithCulprits(t *testing.T) {
+	ag_addr, ag_server, ag_cleanup := setupAnomalyGroupService(t)
+	defer ag_cleanup()
+	b_addr, b_server, b_cleanup := setupAutobisectionService(t)
+	defer b_cleanup()
+	c_addr, c_server, c_cleanup := setupCulpritService(t)
+	defer c_cleanup()
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	agsa := &AnomalyGroupServiceActivity{insecureConn: true}
+	gsa := &GerritServiceActivity{insecureConn: true}
+	csa := &CulpritServiceActivity{insecureConn: true}
+	bsa := &AutobisectionServiceActivity{insecureConn: true}
+	env.RegisterActivity(agsa)
+	env.RegisterActivity(gsa)
+	env.RegisterActivity(csa)
+	env.RegisterActivity(bsa)
+	env.RegisterWorkflow(ProcessCulpritWorkflow)
+
+	anomalyGroupId := "group_id1"
+	mockAnomalyIds := []string{"anomaly1"}
+	var startCommit int64 = 1
+	var endCommit int64 = 10
+	mockAnomaly := &anomalygroup_proto.Anomaly{
+		StartCommit: startCommit,
+		EndCommit:   endCommit,
+		Paramset: map[string]string{
+			"bot":         "linux-perf",
+			"benchmark":   "speedometer",
+			"story":       "speedometer",
+			"measurement": "runsperminute",
+			"stat":        "sum",
+		},
+		ImprovementDirection: "UP",
+	}
+	ag_server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
+		AnomalyGroupId: anomalyGroupId}).
+		Return(
+			&anomalygroup_proto.LoadAnomalyGroupByIDResponse{
+				AnomalyGroup: &anomalygroup_proto.AnomalyGroup{
+					GroupId:     anomalyGroupId,
+					GroupAction: anomalygroup_proto.GroupActionType_BISECT,
+					AnomalyIds:  mockAnomalyIds,
+				},
+			}, nil)
+	ag_server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
+		AnomalyGroupId: anomalyGroupId,
+		Limit:          1}).
+		Return(
+			&anomalygroup_proto.FindTopAnomaliesResponse{
+				Anomalies: []*anomalygroup_proto.Anomaly{mockAnomaly},
+			}, nil)
+	mockStartRevision := "revision1"
+	mockEndRevision := "revision10"
+	env.OnActivity(agsa.CheckBisectionAllowed, mock.Anything).Return(true, nil).Once()
+	env.OnActivity(gsa.GetCommitRevision, mock.Anything, startCommit).
+		Return(mockStartRevision, nil).
+		Once()
+	env.OnActivity(gsa.GetCommitRevision, mock.Anything, endCommit).
+		Return(mockEndRevision, nil).
+		Once()
+
+	env.OnActivity((&pinpoint.Client{}).CreateBisect, mock.Anything, mock.Anything, true).
+		Return(&pinpoint.CreatePinpointResponse{JobID: "bisectionId"}, nil).
+		Once()
+	diffCount := 1
+	env.OnActivity((&pinpoint.Client{}).FetchJobState, mock.Anything, mock.Anything).
+		Return(&pinpoint.FetchJobStateResponse{
+			Status:          "completed",
+			DifferenceCount: &diffCount,
+			State: []pinpoint.StateItem{
+				{
+					Comparisons: map[string]string{"prev": "different"},
+					Change: pinpoint.Change{
+						Commits: []pinpoint.Commit{
+							{Repository: "chromium", GitHash: "culprit_hash_123"},
+						},
+					},
+				},
+			},
+		}, nil).
+		Once()
+	ag_server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
+		Return(
+			&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
+
+	b_server.On("SaveAutobisection", mock.Anything, mock.Anything).Return(&autobisection_proto.SaveAutobisectionResponse{}, nil)
+
+	c_server.On("PersistCulprit", mock.Anything, mock.Anything).Return(
+		&culprit_proto.PersistCulpritResponse{CulpritIds: []string{"cid1"}}, nil)
+	c_server.On("NotifyUserOfCulprit", mock.Anything, mock.Anything).Return(
+		&culprit_proto.NotifyUserOfCulpritResponse{IssueIds: []string{"issue1"}}, nil)
+
+	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
+		AnomalyGroupServiceUrl:  ag_addr,
+		AutobisectionServiceUrl: b_addr,
+		AnomalyGroupId:          anomalyGroupId,
+		CulpritServiceUrl:       c_addr,
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	var resp *workflows.MaybeTriggerBisectionResult
+	require.NoError(t, env.GetWorkflowResult(&resp))
+	require.Equal(t, "bisectionId", resp.JobId)
+	env.AssertExpectations(t)
 }

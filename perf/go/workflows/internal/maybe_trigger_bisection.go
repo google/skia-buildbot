@@ -14,7 +14,9 @@ import (
 
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/workflows"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/pinpoint"
+	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 
 	"go.temporal.io/sdk/workflow"
 )
@@ -167,14 +169,27 @@ func processAnomaliesAsBisection(
 		return nil, skerr.Wrap(err)
 	}
 
-	if err := processBisectJobResults(ctx, jobState, topAnomaly, input.AnomalyGroupId, input.AutobisectionServiceUrl); err != nil {
-		return nil, skerr.Wrap(err)
+	err = postBisectionProcessing(ctx, jobState, topAnomaly, input)
+	if err != nil {
+		return nil, err
 	}
 
 	metrics2.GetCounter("anomalygroup_bisected").Inc(1)
 	return &workflows.MaybeTriggerBisectionResult{
 		JobId: jobId,
 	}, nil
+}
+
+func postBisectionProcessing(ctx workflow.Context, jobState *pinpoint.FetchJobStateResponse, topAnomaly *ag_pb.Anomaly, input *workflows.MaybeTriggerBisectionParam) error {
+	culpritCommits := extractCulpritCommits(jobState)
+	if err := processBisectJobResults(ctx, jobState, topAnomaly, input.AnomalyGroupId, input.AutobisectionServiceUrl, culpritCommits); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	if err := processCulprits(ctx, jobState, input, culpritCommits); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 func processAnomaliesAsReporting(
@@ -502,18 +517,19 @@ func processBisectJobResults(
 	anomaly *ag_pb.Anomaly,
 	anomalyGroupId string,
 	autobisectionServiceUrl string,
+	culpritCommits []*pinpoint_proto.Commit,
 ) error {
-	culprits, err := extractCulprits(jobState)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-
 	autobisectionReq := &b_pb.SaveAutobisectionRequest{
 		JobId:            jobState.JobID,
 		WorkflowId:       workflow.GetInfo(ctx).WorkflowExecution.ID,
 		AnomalyGroupId:   anomalyGroupId,
 		AnomalyId:        anomaly.Id,
 		RegressionStatus: extractRegressionStatus(jobState),
+	}
+
+	culprits := make([]string, len(culpritCommits))
+	for i, c := range culpritCommits {
+		culprits[i] = c.GitHash
 	}
 
 	workflow.GetLogger(ctx).Info(
@@ -542,20 +558,58 @@ func processBisectJobResults(
 	return nil
 }
 
-func extractCulprits(jobState *pinpoint.FetchJobStateResponse) (culprits []string, err error) {
+func processCulprits(
+	ctx workflow.Context,
+	jobState *pinpoint.FetchJobStateResponse,
+	input *workflows.MaybeTriggerBisectionParam,
+	culpritCommits []*pinpoint_proto.Commit,
+) error {
+	if len(culpritCommits) > 0 {
+		var culpritResult workflows.ProcessCulpritResult
+		if err := workflow.ExecuteChildWorkflow(ctx, ProcessCulpritWorkflow, &workflows.ProcessCulpritParam{
+			CulpritServiceUrl: input.CulpritServiceUrl,
+			Commits:           culpritCommits,
+			AnomalyGroupId:    input.AnomalyGroupId,
+		}).Get(ctx, &culpritResult); err != nil {
+			return skerr.Wrap(err)
+		}
+		workflow.GetLogger(ctx).Info(
+			"ProcessCulpritWorkflow completed",
+			"Workflow ID",
+			workflow.GetInfo(ctx).WorkflowExecution.ID,
+			"CulpritIds",
+			culpritResult.CulpritIds,
+			"IssueIds",
+			culpritResult.IssueIds,
+		)
+	}
+	return nil
+}
+
+func extractCulpritCommits(jobState *pinpoint.FetchJobStateResponse) []*pinpoint_proto.Commit {
+	var commits []*pinpoint_proto.Commit
 	for _, stateItem := range jobState.State {
 		if value, ok := stateItem.Comparisons["prev"]; !ok || value != "different" {
 			continue
 		}
 
 		for _, commit := range stateItem.Change.Commits {
-			if commit.Repository == "chromium" {
-				culprits = append(culprits, commit.GitHash)
+			repo := commit.Repository
+			// The ProcessCulpritWorkflow (specifically ParsePinpointCommit) expects repository strings
+			// to be full URLs.
+			// Currently, we only support bisection in Chromium repo. We need to add more mappings when
+			// we support other repos in the future.
+			// TODO(mordeckimarcin) support other repos.
+			if repo == "chromium" {
+				repo = common.ChromiumSrcGit
 			}
+			commits = append(commits, &pinpoint_proto.Commit{
+				GitHash:    commit.GitHash,
+				Repository: repo,
+			})
 		}
 	}
-
-	return culprits, nil
+	return commits
 }
 
 func extractRegressionStatus(jobState *pinpoint.FetchJobStateResponse) b_pb.RegressionStatus {
