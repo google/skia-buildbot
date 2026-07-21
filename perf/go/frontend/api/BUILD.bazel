@@ -101,6 +101,7 @@ go_test(
         "graphApi_test.go",
         "mcpApi_test.go",
         "pinpointApi_test.go",
+        "queryApi_test.go",
         "regressionApi_test.go",
         "traceValuesApi_test.go",
         "triageApi_test.go",

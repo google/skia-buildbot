@@ -913,29 +913,28 @@ func (b *builder) getTraceIds(ctx context.Context, tileNumber types.TileNumber, 
 	if b.tracecache != nil {
 		traceIdsFromCache, err := b.tracecache.GetTraceIds(ctx, tileNumber, q)
 		if err != nil {
-			sklog.Errorf("Error retrieving trace ids from cache: %v", err)
-			return true, nil, err
-		}
-		// Check if any trace data was found in cache. If not, fall back to the database search.
-		if traceIdsFromCache == nil {
+			sklog.Warningf("Error retrieving trace ids from cache: %v. Falling back to db search.", err)
+		} else if traceIdsFromCache == nil {
 			sklog.Infof("No trace ids were found in cache for tile: %d, query: %v", tileNumber, q)
-			paramsChannel, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
-			return true, paramsChannel, err
 		} else {
 			traceIdsChannel := make(chan paramtools.Params, traceIdCacheChannelSize)
 			sklog.Infof("Retrieved %d trace ids from cache for tile %d and query %v", len(traceIdsFromCache), tileNumber, q)
 			go func() {
+				defer close(traceIdsChannel)
 				for _, traceId := range traceIdsFromCache {
-					traceIdsChannel <- traceId
+					select {
+					case <-ctx.Done():
+						return
+					case traceIdsChannel <- traceId:
+					}
 				}
-				close(traceIdsChannel)
 			}()
 			return false, traceIdsChannel, nil
 		}
 	}
 
-	// Cache is not configured, so let's do a database query.
-	sklog.Infof("Cache is not enabled, performing database query.")
+	// Cache is not configured or there was a cache miss/error, so let's do a database query.
+	sklog.Infof("Performing database query.")
 	paramsChannel, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 	return true, paramsChannel, err
 }

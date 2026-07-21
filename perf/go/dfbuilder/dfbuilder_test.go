@@ -3,6 +3,7 @@ package dfbuilder
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/url"
 	"sort"
 	"testing"
@@ -584,6 +585,61 @@ func TestPreflightQuery_Cache_Query_Success(t *testing.T) {
 	mock_cache.On("GetValue", testutils.AnyContext, mock.Anything).Return(string(b), nil)
 
 	count, ps, err = builder.PreflightQuery(ctx, q, referenceParamSet)
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), count)
+	assert.Equal(t, expectedParamSet, ps)
+	mock_cache.AssertExpectations(t)
+	store.AssertExpectations(t)
+}
+
+func TestPreflightQuery_Cache_Error_FallsBackToDB(t *testing.T) {
+	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
+	require.NoError(t, err)
+
+	store := mockTraceStore.NewTraceStore(t)
+	mock_cache := mockCache.NewCache(t)
+
+	traceCache := tracecache.New(mock_cache)
+
+	store.On("TileSize").Return(int32(6))
+	store.On("GetLatestTile", testutils.AnyContext).Return(types.TileNumber(0), nil)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, traceCache, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
+
+	q, err := query.NewFromString("config=8888")
+	require.NoError(t, err)
+
+	referenceParamSet := paramtools.ReadOnlyParamSet{
+		"arch":   {"x86", "arm", "should-disappear"},
+		"config": {"565", "8888", "should-be-retained"},
+	}
+	expectedParamSet := paramtools.ParamSet{
+		"arch":   {"arm", "x86"},
+		"config": {"565", "8888", "should-be-retained"},
+	}
+
+	// Cache returns an EOF error.
+	mock_cache.On("GetValue", testutils.AnyContext, mock.Anything).Return("", errors.New("EOF"))
+	mock_cache.On("SetValue", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil)
+
+	expectedTraces := []paramtools.Params{
+		{
+			"arch":   "arm",
+			"config": "565",
+		},
+		{
+			"arch":   "x86",
+			"config": "8888",
+		},
+	}
+	paramChannel := make(chan paramtools.Params, 10)
+	for _, traceId := range expectedTraces {
+		paramChannel <- traceId
+	}
+	close(paramChannel)
+	store.On("QueryTracesIDOnly", testutils.AnyContext, mock.Anything, mock.Anything).Return((<-chan paramtools.Params)(paramChannel), nil)
+
+	count, ps, err := builder.PreflightQuery(ctx, q, referenceParamSet)
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), count)
 	assert.Equal(t, expectedParamSet, ps)

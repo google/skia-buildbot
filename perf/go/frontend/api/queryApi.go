@@ -77,13 +77,12 @@ func (api *queryApi) PreflightQuery(ctx context.Context, qs string) (int, paramt
 	fullPS := api.getParamSet()
 	if qs == "" || q == nil || q.Empty() {
 		return 0, fullPS, nil
-	} else {
-		count, ps, err := api.paramsetRefresher.GetParamSetForQuery(ctx, q, u)
-		if err != nil {
-			return 0, nil, skerr.Wrapf(err, "Failed to Preflight the query")
-		}
-		return int(count), filterParamSetIfNeeded(ps.Freeze()), nil
 	}
+	count, ps, err := api.paramsetRefresher.GetParamSetForQuery(ctx, q, u)
+	if err != nil {
+		return 0, nil, skerr.Wrapf(err, "Failed to Preflight the query.")
+	}
+	return int(count), filterParamSetIfNeeded(ps.Freeze()), nil
 }
 
 // nextParamListHandler takes the POST'd query and runs that against the current
@@ -98,7 +97,6 @@ func (api *queryApi) PreflightQuery(ctx context.Context, qs string) (int, paramt
 func (api *queryApi) nextParamListHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
 	defer cancel()
-	w.Header().Set("Content-Type", "application/json")
 
 	var npr NextParamListHandlerRequest
 	if err := json.NewDecoder(r.Body).Decode(&npr); err != nil {
@@ -114,7 +112,7 @@ func (api *queryApi) nextParamListHandler(w http.ResponseWriter, r *http.Request
 
 	count, ps, err := api.PreflightQuery(ctx, npr.Query)
 	if err != nil {
-		httputils.ReportError(w, err, "Error in nextParamListHandler.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to Preflight the query.", http.StatusInternalServerError)
 		return
 	}
 	resp := NextParamListHandlerResponse{
@@ -130,10 +128,16 @@ func (api *queryApi) nextParamListHandler(w http.ResponseWriter, r *http.Request
 		} else {
 			resp.Paramset = map[string][]string{nextParam: ps[nextParam]}
 		}
-
 	}
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+
+	respBytes, err := json.Marshal(resp)
+	if err != nil {
 		httputils.ReportError(w, err, "Failed to encode nextparam response.", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(respBytes); err != nil {
+		sklog.Errorf("Failed to write response: %s", err)
 	}
 }
 
@@ -142,7 +146,6 @@ func (api *queryApi) nextParamListHandler(w http.ResponseWriter, r *http.Request
 func (api *queryApi) countHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
 	defer cancel()
-	w.Header().Set("Content-Type", "application/json")
 
 	var cr CountHandlerRequest
 	if err := json.NewDecoder(r.Body).Decode(&cr); err != nil {
@@ -152,7 +155,7 @@ func (api *queryApi) countHandler(w http.ResponseWriter, r *http.Request) {
 
 	count, ps, err := api.PreflightQuery(ctx, cr.Q)
 	if err != nil {
-		httputils.ReportError(w, err, "Error in countHandler.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to Preflight the query.", http.StatusInternalServerError)
 		return
 	}
 	resp := CountHandlerResponse{
@@ -160,8 +163,14 @@ func (api *queryApi) countHandler(w http.ResponseWriter, r *http.Request) {
 		Paramset: ps,
 	}
 
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		sklog.Errorf("Failed to encode paramset: %s", err)
+	respBytes, err := json.Marshal(resp)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to encode paramset.", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(respBytes); err != nil {
+		sklog.Errorf("Failed to write response: %s", err)
 	}
 }
 
@@ -172,9 +181,14 @@ func (f *queryApi) initpageHandler(w http.ResponseWriter, _ *http.Request) {
 			ParamSet: f.getParamSet(),
 		},
 	}
+	respBytes, err := json.Marshal(resp)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to encode paramset.", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		sklog.Errorf("Failed to encode paramset: %s", err)
+	if _, err := w.Write(respBytes); err != nil {
+		sklog.Errorf("Failed to write response: %s", err)
 	}
 }
 
