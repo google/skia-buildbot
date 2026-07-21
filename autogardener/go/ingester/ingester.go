@@ -8,7 +8,6 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/autogardener/go/db"
 	"go.skia.org/infra/autogardener/go/gemini"
-	"go.skia.org/infra/autogardener/go/types"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
@@ -19,7 +18,6 @@ import (
 	ts_db "go.skia.org/infra/task_scheduler/go/db"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/oauth2/google"
-	"golang.org/x/sync/errgroup"
 )
 
 const workerPoolSize = 10
@@ -46,32 +44,25 @@ func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos 
 	}, nil
 }
 
-func (i *Ingester) GetTaskSummariesForRepo(ctx context.Context, repoURL string, period time.Duration) ([]*types.TaskAndSummary, error) {
-	tasks, err := i.getFailedTasks(ctx, repoURL, period)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	// Retrieve summaries from the DB.
-	var eg errgroup.Group
-	results := make([]*types.TaskAndSummary, len(tasks))
-	for idx, task := range tasks {
-		results[idx] = &types.TaskAndSummary{
-			Task: task,
+func (i *Ingester) StartGeneratingReportsForRepo(ctx context.Context, repoURL, branch string, numCommits int, interval time.Duration) {
+	lv := metrics2.NewLiveness("liveness_autogardener_report_generation", map[string]string{
+		"repo":   repoURL,
+		"branch": branch,
+	})
+	go util.RepeatCtx(ctx, interval, func(ctx context.Context) {
+		sklog.Infof("Generating report for repo %s @ %s", repoURL, branch)
+		report, err := i.gemini.GenerateReport(ctx, repoURL, branch, numCommits)
+		if err != nil {
+			sklog.Errorf("Failed generating report for repo %s @ %s: %s", repoURL, branch, err)
+			return
 		}
-		eg.Go(func() error {
-			taskSummary, err := i.db.GetTaskSummary(ctx, task.Id)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			results[idx].Summary = taskSummary
-			return nil
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return results, nil
+		if err := i.db.PutReport(ctx, repoURL, branch, report); err != nil {
+			sklog.Errorf("Failed storing report for repo %s @ %s: %s", repoURL, branch, err)
+		} else {
+			sklog.Infof("Successfully generated and stored report for %s @ %s", repoURL, branch)
+			lv.Reset()
+		}
+	})
 }
 
 func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoURL string, period time.Duration) {

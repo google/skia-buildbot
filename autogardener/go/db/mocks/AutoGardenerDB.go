@@ -15,6 +15,36 @@ type AutoGardenerDB struct {
 	mock.Mock
 }
 
+// GetReport provides a mock function with given fields: ctx, repo, branch
+func (_m *AutoGardenerDB) GetReport(ctx context.Context, repo string, branch string) (*types.Report, error) {
+	ret := _m.Called(ctx, repo, branch)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetReport")
+	}
+
+	var r0 *types.Report
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*types.Report, error)); ok {
+		return rf(ctx, repo, branch)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *types.Report); ok {
+		r0 = rf(ctx, repo, branch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Report)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, repo, branch)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTaskSummary provides a mock function with given fields: ctx, taskID
 func (_m *AutoGardenerDB) GetTaskSummary(ctx context.Context, taskID string) (*types.TaskSummary, error) {
 	ret := _m.Called(ctx, taskID)
@@ -43,6 +73,24 @@ func (_m *AutoGardenerDB) GetTaskSummary(ctx context.Context, taskID string) (*t
 	}
 
 	return r0, r1
+}
+
+// PutReport provides a mock function with given fields: ctx, repo, branch, report
+func (_m *AutoGardenerDB) PutReport(ctx context.Context, repo string, branch string, report *types.Report) error {
+	ret := _m.Called(ctx, repo, branch, report)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutReport")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *types.Report) error); ok {
+		r0 = rf(ctx, repo, branch, report)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // PutTaskSummary provides a mock function with given fields: ctx, taskID, summary

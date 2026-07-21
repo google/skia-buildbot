@@ -5,13 +5,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
+	"sync"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/cenkalti/backoff"
 	"github.com/invopop/jsonschema"
 	m3_mcp "github.com/mark3labs/mcp-go/mcp"
+	"go.skia.org/infra/autogardener/go/db"
 	"go.skia.org/infra/autogardener/go/logs"
 	"go.skia.org/infra/autogardener/go/mcp"
 	"go.skia.org/infra/autogardener/go/types"
@@ -27,6 +31,7 @@ import (
 	"go.skia.org/infra/task_driver/go/td"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/api/option"
 	"google.golang.org/genai"
 )
@@ -49,6 +54,7 @@ const (
 // Client is an interface for the Gemini client, used for testing.
 type Client interface {
 	GetTaskSummary(ctx context.Context, task *ts_types.Task) (*types.TaskSummary, error)
+	GenerateReport(ctx context.Context, repo, branch string, numCommits int) (*types.Report, error)
 }
 
 // clientImpl provides high-level interactions with Gemini.
@@ -63,10 +69,11 @@ type clientImpl struct {
 	project          string
 	gcs              *storage.Client
 	gcsBucketDebug   string
+	db               db.AutoGardenerDB
 }
 
 // NewClient returns a Client instance.
-func NewClient(ctx context.Context, project, location, cheapModel, expensiveModel, apiKey, mcpServer, gcsBucketDebug string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (Client, error) {
+func NewClient(ctx context.Context, db db.AutoGardenerDB, project, location, cheapModel, expensiveModel, apiKey, mcpServer, gcsBucketDebug string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (Client, error) {
 	mcpClient, err := mcp.NewMCPClient(ctx, mcpServer)
 	if err != nil {
 		sklog.Fatal(err)
@@ -122,6 +129,7 @@ func NewClient(ctx context.Context, project, location, cheapModel, expensiveMode
 		project:          project,
 		gcs:              gcs,
 		gcsBucketDebug:   gcsBucketDebug,
+		db:               db,
 	}, nil
 }
 
@@ -427,6 +435,161 @@ func (c *clientImpl) fetchStepLogs(ctx context.Context, tool string, toolArgs ma
 		}
 	}
 	return allLines, nil
+}
+
+func (c *clientImpl) GetTaskHealthReport(ctx context.Context, repo, branch string, limit int) (*task_scheduler.TaskHealthReport, error) {
+	var healthReport task_scheduler.TaskHealthReport
+	if err := mcp.CallToolJSON(ctx, c.mcpClient, "get_task_health_report", map[string]interface{}{
+		"limit":          limit,
+		"repo":           repo,
+		"revision":       branch,
+		"include_stable": true,
+	}, &healthReport); err != nil {
+		return nil, skerr.Wrapf(err, "failed to retrieve task health report")
+	}
+	return &healthReport, nil
+}
+
+func (c *clientImpl) MergeTaskSummaries(ctx context.Context, summaries []*types.TaskAndSummary) ([]*types.SummaryForTasks, error) {
+	ts := time.Now().UTC().Format(time.RFC3339Nano)
+	const aggregateSummariesPrompt = generalPromptHeader + `# Task
+
+Group the above task failure reports so that failures with the same root cause
+are in the same section, keeping unrelated failures separate.
+
+Take EXTREME CARE to avoid conflating unrelated failures. DO NOT group failures
+which do not have the same or very similar error message, particularly into an
+overly-broad "various infrastructure failures" or similar headline. Be specific.
+`
+
+	// First aggregate within task names. We expect similar errors within a
+	// given task name, and this saves tokens for the larger aggregation between
+	// task names.
+	summariesByTaskName := map[string][]*types.TaskAndSummary{}
+	for _, summary := range summaries {
+		summariesByTaskName[summary.Task.Name] = append(summariesByTaskName[summary.Task.Name], summary)
+	}
+
+	mcpWrapper := mcp.MCPClientWithPseudoTools(c.mcpClient, nil, nil)
+	var eg errgroup.Group
+	var mtx sync.Mutex
+	aggSummariesByTaskName := make(map[string][]*summaryForTasksWithinTaskName, len(summariesByTaskName))
+	for taskName := range summariesByTaskName {
+		taskName := taskName // https://golang.org/doc/faq#closures_and_goroutines
+		var pb strings.Builder
+		for _, summary := range summariesByTaskName[taskName] {
+			if summary.Summary != nil {
+				_, _ = fmt.Fprintf(&pb, "### Task ID %s\n%s\n", summary.Task.Id, summary.Summary.String())
+			}
+		}
+		_, _ = fmt.Fprint(&pb, aggregateSummariesPrompt)
+
+		eg.Go(func() error {
+			var result []*summaryForTasksWithinTaskName
+			if err := c.generate(ctx, pb.String(), c.cheapModel, c.cheapModelRL, mcpWrapper, "MergeTaskSummaries", fmt.Sprintf("MergeTaskSummaries/%s/%s", ts, taskName), &result); err != nil {
+				return skerr.Wrap(err)
+			}
+			mtx.Lock()
+			defer mtx.Unlock()
+			aggSummariesByTaskName[taskName] = result
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// Now, aggregate between all tasks.
+	var aggPrompt strings.Builder
+	for taskName, summaries := range aggSummariesByTaskName {
+		_, _ = fmt.Fprintf(&aggPrompt, "### %s\n\n", taskName)
+		for _, summary := range summaries {
+			_, _ = fmt.Fprintf(&aggPrompt, "**Task IDs:** %s\n", strings.Join(summary.TaskIDs, ", "))
+			_, _ = fmt.Fprintf(&aggPrompt, "**Error Message:** %s\n", summary.ErrorMessage)
+			_, _ = fmt.Fprintf(&aggPrompt, "**Analysis:** %s\n\n", summary.Analysis)
+		}
+	}
+	_, _ = fmt.Fprint(&aggPrompt, aggregateSummariesPrompt)
+
+	var aggErrors []*types.SummaryForTasks
+	if err := c.generate(ctx, aggPrompt.String(), c.cheapModel, c.cheapModelRL, mcpWrapper, "MergeTaskSummaries", fmt.Sprintf("MergeTaskSummaries/%s/all", ts), &aggErrors); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return aggErrors, nil
+}
+
+func (c *clientImpl) GenerateReport(ctx context.Context, repo, branch string, numCommits int) (*types.Report, error) {
+	var eg errgroup.Group
+
+	// Retrieve task categories which had failures in the commit window.
+	healthReport, err := c.GetTaskHealthReport(ctx, repo, branch, numCommits)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// Retrieve and aggregate summaries for all failed tasks.
+	var mtx sync.Mutex
+	var summaries []*types.TaskAndSummary
+	for _, taskHistory := range healthReport.Tasks {
+		for _, task := range taskHistory {
+			task := task
+			eg.Go(func() error {
+				summary, err := c.db.GetTaskSummary(ctx, task.Id)
+				if err != nil {
+					return skerr.Wrap(err)
+				}
+				mtx.Lock()
+				defer mtx.Unlock()
+				summaries = append(summaries, &types.TaskAndSummary{
+					Task:    task,
+					Summary: summary,
+				})
+				return nil
+			})
+		}
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	mergedSummaries, err := c.MergeTaskSummaries(ctx, summaries)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	ts := time.Now().UTC().Format(time.RFC3339Nano)
+	var sb strings.Builder
+	for _, report := range mergedSummaries {
+		_, _ = fmt.Fprintln(&sb, report.String())
+	}
+	prompt := fmt.Sprintf(`## Task Histories
+
+%s
+
+## Known Failures
+
+%s
+
+%s
+
+# Task
+
+Generate a report of all task failures.
+
+Determine whether each failure is _flaky_ or _persistent_. If _persistent_,
+find the culprit commit or range of potential culprit commits.
+
+- Use overlapping commit ranges for different task types failing with the same
+  error to narrow down or pinpoint the culprit.
+- Use the commit subjects to make an educated guess about which suspect commit
+  is most likely to be the culprit for each persistent issue.
+`, healthReport.String(), sb.String(), generalPromptHeader)
+	mcpWrapper := mcp.MCPClientWithPseudoTools(c.mcpClient, nil, nil)
+	var report types.Report
+	if err := c.generate(ctx, prompt, c.expensiveModel, c.expensiveModelRL, mcpWrapper, "GenerateReport", fmt.Sprintf("GenerateReport/%s/%s/%s", url.PathEscape(repo), url.PathEscape(branch), ts), &report); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &report, nil
 }
 
 // generateWithBackoffAndRateLimiting calls the given function inside a

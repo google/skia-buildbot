@@ -7,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/autogardener/go/gemini",
     visibility = ["//visibility:public"],
     deps = [
+        "//autogardener/go/db",
         "//autogardener/go/logs",
         "//autogardener/go/mcp",
         "//autogardener/go/types",
@@ -28,6 +29,7 @@ go_library(
         "@org_golang_google_api//option",
         "@org_golang_google_genai//:genai",
         "@org_golang_x_oauth2//google",
+        "@org_golang_x_sync//errgroup",
     ],
 )
 

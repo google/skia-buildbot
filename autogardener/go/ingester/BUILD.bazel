@@ -9,7 +9,6 @@ go_library(
     deps = [
         "//autogardener/go/db",
         "//autogardener/go/gemini",
-        "//autogardener/go/types",
         "//go/auth",
         "//go/git/repograph",
         "//go/httputils",
@@ -21,7 +20,6 @@ go_library(
         "//task_scheduler/go/types",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_x_oauth2//google",
-        "@org_golang_x_sync//errgroup",
     ],
 )
 

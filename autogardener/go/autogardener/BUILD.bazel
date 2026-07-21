@@ -11,6 +11,7 @@ go_library(
         "//autogardener/go/ingester",
         "//go/common",
         "//go/firestore",
+        "//go/git",
         "//go/gitstore/bt_gitstore",
         "//go/httputils",
         "//go/human",

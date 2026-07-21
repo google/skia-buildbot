@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/autogardener/go/ingester"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
@@ -43,6 +44,8 @@ var (
 	firestoreInstance = flag.String("firestore-instance", "production", "Firestore instance to use.")
 	repoURLs          = common.NewMultiStringFlag("repo", nil, "Repositories for which to perform gardening.")
 	timePeriod        = flag.String("time-window", "4d", "Time period to use.")
+	numCommits        = flag.Int("num-commits", 35, "Number of commits to load for each repo.")
+	reportInterval    = flag.String("report-interval", "10m", "Interval at which to generate reports.")
 	local             = flag.Bool("local", false, "True if running locally. Uses an emulator for writing to the DB.")
 	apiKeySecret      = flag.String("api-key-secret", "autogardener-gemini-api-key", "GCP secret containing the Gemini API key.")
 	gcsBucketDebug    = flag.String("gcs-bucket-debug", "", "Optional, GCS bucket name to upload debug information.")
@@ -58,6 +61,12 @@ func main() {
 
 	// Parse the time period.
 	period, err := human.ParseDuration(*timePeriod)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	// Parse the report interval.
+	generateReportInterval, err := human.ParseDuration(*reportInterval)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -83,27 +92,6 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	var geminiAPIKey string
-	if *apiKeySecret == "" || *local {
-		geminiAPIKey = os.Getenv("GEMINI_API_KEY")
-		if geminiAPIKey == "" {
-			sklog.Fatal("You must set GEMINI_API_KEY")
-		}
-	} else {
-		sc, err := secret.NewClient(ctx)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		geminiAPIKey, err = sc.Get(ctx, *gcpProject, *apiKeySecret, secret.VersionLatest)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-	}
-	geminiClient, err := gemini.NewClient(ctx, *gcpProject, *location, *cheapModel, *expensiveModel, geminiAPIKey, *mcpServer, *gcsBucketDebug, *cheapRPM, *cheapTPM, *expensiveRPM, *expensiveTPM)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	// Git repo setup.
 	btConf := &bt_gitstore.BTConfig{
 		ProjectID:  *btProject,
@@ -121,6 +109,28 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+
+	var geminiAPIKey string
+	if *apiKeySecret == "" || *local {
+		geminiAPIKey = os.Getenv("GEMINI_API_KEY")
+		if geminiAPIKey == "" {
+			sklog.Fatal("You must set GEMINI_API_KEY")
+		}
+	} else {
+		sc, err := secret.NewClient(ctx)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		geminiAPIKey, err = sc.Get(ctx, *gcpProject, *apiKeySecret, secret.VersionLatest)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+	}
+	geminiClient, err := gemini.NewClient(ctx, db, *gcpProject, *location, *cheapModel, *expensiveModel, geminiAPIKey, *mcpServer, *gcsBucketDebug, *cheapRPM, *cheapTPM, *expensiveRPM, *expensiveTPM)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	ing, err := ingester.New(ctx, db, geminiClient, repos, tsDB)
 	if err != nil {
 		sklog.Fatal(err)
@@ -129,7 +139,7 @@ func main() {
 	sklog.Infof("Setup complete. Starting loop.")
 	for _, repoURL := range *repoURLs {
 		ing.StartIngestingTaskSummariesForRepo(ctx, repoURL, period)
+		ing.StartGeneratingReportsForRepo(ctx, repoURL, git.MainBranch, *numCommits, generateReportInterval)
 	}
-
 	httputils.RunHealthCheckServer(*port)
 }
