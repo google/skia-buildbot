@@ -57,6 +57,18 @@ export class TestPickerStateController implements ReactiveController {
 
   initialParams: string[] = [];
 
+  private currentRequestId: number = 0;
+
+  activeCascadeId: number = 0;
+
+  private abortController: AbortController | null = null;
+
+  startNewCascade(): number {
+    this.abortController?.abort();
+    this.abortController = new AbortController();
+    return ++this.activeCascadeId;
+  }
+
   constructor(host: TestPickerStateControllerHost) {
     (this.host = host).addController(this);
   }
@@ -72,6 +84,7 @@ export class TestPickerStateController implements ReactiveController {
     readOnly: boolean,
     forceManualPlot: boolean = false
   ): Promise<void> {
+    this.startNewCascade();
     this.initialParams = params;
     this.forceManualPlot = forceManualPlot;
     this.defaultParams = defaultParams;
@@ -114,7 +127,7 @@ export class TestPickerStateController implements ReactiveController {
     this.fieldData.forEach((fieldInfo) => {
       if (fieldInfo.value !== null) {
         paramSet[fieldInfo.param] = fieldInfo.value.map((v) =>
-          v === DEFAULT_OPTION_LABEL ? MISSING_VALUE_SENTINEL : v
+          v === DEFAULT_OPTION_LABEL || v === '' ? MISSING_VALUE_SENTINEL : v
         );
       }
     });
@@ -140,7 +153,7 @@ export class TestPickerStateController implements ReactiveController {
       const fieldInfo = this.fieldData[i];
       if (fieldInfo && fieldInfo.value !== null) {
         paramSet[fieldInfo.param] = fieldInfo.value.map((v) =>
-          v === DEFAULT_OPTION_LABEL ? MISSING_VALUE_SENTINEL : v
+          v === DEFAULT_OPTION_LABEL || v === '' ? MISSING_VALUE_SENTINEL : v
         );
       }
     }
@@ -204,10 +217,17 @@ export class TestPickerStateController implements ReactiveController {
   }
 
   async callNextParamList(
-    handler: (json: NextParamListHandlerResponse) => void,
+    handler: (json: NextParamListHandlerResponse) => Promise<void> | void,
     index: number,
-    hasGraphLoaded: boolean = false
-  ): Promise<void> {
+    hasGraphLoaded: boolean = false,
+    cascadeId: number = this.activeCascadeId
+  ): Promise<boolean> {
+    if (cascadeId !== this.activeCascadeId) {
+      return false;
+    }
+    const signal = this.abortController?.signal;
+
+    const requestId = ++this.currentRequestId;
     this.updateCount(-1, hasGraphLoaded);
     this.requestInProgress = true;
     if (!((this.fieldData[index]?.value || []).length > 1)) {
@@ -224,26 +244,43 @@ export class TestPickerStateController implements ReactiveController {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal,
       });
       const json = await jsonOrThrow(response);
-      this.requestInProgress = false;
-      this.setReadOnly(false);
+      if (requestId !== this.currentRequestId || cascadeId !== this.activeCascadeId) {
+        // Discard stale out-of-order response if a newer request or cascade has started.
+        return false;
+      }
       await handler(json as NextParamListHandlerResponse);
+      return requestId === this.currentRequestId && cascadeId === this.activeCascadeId;
     } catch (msg: any) {
-      this.requestInProgress = false;
-      this.setReadOnly(false);
-      this.removeChildFields(index);
-      errorMessage(msg);
+      if (signal?.aborted || msg?.name === 'AbortError') {
+        return false;
+      }
+      if (requestId === this.currentRequestId && cascadeId === this.activeCascadeId) {
+        this.removeChildFields(index);
+        errorMessage(msg);
+      }
+      return false;
+    } finally {
+      if (requestId === this.currentRequestId) {
+        this.requestInProgress = false;
+        this.setReadOnly(false);
+        this.host.requestUpdate();
+      }
     }
-    this.host.requestUpdate();
   }
 
   async addChildField(readOnly: boolean, hasGraphLoaded: boolean = false): Promise<void> {
+    const cascadeId = this.startNewCascade();
     const currentIndex = this.currentIndex;
     const currentFieldInfo = this.fieldData[currentIndex];
     const param = currentFieldInfo.param;
 
     const handler = async (json: NextParamListHandlerResponse) => {
+      if (cascadeId !== this.activeCascadeId) {
+        return;
+      }
       this.updateCount(json.count, hasGraphLoaded);
 
       if (param in json.paramset && json.paramset[param] !== null) {
@@ -290,9 +327,11 @@ export class TestPickerStateController implements ReactiveController {
       } else {
         this.currentIndex += 1;
       }
-      this.host.requestUpdate();
+      if (cascadeId === this.activeCascadeId) {
+        this.host.requestUpdate();
+      }
     };
-    return await this.callNextParamList(handler, currentIndex, hasGraphLoaded);
+    await this.callNextParamList(handler, currentIndex, hasGraphLoaded, cascadeId);
   }
 
   removeChildFields(index: number) {
@@ -356,8 +395,18 @@ export class TestPickerStateController implements ReactiveController {
     this.host.requestUpdate();
   }
 
-  async fetchExtraOptions(index: number, hasGraphLoaded: boolean = false): Promise<void> {
+  async fetchExtraOptions(
+    index: number,
+    hasGraphLoaded: boolean = false,
+    cascadeId: number = this.activeCascadeId
+  ): Promise<boolean> {
+    if (cascadeId !== this.activeCascadeId) {
+      return false;
+    }
     const handler = async (json: NextParamListHandlerResponse) => {
+      if (cascadeId !== this.activeCascadeId) {
+        return;
+      }
       const param = Object.keys(json.paramset)[0];
       const count: number = json.count || -1;
       if (param !== undefined) {
@@ -396,9 +445,11 @@ export class TestPickerStateController implements ReactiveController {
               this.removeChildFields(i);
             }
 
-            this.host.setFieldPendingFocus(param);
-            if (isNewField && i > 0) {
-              this.host.setFieldPendingOpenOverlay(param);
+            if (!hasGraphLoaded) {
+              this.host.setFieldPendingFocus(param);
+              if (isNewField && i > 0) {
+                this.host.setFieldPendingOpenOverlay(param);
+              }
             }
 
             const defaults = (document.querySelector('explore-multi-sk') as any)?.defaults;
@@ -420,7 +471,18 @@ export class TestPickerStateController implements ReactiveController {
                 }
               }
             } else if (fieldInfo.value.length > 0) {
-              await this.fetchExtraOptions(i, hasGraphLoaded);
+              // Self-propagating recursive cascade: The backend query for `index` returns the
+              // subsequent parameter key `param` (matching downstream field `i = index + 1`).
+              // If this downstream field already has pre-populated values, recursively invoke
+              // fetchExtraOptions(i) to fetch options for the next downstream field (i + 1).
+              if (cascadeId === this.activeCascadeId) {
+                await this.fetchExtraOptions(i, hasGraphLoaded, cascadeId);
+              }
+            }
+
+            // Post-await guard: ensure cascadeId is still active before mutating currentIndex or calling updateCount.
+            if (cascadeId !== this.activeCascadeId) {
+              return;
             }
 
             if (this.currentIndex <= i + 1) {
@@ -436,17 +498,20 @@ export class TestPickerStateController implements ReactiveController {
           this.updateCount(count, hasGraphLoaded);
         }
       }
-      this.host.requestUpdate();
+      if (cascadeId === this.activeCascadeId) {
+        this.host.requestUpdate();
+      }
     };
-    return await this.callNextParamList(handler, index, hasGraphLoaded);
+    return await this.callNextParamList(handler, index, hasGraphLoaded, cascadeId);
   }
 
   async populateFieldDataFromQuery(
     query: string,
     params: string[],
     paramSet: ParamSet,
-    hasGraphLoaded: boolean = false
+    hasGraphLoaded: boolean = true
   ) {
+    const cascadeId = this.startNewCascade();
     const selectedParams: ParamSet = toParamSet(query);
     if (paramSet && Object.keys(paramSet).length > 0) {
       const paramKeys: string[] = Object.keys(paramSet).filter((key) => key in selectedParams);
@@ -470,11 +535,17 @@ export class TestPickerStateController implements ReactiveController {
         fieldInfo.options = paramSet[param];
       }
       fieldInfo.index = i;
+    }
+    this.fieldData = [...this.fieldData];
 
-      this.fieldData = [...this.fieldData];
-
-      await this.fetchExtraOptions(i, hasGraphLoaded);
-      this.host.setFieldPendingFocus(param);
+    // fetchExtraOptions(0) initiates a sequential cascade across all pre-populated fields.
+    // Inside fetchExtraOptions, the query for field 0 returns options for field 1. If field 1
+    // already has a selected value, fetchExtraOptions recursively invokes itself for index 1
+    // (see line 424). This self-propagating chain sequentially populates options for all
+    // downstream fields (0 -> 1 -> 2 -> ... -> N) without requiring an outer for...await loop
+    // or triggering parallel fetch storms.
+    if (this.fieldData.length > 0) {
+      await this.fetchExtraOptions(0, hasGraphLoaded, cascadeId);
     }
   }
 
@@ -482,8 +553,9 @@ export class TestPickerStateController implements ReactiveController {
     paramSets: ParamSet,
     paramSet: ParamSet,
     splitByKeys: string[] = [],
-    hasGraphLoaded: boolean = false
+    hasGraphLoaded: boolean = true
   ): Promise<void> {
+    const cascadeId = this.startNewCascade();
     const uniqueParamKeys = [...new Set([...Object.keys(paramSets), ...Object.keys(paramSet)])];
     const filteredKeys = this.initialParams.filter((key) => uniqueParamKeys.includes(key));
     this.initializeFieldData(filteredKeys);
@@ -492,7 +564,6 @@ export class TestPickerStateController implements ReactiveController {
       this.autoAddTrace = true;
     }
 
-    const promises: Promise<void>[] = [];
     for (let i = 0; i < this.fieldData.length; i++) {
       const fieldInfo = this.fieldData[i];
       const param = fieldInfo.param;
@@ -517,9 +588,13 @@ export class TestPickerStateController implements ReactiveController {
         fieldInfo.index = i;
         fieldInfo.value = value;
       }
-      promises.push(this.fetchExtraOptions(i, hasGraphLoaded));
     }
-    await Promise.all(promises);
+    this.fieldData = [...this.fieldData];
+
+    // See comment in populateFieldDataFromQuery regarding fetchExtraOptions(0) sequential cascading.
+    if (this.fieldData.length > 0) {
+      await this.fetchExtraOptions(0, hasGraphLoaded, cascadeId);
+    }
   }
 
   isLoaded(): boolean {

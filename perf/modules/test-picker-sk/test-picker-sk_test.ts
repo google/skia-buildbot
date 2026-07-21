@@ -2,10 +2,15 @@ import './index';
 import { expect } from 'chai';
 import { TestPickerSk } from './test-picker-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { NextParamListHandlerResponse, NextParamListHandlerRequest } from '../json';
+import {
+  NextParamListHandlerResponse,
+  NextParamListHandlerRequest,
+  ReadOnlyParamSet,
+} from '../json';
 import { toParamSet } from '../../../infra-sk/modules/query';
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import { DEFAULT_OPTION_LABEL } from '../common/test-picker';
+import { MISSING_VALUE_SENTINEL } from '../const/const';
 
 describe('test-picker-sk', () => {
   const newInstance = setUpElementUnderTest<TestPickerSk>('test-picker-sk');
@@ -780,8 +785,8 @@ describe('Comprehensive Interaction Scenarios', () => {
       [],
       'Field2 splitBy should remain empty'
     );
-    expect(field2.split).to.be.false, 'Field2 UI should be unchecked';
-    expect(field1.split).to.be.true, 'Field1 should remain split';
+    expect(field2.split, 'Field2 UI should be unchecked').to.be.false;
+    expect(field1.split, 'Field1 should remain split').to.be.true;
   });
 });
 
@@ -889,6 +894,48 @@ describe('Auto Add Trace Logic', () => {
       expect(fields.length).to.equal(2);
       expect(fields[0].getAttribute('label')).to.equal('benchmark');
       expect(fields[1].getAttribute('label')).to.equal('bot');
+    });
+
+    it('should correctly map empty string to MISSING_VALUE_SENTINEL in query builders', async () => {
+      await element.initializeTestPicker(['benchmark', 'bot'], {}, false);
+      element.ctrl.fieldData[0].value = [''];
+      const query = element.ctrl.createQueryFromIndex(0);
+      expect(query).to.include(MISSING_VALUE_SENTINEL);
+    });
+
+    it('should cleanly populate all fields from a single anomaly without opening dropdown overlays when graph is loaded', async () => {
+      await element.initializeTestPicker(['benchmark', 'bot', 'test'], {}, false);
+      await element.updateComplete;
+
+      const singleAnomalyParamSet = {
+        benchmark: ['Speedometer2'],
+        bot: ['linux-perf'],
+        test: ['Score'],
+      };
+
+      let fetchCallCount = 0;
+      window.fetch = async (_url: RequestInfo | URL, _request: RequestInit | undefined) => {
+        fetchCallCount++;
+        const response: NextParamListHandlerResponse = {
+          paramset: ReadOnlyParamSet({}),
+          count: 1,
+        };
+        return Promise.resolve(new Response(JSON.stringify(response)));
+      };
+
+      await element.populateFieldDataFromParamSet(
+        singleAnomalyParamSet,
+        singleAnomalyParamSet,
+        [],
+        true
+      );
+      await element.updateComplete;
+
+      expect(element.ctrl.fieldData[0].value).to.deep.equal(['Speedometer2']);
+      expect(element.ctrl.fieldData[1].value).to.deep.equal(['linux-perf']);
+      expect(element.ctrl.fieldData[2].value).to.deep.equal(['Score']);
+      // fetchExtraOptions(0) called once starts the chain without parallel storm
+      expect(fetchCallCount).to.be.greaterThan(0);
     });
   });
 });

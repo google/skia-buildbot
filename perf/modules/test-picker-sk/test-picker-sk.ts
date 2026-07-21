@@ -218,13 +218,13 @@ export class TestPickerSk extends LitElement implements TestPickerStateControlle
     );
   }
 
-  async populateFieldDataFromQuery(queryString: string, params: string[], paramSet: ParamSet) {
-    await this.ctrl.populateFieldDataFromQuery(
-      queryString,
-      params,
-      paramSet,
-      !!(this._graphDiv && this._graphDiv.children.length > 0)
-    );
+  async populateFieldDataFromQuery(
+    queryString: string,
+    params: string[],
+    paramSet: ParamSet,
+    hasGraphLoaded: boolean = true
+  ) {
+    await this.ctrl.populateFieldDataFromQuery(queryString, params, paramSet, hasGraphLoaded);
   }
 
   /**
@@ -238,18 +238,15 @@ export class TestPickerSk extends LitElement implements TestPickerStateControlle
    * @param paramSet - A ParamSet object containing available options for each
    * parameter.
    * @param splitByKeys - An array of parameter keys that should be split.
+   * @param hasGraphLoaded - Whether the graph is loaded or being loaded.
    */
   async populateFieldDataFromParamSet(
     paramSets: ParamSet,
     paramSet: ParamSet,
-    splitByKeys: string[] = []
+    splitByKeys: string[] = [],
+    hasGraphLoaded: boolean = true
   ): Promise<void> {
-    await this.ctrl.populateFieldDataFromParamSet(
-      paramSets,
-      paramSet,
-      splitByKeys,
-      !!(this._graphDiv && this._graphDiv.children.length > 0)
-    );
+    await this.ctrl.populateFieldDataFromParamSet(paramSets, paramSet, splitByKeys, hasGraphLoaded);
   }
 
   /**
@@ -439,7 +436,8 @@ export class TestPickerSk extends LitElement implements TestPickerStateControlle
 
     if (value.length > 0) {
       this.ctrl.setReadOnly(true);
-      await this.ctrl.fetchExtraOptions(index, hasGraphLoaded);
+      const cascadeId = this.ctrl.startNewCascade();
+      await this.ctrl.fetchExtraOptions(index, hasGraphLoaded, cascadeId);
     }
     this.updateGraph(value, fieldInfo, removed, hasGraphLoaded);
     if (value.length > 0) {

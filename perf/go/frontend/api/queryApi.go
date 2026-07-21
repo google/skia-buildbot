@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -64,26 +64,23 @@ type CountHandlerResponse struct {
 }
 
 // PreflightQuery generates the query and calls PreflightQuery on dfBuilder
-func (api *queryApi) PreflightQuery(ctx context.Context, w http.ResponseWriter, qs string) (int, paramtools.ReadOnlyParamSet, error) {
+func (api *queryApi) PreflightQuery(ctx context.Context, qs string) (int, paramtools.ReadOnlyParamSet, error) {
 	u, err := url.ParseQuery(qs)
 	if err != nil {
-		httputils.ReportError(w, err, "Invalid URL query.", http.StatusInternalServerError)
-		return 0, nil, err
+		return 0, nil, skerr.Wrapf(err, "Invalid URL query.")
 	}
 	q, err := query.New(u)
 	if err != nil {
-		httputils.ReportError(w, err, "Invalid query.", http.StatusInternalServerError)
-		return 0, nil, err
+		return 0, nil, skerr.Wrapf(err, "Invalid query.")
 	}
 
 	fullPS := api.getParamSet()
-	if qs == "" {
+	if qs == "" || q == nil || q.Empty() {
 		return 0, fullPS, nil
 	} else {
 		count, ps, err := api.paramsetRefresher.GetParamSetForQuery(ctx, q, u)
 		if err != nil {
-			httputils.ReportError(w, err, fmt.Sprintf("Failed to Preflight the query: %s", err), http.StatusBadRequest)
-			return 0, nil, err
+			return 0, nil, skerr.Wrapf(err, "Failed to Preflight the query")
 		}
 		return int(count), filterParamSetIfNeeded(ps.Freeze()), nil
 	}
@@ -115,7 +112,7 @@ func (api *queryApi) nextParamListHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	count, ps, err := api.PreflightQuery(ctx, w, npr.Query)
+	count, ps, err := api.PreflightQuery(ctx, npr.Query)
 	if err != nil {
 		httputils.ReportError(w, err, "Error in nextParamListHandler.", http.StatusInternalServerError)
 		return
@@ -153,9 +150,10 @@ func (api *queryApi) countHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	count, ps, err := api.PreflightQuery(ctx, w, cr.Q)
+	count, ps, err := api.PreflightQuery(ctx, cr.Q)
 	if err != nil {
-		sklog.Errorf("Error in nextParamListHandler: %s", err)
+		httputils.ReportError(w, err, "Error in countHandler.", http.StatusInternalServerError)
+		return
 	}
 	resp := CountHandlerResponse{
 		Count:    count,
