@@ -39,6 +39,7 @@ var subTests = map[string]subTestFunction{
 	"testDetails_Success":                                                                testDetails_Success,
 	"testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success":                       testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success,
 	"testCommitSliceFromCommitNumberSlice_Success":                                       testCommitSliceFromCommitNumberSlice_Success,
+	"testCommitSliceFromCommitNumberSlice_SkipMetadata":                                  testCommitSliceFromCommitNumberSlice_SkipMetadata,
 	"testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate":                                testUpdate_NewCommitsAreFoundFromGitHashAfterUpdate,
 	"testUpdate_UpdateCommitWithoutCommitPosition_NoCommitAddedToDB":                     testUpdate_UpdateCommitWithoutCommitPosition_NoCommitAddedToDB,
 	"testCommitNumberFromGitHash_Success":                                                testCommitNumberFromGitHash_Success,
@@ -284,6 +285,51 @@ func testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult(t *testing.T
 	require.Len(t, commits, 1)
 	assert.Equal(t, int64(1680000120), commits[0].Timestamp)
 	assert.Equal(t, types.CommitNumber(2), commits[0].CommitNumber)
+}
+
+func testCommitSliceFromCommitNumberSlice_SkipMetadata(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
+	// Fetch commit 1 WITHOUT SkipMetadata to populate full metadata in LRU cache
+	fullCommits, err := g.CommitSliceFromCommitNumberSlice(ctx, []types.CommitNumber{1})
+	require.NoError(t, err)
+	require.Len(t, fullCommits, 1)
+	assert.NotEmpty(t, fullCommits[0].GitHash)
+
+	// Fetch commits [1, 2] WITH SkipMetadata (commit 1 is cache hit, commit 2 is cache miss)
+	ctxSkip := WithSkipMetadata(ctx)
+	commits, err := g.CommitSliceFromCommitNumberSlice(ctxSkip, []types.CommitNumber{1, 2})
+	require.NoError(t, err)
+	require.Len(t, commits, 2)
+
+	// Verifies both cache hit (commit 1) and cache miss (commit 2) return stripped metadata
+	assert.Equal(t, types.CommitNumber(1), commits[0].CommitNumber)
+	assert.Empty(t, commits[0].GitHash)
+	assert.Empty(t, commits[0].Author)
+	assert.Empty(t, commits[0].Subject)
+
+	assert.Equal(t, types.CommitNumber(2), commits[1].CommitNumber)
+	assert.Empty(t, commits[1].GitHash)
+	assert.Empty(t, commits[1].Author)
+	assert.Empty(t, commits[1].Subject)
+}
+
+func testCommitSliceFromCommitNumberRange_SkipMetadata(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {
+	ctxSkip := WithSkipMetadata(ctx)
+	commits, err := g.CommitSliceFromCommitNumberRange(ctxSkip, 1, 2)
+	require.NoError(t, err)
+	require.Len(t, commits, 2)
+	assert.Equal(t, types.CommitNumber(1), commits[0].CommitNumber)
+	assert.Equal(t, types.CommitNumber(2), commits[1].CommitNumber)
+
+	// Metadata fields should be empty/zero when SkipMetadata is requested
+	assert.Empty(t, commits[0].GitHash)
+	assert.Empty(t, commits[0].Author)
+	assert.Empty(t, commits[0].Subject)
+	assert.Empty(t, commits[0].URL)
+	assert.Zero(t, commits[0].Timestamp)
+
+	// Verify that stripped metadata records were NOT added to LRU cache
+	_, cached := g.cache.Get(types.CommitNumber(1))
+	assert.False(t, cached, "commits fetched with SkipMetadata should not populate LRU cache")
 }
 
 func testCommitSliceFromCommitNumberRange_NegativeWidthReturnsZeroResults(t *testing.T, ctx context.Context, g *Impl, gb *testutils.GitBuilder, hashes []string) {

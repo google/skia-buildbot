@@ -121,6 +121,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/tracecache"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -192,7 +193,9 @@ const (
 	deleteCommit
 	countCommitInCommitNumberRange
 	getCommitsFromCommitNumberRange
+	getCommitNumbersFromCommitNumberRange
 	readTracesForCommitRanges
+	readTracesNoSourceFile
 )
 
 var templates = map[statement]string{
@@ -208,25 +211,7 @@ var templates = map[statement]string{
         ON CONFLICT (trace_id, commit_number) DO UPDATE
         SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id
         `,
-	readTraces: `
-        SELECT
-            trace_id,
-            commit_number,
-            val,
-            source_file_id
-        FROM
-            TraceValues
-        WHERE
-            commit_number >= {{ .BeginCommitNumber }}
-            AND commit_number <= {{ .EndCommitNumber }}
-            AND trace_id IN
-            (
-                {{ range $index, $trace_id :=  .TraceIDs -}}
-                    {{ if $index }},{{end}}
-                    '{{ $trace_id }}'
-                {{ end }}
-            )
-        `,
+
 	getSource: `
         SELECT
             SourceFiles.source_file
@@ -274,14 +259,6 @@ type insertIntoTraceValuesContext struct {
 	CommitNumber types.CommitNumber
 	Val          float32
 	SourceFileID sourceFileIDFromSQL
-}
-
-// readTracesContext is the context for the readTraces template.
-type readTracesContext struct {
-	BeginCommitNumber types.CommitNumber
-	EndCommitNumber   types.CommitNumber
-	TraceIDs          []types.TraceIDForSQL
-	AsOf              string
 }
 
 // getSourceContext is the context for the getSource template.
@@ -425,6 +402,37 @@ var statements = map[statement]string{
 			AND TraceValues.commit_number <= req.end_commit
 		ORDER BY
 			TraceValues.trace_id, TraceValues.commit_number ASC
+		`,
+	readTraces: `
+        SELECT
+            TraceValues.trace_id, TraceValues.commit_number, TraceValues.val, TraceValues.source_file_id
+        FROM
+            TraceValues
+        JOIN
+            unnest($3::bytea[]) as t(trace_id) ON TraceValues.trace_id = t.trace_id
+        WHERE
+            TraceValues.commit_number >= $1
+            AND TraceValues.commit_number <= $2`,
+	readTracesNoSourceFile: `
+        SELECT
+            TraceValues.trace_id, TraceValues.commit_number, TraceValues.val
+        FROM
+            TraceValues
+        JOIN
+            unnest($3::bytea[]) as t(trace_id) ON TraceValues.trace_id = t.trace_id
+        WHERE
+            TraceValues.commit_number >= $1
+            AND TraceValues.commit_number <= $2`,
+	getCommitNumbersFromCommitNumberRange: `
+		SELECT
+			commit_number
+		FROM
+			Commits
+		WHERE
+			commit_number >= $1
+			AND commit_number <= $2
+		ORDER BY
+			commit_number ASC
 		`,
 }
 
@@ -1075,13 +1083,13 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.readTracesByChannelForCommitRange")
 	defer span.End()
 
-	// The return value, protected by mutex.
+	// The return value.
 	ret := types.TraceSet{}
 
 	// Validate the begin and end commit numbers.
 	if beginCommit > endCommit {
 		// Empty the traceNames channel.
-		for range <-traceNamesChan {
+		for range traceNamesChan {
 		}
 		return nil, nil, nil, skerr.Fmt("Invalid commit range, [%d, %d] should be [%d, %d]", beginCommit, endCommit, endCommit, beginCommit)
 	}
@@ -1090,15 +1098,16 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	if err != nil {
 		return nil, nil, nil, skerr.Wrapf(err, "Cannot count commit within the commit range, [%d, %d]", beginCommit, endCommit)
 	}
+
 	if len(commits) == 0 {
-		// Proceeding without commits causes a panic because trace arrays are allocated
-		// based on len(commits) which would be 0.
-		return nil, nil, nil, skerr.Fmt("No commits found in range [%d, %d]", beginCommit, endCommit)
+		// Empty the traceNames channel to avoid leaking background producer goroutines.
+		for range traceNamesChan {
+		}
+		// Return empty results without error so the caller knows there is no history in this range.
+		return types.TraceSet{}, commits, map[string]*types.TraceSourceInfo{}, nil
 	}
 
 	// Map from the [md5.Size]byte representation of a trace id to the trace name.
-	//
-	// Protected by mutex.
 	traceNameMap := map[types.TraceIDForSQLInBytes]string{}
 
 	limit := 1000000
@@ -1108,10 +1117,8 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 		}
 	}
 
-	// Protects traceNameMap and ret.
-	var mutex sync.Mutex
 	traceNames := []string{}
-	var traceIDsForQuery []types.TraceIDForSQL
+	var traceIDsForQuery [][]byte
 	for traceName := range traceNamesChan {
 		if s.inMemoryTraceParams.ShowOnlyPublicTraces() && !s.inMemoryTraceParams.TraceAccessAllowed(traceName) {
 			continue
@@ -1126,29 +1133,37 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 		traceNames = append(traceNames, traceName)
 		traceIDBytes := types.TraceIDForSQLInBytesFromTraceName(traceName)
 		traceNameMap[traceIDBytes] = traceName
-		traceIDsForQuery = append(traceIDsForQuery, types.TraceIDForSQLFromTraceName(traceName))
+		traceIDsForQuery = append(traceIDsForQuery, traceIDBytes[:])
 	}
 
 	if len(traceNames) == 0 {
 		return types.TraceSet{}, commits, nil, nil
 	}
 
+	sourceFileMap := map[string]*types.TraceSourceInfo{}
 	for _, name := range traceNames {
 		if !query.IsValid(name) {
 			sklog.Errorf("Invalid trace name: %q", name)
 			continue
 		}
-		mutex.Lock()
 		ret[name] = vec32.New(len(commits))
-		mutex.Unlock()
+		sourceFileMap[name] = types.NewTraceSourceInfo()
 	}
 
-	sourceFileMap := map[string]*types.TraceSourceInfo{}
+	// Pre-calculate commitToIndexMap once for all parallel workers
+	commitToIndexMap := make(map[types.CommitNumber]int, len(commits))
+	for i, commit := range commits {
+		commitToIndexMap[commit.CommitNumber] = i
+	}
+
+	// Sort and deduplicate trace IDs to improve database index scan and caching performance.
+	slices.SortFunc(traceIDsForQuery, bytes.Compare)
+	traceIDsForQuery = slices.CompactFunc(traceIDsForQuery, bytes.Equal)
 
 	// Iterate over the traceIDs in chunks and query the database in parallel.
 	err = util.ChunkIterParallelPool(ctx, len(traceIDsForQuery), s.queryTracesChunkSize, s.queryTracesPoolSize, func(ctx context.Context, startIdx, endIdx int) error {
 		chunk := traceIDsForQuery[startIdx:endIdx]
-		if err := s.readTracesChunk(ctx, beginCommit, endCommit, commits, chunk, &mutex, traceNameMap, &ret, sourceFileMap); err != nil {
+		if err := s.readTracesChunk(ctx, beginCommit, endCommit, commits, commitToIndexMap, chunk, traceNameMap, ret, sourceFileMap); err != nil {
 			return skerr.Wrap(err)
 		}
 		return nil
@@ -1167,99 +1182,70 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 
 // readTracesChunk updates the passed in TraceSet with all the values loaded for
 // the given slice of trace ids.
-//
-// The mutex protects 'ret' and 'traceNameMap'.
-func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.CommitNumber, endCommit types.CommitNumber, commits []provider.Commit, chunk []types.TraceIDForSQL, mutex *sync.Mutex, traceNameMap map[types.TraceIDForSQLInBytes]string, ret *types.TraceSet, sourceFileMap map[string]*types.TraceSourceInfo) error {
+func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.CommitNumber, endCommit types.CommitNumber, commits []provider.Commit, commitToIndexMap map[types.CommitNumber]int, chunk [][]byte, traceNameMap map[types.TraceIDForSQLInBytes]string, ret types.TraceSet, sourceFileMap map[string]*types.TraceSourceInfo) error {
 	if len(chunk) == 0 {
 		return nil
 	}
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTraces.Chunk")
 	span.AddAttributes(trace.Int64Attribute("chunk_length", int64(len(chunk))))
 	defer span.End()
-	// Populate the context for the SQL template.
-	readTracesContext := readTracesContext{
-		BeginCommitNumber: beginCommit,
-		EndCommitNumber:   endCommit,
-		TraceIDs:          chunk,
-		AsOf:              "",
+
+	skipSourceInfo := perfgit.SkipMetadataFromContext(ctx)
+
+	stmtToRun := s.statements[readTraces]
+	if skipSourceInfo {
+		stmtToRun = s.statements[readTracesNoSourceFile]
 	}
 
-	// Expand the template for the SQL.
-	var b bytes.Buffer
-	if err := s.unpreparedStatements[readTraces].Execute(&b, readTracesContext); err != nil {
-		return skerr.Wrapf(err, "failed to expand readTraces template")
-	}
-
-	sql := b.String()
-	// Execute the query.
+	// Execute the query using the prepared statement.
 	queryCtx, querySpan := trace.StartSpan(ctx, "sqltracestore.ReadTraces.Chunk.ExecuteSQLQuery")
-	rows, err := s.db.Query(queryCtx, sql)
+	rows, err := s.db.Query(queryCtx, stmtToRun, int64(beginCommit), int64(endCommit), chunk)
 	querySpan.End()
 	if err != nil {
-		return skerr.Wrapf(err, "SQL: %q", sql)
+		return skerr.Wrapf(err, "SQL: %q", stmtToRun)
 	}
 	defer rows.Close()
 
-	// Create a local map to store results from this chunk. This avoids
-	// holding the main lock while iterating over every row.
-	localTraces := types.TraceSet{}
 	var traceIDArray types.TraceIDForSQLInBytes
-	commitToIndexMap := map[types.CommitNumber]int{}
-	localSourceFileMap := map[string]*types.TraceSourceInfo{}
-	for i, commit := range commits {
-		commitToIndexMap[commit.CommitNumber] = i
-	}
 
 	for rows.Next() {
 		var traceIDInBytes []byte
-		var commitNumber types.CommitNumber
-		var val float64
-		var sourceFileId int64
-		if err := rows.Scan(&traceIDInBytes, &commitNumber, &val, &sourceFileId); err != nil {
-			return skerr.Wrap(err)
+		var commitNum int64
+		var val float32
+		var sourceFileID int64
+		if skipSourceInfo {
+			if err := rows.Scan(&traceIDInBytes, &commitNum, &val); err != nil {
+				return skerr.Wrap(err)
+			}
+		} else {
+			if err := rows.Scan(&traceIDInBytes, &commitNum, &val, &sourceFileID); err != nil {
+				return skerr.Wrap(err)
+			}
 		}
 
-		// pgx can't Scan into an array, but Go can't use a slice as a map key, so
-		// we Scan into a byte slice and then copy into a byte array to use
-		// as the index into the map.
 		copy(traceIDArray[:], traceIDInBytes)
 
-		// Note: We read traceNameMap without a lock. This is safe because the map is
-		// fully populated before the goroutines are dispatched and is not written to after.
 		traceName := traceNameMap[traceIDArray]
-
-		if localTraces[traceName] == nil {
-			localTraces[traceName] = vec32.New(len(commits))
+		if traceName == "" {
+			continue
 		}
-		localTraces[traceName][commitToIndexMap[commitNumber]] = float32(val)
-		if _, ok := localSourceFileMap[traceName]; !ok {
-			localSourceFileMap[traceName] = types.NewTraceSourceInfo()
-		}
-		localSourceFileMap[traceName].Add(commitNumber, sourceFileId)
-	}
-	if err := rows.Err(); err != nil {
-		return skerr.Wrap(err)
-	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
+		traceSlice := ret[traceName]
+		traceSource := sourceFileMap[traceName]
 
-	// Merge the locally collected results into the final shared result map.
-	for traceName, localValues := range localTraces {
-		// The slice in the final 'ret' map was already created before this goroutine started.
-		// We just need to carefully copy the values we found into it.
-		for i, v := range localValues {
-			if v != vec32.MissingDataSentinel {
-				(*ret)[traceName][i] = v
+		cNum := types.CommitNumber(commitNum)
+		idx, ok := commitToIndexMap[cNum]
+		if ok {
+			if traceSlice != nil {
+				traceSlice[idx] = val
+			}
+			if traceSource != nil && !skipSourceInfo {
+				traceSource.Add(cNum, sourceFileID)
 			}
 		}
 	}
-	for traceName, localSourceInfo := range localSourceFileMap {
-		if _, ok := sourceFileMap[traceName]; !ok {
-			sourceFileMap[traceName] = localSourceInfo
-		} else {
-			sourceFileMap[traceName].CopyFrom(localSourceInfo)
-		}
+	if err := rows.Err(); err != nil {
+		return skerr.Wrap(err)
 	}
 
 	return nil
@@ -1445,7 +1431,13 @@ func (s *SQLTraceStore) commitSliceFromCommitNumberRange(ctx context.Context, be
 	defer span.End()
 
 	s.commitSliceFromCommitNumberRangeCalled.Inc(1)
-	rows, err := s.db.Query(ctx, s.statements[getCommitsFromCommitNumberRange], begin, end)
+	stmt := s.statements[getCommitsFromCommitNumberRange]
+	skipMetadata := perfgit.SkipMetadataFromContext(ctx)
+	if skipMetadata {
+		stmt = s.statements[getCommitNumbersFromCommitNumberRange]
+	}
+
+	rows, err := s.db.Query(ctx, stmt, begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %v-%v", begin, end)
 	}
@@ -1453,8 +1445,14 @@ func (s *SQLTraceStore) commitSliceFromCommitNumberRange(ctx context.Context, be
 	ret := []provider.Commit{}
 	for rows.Next() {
 		var c provider.Commit
-		if err := rows.Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to read row in range %v-%v", begin, end)
+		if skipMetadata {
+			if err := rows.Scan(&c.CommitNumber); err != nil {
+				return nil, skerr.Wrapf(err, "Failed to read commit_number row in range %v-%v", begin, end)
+			}
+		} else {
+			if err := rows.Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
+				return nil, skerr.Wrapf(err, "Failed to read row in range %v-%v", begin, end)
+			}
 		}
 		ret = append(ret, c)
 	}
@@ -1590,8 +1588,9 @@ func (s *SQLTraceStore) readTracesForCommitRangesChunk(ctx context.Context, chun
 		copy(traceIDArray[:], traceIDInBytes)
 		traceName := traceIDToNameMap[traceIDArray]
 
+		cNum := types.CommitNumber(commitNumber)
 		localTraces[traceName] = append(localTraces[traceName], float32(val))
-		localCommits[traceName] = append(localCommits[traceName], types.CommitNumber(commitNumber))
+		localCommits[traceName] = append(localCommits[traceName], cNum)
 	}
 	if err := rows.Err(); err != nil {
 		return skerr.Wrap(err)

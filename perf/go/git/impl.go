@@ -44,6 +44,9 @@ const (
 	getDetails
 	getPreviousGitHashFromCommitNumber
 	getPreviousCommitNumberFromCommitNumber
+	getCommitsFromCommitNumberSlice
+	getCommitNumbersFromCommitNumberRange
+	getCommitNumbersFromCommitNumberSlice
 )
 
 var (
@@ -168,6 +171,33 @@ var statements = map[statement]string{
 			commit_number DESC
 		LIMIT
 			1
+		`,
+	getCommitsFromCommitNumberSlice: `
+		SELECT
+			commit_number, git_hash, commit_time, author, subject
+		FROM
+			Commits
+		WHERE
+			commit_number = ANY($1)
+		`,
+	getCommitNumbersFromCommitNumberRange: `
+		SELECT
+			commit_number
+		FROM
+			Commits
+		WHERE
+			commit_number >= $1
+			AND commit_number <= $2
+		ORDER BY
+			commit_number ASC
+		`,
+	getCommitNumbersFromCommitNumberSlice: `
+		SELECT
+			commit_number
+		FROM
+			Commits
+		WHERE
+			commit_number = ANY($1)
 		`,
 }
 
@@ -465,22 +495,85 @@ func (g *Impl) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumbe
 	defer span.End()
 
 	g.commitSliceFromCommitNumberSlice.Inc(1)
+
+	skipMetadata := SkipMetadataFromContext(ctx)
+
+	resultsMap, missingNumbers := g.getCachedCommits(commitNumberSlice, skipMetadata)
+
+	if len(missingNumbers) > 0 {
+		if err := g.fetchMissingCommits(ctx, missingNumbers, skipMetadata, resultsMap); err != nil {
+			return nil, err
+		}
+	}
+
 	ret := make([]provider.Commit, len(commitNumberSlice))
 	i := 0
 	for _, commitNumber := range commitNumberSlice {
-		details, err := g.CommitFromCommitNumber(ctx, commitNumber)
-		if err != nil {
-			if err == pgx.ErrNoRows {
-				// If there are no commit entries for the given commit number, we can ignore.
-				continue
-			}
-			return ret, skerr.Wrapf(err, "failed looking up CommitNumber %d", commitNumber)
+		if details, ok := resultsMap[commitNumber]; ok {
+			ret[i] = details
+			i++
 		}
-		ret[i] = details
-		i++
 	}
 
 	return ret[:i], nil
+}
+
+// getCachedCommits inspects the cache for requested commit numbers and returns a map of found commits alongside a slice of missing numbers.
+func (g *Impl) getCachedCommits(commitNumberSlice []types.CommitNumber, skipMetadata bool) (map[types.CommitNumber]provider.Commit, []types.CommitNumber) {
+	resultsMap := make(map[types.CommitNumber]provider.Commit, len(commitNumberSlice))
+	missingNumbers := make([]types.CommitNumber, 0, len(commitNumberSlice))
+	missingMap := make(map[types.CommitNumber]struct{}, len(commitNumberSlice))
+
+	for _, commitNumber := range commitNumberSlice {
+		if iCommit, ok := g.cache.Get(commitNumber); ok {
+			c := iCommit.(provider.Commit)
+			if skipMetadata {
+				c = provider.Commit{CommitNumber: c.CommitNumber}
+			}
+			resultsMap[commitNumber] = c
+		} else if _, seen := missingMap[commitNumber]; !seen {
+			missingMap[commitNumber] = struct{}{}
+			missingNumbers = append(missingNumbers, commitNumber)
+		}
+	}
+	return resultsMap, missingNumbers
+}
+
+// fetchMissingCommits queries the database in a single batch for missing commit numbers and populates resultsMap.
+func (g *Impl) fetchMissingCommits(ctx context.Context, missingNumbers []types.CommitNumber, skipMetadata bool, resultsMap map[types.CommitNumber]provider.Commit) error {
+	stmt := statements[getCommitsFromCommitNumberSlice]
+	if skipMetadata {
+		stmt = statements[getCommitNumbersFromCommitNumberSlice]
+	}
+
+	rows, err := g.db.Query(ctx, stmt, missingNumbers)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to query commits batch")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var commit provider.Commit
+		if skipMetadata {
+			if err := rows.Scan(&commit.CommitNumber); err != nil {
+				return skerr.Wrapf(err, "failed to scan commit batch row")
+			}
+		} else {
+			if err := rows.Scan(&commit.CommitNumber, &commit.GitHash, &commit.Timestamp, &commit.Author, &commit.Subject); err != nil {
+				return skerr.Wrapf(err, "failed to scan commit batch row")
+			}
+			commit.URL = urlFromParts(g.instanceConfig, commit)
+
+			// Populate cache only when full details are loaded
+			_ = g.cache.Add(commit.CommitNumber, commit)
+		}
+
+		resultsMap[commit.CommitNumber] = commit
+	}
+	if err := rows.Err(); err != nil {
+		return skerr.Wrapf(err, "error iterating commit batch rows")
+	}
+	return nil
 }
 
 // CommitNumberFromTime implements Git.
@@ -534,7 +627,13 @@ func (g *Impl) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end 
 	defer span.End()
 
 	g.commitSliceFromCommitNumberRangeCalled.Inc(1)
-	rows, err := g.db.Query(ctx, statements[getCommitsFromCommitNumberRange], begin, end)
+	stmt := statements[getCommitsFromCommitNumberRange]
+	skipMetadata := SkipMetadataFromContext(ctx)
+	if skipMetadata {
+		stmt = statements[getCommitNumbersFromCommitNumberRange]
+	}
+
+	rows, err := g.db.Query(ctx, stmt, begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %v-%v", begin, end)
 	}
@@ -542,12 +641,20 @@ func (g *Impl) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end 
 	ret := []provider.Commit{}
 	for rows.Next() {
 		var c provider.Commit
-		if err := rows.Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to read row in range %v-%v", begin, end)
+		if skipMetadata {
+			if err := rows.Scan(&c.CommitNumber); err != nil {
+				return nil, skerr.Wrapf(err, "Failed to read commit_number row in range %v-%v", begin, end)
+			}
+		} else {
+			if err := rows.Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
+				return nil, skerr.Wrapf(err, "Failed to read row in range %v-%v", begin, end)
+			}
+			c.URL = urlFromParts(g.instanceConfig, c)
 		}
-
-		c.URL = urlFromParts(g.instanceConfig, c)
 		ret = append(ret, c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, skerr.Wrapf(err, "error iterating commit range rows")
 	}
 	return ret, nil
 }

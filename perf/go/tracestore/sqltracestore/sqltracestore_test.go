@@ -173,13 +173,26 @@ func TestReadTraces(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, commits, _, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
+	ts, commits, sourceFileMap, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	}, ts)
 	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
+	for _, c := range commits {
+		assert.NotEmpty(t, c.GitHash, "GitHash should NOT be empty")
+		assert.NotEmpty(t, c.Author, "Author should NOT be empty")
+		assert.NotEmpty(t, c.Subject, "Subject should NOT be empty")
+	}
+	hasSourceFiles := false
+	for _, sourceInfo := range sourceFileMap {
+		if len(sourceInfo.GetAllSourceFileIds()) > 0 {
+			hasSourceFiles = true
+			break
+		}
+	}
+	assert.True(t, hasSourceFiles, "sourceFileMap should contain source files")
 
 	ts, commits, _, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
 	require.NoError(t, err)
@@ -298,6 +311,38 @@ func TestReadTracesForCommitRange_WithLimitContextKey(t *testing.T) {
 
 	assert.Equal(t, tsNoLimit, ts2)
 	assert.Equal(t, commitsNoLimit, commits2)
+}
+
+func TestReadTraces_SkipMetadata(t *testing.T) {
+	ctx, s := commonTestSetupWithCommits(t)
+
+	keys := []string{
+		",arch=x86,config=8888,",
+		",arch=x86,config=565,",
+	}
+
+	ctxSkip := git.WithSkipMetadata(ctx)
+	ts, commits, sourceFileMap, err := s.ReadTraces(ctxSkip, types.TileNumber(0), keys)
+	require.NoError(t, err)
+
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
+		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
+	}, ts)
+
+	// Verify commit metadata fields (GitHash, Author, Subject, Timestamp) are empty when SkipMetadata is enabled
+	for _, c := range commits {
+		assert.Empty(t, c.GitHash, "GitHash should be empty when SkipMetadata is enabled")
+		assert.Empty(t, c.Author, "Author should be empty when SkipMetadata is enabled")
+		assert.Empty(t, c.Subject, "Subject should be empty when SkipMetadata is enabled")
+		assert.Zero(t, c.Timestamp, "Timestamp should be zero when SkipMetadata is enabled")
+	}
+
+	// Verify trace source info entries do not contain file additions when SkipMetadata is enabled
+	for _, sourceInfo := range sourceFileMap {
+		assert.Empty(t, sourceInfo.GetAllSourceFileIds(), "sourceFileMap should be empty when SkipMetadata is enabled")
+	}
 }
 
 func TestQueryTracesIDOnly_EmptyQueryReturnsError(t *testing.T) {

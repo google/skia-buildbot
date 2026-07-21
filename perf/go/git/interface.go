@@ -8,6 +8,19 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
+type skipMetadataKeyType struct{}
+
+// WithSkipMetadata returns a new context with metadata skipping enabled.
+func WithSkipMetadata(ctx context.Context) context.Context {
+	return context.WithValue(ctx, skipMetadataKeyType{}, true)
+}
+
+// SkipMetadataFromContext returns true if metadata skipping is enabled in the context.
+func SkipMetadataFromContext(ctx context.Context) bool {
+	val, ok := ctx.Value(skipMetadataKeyType{}).(bool)
+	return ok && val
+}
+
 // Git is the interface for the minimal functionality Perf needs to interface to
 // a git repo.
 type Git interface {
