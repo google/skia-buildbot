@@ -86,7 +86,9 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 	}()
 
 	// Secondary: fall back to periodically loading all failed tasks.
-	lv := metrics2.NewLiveness("liveness_autogardener_task_ingestion_fallback")
+	lv := metrics2.NewLiveness("liveness_autogardener_task_ingestion_fallback", map[string]string{
+		"repo": repoURL,
+	})
 	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
 		tasks, err := i.getFailedTasks(ctx, repoURL, period)
 		if err != nil {
