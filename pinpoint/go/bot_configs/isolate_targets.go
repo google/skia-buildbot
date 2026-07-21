@@ -31,7 +31,6 @@ func GetIsolateTarget(bot, benchmark string) (string, error) {
 
 	// unmarshal config to struct
 	tm := TargetMaps{}
-	//workflowcheck:ignore
 	err = yaml.Unmarshal(isolateTargets, &tm)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Could not unmarshal isolate_targets.yaml")

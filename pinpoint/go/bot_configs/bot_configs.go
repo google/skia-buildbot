@@ -37,7 +37,6 @@ var (
 
 func getExternalBotConfigs() map[string]BotConfig {
 	onceExternal.Do(func() {
-		//workflowcheck:ignore
 		err := json.Unmarshal(externalBotConfigsJSON, &externalBotConfigs)
 		if err != nil {
 			externalBotConfigs = make(map[string]BotConfig)

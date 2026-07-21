@@ -126,7 +126,7 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 		return nil, skerr.Wrap(err)
 	}
 
-	resp.Updated = timestamppb.Now()
+	resp.Updated = timestamppb.New(workflow.Now(ctx))
 
 	return resp, nil
 }

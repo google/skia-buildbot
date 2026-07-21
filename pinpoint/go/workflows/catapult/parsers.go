@@ -183,14 +183,7 @@ func parseRunData(ctx workflow.Context, runData []*internal.BisectRun, chart str
 		commitToAttempts[commitRun.Build.Commit.Key()] = attempts
 	}
 
-	// convert to list of keys from map
-	bots = make([]string, len(botSet))
-	idx := 0
-	for k := range botSet {
-		bots[idx] = k
-		idx++
-	}
-
+	bots = common.SortedKeys(botSet)
 	return commitToAttempts, bots, nil
 }
 

@@ -3,3 +3,6 @@ decls:
   github.com/google/uuid.NewString: true
   github.com/google/uuid.NewRandom: true
   github.com/google/uuid.NewUUID: true
+  google.golang.org/protobuf/types/known/timestamppb: true
+  encoding/json.Unmarshal: false
+  gopkg.in/yaml.v3.Unmarshal: false
