@@ -161,31 +161,45 @@ func (c *TaskSchedulerClient) GetTaskHealthReportHandler(ctx context.Context, re
 
 	// Filter out stable and successful tasks.
 	if taskName == "" {
-		for taskName, tasksByCommit := range resp.Tasks {
-			stable := true
-			succeededLatestRun := false
-			var firstStatus types.TaskStatus = "(unset)"
-			for _, task := range tasksByCommit {
-				if firstStatus == "(unset)" {
-					if task.Status == types.TASK_STATUS_SUCCESS {
-						succeededLatestRun = true
-					}
-					firstStatus = task.Status
-				}
-				if task.Status != firstStatus {
-					stable = false
-					break
-				}
-			}
-			if !includeStable && stable {
-				delete(resp.Tasks, taskName)
-			} else if !includeSuccessful && succeededLatestRun {
-				delete(resp.Tasks, taskName)
-			}
-		}
+		filterTasks(resp.Tasks, resp.Commits, includeStable, includeSuccessful)
 	}
 
 	return &resp, nil
+}
+
+func filterTasks(tasks map[string]map[string]*types.Task, commits []*vcsinfo.ShortCommit, includeStable, includeSuccessful bool) {
+	for taskName, tasksByCommit := range tasks {
+		// Find the most recent run of the task in the window.
+		var latestTask *types.Task
+		for _, commit := range commits {
+			if t, ok := tasksByCommit[commit.Hash]; ok {
+				latestTask = t
+				break
+			}
+		}
+
+		succeededLatestRun := false
+		if latestTask != nil {
+			succeededLatestRun = (latestTask.Status == types.TASK_STATUS_SUCCESS)
+		}
+
+		stable := true
+		var firstStatus types.TaskStatus = "(unset)"
+		for _, task := range tasksByCommit {
+			if firstStatus == "(unset)" {
+				firstStatus = task.Status
+			} else if task.Status != firstStatus {
+				stable = false
+				break
+			}
+		}
+
+		if !includeStable && stable {
+			delete(tasks, taskName)
+		} else if !includeSuccessful && succeededLatestRun {
+			delete(tasks, taskName)
+		}
+	}
 }
 func (c *TaskSchedulerClient) GetTaskHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
 	defer timer.New("GetTaskHandler").Stop()
