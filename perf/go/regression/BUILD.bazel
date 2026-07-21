@@ -15,6 +15,7 @@ go_library(
     deps = [
         "//go/metrics2",
         "//go/paramtools",
+        "//go/query",
         "//go/skerr",
         "//go/sklog",
         "//go/vec32",

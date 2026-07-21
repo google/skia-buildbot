@@ -160,6 +160,9 @@ type RegressionDetectionRequest struct {
 
 	// Progress of the detection request.
 	Progress progress.Progress `json:"-"`
+
+	// TraceIDs is an optional explicit list of trace keys to evaluate.
+	TraceIDs []string `json:"trace_ids,omitempty"`
 }
 
 // Query returns the query that the RegressionDetectionRequest process is

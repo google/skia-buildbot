@@ -601,3 +601,30 @@ func TestGetQueryWithDefaultsIfNeeded(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "stat=[other]test=[1]type=[canvas]", q.KeyValueString())
 }
+
+func TestProcessAlertConfigForTraces_GroupTracesFlag(t *testing.T) {
+	originalConfig := config.Config
+	config.Config = &config.InstanceConfig{}
+	defer func() { config.Config = originalConfig }()
+
+	c, _, _, _, allMocks := createArgsForReportRegressions(t)
+	c.instanceConfig.AnomalyConfig.UseRecursiveLoader = true
+	c.flags.NumContinuous = 10
+
+	alertConfig := alerts.Alert{
+		DisplayName: "test-alert",
+		IDAsString:  "123",
+	}
+	traceIds := []string{",arch=x86,config=8888,"}
+
+	allMocks.dataFrameBuilder.On("NewNFromKeysRecursive", testutils.AnyContext, mock.Anything, traceIds, int32(10), mock.Anything, true).Return(dataframe.NewEmpty(), nil).Once()
+
+	err := c.ProcessAlertConfigForTraces(context.Background(), alertConfig, traceIds, nil, nil, false, false)
+	require.NoError(t, err)
+
+	c.instanceConfig.AnomalyConfig.UseRecursiveLoader = false
+	allMocks.dataFrameBuilder.On("NumMatches", testutils.AnyContext, mock.Anything).Return(int64(1), nil).Maybe()
+	allMocks.dataFrameBuilder.On("NewNFromQuery", testutils.AnyContext, mock.Anything, mock.Anything, int32(10), mock.Anything).Return(dataframe.NewEmpty(), nil).Maybe()
+
+	_ = c.ProcessAlertConfigForTraces(context.Background(), alertConfig, traceIds, nil, nil, false, false)
+}

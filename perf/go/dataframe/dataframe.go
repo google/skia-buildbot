@@ -122,6 +122,11 @@ type DataFrameBuilder interface {
 	// points ending at the given 'end' time for the given keys.
 	NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress progress.Progress, opts ...NewNFromKeysOptions) (*DataFrame, error)
 
+	// NewNFromKeysRecursive loads data recursively backwards in history
+	// using dynamic clustering and a query-then-split tree structure
+	// until at least N non-sentinel data points are retrieved for all keys.
+	NewNFromKeysRecursive(ctx context.Context, end time.Time, keys []string, n int32, progress progress.Progress, skipMetadata bool) (*DataFrame, error)
+
 	// NumMatches returns the number of traces that will match the query.
 	NumMatches(ctx context.Context, q *query.Query) (int64, error)
 

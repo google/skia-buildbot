@@ -434,6 +434,9 @@ type AnomalyConfig struct {
 
 	// BackfillConcurrency is the number of concurrent backfill requests to process.
 	BackfillConcurrency int `json:"backfill_concurrency,omitempty"`
+
+	// UseRecursiveLoader enables bulk loading of matching trace IDs using NewNFromKeysRecursive.
+	UseRecursiveLoader bool `json:"use_recursive_loader,omitempty"`
 }
 
 // BackendFlags provide commandline flags for the Backend Service.

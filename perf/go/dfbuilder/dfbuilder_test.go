@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
@@ -29,6 +30,7 @@ import (
 	mockTraceStore "go.skia.org/infra/perf/go/tracestore/mocks"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 	"go.skia.org/infra/perf/go/types"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -793,4 +795,135 @@ func TestPreflightQuery_MultiConstraintFiltering(t *testing.T) {
 			assert.Equal(t, tc.resultPS, ps)
 		})
 	}
+}
+
+func addValuesNoRefresh(store tracestore.TraceStore, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
+	ctx := context.Background()
+	ps := paramtools.ParamSet{}
+	params := []paramtools.Params{}
+	values := []float32{}
+	for k, v := range keyValues {
+		p, err := query.ParseKey(k)
+		if err != nil {
+			return err
+		}
+		ps.AddParams(p)
+		params = append(params, p)
+		values = append(values, v)
+	}
+	return store.WriteTraces(ctx, index, params, values, ps, filename, ts)
+}
+
+func TestNewNFromKeysRecursive_EndToEnd(t *testing.T) {
+	ctx := context.Background()
+
+	ctx, db, gb, _, _, instanceConfig := gittest.NewForTest(t)
+
+	// Add commits 24 through 105 to the test git builder so commits 0..105 exist in git.
+	for i := 24; i <= 105; i++ {
+		gb.CommitGenAt(ctx, "foo.txt", gittest.StartTime.Add(time.Duration(i)*time.Minute))
+	}
+
+	g, err := perfgit.New(ctx, false, db, instanceConfig)
+	require.NoError(t, err)
+
+	config.Config = &config.InstanceConfig{}
+	config.Config.Experiments = config.Experiments{ProgressUseRedisCache: false}
+
+	instanceConfig.DataStoreConfig.TileSize = 25
+
+	store, inMemoryTraceParams := getSqlTraceStore(t, db, instanceConfig.DataStoreConfig)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, nil, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery, preflightSubqueriesForExistingKeysFeatureFlag, nil)
+
+	// Define 4 trace keys with different sparsity patterns
+	t1 := ",arch=x86,config=8888,id=1,"
+	t2 := ",arch=x86,config=8888,id=2,"
+	t3 := ",arch=x86,config=8888,id=3,"
+	t4 := ",arch=x86,config=8888,id=4,"
+
+	commitData := map[int]map[string]float32{}
+	addCommitPoint := func(commit int, key string, val float32) {
+		if _, ok := commitData[commit]; !ok {
+			commitData[commit] = map[string]float32{}
+		}
+		commitData[commit][key] = val
+	}
+
+	// 1. Trace 1: Dense in recent range (commits 91..100 -> 10 points)
+	for commit := 91; commit <= 100; commit++ {
+		addCommitPoint(commit, t1, float32(commit))
+	}
+
+	// 2. Trace 2: Sparse across history (commits 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 -> 11 points)
+	for _, commit := range []int{1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100} {
+		addCommitPoint(commit, t2, float32(commit))
+	}
+
+	// 3. Trace 3: Sparse with gaps across history (commits 10, 50, 60, 70, 80, 85, 90, 95, 98, 100 -> 10 points)
+	for _, commit := range []int{10, 50, 60, 70, 80, 85, 90, 95, 98, 100} {
+		addCommitPoint(commit, t3, float32(commit))
+	}
+
+	// 4. Trace 4: Frequent points across history (commits 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100 -> 20 points)
+	for _, commit := range []int{5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100} {
+		addCommitPoint(commit, t4, float32(commit))
+	}
+
+	// Write trace points concurrently per commit
+	var gWrite errgroup.Group
+	for commit, keyValues := range commitData {
+		c := commit
+		kv := keyValues
+		gWrite.Go(func() error {
+			return addValuesNoRefresh(store, types.CommitNumber(c), kv, "gs://foo.json", gittest.StartTime.Add(time.Duration(c)*time.Minute))
+		})
+	}
+	require.NoError(t, gWrite.Wait())
+	err = inMemoryTraceParams.Refresh(ctx)
+	require.NoError(t, err)
+
+	// Request N = 10 data points for all 4 trace keys starting at end commit 100
+	keys := []string{t1, t2, t3, t4}
+	end := gittest.StartTime.Add(100 * time.Minute)
+
+	df, err := builder.NewNFromKeysRecursive(ctx, end, keys, 10, progress.New(), true)
+	require.NoError(t, err)
+	require.NotNil(t, df)
+
+	// Assert all 4 traces are present in the merged DataFrame
+	assert.Len(t, df.TraceSet, 4)
+
+	// Assert expected unified header commit numbers (columns with all missing values removed by Compress)
+	expectedHeaderOffsets := []types.CommitNumber{10, 20, 30, 40, 50, 55, 60, 65, 70, 75, 80, 85, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100}
+	actualHeaderOffsets := make([]types.CommitNumber, len(df.Header))
+	for i, h := range df.Header {
+		actualHeaderOffsets[i] = h.Offset
+	}
+	assert.Equal(t, expectedHeaderOffsets, actualHeaderOffsets)
+
+	// Assert each trace in the merged DataFrame has exactly 10 non-missing data points
+	for _, key := range keys {
+		trace, ok := df.TraceSet[key]
+		require.True(t, ok, "Trace %s should be in TraceSet", key)
+
+		nonMissingCount := 0
+		for _, val := range trace {
+			if val != vec32.MissingDataSentinel {
+				nonMissingCount++
+			}
+		}
+		assert.Equal(t, 10, nonMissingCount, "Trace %s should have exactly 10 non-missing points", key)
+	}
+
+	// Assert exact baseline trace values matching the compressed 23 unified header columns
+	e := vec32.MissingDataSentinel
+	expectedTrace1 := types.Trace{e, e, e, e, e, e, e, e, e, e, e, e, e, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100}
+	expectedTrace2 := types.Trace{10, 20, 30, 40, 50, e, 60, e, 70, e, 80, e, 90, e, e, e, e, e, e, e, e, e, 100}
+	expectedTrace3 := types.Trace{10, e, e, e, 50, e, 60, e, 70, e, 80, 85, 90, e, e, e, e, 95, e, e, 98, e, 100}
+	expectedTrace4 := types.Trace{e, e, e, e, e, 55, 60, 65, 70, 75, 80, 85, 90, e, e, e, e, 95, e, e, e, e, 100}
+
+	assert.Equal(t, expectedTrace1, df.TraceSet[t1])
+	assert.Equal(t, expectedTrace2, df.TraceSet[t2])
+	assert.Equal(t, expectedTrace3, df.TraceSet[t3])
+	assert.Equal(t, expectedTrace4, df.TraceSet[t4])
 }

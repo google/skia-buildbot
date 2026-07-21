@@ -787,6 +787,7 @@ export interface RegressionDetectionRequest {
 	domain: Domain;
 	step: number;
 	total_queries: number;
+	trace_ids?: string[] | null;
 }
 
 export namespace progress {

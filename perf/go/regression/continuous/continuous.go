@@ -5,12 +5,10 @@ package continuous
 import (
 	"context"
 	"errors"
-
 	"fmt"
 	"math/rand"
 	"net/url"
 	"sync"
-
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -61,8 +59,9 @@ const (
 	// the incoming event.
 	defaultProcessAlertConfigsWorkerCount = 20
 
-	// Timeout is very large because k-means sometimes requires more time and resources to finish the alert config.
-	// This large value is used because we can have child context that use a 10-minute timeout.
+	// Top-level timeout for anomaly detection per trace/alert config.
+	// A large 10-minute budget is used because complex grouping algorithms (e.g., K-means, StepFit)
+	// and child context operations require extra time and resources.
 	timeoutForProcessAlertConfigPerTrace time.Duration = 10 * time.Minute
 
 	correlationIdKey = "correlationId"
@@ -210,6 +209,7 @@ func (c *Continuous) callProvider(ctx context.Context) ([]*alerts.Alert, error) 
 
 func (c *Continuous) buildTraceConfigsMapChannelEventDriven(ctx context.Context) <-chan configTracesMap {
 	ret := make(chan configTracesMap)
+
 	sub, err := c.getPubSubSubscription()
 	if err != nil {
 		sklog.Errorf("Failed to create pubsub subscription, not doing event driven regression detection: %s", err)
@@ -593,7 +593,7 @@ func (c *Continuous) RunEventDrivenClustering(parentCtx context.Context) {
 	}
 }
 
-// ProcessAlertConfigForTrace runs the alert config on a specific trace id
+// ProcessAlertConfigForTraces runs the alert config on a specific set of trace IDs
 func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfig alerts.Alert, traceIds []string, dfProvider *dfiter.DfProvider, domain *types.Domain, skipNotifications bool, failFast bool) error {
 	ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessAlertConfigForTraces")
 	defer span.End()
@@ -603,6 +603,23 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 
 	tracesProcessedCounter := metrics2.GetCounter("perf_continuous_traces_processed", map[string]string{"alert": alertConfig.DisplayName})
 
+	if domain == nil {
+		domain = &types.Domain{
+			N:   int32(c.flags.NumContinuous),
+			End: time.Time{},
+		}
+	}
+
+	if c.instanceConfig.AnomalyConfig.UseRecursiveLoader {
+		if err := c.ProcessAlertConfigForTraceIDs(ctx, &alertConfig, doNotOverrideQuery, dfProvider, domain, skipNotifications, traceIds); err != nil {
+			return skerr.Wrapf(err, "ProcessAlertConfig failed")
+		}
+
+		tracesProcessedCounter.Inc(int64(len(traceIds)))
+		return nil
+	}
+
+	// Default behavior: process trace IDs individually or in chunks.
 	processAlertConfigForTracesChunkSize := 1
 	if config.Config.Experiments.DfIterTraceSlicer {
 		processAlertConfigForTracesChunkSize = 50
@@ -615,14 +632,11 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 		accumulatedErrors = append(accumulatedErrors, err)
 		mu.Unlock()
 	}
-	// Let's process the traces in parallel. Provide one trace per worker in parallel.
-	// TODO(ashwinpv): It may be more deterministic to have the ability to query by
-	// specific traceIds in dfbuilder instead of converting traceId to a query string.
+
 	err := util.ChunkIterParallelPool(ctx, len(traceIds), processAlertConfigForTracesChunkSize, processAlertConfigForTracesWorkerCount, func(ctx context.Context, startIdx, endIdx int) error {
 		defer metrics2.NewTimer("perf_continuous_process_alert_config_for_traces_latency", map[string]string{"alert": alertConfig.SubscriptionName}).Stop()
 		if config.Config.Experiments.DfIterTraceSlicer {
 			paramset := paramtools.NewParamSet()
-			// Group all traceIds into a single query for regression detection.
 			for _, traceId := range traceIds[startIdx:endIdx] {
 				paramset.AddParamsFromKey(traceId)
 			}
@@ -634,7 +648,6 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 				handleError(ctx, err)
 			}
 		} else {
-			// Convert each traceId into a query for regression detection.
 			for _, traceId := range traceIds[startIdx:endIdx] {
 				paramset := paramtools.NewParamSet()
 				paramset.AddParamsFromKey(traceId)
@@ -648,7 +661,6 @@ func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, alertConfi
 			}
 		}
 		tracesProcessedCounter.Inc(int64(endIdx - startIdx))
-
 		return nil
 	})
 	if err != nil {
@@ -693,8 +705,17 @@ func (c *Continuous) RunContinuousClustering(ctx context.Context) {
 	}
 }
 
-// ProcessAlertConfig processes the supplied alert config to detect regressions
+// ProcessAlertConfig processes the supplied alert config to detect regressions.
 func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, queryOverride string, dfProvider *dfiter.DfProvider, domain *types.Domain, skipNotifications bool) error {
+	return c.processAlertConfigInternal(ctx, cfg, queryOverride, dfProvider, domain, skipNotifications, nil)
+}
+
+// ProcessAlertConfigForTraceIDs processes the supplied alert config for explicit trace IDs.
+func (c *Continuous) ProcessAlertConfigForTraceIDs(ctx context.Context, cfg *alerts.Alert, queryOverride string, dfProvider *dfiter.DfProvider, domain *types.Domain, skipNotifications bool, traceIDs []string) error {
+	return c.processAlertConfigInternal(ctx, cfg, queryOverride, dfProvider, domain, skipNotifications, traceIDs)
+}
+
+func (c *Continuous) processAlertConfigInternal(ctx context.Context, cfg *alerts.Alert, queryOverride string, dfProvider *dfiter.DfProvider, domain *types.Domain, skipNotifications bool, traceIDs []string) error {
 	ctx, cancel := context.WithTimeout(ctx, timeoutForProcessAlertConfigPerTrace)
 	defer cancel()
 
@@ -748,6 +769,9 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, 
 	req := regression.NewRegressionDetectionRequest()
 	req.Alert = cfg
 	req.Domain = *domain
+	if len(traceIDs) > 0 {
+		req.TraceIDs = traceIDs
+	}
 
 	expandBaseRequest := regression.ExpandBaseAlertByGroupBy
 	if c.flags.EventDrivenRegressionDetection {

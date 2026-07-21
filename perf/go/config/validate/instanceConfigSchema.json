@@ -22,6 +22,9 @@
         },
         "backfill_concurrency": {
           "type": "integer"
+        },
+        "use_recursive_loader": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

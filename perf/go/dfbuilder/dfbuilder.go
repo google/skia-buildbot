@@ -79,6 +79,7 @@ type builder struct {
 	newFromCommitIDsAndQueryTimer metrics2.Float64SummaryMetric
 	newNFromQueryTimer            metrics2.Float64SummaryMetric
 	newNFromKeysTimer             metrics2.Float64SummaryMetric
+	newNFromKeysRecursiveTimer    metrics2.Float64SummaryMetric
 	preflightQueryTimer           metrics2.Float64SummaryMetric
 }
 
@@ -105,6 +106,7 @@ func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceSt
 		newFromCommitIDsAndQueryTimer:      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromCommitIDsAndQuery"),
 		newNFromQueryTimer:                 metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newNFromQuery"),
 		newNFromKeysTimer:                  metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newNFromKeys"),
+		newNFromKeysRecursiveTimer:         metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newNFromKeysRecursive"),
 		preflightQueryTimer:                metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_preflightQuery"),
 	}
 }
@@ -584,6 +586,8 @@ func (b *builder) newNFromKeys(ctx context.Context, endIndex types.CommitNumber,
 		accumulatedSourceInfo[key] = types.NewTraceSourceInfo()
 	}
 
+	sklog.Debugf("[newNFromKeys] Starting query for %d trace(s), target N=%d, initial tile bounds [%d .. %d]", len(keys), n, calc.beginIndex, calc.endIndex)
+
 	for !calc.ShouldStop() {
 		beginIndex, endIndex := calc.CurrentBounds()
 
@@ -648,11 +652,15 @@ func (b *builder) newNFromKeys(ctx context.Context, endIndex types.CommitNumber,
 
 		if currentStepCommitsWithData == 0 {
 			progress.Message("Tiles", fmt.Sprintf("Tiles searched: %d. Found %d/%d points.", calc.steps, calc.totalFound, n))
+			sklog.Debugf("[newNFromKeys] Step %d: range [%d .. %d] returned 0 commits with data (total found: %d/%d)",
+				calc.steps, beginIndex, endIndex, calc.totalFound, n)
 			calc.RecordEmptyStep()
 			continue
 		}
 
 		progress.Message("Tiles", fmt.Sprintf("Tiles searched: %d. Found %d/%d points.", calc.steps, calc.totalFound+int32(currentStepCommitsWithData), n))
+		sklog.Debugf("[newNFromKeys] Step %d: range [%d .. %d] returned %d commit(s) with data (total found: %d/%d)",
+			calc.steps, beginIndex, endIndex, currentStepCommitsWithData, calc.totalFound+int32(currentStepCommitsWithData), n)
 		calc.RecordSuccessStep(currentStepCommitsWithData)
 	}
 

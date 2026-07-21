@@ -63,6 +63,7 @@ func NewDataFrameIterator(
 	alert *alerts.Alert,
 	anomalyConfig config.AnomalyConfig,
 	dfProvider *DfProvider,
+	traceIDs ...string,
 ) (DataFrameIterator, error) {
 	ctx, span := trace.StartSpan(ctx, "dfiter.NewDataFrameIterator")
 	defer span.End()
@@ -97,7 +98,11 @@ func NewDataFrameIterator(
 			}
 		}
 		if df == nil {
-			df, err = dfBuilder.NewNFromQuery(ctx, domain.End, q, domain.N, progress)
+			if len(traceIDs) > 0 {
+				df, err = dfBuilder.NewNFromKeysRecursive(ctx, domain.End, traceIDs, domain.N, progress, true)
+			} else {
+				df, err = dfBuilder.NewNFromQuery(ctx, domain.End, q, domain.N, progress)
+			}
 		}
 
 		if err != nil {

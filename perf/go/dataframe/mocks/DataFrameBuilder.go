@@ -171,6 +171,36 @@ func (_m *DataFrameBuilder) NewNFromKeys(ctx context.Context, end time.Time, key
 	return r0, r1
 }
 
+// NewNFromKeysRecursive provides a mock function with given fields: ctx, end, keys, n, _a4, skipMetadata
+func (_m *DataFrameBuilder) NewNFromKeysRecursive(ctx context.Context, end time.Time, keys []string, n int32, _a4 progress.Progress, skipMetadata bool) (*dataframe.DataFrame, error) {
+	ret := _m.Called(ctx, end, keys, n, _a4, skipMetadata)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewNFromKeysRecursive")
+	}
+
+	var r0 *dataframe.DataFrame
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, []string, int32, progress.Progress, bool) (*dataframe.DataFrame, error)); ok {
+		return rf(ctx, end, keys, n, _a4, skipMetadata)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, []string, int32, progress.Progress, bool) *dataframe.DataFrame); ok {
+		r0 = rf(ctx, end, keys, n, _a4, skipMetadata)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*dataframe.DataFrame)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time, []string, int32, progress.Progress, bool) error); ok {
+		r1 = rf(ctx, end, keys, n, _a4, skipMetadata)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewNFromQuery provides a mock function with given fields: ctx, end, q, n, _a4
 func (_m *DataFrameBuilder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, _a4 progress.Progress) (*dataframe.DataFrame, error) {
 	ret := _m.Called(ctx, end, q, n, _a4)

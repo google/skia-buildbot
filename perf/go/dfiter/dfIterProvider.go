@@ -77,6 +77,12 @@ func (d *DfProvider) addToCache(key string, df *dataframe.DataFrame) {
 	d.dfCache[key] = df
 }
 
+// Add injects a preloaded DataFrame into the cache for the given query, end time, and size.
+func (d *DfProvider) Add(query *query.Query, end time.Time, n int32, df *dataframe.DataFrame) {
+	key := key(query, end, n)
+	d.addToCache(key, df)
+}
+
 // key generates a key for the cache.
 func key(query *query.Query, end time.Time, n int32) string {
 	return fmt.Sprintf("%s_%s_%d", query.KeyValueString(), end.String(), n)

@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/url"
 	"time"
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
@@ -159,8 +161,23 @@ func ProcessRegressions(ctx context.Context,
 			req.Progress.Message("Iteration", msg)
 		}
 
-		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-		iter, err := dfiter.NewDataFrameIterator(timeoutContext, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert, anomalyConfig, dfProvider)
+		traceIds := req.TraceIDs
+		if len(traceIds) == 0 && anomalyConfig.UseRecursiveLoader && req.Alert != nil && req.Alert.Algo == types.StepFitGrouping {
+			u, err := url.ParseQuery(req.Query())
+			if err == nil {
+				q, err := query.New(u)
+				if err == nil {
+					tIDs, err := getTraceIDsForQuery(ctx, dfBuilder, perfGit, q, req.Domain.End)
+					if err != nil {
+						sklog.Errorf("[ProcessRegressions] Failed to get trace IDs for query: %v", err)
+					} else {
+						traceIds = tIDs
+					}
+				}
+			}
+		}
+
+		iter, err := dfiter.NewDataFrameIterator(timeoutContext, req.Progress, dfBuilder, perfGit, iterErrorCallback, req.Query(), req.Domain, req.Alert, anomalyConfig, dfProvider, traceIds...)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
 				timeoutCounter(req.Alert.DisplayName).Inc(1)
@@ -453,4 +470,42 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 		return errors.Join(errs...)
 	}
 	return nil
+}
+
+// getTraceIDsForQuery retrieves matching trace IDs for a query from the single latest tile.
+// Restricting the trace ID lookup to the latest tile bounds the dataset size being loaded.
+// This approach is primarily used in dry runs or manual triggers; in production event-driven
+// anomaly detection, explicit trace IDs are already provided directly as input.
+func getTraceIDsForQuery(ctx context.Context, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, q *query.Query, end time.Time) ([]string, error) {
+	store := dfBuilder.GetTraceStore()
+	if store == nil {
+		return nil, skerr.Fmt("TraceStore is not available on DataFrameBuilder")
+	}
+
+	endIndex, err := perfGit.CommitNumberFromTime(ctx, end)
+	if err != nil || endIndex == types.BadCommitNumber {
+		return nil, skerr.Wrapf(err, "Failed to resolve end commit index")
+	}
+
+	latestTile := store.TileNumber(endIndex)
+
+	traceIDsMap := make(map[string]bool)
+	var traceIDs []string
+
+	paramChan, err := store.QueryTracesIDOnly(ctx, latestTile, q)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "QueryTracesIDOnly failed for tile %d", latestTile)
+	}
+
+	for pr := range paramChan {
+		traceName, err := query.MakeKey(pr)
+		if err == nil {
+			if !traceIDsMap[traceName] {
+				traceIDsMap[traceName] = true
+				traceIDs = append(traceIDs, traceName)
+			}
+		}
+	}
+
+	return traceIDs, nil
 }

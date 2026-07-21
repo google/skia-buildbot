@@ -679,6 +679,25 @@ func TestMultiJoin_ContextCanceled(t *testing.T) {
 	require.Error(t, err)
 }
 
+type dummyLoaderMetrics struct{}
+
+func (d *dummyLoaderMetrics) RecordDbQuery(duration time.Duration) {}
+
+func TestContextHelpers(t *testing.T) {
+	ctx := context.Background()
+	sem := make(chan struct{}, 5)
+	ctxWithSem := WithQuerySemaphore(ctx, sem)
+
+	retSem, ok := QuerySemaphoreFromContext(ctxWithSem)
+	assert.True(t, ok)
+	assert.Equal(t, sem, retSem)
+
+	metrics := &dummyLoaderMetrics{}
+	ctxWithMetrics := WithLoaderMetrics(ctx, metrics)
+	retMetrics, ok := LoaderMetricsFromContext(ctxWithMetrics)
+	assert.True(t, ok)
+	assert.Equal(t, metrics, retMetrics)
+}
 func TestCompress(t *testing.T) {
 	tests := []struct {
 		name   string
