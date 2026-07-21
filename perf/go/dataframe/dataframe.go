@@ -5,13 +5,16 @@ package dataframe
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"sort"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/progress"
@@ -255,7 +258,7 @@ func (d *DataFrame) FilterOut(f TraceFilter) {
 // not copies, so the returned dataframe must not be altered.
 func (d *DataFrame) Slice(offset, size int) (*DataFrame, error) {
 	if offset+size > len(d.Header) {
-		return nil, fmt.Errorf("Slize exceeds current dataframe bounds.")
+		return nil, fmt.Errorf("Slice exceeds current dataframe bounds.")
 	}
 	ret := NewEmpty()
 	ret.Header = d.Header[offset : offset+size]
@@ -368,4 +371,220 @@ func NewHeaderOnly(ctx context.Context, git perfgit.Git, begin, end time.Time) (
 		Skip:       skip,
 		SourceInfo: map[string]*types.TraceSourceInfo{},
 	}, nil
+}
+
+// MergeMultipleColumnHeaders creates a merged header from multiple headers.
+// Returns the unified header, and a slice of maps (one map per input header)
+// mapping each input header index to its corresponding unified header index.
+func MergeMultipleColumnHeaders(headers [][]*ColumnHeader) ([]*ColumnHeader, [][]int) {
+	// Find all unique offsets
+	uniqueOffsets := map[types.CommitNumber]*ColumnHeader{}
+	for _, h := range headers {
+		for _, col := range h {
+			if col == nil {
+				continue
+			}
+			if _, ok := uniqueOffsets[col.Offset]; !ok {
+				colCopy := *col
+				uniqueOffsets[col.Offset] = &colCopy
+			}
+		}
+	}
+
+	// Sort unique offsets ascending
+	offsets := make([]types.CommitNumber, 0, len(uniqueOffsets))
+	for off := range uniqueOffsets {
+		offsets = append(offsets, off)
+	}
+	sort.Slice(offsets, func(i, j int) bool {
+		return offsets[i] < offsets[j]
+	})
+
+	// Build unified header
+	unifiedHeader := make([]*ColumnHeader, len(offsets))
+	unifiedOffsetToIndex := map[types.CommitNumber]int{}
+	for i, off := range offsets {
+		unifiedHeader[i] = uniqueOffsets[off]
+		unifiedOffsetToIndex[off] = i
+	}
+
+	// Map each input header's offsets to their index in the unified header
+	maps := make([][]int, len(headers))
+	for idx, h := range headers {
+		m := make([]int, len(h))
+		for i := range m {
+			m[i] = -1
+		}
+		for i, col := range h {
+			if col != nil {
+				m[i] = unifiedOffsetToIndex[col.Offset]
+			}
+		}
+		maps[idx] = m
+	}
+
+	return unifiedHeader, maps
+}
+
+// Copy creates a deep copy of the DataFrame.
+// Note: TraceMetadata is intentionally excluded here to maintain parity and simplicity
+// with the original copy/join logic. TraceMetadata is not populated during dataframe loading;
+// it is populated separately later during UI/frontend requests.
+func (d *DataFrame) Copy() *DataFrame {
+	if d == nil {
+		return nil
+	}
+	ret := NewEmpty()
+	ret.Skip = d.Skip
+	ret.ParamSet = d.ParamSet
+
+	ret.Header = make([]*ColumnHeader, len(d.Header))
+	for i, h := range d.Header {
+		if h != nil {
+			colCopy := *h
+			ret.Header[i] = &colCopy
+		}
+	}
+
+	ret.TraceSet = make(types.TraceSet, len(d.TraceSet))
+	for k, tr := range d.TraceSet {
+		trCopy := make(types.Trace, len(tr))
+		copy(trCopy, tr)
+		ret.TraceSet[k] = trCopy
+	}
+
+	for traceId, srcInfo := range d.SourceInfo {
+		if srcInfo != nil {
+			ret.SourceInfo[traceId] = types.NewTraceSourceInfo()
+			ret.SourceInfo[traceId].CopyFrom(srcInfo)
+		}
+	}
+
+	return ret
+}
+
+// MultiJoin merges multiple DataFrames into a single unified DataFrame.
+// This is significantly more efficient than calling Join repeatedly in a loop.
+func MultiJoin(ctx context.Context, dfs ...*DataFrame) (*DataFrame, error) {
+	activeDfs := filterActiveDataFrames(dfs)
+	if len(activeDfs) == 0 {
+		return NewEmpty(), nil
+	}
+	if len(activeDfs) == 1 {
+		return activeDfs[0].Copy(), nil
+	}
+
+	headers := make([][]*ColumnHeader, len(activeDfs))
+	for i, df := range activeDfs {
+		headers[i] = df.Header
+	}
+	unifiedHeader, indexMaps := MergeMultipleColumnHeaders(headers)
+
+	ret := NewEmpty()
+	ret.Header = unifiedHeader
+	// Skip of the merged frame is the skip of the last dataframe (same as Join)
+	ret.Skip = activeDfs[len(activeDfs)-1].Skip
+	ret.ParamSet = mergeParamSets(activeDfs)
+
+	keyList := collectUniqueTraceKeys(activeDfs)
+	traceSet, err := mergeTraceSetsParallel(ctx, activeDfs, keyList, indexMaps, len(unifiedHeader))
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to merge trace sets")
+	}
+	ret.TraceSet = traceSet
+	mergeSourceInfo(ret, activeDfs)
+
+	return ret, nil
+}
+
+func filterActiveDataFrames(dfs []*DataFrame) []*DataFrame {
+	activeDfs := make([]*DataFrame, 0, len(dfs))
+	for _, df := range dfs {
+		if df != nil && len(df.Header) > 0 {
+			activeDfs = append(activeDfs, df)
+		}
+	}
+	return activeDfs
+}
+
+func mergeParamSets(dfs []*DataFrame) paramtools.ReadOnlyParamSet {
+	ps := paramtools.NewParamSet()
+	for _, df := range dfs {
+		ps.AddParamSet(df.ParamSet)
+	}
+	ps.Normalize()
+	return ps.Freeze()
+}
+
+func collectUniqueTraceKeys(dfs []*DataFrame) []string {
+	allKeysMap := map[string]bool{}
+	for _, df := range dfs {
+		for key := range df.TraceSet {
+			allKeysMap[key] = true
+		}
+	}
+	keyList := make([]string, 0, len(allKeysMap))
+	for key := range allKeysMap {
+		keyList = append(keyList, key)
+	}
+	return keyList
+}
+
+func mergeTraceSetsParallel(ctx context.Context, activeDfs []*DataFrame, keyList []string, indexMaps [][]int, traceLen int) (types.TraceSet, error) {
+	traceSet := make(types.TraceSet, len(keyList))
+	if len(keyList) == 0 {
+		return traceSet, nil
+	}
+
+	var mu sync.Mutex
+	numWorkers := runtime.NumCPU()
+	chunkSize := 500
+	err := util.ChunkIterParallelPool(ctx, len(keyList), chunkSize, numWorkers, func(ctx context.Context, startIdx, endIdx int) error {
+		localTraces := make(map[string]types.Trace, endIdx-startIdx)
+		for _, key := range keyList[startIdx:endIdx] {
+			destTrace := types.NewTrace(traceLen)
+			for dfIdx, df := range activeDfs {
+				sourceTrace, ok := df.TraceSet[key]
+				if !ok {
+					continue
+				}
+				m := indexMaps[dfIdx]
+				for srcIdx, val := range sourceTrace {
+					if srcIdx >= len(m) {
+						break
+					}
+					if destIdx := m[srcIdx]; destIdx != -1 {
+						destTrace[destIdx] = val
+					}
+				}
+			}
+			localTraces[key] = destTrace
+		}
+
+		mu.Lock()
+		for k, v := range localTraces {
+			traceSet[k] = v
+		}
+		mu.Unlock()
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "parallel chunk iteration failed")
+	}
+
+	return traceSet, nil
+}
+
+func mergeSourceInfo(ret *DataFrame, activeDfs []*DataFrame) {
+	for _, df := range activeDfs {
+		for traceId, srcInfo := range df.SourceInfo {
+			if srcInfo == nil {
+				continue
+			}
+			if _, ok := ret.SourceInfo[traceId]; !ok {
+				ret.SourceInfo[traceId] = types.NewTraceSourceInfo()
+			}
+			ret.SourceInfo[traceId].CopyFrom(srcInfo)
+		}
+	}
 }

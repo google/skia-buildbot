@@ -354,6 +354,9 @@ func (ts *TraceSourceInfo) Get(commitNumber CommitNumber) (int64, bool) {
 // CopyFrom copies the data from the provided TraceSourceInfo object
 // into the current one.
 func (ts *TraceSourceInfo) CopyFrom(other *TraceSourceInfo) {
+	if other == nil {
+		return
+	}
 	ts.mutex.Lock()
 	defer ts.mutex.Unlock()
 	if ts.sourceMap == nil {
