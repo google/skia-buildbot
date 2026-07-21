@@ -746,10 +746,22 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 		ResponseMIMEType:   "application/json",
 		ResponseJsonSchema: jsonschema.Reflect(result),
 	}
-	// No new parts, just asking for the final structured output based on history.
-	resp, err = c.generateWithBackoffAndRateLimiting(ctx, opName, rl, chat.History(false), nil, func() (*genai.GenerateContentResponse, error) {
+
+	// Gemini does not allow requests where the contents end with a model turn,
+	// therefore we must copy the chat history and add a user turn for our final
+	// request.
+	contents := append([]*genai.Content{}, chat.History(false)...)
+	contents = append(contents, &genai.Content{
+		Role: "user",
+		Parts: []*genai.Part{
+			{
+				Text: "Format the final result as JSON.",
+			},
+		},
+	})
+	resp, err = c.generateWithBackoffAndRateLimiting(ctx, opName, rl, contents, nil, func() (*genai.GenerateContentResponse, error) {
 		requestCounter.Inc(1)
-		return c.client.Models.GenerateContent(ctx, model, chat.History(false), finalConfig)
+		return c.client.Models.GenerateContent(ctx, model, contents, finalConfig)
 	})
 	if err != nil {
 		return skerr.Wrap(err)
