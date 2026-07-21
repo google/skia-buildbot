@@ -52,6 +52,8 @@ export class ExploreToolbarSk extends LitElement {
 
   @property({ type: Number }) edgeLookahead = 3;
 
+  @property({ type: Boolean }) openAdvanced = true;
+
   static styles = css`
     :host {
       display: block;
@@ -210,6 +212,26 @@ export class ExploreToolbarSk extends LitElement {
       font-weight: 500;
     }
 
+    details.advanced-options-details {
+      border: 1px solid var(--outline);
+      border-radius: 6px;
+      padding: 6px 12px;
+      background: var(--surface);
+    }
+
+    summary.advanced-options-summary {
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--on-surface);
+      user-select: none;
+      padding: 2px 0;
+    }
+
+    details[open] summary.advanced-options-summary {
+      margin-bottom: 8px;
+    }
+
     .section-divider {
       border-top: 1px solid var(--outline);
       margin: 4px 0;
@@ -220,294 +242,298 @@ export class ExploreToolbarSk extends LitElement {
     const totalMatchedPages = Math.max(1, this.totalMatchedPages);
 
     return html`
-      <div class="toolbar">
-        <!-- Section 1: Data & Navigation -->
-        <div class="toolbar-section">
-          <button
-            class="custom-btn"
-            @click=${() => this._emitChange('showAllTraces', !this.showAllTraces)}>
-            ${this.showAllTraces ? 'Show Paged' : 'Show All'}
-          </button>
+      <details class="advanced-options-details" ?open=${this.openAdvanced}>
+        <summary class="advanced-options-summary">Advanced Options</summary>
+        <div class="toolbar">
+          <!-- Section 1: Data & Navigation -->
+          <div class="toolbar-section">
+            <button
+              class="custom-btn"
+              @click=${() => this._emitChange('showAllTraces', !this.showAllTraces)}>
+              ${this.showAllTraces ? 'Show Paged' : 'Show All'}
+            </button>
 
-          <button
-            class="custom-btn"
-            @click=${() => this.dispatchEvent(new CustomEvent('reset-zoom'))}>
-            Reset Zoom
-          </button>
+            <button
+              class="custom-btn"
+              @click=${() => this.dispatchEvent(new CustomEvent('reset-zoom'))}>
+              Reset Zoom
+            </button>
 
-          <div class="toolbar-group">
-            <span class="label">Rollouts:</span>
-            <select
-              class="custom-select subrepo-select"
-              .value=${this.selectedSubrepo}
-              @change=${(e: any) => this._emitChange('selectedSubrepo', e.target.value)}>
-              <option value="none">None</option>
-              ${this.availableSubrepos.map((r) => html`<option value="${r}">${r}</option>`)}
-            </select>
-          </div>
-
-          <div class="toolbar-group">
-            <span class="label">Center:</span>
-            <select
-              class="custom-select"
-              .value=${this.normalizeCentre}
-              @change=${(e: any) => this._emitChange('normalizeCentre', e.target.value)}>
-              <option value="none">None</option>
-              <option value="first">First</option>
-              <option value="average">Average</option>
-              <option value="median">Median</option>
-            </select>
-          </div>
-
-          <label class="custom-checkbox date-mode-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.dateMode}
-              @change=${(e: any) => this._emitChange('dateMode', e.target.checked)} />
-            <span class="checkmark"></span>
-            Date Mode
-          </label>
-
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.evenXAxisSpacing}
-              @change=${(e: any) => this._emitChange('evenXAxisSpacing', e.target.checked)} />
-            <span class="checkmark"></span>
-            Even X-Axis Spacing
-          </label>
-
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.showZero}
-              @change=${(e: any) => this._emitChange('showZero', e.target.checked)} />
-            <span class="checkmark"></span>
-            Show Zero
-          </label>
-
-          ${window.perf?.trace_transform
-            ? html`
-                <div class="toolbar-group">
-                  <span class="label">Transform:</span>
-                  <select
-                    class="custom-select"
-                    .value=${this.transformPreset}
-                    @change=${this._handleTransformPresetChange}>
-                    <option value="none">None</option>
-                    <option value="delta">Delta (X[i] - X[i-1])</option>
-                    <option value="rel_delta">Relative Delta ((X[i] - X[i-1]) / X[i-1])</option>
-                    <option value="velocity">Velocity (Delta / Commit Delta)</option>
-                    <option value="avg3">Moving Average (3pt)</option>
-                    <option value="median3">Moving Median (3pt)</option>
-                    <option value="stddev10">Moving StdDev (10pt)</option>
-                  </select>
-                </div>
-              `
-            : ''}
-
-          <details
-            id="yaxis-splitter"
-            class="custom-select yaxis-splitter-details"
-            style="position: relative;">
-            <summary style="cursor: pointer;">Y-axis Splitter</summary>
-            <div
-              style="position: absolute; background: var(--surface, #1e293b); border: 1px solid var(--outline, rgba(255, 255, 255, 0.1)); padding: 8px; border-radius: 4px; z-index: 10; display: flex; flex-direction: column; gap: 4px; min-width: 150px;">
-              ${this.availableSplitKeys.length === 0
-                ? html`<span style="color: var(--on-surface, #64748b);">No options</span>`
-                : this.availableSplitKeys.map(
-                    (key) => html`
-                      <label class="custom-checkbox">
-                        <input
-                          type="checkbox"
-                          .checked=${this.activeSplitKeys.includes(key)}
-                          @change=${() => {
-                            this.dispatchEvent(
-                              new CustomEvent('split', {
-                                detail: { key },
-                                bubbles: true,
-                                composed: true,
-                              })
-                            );
-                          }} />
-                        <span class="checkmark"></span>
-                        ${key}
-                      </label>
-                    `
-                  )}
+            <div class="toolbar-group">
+              <span class="label">Rollouts:</span>
+              <select
+                class="custom-select subrepo-select"
+                .value=${this.selectedSubrepo}
+                @change=${(e: any) => this._emitChange('selectedSubrepo', e.target.value)}>
+                <option value="none">None</option>
+                ${this.availableSubrepos.map((r) => html`<option value="${r}">${r}</option>`)}
+              </select>
             </div>
-          </details>
 
-          <div class="toolbar-group">
-            <span class="label">Traces/Page:</span>
-            <input
-              class="custom-select"
-              type="number"
-              min="1"
-              max="500"
-              .value=${this.pageSize.toString()}
-              @change=${(e: any) => this._emitChange('pageSize', parseInt(e.target.value, 10))}
-              style="width: 50px;" />
+            <div class="toolbar-group">
+              <span class="label">Center:</span>
+              <select
+                class="custom-select"
+                .value=${this.normalizeCentre}
+                @change=${(e: any) => this._emitChange('normalizeCentre', e.target.value)}>
+                <option value="none">None</option>
+                <option value="first">First</option>
+                <option value="average">Average</option>
+                <option value="median">Median</option>
+              </select>
+            </div>
+
+            <label class="custom-checkbox date-mode-checkbox">
+              <input
+                type="checkbox"
+                .checked=${this.dateMode}
+                @change=${(e: any) => this._emitChange('dateMode', e.target.checked)} />
+              <span class="checkmark"></span>
+              Date Mode
+            </label>
+
+            <label class="custom-checkbox">
+              <input
+                type="checkbox"
+                .checked=${this.evenXAxisSpacing}
+                @change=${(e: any) => this._emitChange('evenXAxisSpacing', e.target.checked)} />
+              <span class="checkmark"></span>
+              Even X-Axis Spacing
+            </label>
+
+            <label class="custom-checkbox">
+              <input
+                type="checkbox"
+                .checked=${this.showZero}
+                @change=${(e: any) => this._emitChange('showZero', e.target.checked)} />
+              <span class="checkmark"></span>
+              Show Zero
+            </label>
+
+            ${window.perf?.trace_transform
+              ? html`
+                  <div class="toolbar-group">
+                    <span class="label">Transform:</span>
+                    <select
+                      class="custom-select"
+                      .value=${this.transformPreset}
+                      @change=${this._handleTransformPresetChange}>
+                      <option value="none">None</option>
+                      <option value="delta">Delta (X[i] - X[i-1])</option>
+                      <option value="rel_delta">Relative Delta ((X[i] - X[i-1]) / X[i-1])</option>
+                      <option value="velocity">Velocity (Delta / Commit Delta)</option>
+                      <option value="avg3">Moving Average (3pt)</option>
+                      <option value="median3">Moving Median (3pt)</option>
+                      <option value="stddev10">Moving StdDev (10pt)</option>
+                    </select>
+                  </div>
+                `
+              : ''}
+
+            <details
+              id="yaxis-splitter"
+              class="custom-select yaxis-splitter-details"
+              style="position: relative;">
+              <summary style="cursor: pointer;">Y-axis Splitter</summary>
+              <div
+                style="position: absolute; background: var(--surface, #1e293b); border: 1px solid var(--outline, rgba(255, 255, 255, 0.1)); padding: 8px; border-radius: 4px; z-index: 10; display: flex; flex-direction: column; gap: 4px; min-width: 150px;">
+                ${this.availableSplitKeys.length === 0
+                  ? html`<span style="color: var(--on-surface, #64748b);">No options</span>`
+                  : this.availableSplitKeys.map(
+                      (key) => html`
+                        <label class="custom-checkbox">
+                          <input
+                            type="checkbox"
+                            .checked=${this.activeSplitKeys.includes(key)}
+                            @change=${() => {
+                              this.dispatchEvent(
+                                new CustomEvent('split', {
+                                  detail: { key },
+                                  bubbles: true,
+                                  composed: true,
+                                })
+                              );
+                            }} />
+                          <span class="checkmark"></span>
+                          ${key}
+                        </label>
+                      `
+                    )}
+              </div>
+            </details>
+
+            <div class="toolbar-group">
+              <span class="label">Traces/Page:</span>
+              <input
+                class="custom-select"
+                type="number"
+                min="1"
+                max="500"
+                .value=${this.pageSize.toString()}
+                @change=${(e: any) => this._emitChange('pageSize', parseInt(e.target.value, 10))}
+                style="width: 50px;" />
+            </div>
+
+            <!-- Pagination -->
+            <div class="toolbar-group" style="margin-left: auto;">
+              <button
+                class="custom-btn"
+                style="padding: 2px 6px;"
+                @click=${() => this._emitChange('tracePage', this.tracePage - 1)}
+                ?disabled=${this.tracePage === 0}>
+                &lt;
+              </button>
+              <span style="font-size: 11px; min-width: 50px; text-align: center;">
+                ${this.tracePage + 1} of ${totalMatchedPages}
+              </span>
+              <button
+                class="custom-btn"
+                style="padding: 2px 6px;"
+                @click=${() => this._emitChange('tracePage', this.tracePage + 1)}
+                ?disabled=${this.tracePage >= totalMatchedPages - 1}>
+                &gt;
+              </button>
+            </div>
           </div>
 
-          <!-- Pagination -->
-          <div class="toolbar-group" style="margin-left: auto;">
-            <button
-              class="custom-btn"
-              style="padding: 2px 6px;"
-              @click=${() => this._emitChange('tracePage', this.tracePage - 1)}
-              ?disabled=${this.tracePage === 0}>
-              &lt;
-            </button>
-            <span style="font-size: 11px; min-width: 50px; text-align: center;">
-              ${this.tracePage + 1} of ${totalMatchedPages}
-            </span>
-            <button
-              class="custom-btn"
-              style="padding: 2px 6px;"
-              @click=${() => this._emitChange('tracePage', this.tracePage + 1)}
-              ?disabled=${this.tracePage >= totalMatchedPages - 1}>
-              &gt;
-            </button>
+          <div class="section-divider"></div>
+
+          <!-- Section 2: Visualization Options -->
+          <div class="toolbar-section">
+            <label class="custom-checkbox smooth-checkbox">
+              <input
+                type="checkbox"
+                .checked=${this.smooth}
+                @change=${(e: any) => {
+                  this._emitChange('smooth', e.target.checked);
+                  this._emitChange('hoverMode', e.target.checked ? 'both' : 'original');
+                }} />
+              <span class="checkmark"></span>
+              Smooth
+            </label>
+
+            <label class="custom-checkbox">
+              <input
+                type="checkbox"
+                .checked=${this.showDots}
+                @change=${(e: any) => this._emitChange('showDots', e.target.checked)} />
+              <span class="checkmark"></span>
+              Dots
+            </label>
+
+            <label class="custom-checkbox">
+              <input
+                type="checkbox"
+                .checked=${this.showSparklines}
+                @change=${(e: any) => this._emitChange('showSparklines', e.target.checked)} />
+              <span class="checkmark"></span>
+              Sparklines
+            </label>
+
+            <label class="custom-checkbox">
+              <input
+                type="checkbox"
+                .checked=${this.showRegressions}
+                @change=${(e: any) => this._emitChange('showRegressions', e.target.checked)} />
+              <span class="checkmark"></span>
+              Show Regressions
+            </label>
+
+            <label class="custom-checkbox">
+              <input
+                type="checkbox"
+                .checked=${this.tooltipDiffs}
+                @change=${(e: any) => this._emitChange('tooltipDiffs', e.target.checked)} />
+              <span class="checkmark"></span>
+              Tooltip Diffs
+            </label>
+
+            ${window.perf?.enable_only_regressions_option
+              ? html`
+                  <label class="custom-checkbox only-regressions-checkbox">
+                    <input
+                      type="checkbox"
+                      .checked=${this.onlyRegressions}
+                      @change=${(e: any) =>
+                        this._emitChange('onlyRegressions', e.target.checked)} />
+                    <span class="checkmark"></span>
+                    Only Regressions
+                  </label>
+                `
+              : ''}
+            ${window.perf?.enable_split_all_option
+              ? html`
+                  <label class="custom-checkbox split-all-checkbox">
+                    <input
+                      type="checkbox"
+                      .checked=${this.splitAll}
+                      @change=${(e: any) => this._emitChange('splitAll', e.target.checked)} />
+                    <span class="checkmark"></span>
+                    Split by All Keys
+                  </label>
+                `
+              : ''}
+
+            <div class="toolbar-group">
+              <span class="label">Hover:</span>
+              <select
+                class="custom-select"
+                .value=${this.hoverMode}
+                @change=${(e: any) => this._emitChange('hoverMode', e.target.value)}>
+                <option value="original">Original</option>
+                <option value="smoothed">Smoothed</option>
+                <option value="both">Both</option>
+              </select>
+            </div>
+
+            <!-- Sliders (Inline if visible) -->
+            ${this.hoverMode !== 'original'
+              ? html`
+                  <div class="toolbar-group">
+                    <span class="label">Rad:</span>
+                    <input
+                      class="custom-slider rad-slider"
+                      type="range"
+                      min="1"
+                      max="100"
+                      .value=${this.smoothingRadius.toString()}
+                      @input=${(e: any) =>
+                        this._emitChange('smoothingRadius', parseInt(e.target.value, 10))} />
+                    <span class="slider-value">${this.smoothingRadius}</span>
+                  </div>
+
+                  <div class="toolbar-group">
+                    <span class="label">Edge:</span>
+                    <input
+                      class="custom-slider"
+                      type="range"
+                      min="0.1"
+                      max="1"
+                      step="0.05"
+                      .value=${this.edgeDetectionFactor.toString()}
+                      @input=${(e: any) =>
+                        this._emitChange('edgeDetectionFactor', parseFloat(e.target.value))} />
+                    <span class="slider-value">${this.edgeDetectionFactor.toFixed(2)}</span>
+                  </div>
+
+                  <div class="toolbar-group">
+                    <span class="label">Outlier:</span>
+                    <input
+                      class="custom-slider"
+                      type="range"
+                      min="0"
+                      max="5"
+                      step="1"
+                      .value=${this.edgeLookahead.toString()}
+                      @input=${(e: any) =>
+                        this._emitChange('edgeLookahead', parseInt(e.target.value, 10))} />
+                    <span class="slider-value">${this.edgeLookahead}</span>
+                  </div>
+                `
+              : ''}
           </div>
         </div>
-
-        <div class="section-divider"></div>
-
-        <!-- Section 2: Visualization Options -->
-        <div class="toolbar-section">
-          <label class="custom-checkbox smooth-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.smooth}
-              @change=${(e: any) => {
-                this._emitChange('smooth', e.target.checked);
-                this._emitChange('hoverMode', e.target.checked ? 'both' : 'original');
-              }} />
-            <span class="checkmark"></span>
-            Smooth
-          </label>
-
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.showDots}
-              @change=${(e: any) => this._emitChange('showDots', e.target.checked)} />
-            <span class="checkmark"></span>
-            Dots
-          </label>
-
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.showSparklines}
-              @change=${(e: any) => this._emitChange('showSparklines', e.target.checked)} />
-            <span class="checkmark"></span>
-            Sparklines
-          </label>
-
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.showRegressions}
-              @change=${(e: any) => this._emitChange('showRegressions', e.target.checked)} />
-            <span class="checkmark"></span>
-            Show Regressions
-          </label>
-
-          <label class="custom-checkbox">
-            <input
-              type="checkbox"
-              .checked=${this.tooltipDiffs}
-              @change=${(e: any) => this._emitChange('tooltipDiffs', e.target.checked)} />
-            <span class="checkmark"></span>
-            Tooltip Diffs
-          </label>
-
-          ${window.perf?.enable_only_regressions_option
-            ? html`
-                <label class="custom-checkbox only-regressions-checkbox">
-                  <input
-                    type="checkbox"
-                    .checked=${this.onlyRegressions}
-                    @change=${(e: any) => this._emitChange('onlyRegressions', e.target.checked)} />
-                  <span class="checkmark"></span>
-                  Only Regressions
-                </label>
-              `
-            : ''}
-          ${window.perf?.enable_split_all_option
-            ? html`
-                <label class="custom-checkbox split-all-checkbox">
-                  <input
-                    type="checkbox"
-                    .checked=${this.splitAll}
-                    @change=${(e: any) => this._emitChange('splitAll', e.target.checked)} />
-                  <span class="checkmark"></span>
-                  Split by All Keys
-                </label>
-              `
-            : ''}
-
-          <div class="toolbar-group">
-            <span class="label">Hover:</span>
-            <select
-              class="custom-select"
-              .value=${this.hoverMode}
-              @change=${(e: any) => this._emitChange('hoverMode', e.target.value)}>
-              <option value="original">Original</option>
-              <option value="smoothed">Smoothed</option>
-              <option value="both">Both</option>
-            </select>
-          </div>
-
-          <!-- Sliders (Inline if visible) -->
-          ${this.hoverMode !== 'original'
-            ? html`
-                <div class="toolbar-group">
-                  <span class="label">Rad:</span>
-                  <input
-                    class="custom-slider rad-slider"
-                    type="range"
-                    min="1"
-                    max="100"
-                    .value=${this.smoothingRadius.toString()}
-                    @input=${(e: any) =>
-                      this._emitChange('smoothingRadius', parseInt(e.target.value, 10))} />
-                  <span class="slider-value">${this.smoothingRadius}</span>
-                </div>
-
-                <div class="toolbar-group">
-                  <span class="label">Edge:</span>
-                  <input
-                    class="custom-slider"
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.05"
-                    .value=${this.edgeDetectionFactor.toString()}
-                    @input=${(e: any) =>
-                      this._emitChange('edgeDetectionFactor', parseFloat(e.target.value))} />
-                  <span class="slider-value">${this.edgeDetectionFactor.toFixed(2)}</span>
-                </div>
-
-                <div class="toolbar-group">
-                  <span class="label">Outlier:</span>
-                  <input
-                    class="custom-slider"
-                    type="range"
-                    min="0"
-                    max="5"
-                    step="1"
-                    .value=${this.edgeLookahead.toString()}
-                    @input=${(e: any) =>
-                      this._emitChange('edgeLookahead', parseInt(e.target.value, 10))} />
-                  <span class="slider-value">${this.edgeLookahead}</span>
-                </div>
-              `
-            : ''}
-        </div>
-      </div>
+      </details>
     `;
   }
 

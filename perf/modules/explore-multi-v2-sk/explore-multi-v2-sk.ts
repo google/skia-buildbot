@@ -14,7 +14,7 @@ import {
 } from './chart-logic';
 import { calculateFetchRequests } from './fetch-logic';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
-import { UNSET_TIME } from '../const/const';
+import { MISSING_VALUE_SENTINEL, UNSET_TIME } from '../const/const';
 import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { makeKey } from '../paramtools';
@@ -67,6 +67,28 @@ const ANOMALY_VIEWPORT_PADDING_COMMITS = 100;
 export class ExploreMultiV2Sk extends LitElement {
   private _queries: Record<string, string[]>[] = [{}];
 
+  private sanitizeQueries(queries: Record<string, string[]>[]): Record<string, string[]>[] {
+    if (!queries) return [{}];
+    return queries.map((q) => {
+      if (!q) return {};
+      const clean: Record<string, string[]> = {};
+      for (const [k, vals] of Object.entries(q)) {
+        if (Array.isArray(vals)) {
+          const filtered = vals.filter((v) => v !== MISSING_VALUE_SENTINEL && v !== '__missing__');
+          if (filtered.length > 0) {
+            clean[k] = filtered;
+          }
+        } else if (typeof (vals as unknown) === 'string') {
+          const strVal = vals as unknown as string;
+          if (strVal !== MISSING_VALUE_SENTINEL && strVal !== '__missing__') {
+            clean[k] = [strVal];
+          }
+        }
+      }
+      return clean;
+    });
+  }
+
   @property({ attribute: false })
   get queries(): Record<string, string[]>[] {
     return this._queries;
@@ -74,7 +96,7 @@ export class ExploreMultiV2Sk extends LitElement {
 
   set queries(val: Record<string, string[]>[]) {
     const oldVal = this._queries;
-    this._queries = val;
+    this._queries = this.sanitizeQueries(val);
     this._tracePage = 0;
     this._summaryBeginOffsetSec = DEFAULT_SUMMARY_RANGE_SEC;
     this._summaryEndOffsetSec = 0;
@@ -89,7 +111,9 @@ export class ExploreMultiV2Sk extends LitElement {
 
   @property({ type: Boolean }) splitAll = false;
 
-  @state() private _queriesExpanded = false;
+  @state() private _queriesExpanded = true;
+
+  private _userToggledExpanded = false;
 
   @state() private _formulasPerQuery: string[][] = [[]];
 
@@ -897,6 +921,9 @@ export class ExploreMultiV2Sk extends LitElement {
 
   willUpdate(changedProperties: PropertyValues) {
     super.willUpdate(changedProperties);
+    if (changedProperties.has('embedded') && !this._userToggledExpanded) {
+      this._queriesExpanded = !this.embedded;
+    }
     if (changedProperties.has('dateMode')) {
       this._initialViewportBounds = null;
     }
@@ -2444,12 +2471,12 @@ export class ExploreMultiV2Sk extends LitElement {
   private _onAddQuery() {
     this.queries = [...this.queries, { ...this._defaultParamSelections }];
     this._formulasPerQuery = [...this._formulasPerQuery, []];
-    if (this.queries.length > 3) {
-      this._queriesExpanded = true;
-    }
+    this._userToggledExpanded = true;
+    this._queriesExpanded = true;
   }
 
   private _toggleQueriesExpand() {
+    this._userToggledExpanded = true;
     this._queriesExpanded = !this._queriesExpanded;
   }
 
@@ -2486,9 +2513,8 @@ export class ExploreMultiV2Sk extends LitElement {
     newSuggestions.splice(idx + 1, 0, []);
     this._suggestionsForQueryBar = newSuggestions;
 
-    if (this.queries.length > 3) {
-      this._queriesExpanded = true;
-    }
+    this._userToggledExpanded = true;
+    this._queriesExpanded = true;
   }
 
   private _handleSuggest(idx: number, e: CustomEvent<{ query: string }>) {
@@ -2919,7 +2945,7 @@ export class ExploreMultiV2Sk extends LitElement {
       <div class="workspace">
         <div class="section-title">Faceted Search Bar</div>
         ${this.queries.map((q, idx) => {
-          if (!this._queriesExpanded && idx >= 3) {
+          if (!this._queriesExpanded) {
             return '';
           }
           return html`
@@ -2976,15 +3002,15 @@ export class ExploreMultiV2Sk extends LitElement {
           <button class="add-query-circle-btn" @click=${this._onAddQuery} title="Add Query">
             +
           </button>
-          ${this.queries.length > 3
+          ${this.queries.length > 0
             ? html`
                 <button
                   class="expand-queries-btn"
                   @click=${this._toggleQueriesExpand}
                   title="${this._queriesExpanded
-                    ? 'Hide extra search bars'
+                    ? 'Hide all search bars'
                     : 'Show all search bars'}">
-                  ${this._queriesExpanded ? 'Collapse' : `Expand (${this.queries.length - 3} more)`}
+                  ${this._queriesExpanded ? 'Collapse' : 'Expand'}
                 </button>
               `
             : ''}
@@ -3034,6 +3060,7 @@ export class ExploreMultiV2Sk extends LitElement {
           : ''}
 
         <explore-toolbar-sk
+          .openAdvanced=${!this.embedded}
           .tracePage=${this._tracePage}
           .totalMatchedPages=${totalMatchedPages}
           .showAllTraces=${this._showAllTraces}

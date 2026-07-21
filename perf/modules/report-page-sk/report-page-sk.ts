@@ -147,7 +147,7 @@ export class ReportPageSk extends ElementSk {
 
   private _splitAllV2 = true;
 
-  private _showSparklinesV2 = true;
+  private _showSparklinesV2 = false;
 
   private _pageSizeV2 = 250;
 
