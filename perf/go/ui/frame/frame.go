@@ -456,7 +456,7 @@ func (p *frameRequestProcess) doKeys(ctx context.Context, keyID string, begin, e
 	if p.request.RequestType == REQUEST_TIME_RANGE {
 		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, p.request.Progress)
 	}
-	return p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress)
+	return p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress, dataframe.NewNFromKeysOptions{LimitOutputToN: true})
 
 }
 
@@ -517,7 +517,7 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 		if p.request.RequestType == REQUEST_TIME_RANGE {
 			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, p.request.Progress)
 		} else {
-			df, err = p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress)
+			df, err = p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress, dataframe.NewNFromKeysOptions{LimitOutputToN: true})
 		}
 		if err != nil {
 			return nil, err

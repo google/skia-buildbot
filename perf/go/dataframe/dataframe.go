@@ -30,6 +30,63 @@ const (
 	MAX_SAMPLE_SIZE = 5000
 )
 
+type contextKey string
+
+const (
+	querySemaphoreKey contextKey = "querySemaphore"
+	loaderMetricsKey  contextKey = "loaderMetrics"
+)
+
+// LoaderMetrics is an interface for tracking database query metrics.
+type LoaderMetrics interface {
+	RecordDbQuery(duration time.Duration)
+}
+
+// WithQuerySemaphore returns a new context with the query semaphore attached.
+func WithQuerySemaphore(ctx context.Context, sem chan struct{}) context.Context {
+	return context.WithValue(ctx, querySemaphoreKey, sem)
+}
+
+// QuerySemaphoreFromContext retrieves the query semaphore channel from context if present.
+func QuerySemaphoreFromContext(ctx context.Context) (chan struct{}, bool) {
+	if semVal := ctx.Value(querySemaphoreKey); semVal != nil {
+		if sem, ok := semVal.(chan struct{}); ok {
+			return sem, true
+		}
+	}
+	return nil, false
+}
+
+// WithLoaderMetrics returns a new context with loader metrics tracking attached.
+func WithLoaderMetrics(ctx context.Context, metrics LoaderMetrics) context.Context {
+	return context.WithValue(ctx, loaderMetricsKey, metrics)
+}
+
+// LoaderMetricsFromContext retrieves loader metrics from context if present.
+func LoaderMetricsFromContext(ctx context.Context) (LoaderMetrics, bool) {
+	if mVal := ctx.Value(loaderMetricsKey); mVal != nil {
+		if m, ok := mVal.(LoaderMetrics); ok {
+			return m, true
+		}
+	}
+	return nil, false
+}
+
+// NewNFromKeysOptions holds optional configuration parameters for NewNFromKeys.
+type NewNFromKeysOptions struct {
+	// TileSize overrides default tile size if > 0.
+	TileSize int32
+
+	// MaxEmptyTiles limits the maximum consecutive empty steps scanned before giving up if > 0.
+	MaxEmptyTiles int
+
+	// LimitOutputToN caps the returned DataFrame columns to N data points.
+	LimitOutputToN bool
+
+	// SkipMetadata suppresses querying git commit details and trace source file info.
+	SkipMetadata bool
+}
+
 // DataFrameBuilder is an interface for things that construct DataFrames.
 type DataFrameBuilder interface {
 	// GetTraceStore returns the underlying TraceStore.
@@ -61,9 +118,9 @@ type DataFrameBuilder interface {
 	// filter out parent traces.
 	NewNFromQueryKeepParents(ctx context.Context, end time.Time, q *query.Query, n int32, progress progress.Progress) (*DataFrame, error)
 
-	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
+	// NewNFromKeys returns a populated DataFrame of condensed traces of N data
 	// points ending at the given 'end' time for the given keys.
-	NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress progress.Progress) (*DataFrame, error)
+	NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress progress.Progress, opts ...NewNFromKeysOptions) (*DataFrame, error)
 
 	// NumMatches returns the number of traces that will match the query.
 	NumMatches(ctx context.Context, q *query.Query) (int64, error)

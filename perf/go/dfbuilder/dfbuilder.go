@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"sort"
 	"sync"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/provider"
 	pqp "go.skia.org/infra/perf/go/preflightqueryprocessor"
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/tracecache"
@@ -540,12 +542,11 @@ func (b *builder) newNFromQuery(ctx context.Context, end time.Time, q *query.Que
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress progress.Progress) (*dataframe.DataFrame, error) {
-	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewNFromKeys")
-	defer span.End()
-
-	defer timer.NewWithSummary("perfserver_dfbuilder_NewNFromKeys", b.newNFromKeysTimer).Stop()
-
+func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress progress.Progress, opts ...dataframe.NewNFromKeysOptions) (*dataframe.DataFrame, error) {
+	var o dataframe.NewNFromKeysOptions
+	if len(opts) > 0 {
+		o = opts[0]
+	}
 	endIndex, err := b.findIndexForTime(ctx, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to find end index")
@@ -553,147 +554,207 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	if endIndex == types.BadCommitNumber {
 		return dataframe.NewEmpty(), nil
 	}
-	beginIndex := endIndex.Add(-(b.tileSize - 1))
-	if beginIndex < 0 {
-		beginIndex = 0
+
+	return b.newNFromKeys(ctx, endIndex, keys, n, progress, o.TileSize, o.MaxEmptyTiles, o.LimitOutputToN, o.SkipMetadata)
+}
+
+func (b *builder) newNFromKeys(ctx context.Context, endIndex types.CommitNumber, keys []string, n int32, progress progress.Progress, tileSize int32, maxTiles int, limitOutputToN bool, skipMetadata bool) (*dataframe.DataFrame, error) {
+	defer timer.NewWithSummary("perfserver_dfbuilder_NewNFromKeys", b.newNFromKeysTimer).Stop()
+
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.newNFromKeys")
+	defer span.End()
+
+	if tileSize <= 0 {
+		tileSize = b.tileSize
+	}
+	if maxTiles <= 0 {
+		maxTiles = newNMaxSearch
 	}
 
-	ret := dataframe.NewEmpty()
-	ps := paramtools.NewParamSet()
-	var total int32 // total number of commits we've added to ret so far.
-	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
-	numStepsNoData := 0
+	calc := newCommitWindowCalculator(endIndex, n, tileSize, maxTiles)
 
-	for total < n {
-		headers, indices, skip, err := fromIndexRange(ctx, b.git, beginIndex, endIndex)
+	type measurement struct {
+		commit types.CommitNumber
+		val    float32
+	}
+	accumulated := make(map[string][]measurement, len(keys))
+
+	accumulatedSourceInfo := make(map[string]*types.TraceSourceInfo, len(keys))
+	for _, key := range keys {
+		accumulatedSourceInfo[key] = types.NewTraceSourceInfo()
+	}
+
+	for !calc.ShouldStop() {
+		beginIndex, endIndex := calc.CurrentBounds()
+
+		stepCtx := ctx
+		if skipMetadata {
+			stepCtx = perfgit.WithSkipMetadata(stepCtx)
+		}
+
+		var sem chan struct{}
+		if s, ok := dataframe.QuerySemaphoreFromContext(stepCtx); ok {
+			sem = s
+			select {
+			case sem <- struct{}{}:
+			case <-stepCtx.Done():
+				return nil, stepCtx.Err()
+			}
+		}
+
+		dbStart := time.Now()
+		resTraces, commits, stepSourceInfo, err := b.store.ReadTracesForCommitRange(stepCtx, keys, beginIndex, endIndex)
+		dbDuration := time.Since(dbStart)
+		if sem != nil {
+			<-sem
+		}
+		if m, ok := dataframe.LoaderMetricsFromContext(stepCtx); ok {
+			m.RecordDbQuery(dbDuration)
+		}
 		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed building index range")
+			return nil, err
 		}
 
-		// Determine which tiles we are querying over, and how each tile maps into our results.
-		mapper := sliceOfTileNumbersFromCommits(indices, b.store)
-
-		commitNumberToOutputIndex := map[types.CommitNumber]int32{}
-		for i, c := range indices {
-			commitNumberToOutputIndex[c] = int32(i)
-		}
-
-		traceSet := types.TraceSet{}
-		sourceInfo := map[string]*types.TraceSourceInfo{}
-		for _, tileNumber := range mapper {
-			// Read the traces for the given keys.
-			traces, commits, sourceFileInfo, err := b.store.ReadTraces(ctx, tileNumber, keys)
-			if err != nil {
-				return nil, err
-			}
-			// For each trace, convert the encodedKey to a structured key
-			// and copy the trace values into their final destination.
-			for key, tileTrace := range traces {
-				trace, ok := traceSet[key]
+		// Accumulate source info
+		if !skipMetadata {
+			for key, info := range stepSourceInfo {
+				accInfo, ok := accumulatedSourceInfo[key]
 				if !ok {
-					trace = types.NewTrace(len(indices))
+					accInfo = types.NewTraceSourceInfo()
+					accumulatedSourceInfo[key] = accInfo
 				}
-				for i, c := range commits {
-					// dstIndex := traceMap[b.store.OffsetFromCommitNumber(c.CommitNumber)]
-					dstIndex, ok := commitNumberToOutputIndex[c.CommitNumber]
-					if !ok {
-						continue
-					}
-					trace[dstIndex] = tileTrace[i]
-				}
-				/*
-					for srcIndex, dstIndex := range traceMap {
-						// What to we do with commits here?
-						trace[dstIndex] = tileTrace[srcIndex]
-					}
-				*/
-				traceSet[key] = trace
-			}
-			for traceid := range sourceFileInfo {
-				if _, ok := sourceInfo[traceid]; !ok {
-					sourceInfo[traceid] = types.NewTraceSourceInfo()
-				}
-				sourceInfo[traceid].CopyFrom(sourceFileInfo[traceid])
+				accInfo.CopyFrom(info)
 			}
 		}
-		df := &dataframe.DataFrame{
-			TraceSet:   traceSet,
-			Header:     headers,
-			ParamSet:   paramtools.NewReadOnlyParamSet(),
-			Skip:       skip,
-			SourceInfo: sourceInfo,
-		}
-		df.BuildParamSet()
 
-		nonMissing := 0
-		// Total up the number of data points we have for each commit.
-		counts := make([]int, len(df.Header))
-		for _, tr := range df.TraceSet {
-			for i, x := range tr {
-				if x != vec32.MissingDataSentinel {
-					counts[i] += 1
-					nonMissing += 1
-				}
-			}
-		}
-		// If there are no matches then we might be done.
-		if nonMissing == 0 {
-			numStepsNoData += 1
-		}
-		if numStepsNoData > newNMaxSearch {
-			break
-		}
+		// Count the total number of unique commits with data found in this step.
+		currentStepCommitsWithData := 0
+		stepUniqueCommits := make(map[types.CommitNumber]bool)
 
-		ps.AddParamSet(df.ParamSet)
-
-		// For each commit that has data, copy the data from df into ret.
-		// Move backwards down the trace since we are building the result from 'end' backwards.
-		for i := len(counts) - 1; i >= 0; i-- {
-			if counts[i] > 0 {
-				ret.Header = append([]*dataframe.ColumnHeader{df.Header[i]}, ret.Header...)
-				for key, sourceTrace := range df.TraceSet {
-					if _, ok := ret.TraceSet[key]; !ok {
-						ret.TraceSet[key] = vec32.New(int(n))
-					}
-					ret.TraceSet[key][n-1-total] = sourceTrace[i]
-				}
-				total += 1
-
-				// If we've added enough commits to ret then we are done.
-				if total == n {
-					break
+		for key, vals := range resTraces {
+			for i, v := range vals {
+				if v != vec32.MissingDataSentinel {
+					cNum := commits[i].CommitNumber
+					accumulated[key] = append(accumulated[key], measurement{
+						commit: cNum,
+						val:    v,
+					})
+					stepUniqueCommits[cNum] = true
 				}
 			}
 		}
 
-		sklog.Infof("Total: %d Steps: %d NumStepsNoData: %d", total, steps, numStepsNoData)
+		currentStepCommitsWithData = len(stepUniqueCommits)
 
-		if total == n {
-			break
+		if currentStepCommitsWithData == 0 {
+			progress.Message("Tiles", fmt.Sprintf("Tiles searched: %d. Found %d/%d points.", calc.steps, calc.totalFound, n))
+			calc.RecordEmptyStep()
+			continue
 		}
 
-		progress.Message("Tiles", fmt.Sprintf("Tiles searched: %d. Found %d/%d points.", steps, total, n))
-		steps += 1
+		progress.Message("Tiles", fmt.Sprintf("Tiles searched: %d. Found %d/%d points.", calc.steps, calc.totalFound+int32(currentStepCommitsWithData), n))
+		calc.RecordSuccessStep(currentStepCommitsWithData)
+	}
 
-		endIndex = endIndex.Add(-b.tileSize)
-		beginIndex = endIndex.Add(-b.tileSize)
-		if endIndex < 0 {
-			break
-		}
-		if beginIndex < 0 {
-			beginIndex = 0
+	// Gather all unique commit numbers
+	uniqueCommitsMap := make(map[types.CommitNumber]bool)
+	for _, measurements := range accumulated {
+		for _, m := range measurements {
+			uniqueCommitsMap[m.commit] = true
 		}
 	}
-	ps.Normalize()
-	ret.ParamSet = ps.Freeze()
+
+	uniqueCommits := make([]types.CommitNumber, 0, len(uniqueCommitsMap))
+	for c := range uniqueCommitsMap {
+		uniqueCommits = append(uniqueCommits, c)
+	}
+
+	// Sort unique commits ascending
+	sort.Slice(uniqueCommits, func(i, j int) bool {
+		return uniqueCommits[i] < uniqueCommits[j]
+	})
+
+	// If limitOutputToN is requested, cap output to the newest N commits
+	if limitOutputToN && len(uniqueCommits) > int(n) {
+		uniqueCommits = uniqueCommits[len(uniqueCommits)-int(n):]
+	}
+
+	// Fetch git metadata for these unique commits unless skipMetadata is requested
+	var commitDetails []provider.Commit
+	if !skipMetadata && len(uniqueCommits) > 0 {
+		var err error
+		commitDetails, err = b.git.CommitSliceFromCommitNumberSlice(ctx, uniqueCommits)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to resolve commit metadata")
+		}
+	}
+
+	commitMap := make(map[types.CommitNumber]provider.Commit, len(commitDetails))
+	for _, c := range commitDetails {
+		commitMap[c.CommitNumber] = c
+	}
+
+	// Build headers
+	headers := make([]*dataframe.ColumnHeader, len(uniqueCommits))
+	commitToIndex := make(map[types.CommitNumber]int, len(uniqueCommits))
+	for i, cNum := range uniqueCommits {
+		commitToIndex[cNum] = i
+		if !skipMetadata {
+			c, ok := commitMap[cNum]
+			if ok {
+				headers[i] = &dataframe.ColumnHeader{
+					Offset:    c.CommitNumber,
+					Timestamp: dataframe.TimestampSeconds(c.Timestamp),
+					Hash:      c.GitHash,
+					Author:    c.Author,
+					Message:   c.Subject,
+					Url:       c.URL,
+				}
+				continue
+			}
+		}
+		headers[i] = &dataframe.ColumnHeader{
+			Offset: cNum,
+		}
+	}
+
+	// Build traceset
+	traceSet := make(types.TraceSet, len(keys))
+	for _, key := range keys {
+		trace := vec32.New(len(uniqueCommits))
+		measurements := accumulated[key]
+		for _, m := range measurements {
+			idx, ok := commitToIndex[m.commit]
+			if ok {
+				trace[idx] = m.val
+			}
+		}
+		traceSet[key] = trace
+	}
+
+	// Filter accumulatedSourceInfo to keep only the keys that are actually in traceSet (skip if requested)
+	sourceFileInfo := make(map[string]*types.TraceSourceInfo, len(traceSet))
+	if !skipMetadata {
+		for key := range traceSet {
+			if info, ok := accumulatedSourceInfo[key]; ok {
+				sourceFileInfo[key] = info
+			} else {
+				sourceFileInfo[key] = types.NewTraceSourceInfo()
+			}
+		}
+	}
+
+	ret := &dataframe.DataFrame{
+		TraceSet:   traceSet,
+		Header:     headers,
+		ParamSet:   paramtools.NewReadOnlyParamSet(),
+		SourceInfo: sourceFileInfo,
+	}
+
+	ret.BuildParamSet()
+
 	if b.filterParentTraces {
 		ret.TraceSet = filterParentTraces(ret.TraceSet)
-	}
-	if total < n {
-		// Trim down the traces so they are the same length as ret.Header.
-		for key, tr := range ret.TraceSet {
-			ret.TraceSet[key] = tr[n-total:]
-		}
 	}
 
 	return ret, nil

@@ -237,7 +237,7 @@ func TestDoKeys_ValidKeyID_ReturnsDataFrameWithTracesFromShortcut(t *testing.T) 
 	}
 
 	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
-	dfbMock.On("NewNFromKeys", testutils.AnyContext, testTimeEnd, shortCut.Keys, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+	dfbMock.On("NewNFromKeys", testutils.AnyContext, testTimeEnd, shortCut.Keys, fr.request.NumCommits, fr.request.Progress, mock.Anything).Return(df, nil)
 	actualDf, err := fr.doKeys(context.Background(), testShortcutKey, testTimeBegin, testTimeEnd)
 
 	require.NoError(t, err)
@@ -328,7 +328,7 @@ func TestDoCalc_ValidFormulaValidShortcutCompact_ReturnsDataFrameWithCalculatedT
 	}
 
 	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
-	dfbMock.On("NewNFromKeys", testutils.AnyContext, testTimeEnd, shortCut.Keys, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+	dfbMock.On("NewNFromKeys", testutils.AnyContext, testTimeEnd, shortCut.Keys, fr.request.NumCommits, fr.request.Progress, mock.Anything).Return(df, nil)
 
 	formula := fmt.Sprintf(`sum(shortcut("%s"))`, testShortcutKey)
 	actualDf, err := fr.doCalc(context.Background(), formula, testTimeBegin, testTimeEnd)
@@ -418,7 +418,7 @@ func TestRun_KeysAndThenPivot_ReturnsPivotedDataFrame(t *testing.T) {
 
 	ssMock := fr.shortcutStore.(*shortcutStoreMock.Store)
 	ssMock.On("Get", testutils.AnyContext, testShortcutKey).Return(shortCut, nil)
-	dfbMock.On("NewNFromKeys", testutils.AnyContext, testTimeEnd, shortCut.Keys, fr.request.NumCommits, fr.request.Progress).Return(df, nil)
+	dfbMock.On("NewNFromKeys", testutils.AnyContext, testTimeEnd, shortCut.Keys, fr.request.NumCommits, fr.request.Progress, mock.Anything).Return(df, nil)
 
 	actualDf, err := fr.run(context.Background())
 	require.NoError(t, err)

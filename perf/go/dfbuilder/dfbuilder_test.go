@@ -177,7 +177,7 @@ func TestBuildNew(t *testing.T) {
 	assert.Len(t, df.TraceSet[",arch=x86,config=565,"], 3)
 
 	// NewNFromKeys.
-	df, err = builder.NewNFromKeys(ctx, now, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, 2, progress.New())
+	df, err = builder.NewNFromKeys(ctx, now, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, 2, progress.New(), dataframe.NewNFromKeysOptions{LimitOutputToN: true})
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 2)
@@ -185,20 +185,20 @@ func TestBuildNew(t *testing.T) {
 	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 2)
 	assert.Len(t, df.TraceSet[",arch=x86,config=565,"], 2)
 
-	df, err = builder.NewNFromKeys(ctx, now, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, 3, progress.New())
+	df, err = builder.NewNFromKeys(ctx, now, []string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, 3, progress.New(), dataframe.NewNFromKeysOptions{LimitOutputToN: true})
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 3)
 	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 3)
 	assert.Len(t, df.TraceSet[",arch=x86,config=565,"], 3)
 
-	df, err = builder.NewNFromKeys(ctx, now, []string{",arch=x86,config=8888,"}, 3, progress.New())
+	df, err = builder.NewNFromKeys(ctx, now, []string{",arch=x86,config=8888,"}, 3, progress.New(), dataframe.NewNFromKeysOptions{LimitOutputToN: true})
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 1)
 	assert.Len(t, df.Header, 3)
 	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"], types.Trace{1.2, 1.3, 1})
 
-	df, err = builder.NewNFromKeys(ctx, now, []string{}, 3, progress.New())
+	df, err = builder.NewNFromKeys(ctx, now, []string{}, 3, progress.New(), dataframe.NewNFromKeysOptions{LimitOutputToN: true})
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
 	assert.Len(t, df.Header, 0)

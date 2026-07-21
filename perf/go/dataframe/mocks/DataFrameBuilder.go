@@ -134,9 +134,16 @@ func (_m *DataFrameBuilder) NewFromQueryAndRangeKeepParents(ctx context.Context,
 	return r0, r1
 }
 
-// NewNFromKeys provides a mock function with given fields: ctx, end, keys, n, _a4
-func (_m *DataFrameBuilder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, _a4 progress.Progress) (*dataframe.DataFrame, error) {
-	ret := _m.Called(ctx, end, keys, n, _a4)
+// NewNFromKeys provides a mock function with given fields: ctx, end, keys, n, _a4, opts
+func (_m *DataFrameBuilder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, _a4 progress.Progress, opts ...dataframe.NewNFromKeysOptions) (*dataframe.DataFrame, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, end, keys, n, _a4)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewNFromKeys")
@@ -144,19 +151,19 @@ func (_m *DataFrameBuilder) NewNFromKeys(ctx context.Context, end time.Time, key
 
 	var r0 *dataframe.DataFrame
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, time.Time, []string, int32, progress.Progress) (*dataframe.DataFrame, error)); ok {
-		return rf(ctx, end, keys, n, _a4)
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, []string, int32, progress.Progress, ...dataframe.NewNFromKeysOptions) (*dataframe.DataFrame, error)); ok {
+		return rf(ctx, end, keys, n, _a4, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, time.Time, []string, int32, progress.Progress) *dataframe.DataFrame); ok {
-		r0 = rf(ctx, end, keys, n, _a4)
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, []string, int32, progress.Progress, ...dataframe.NewNFromKeysOptions) *dataframe.DataFrame); ok {
+		r0 = rf(ctx, end, keys, n, _a4, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*dataframe.DataFrame)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, time.Time, []string, int32, progress.Progress) error); ok {
-		r1 = rf(ctx, end, keys, n, _a4)
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time, []string, int32, progress.Progress, ...dataframe.NewNFromKeysOptions) error); ok {
+		r1 = rf(ctx, end, keys, n, _a4, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
