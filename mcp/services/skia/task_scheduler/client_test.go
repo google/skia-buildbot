@@ -158,48 +158,47 @@ func TestFilterTasks(t *testing.T) {
 		}
 	}
 
-	// Case 1: includeStable=true, includeSuccessful=true
-	// Expected: keep all tasks.
-	t.Run("includeStable=true, includeSuccessful=true", func(t *testing.T) {
+	// Case 1: Defaults (includeStableSuccess=false, includeStableFailure=true, includeLatestSuccessful=true)
+	// Expected: Keep stable-failure, unstable-success-latest, unstable-failure-latest. Exclude stable-success.
+	t.Run("Defaults: stable_success=false, stable_failure=true, latest_successful=true", func(t *testing.T) {
 		tasks := createTasks()
-		filterTasks(tasks, commits, true, true)
+		filterTasks(tasks, commits, false, true, true)
+		assert.NotContains(t, tasks, "stable-success")
+		assert.Contains(t, tasks, "stable-failure")
+		assert.Contains(t, tasks, "unstable-success-latest")
+		assert.Contains(t, tasks, "unstable-failure-latest")
+	})
+
+	// Case 2: Include everything (includeStableSuccess=true, includeStableFailure=true, includeLatestSuccessful=true)
+	// Expected: Keep all tasks.
+	t.Run("Include all: stable_success=true, stable_failure=true, latest_successful=true", func(t *testing.T) {
+		tasks := createTasks()
+		filterTasks(tasks, commits, true, true, true)
 		assert.Contains(t, tasks, "stable-success")
 		assert.Contains(t, tasks, "stable-failure")
 		assert.Contains(t, tasks, "unstable-success-latest")
 		assert.Contains(t, tasks, "unstable-failure-latest")
 	})
 
-	// Case 2: includeStable=false, includeSuccessful=true
-	// Expected: delete stable tasks. Keep only unstable tasks.
-	t.Run("includeStable=false, includeSuccessful=true", func(t *testing.T) {
+	// Case 3: Exclude latest successful (includeStableSuccess=false, includeStableFailure=true, includeLatestSuccessful=false)
+	// Expected: Keep stable-failure and unstable-failure-latest. Exclude stable-success and unstable-success-latest.
+	t.Run("Exclude successful: stable_success=false, stable_failure=true, latest_successful=false", func(t *testing.T) {
 		tasks := createTasks()
-		filterTasks(tasks, commits, false, true)
-		assert.NotContains(t, tasks, "stable-success")
-		assert.NotContains(t, tasks, "stable-failure")
-		assert.Contains(t, tasks, "unstable-success-latest")
-		assert.Contains(t, tasks, "unstable-failure-latest")
-	})
-
-	// Case 3: includeStable=true, includeSuccessful=false
-	// Expected: delete successful latest tasks ("stable-success", "unstable-success-latest").
-	// Keep stable-failure and unstable-failure-latest.
-	t.Run("includeStable=true, includeSuccessful=false", func(t *testing.T) {
-		tasks := createTasks()
-		filterTasks(tasks, commits, true, false)
+		filterTasks(tasks, commits, false, true, false)
 		assert.NotContains(t, tasks, "stable-success")
 		assert.Contains(t, tasks, "stable-failure")
 		assert.NotContains(t, tasks, "unstable-success-latest")
 		assert.Contains(t, tasks, "unstable-failure-latest")
 	})
 
-	// Case 4: includeStable=false, includeSuccessful=false
-	// Expected: keep only "unstable-failure-latest" (since others are either stable or successful-latest).
-	t.Run("includeStable=false, includeSuccessful=false", func(t *testing.T) {
+	// Case 4: Exclude stable failures (includeStableSuccess=false, includeStableFailure=false, includeLatestSuccessful=true)
+	// Expected: Keep unstable-success-latest and unstable-failure-latest. Exclude stable-success and stable-failure.
+	t.Run("Exclude stable failures: stable_success=false, stable_failure=false, latest_successful=true", func(t *testing.T) {
 		tasks := createTasks()
-		filterTasks(tasks, commits, false, false)
+		filterTasks(tasks, commits, false, false, true)
 		assert.NotContains(t, tasks, "stable-success")
 		assert.NotContains(t, tasks, "stable-failure")
-		assert.NotContains(t, tasks, "unstable-success-latest")
+		assert.Contains(t, tasks, "unstable-success-latest")
 		assert.Contains(t, tasks, "unstable-failure-latest")
 	})
 }

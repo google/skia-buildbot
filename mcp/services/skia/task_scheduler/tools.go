@@ -10,18 +10,19 @@ import (
 )
 
 const (
-	argStartTime         = "start_time"
-	argEndTime           = "end_time"
-	argIssue             = "issue"
-	argPatchset          = "patchset"
-	argTaskStatus        = "status"
-	argRepo              = "repo"
-	argRevision          = "revision"
-	argTaskName          = "name"
-	argLimit             = "limit"
-	argIncludeStable     = "include_stable"
-	argIncludeSuccessful = "include_successful"
-	argTaskId            = "task_id"
+	argStartTime               = "start_time"
+	argEndTime                 = "end_time"
+	argIssue                   = "issue"
+	argPatchset                = "patchset"
+	argTaskStatus              = "status"
+	argRepo                    = "repo"
+	argRevision                = "revision"
+	argTaskName                = "name"
+	argLimit                   = "limit"
+	argIncludeStableSuccess    = "include_stable_success"
+	argIncludeStableFailure    = "include_stable_failure"
+	argIncludeLatestSuccessful = "include_latest_successful"
+	argTaskId                  = "task_id"
 
 	taskStatusPending = "PENDING"
 )
@@ -109,13 +110,18 @@ If not provided, the current time is used.`,
 					Description: "[Optional] Name of the task. If not set, returns results for all tasks.",
 				},
 				{
-					Name:         argIncludeStable,
-					Description:  "If set, include results for tasks which are succeeding or failing consistently within the given window.",
+					Name:         argIncludeStableSuccess,
+					Description:  "If true, include results for tasks which are consistently succeeding within the given window. Default: false",
 					ArgumentType: common.BooleanArgument,
 				},
 				{
-					Name:         argIncludeSuccessful,
-					Description:  "If true, include results for tasks which succeeded at their most recent run within the window. Default: true",
+					Name:         argIncludeStableFailure,
+					Description:  "If true, include results for tasks which are consistently failing within the given window. Default: true",
+					ArgumentType: common.BooleanArgument,
+				},
+				{
+					Name:         argIncludeLatestSuccessful,
+					Description:  "If true, include results for tasks which had failures but succeeded at their most recent run within the window. Default: true",
 					ArgumentType: common.BooleanArgument,
 				},
 				format.FormatToolArgument(),

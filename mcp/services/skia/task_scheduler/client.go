@@ -102,8 +102,9 @@ func (c *TaskSchedulerClient) GetTaskHealthReportHandler(ctx context.Context, re
 		return nil, skerr.Wrap(err)
 	}
 	taskName := req.GetString(argTaskName, "")
-	includeStable := req.GetBool(argIncludeStable, false)
-	includeSuccessful := req.GetBool(argIncludeSuccessful, true)
+	includeStableSuccess := req.GetBool(argIncludeStableSuccess, false)
+	includeStableFailure := req.GetBool(argIncludeStableFailure, true)
+	includeLatestSuccessful := req.GetBool(argIncludeLatestSuccessful, true)
 
 	repo, err := gitiles.NewRepoWithClient(repoUrl, c.client)
 	if err != nil {
@@ -159,15 +160,15 @@ func (c *TaskSchedulerClient) GetTaskHealthReportHandler(ctx context.Context, re
 		}
 	}
 
-	// Filter out stable and successful tasks.
+	// Filter out tasks.
 	if taskName == "" {
-		filterTasks(resp.Tasks, resp.Commits, includeStable, includeSuccessful)
+		filterTasks(resp.Tasks, resp.Commits, includeStableSuccess, includeStableFailure, includeLatestSuccessful)
 	}
 
 	return &resp, nil
 }
 
-func filterTasks(tasks map[string]map[string]*types.Task, commits []*vcsinfo.ShortCommit, includeStable, includeSuccessful bool) {
+func filterTasks(tasks map[string]map[string]*types.Task, commits []*vcsinfo.ShortCommit, includeStableSuccess, includeStableFailure, includeLatestSuccessful bool) {
 	for taskName, tasksByCommit := range tasks {
 		// Find the most recent run of the task in the window.
 		var latestTask *types.Task
@@ -194,10 +195,20 @@ func filterTasks(tasks map[string]map[string]*types.Task, commits []*vcsinfo.Sho
 			}
 		}
 
-		if !includeStable && stable {
-			delete(tasks, taskName)
-		} else if !includeSuccessful && succeededLatestRun {
-			delete(tasks, taskName)
+		if stable {
+			if firstStatus == types.TASK_STATUS_SUCCESS {
+				if !includeStableSuccess {
+					delete(tasks, taskName)
+				}
+			} else {
+				if !includeStableFailure {
+					delete(tasks, taskName)
+				}
+			}
+		} else {
+			if succeededLatestRun && !includeLatestSuccessful {
+				delete(tasks, taskName)
+			}
 		}
 	}
 }

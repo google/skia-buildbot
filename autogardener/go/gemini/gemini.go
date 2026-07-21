@@ -440,10 +440,11 @@ func (c *clientImpl) fetchStepLogs(ctx context.Context, tool string, toolArgs ma
 func (c *clientImpl) GetTaskHealthReport(ctx context.Context, repo, branch string, limit int) (*task_scheduler.TaskHealthReport, error) {
 	var healthReport task_scheduler.TaskHealthReport
 	if err := mcp.CallToolJSON(ctx, c.mcpClient, "get_task_health_report", map[string]interface{}{
-		"limit":          limit,
-		"repo":           repo,
-		"revision":       branch,
-		"include_stable": true,
+		"limit":                     limit,
+		"repo":                      repo,
+		"revision":                  branch,
+		"include_stable_failure":    true,
+		"include_latest_successful": true,
 	}, &healthReport); err != nil {
 		return nil, skerr.Wrapf(err, "failed to retrieve task health report")
 	}
