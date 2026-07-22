@@ -73,9 +73,9 @@ type TestAndExportParams struct {
 
 // processInsertData takes the task IDs and serializes them into TestResult objects,
 // which can be used to upload to BQ.
-func processInsertData(req *TestAndExportParams, taskIds []string) []*TestResult {
+func processInsertData(ctx workflow.Context, req *TestAndExportParams, taskIds []string) []*TestResult {
 	res := []*TestResult{}
-	currentTime := time.Now().UTC()
+	currentTime := workflow.Now(ctx).UTC()
 	for _, taskId := range taskIds {
 		res = append(res, &TestResult{
 			WorkflowID:     req.WorkflowID,
@@ -130,7 +130,7 @@ func test(ctx workflow.Context, p *RunBenchmarkParams) (string, error) {
 // uploadTestRuns will ensure that the target table exists, and
 // upload all swarming task ids triggered for this workflow.
 func uploadTestRuns(ctx workflow.Context, req *TestAndExportParams, taskIds []string) error {
-	insertData := processInsertData(req, taskIds)
+	insertData := processInsertData(ctx, req, taskIds)
 
 	var wferr error
 	if err := workflow.ExecuteActivity(ctx, UploadResultsActivity, req.Project, req.Dataset, req.TableName, insertData).Get(ctx, &wferr); err != nil {
