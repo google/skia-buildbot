@@ -536,6 +536,142 @@ describe('ExploreMultiSk', () => {
 
       assert.equal(element['exploreElements'].length, initialGraphCount + 1);
     });
+
+    it('multigraph picker adds more params to picker after initial plot', async () => {
+      const benchmarks = ['bench1', 'bench2', 'bench3'];
+      const bots = ['bot1', 'bot2', 'bot3'];
+      const tests = ['test1', 'test2', 'test3'];
+
+      const allTraceset: { [key: string]: number[] } = {};
+      for (const b of benchmarks) {
+        for (const bo of bots) {
+          for (const t of tests) {
+            allTraceset[`,benchmark=${b},bot=${bo},test=${t},`] = [1, 2, 3];
+          }
+        }
+      }
+      assert.equal(Object.keys(allTraceset).length, 27, 'Should have 27 traces in total dataset');
+
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: { useTestPicker: 'true' },
+        include_params: ['benchmark', 'bot', 'test'],
+      });
+
+      fetchMock.post(
+        '/_/frame/start',
+        (_url, opts) => {
+          const body = JSON.parse(opts.body as string);
+          const queries = body.queries || [];
+          const matchedTraceset: { [key: string]: number[] } = {};
+
+          queries.forEach((q: string) => {
+            const params = new URLSearchParams(q);
+            const benchFilter = params.getAll('benchmark');
+            const botFilter = params.getAll('bot');
+            const testFilter = params.getAll('test');
+
+            for (const b of benchmarks) {
+              if (benchFilter.length > 0 && !benchFilter.includes(b)) continue;
+              for (const bo of bots) {
+                if (botFilter.length > 0 && !botFilter.includes(bo)) continue;
+                for (const t of tests) {
+                  if (testFilter.length > 0 && !testFilter.includes(t)) continue;
+                  const traceKey = `,benchmark=${b},bot=${bo},test=${t},`;
+                  matchedTraceset[traceKey] = allTraceset[traceKey];
+                }
+              }
+            }
+          });
+
+          return {
+            status: 'Finished',
+            messages: [],
+            url: '',
+            results: {
+              dataframe: {
+                traceset: matchedTraceset,
+                header: [
+                  { offset: 100, timestamp: 1000, hash: 'a', author: 'me', message: 'm', url: '' },
+                  { offset: 101, timestamp: 1001, hash: 'b', author: 'me', message: 'm', url: '' },
+                  { offset: 102, timestamp: 1002, hash: 'c', author: 'me', message: 'm', url: '' },
+                ],
+                paramset: {
+                  benchmark: benchmarks,
+                  bot: bots,
+                  test: tests,
+                },
+              },
+              anomalymap: {},
+            },
+          };
+        },
+        { overwriteRoutes: true }
+      );
+
+      element.state.useTestPicker = true;
+      await element['initializeTestPicker']();
+
+      const testPicker = element.querySelector('test-picker-sk') as TestPickerSk;
+      const queryStub = sinon.stub(testPicker, 'createQueryFromFieldData');
+
+      // 1. Select just one trace (bench1, bot1, test1) and click plot
+      const query1 = 'benchmark=bench1&bot=bot1&test=test1';
+      queryStub.returns(query1);
+
+      const plotEvent = new CustomEvent('plot-button-clicked', {
+        detail: { query: query1 },
+        bubbles: true,
+      });
+      element.dispatchEvent(plotEvent);
+      await waitForDataLoaded(element);
+      const graph = element['exploreElements'][0];
+      await graph.requestComplete;
+
+      let traceset = graph.getTraceset()!;
+      assert.isDefined(traceset[',benchmark=bench1,bot=bot1,test=test1,']);
+      assert.equal(Object.keys(traceset).length, 1, 'The graph should contain 1 trace initially');
+
+      // 2. Next, add test2
+      const query2 = 'benchmark=bench1&bot=bot1&test=test1&test=test2';
+      queryStub.returns(query2);
+
+      const addTest2Event = new CustomEvent('add-to-graph', {
+        detail: { query: query2 },
+        bubbles: true,
+      });
+      await element['_onAddToGraph'](addTest2Event);
+      await waitForDataLoaded(element);
+      await graph.requestComplete;
+
+      traceset = graph.getTraceset()!;
+      assert.isDefined(traceset[',benchmark=bench1,bot=bot1,test=test1,']);
+      assert.isDefined(traceset[',benchmark=bench1,bot=bot1,test=test2,']);
+      assert.equal(
+        Object.keys(traceset).length,
+        2,
+        'The graph should contain 2 traces after test2 is added'
+      );
+
+      // 3. Next, add bot2
+      const query3 = 'benchmark=bench1&bot=bot1&bot=bot2&test=test1&test=test2';
+      queryStub.returns(query3);
+
+      const addBot2Event = new CustomEvent('add-to-graph', {
+        detail: { query: query3 },
+        bubbles: true,
+      });
+      await element['_onAddToGraph'](addBot2Event);
+      await waitForDataLoaded(element);
+      await graph.requestComplete;
+
+      traceset = graph.getTraceset()!;
+      assert.isDefined(traceset[',benchmark=bench1,bot=bot1,test=test1,']);
+      assert.isDefined(traceset[',benchmark=bench1,bot=bot1,test=test2,']);
+      assert.isDefined(traceset[',benchmark=bench1,bot=bot2,test=test1,']);
+      assert.isDefined(traceset[',benchmark=bench1,bot=bot2,test=test2,']);
+      assert.equal(Object.keys(traceset).length, 4, 'The graph should contain 4 traces in total');
+    });
   });
 
   describe('Manual Plot Graph Mode', () => {
