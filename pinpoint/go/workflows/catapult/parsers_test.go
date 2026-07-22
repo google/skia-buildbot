@@ -53,7 +53,7 @@ func mockParseRunDataWorkflow(ctx workflow.Context, runData []*internal.BisectRu
 		State: []*pinpoint_proto.LegacyJobResponse_State{},
 	}
 
-	for _, attempts := range commitToAttempts {
+	for _, attempts := range common.SortedRange(commitToAttempts) {
 		state := &pinpoint_proto.LegacyJobResponse_State{
 			Attempts: attempts,
 		}
