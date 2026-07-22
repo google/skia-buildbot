@@ -386,7 +386,7 @@ func CbbRunnerWorkflow(ctx workflow.Context, cbb *CbbRunnerParams) (map[string]*
 
 	if len(errs) > 0 {
 		swarmingLinks := map[string]string{}
-		for benchmark, jobId := range jobIds {
+		for benchmark, jobId := range common.SortedRange(jobIds) {
 			swarmingLinks[benchmark] = getSwarmingLink(ctx, startTime, jobId)
 		}
 
@@ -483,10 +483,10 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot, benchmark string, bi
 	values := map[string][]float64{}
 	units := map[string]string{}
 	for _, run := range cr.Runs {
-		for c, v := range run.Values {
+		for c, v := range common.SortedRange(run.Values) {
 			values[c] = append(values[c], v...)
 		}
-		for c, u := range run.Units {
+		for c, u := range common.SortedRange(run.Units) {
 			units[c] = u
 		}
 	}
@@ -503,7 +503,7 @@ func formatResult(ctx workflow.Context, cr *CommitRun, bot, benchmark string, bi
 		}
 	}
 
-	for c, v := range values {
+	for c, v := range common.SortedRange(values) {
 		h := perfresults.Histogram{
 			SampleValues: v,
 		}

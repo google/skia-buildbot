@@ -5,4 +5,9 @@ decls:
   github.com/google/uuid.NewUUID: true
   google.golang.org/protobuf/types/known/timestamppb: true
   encoding/json.Unmarshal: false
+  encoding/json.Marshal: false
+  encoding/json.MarshalIndent: false
+  (*encoding/json.Encoder).Encode: false
+  (*encoding/json.Decoder).Decode: false
   gopkg.in/yaml.v3.Unmarshal: false
+  golang.org/x/text/cases.Title: false
