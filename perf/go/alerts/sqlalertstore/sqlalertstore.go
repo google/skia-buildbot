@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v4"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
@@ -110,6 +111,9 @@ func New(db pool.Pool) (*SQLAlertStore, error) {
 
 // Save implements the alerts.Store interface.
 func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error {
+	ctx, span := trace.StartSpan(ctx, "sqlalertstore.Save")
+	defer span.End()
+
 	cfg := req.Cfg
 	var b bytes.Buffer
 	err := json.NewEncoder(&b).Encode(cfg)
@@ -146,6 +150,8 @@ func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error
 // ReplaceAll implements the alerts.Store interface.
 // TODO(eduardoyap): Modify to execute one Insert statement, instead of multiple.
 func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveRequest, tx pgx.Tx) error {
+	ctx, span := trace.StartSpan(ctx, "sqlalertstore.ReplaceAll")
+	defer span.End()
 
 	now := time.Now().Unix()
 	if _, err := tx.Exec(ctx, s.statements[deleteAllAlerts], now); err != nil {
@@ -172,6 +178,9 @@ func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveReque
 
 // Delete implements the alerts.Store interface.
 func (s *SQLAlertStore) Delete(ctx context.Context, id int) error {
+	ctx, span := trace.StartSpan(ctx, "sqlalertstore.Delete")
+	defer span.End()
+
 	now := time.Now().Unix()
 	if _, err := s.db.Exec(ctx, s.statements[deleteAlert], now, id); err != nil {
 		return skerr.Wrapf(err, "Failed to mark Alert as deleted with ID=%d", id)
@@ -192,6 +201,9 @@ func (p sortableAlertSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // List implements the alerts.Store interface.
 func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alerts.Alert, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlalertstore.List")
+	defer span.End()
+
 	stmt := listActiveAlerts
 	if includeDeleted {
 		stmt = listAllAlerts
@@ -221,6 +233,9 @@ func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alert
 
 // ListForSubscription implements the alerts.Store interface.
 func (s *SQLAlertStore) ListForSubscription(ctx context.Context, subName string) ([]*alerts.Alert, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlalertstore.ListForSubscription")
+	defer span.End()
+
 	rows, err := s.db.Query(ctx, s.statements[listForSub], subName)
 	if err != nil {
 		return nil, err

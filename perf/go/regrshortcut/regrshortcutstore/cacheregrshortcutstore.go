@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/types"
@@ -38,6 +39,9 @@ type cacheKey struct {
 
 // Create implements the regrshortcut.Store interface.
 func (c *cacheRegressionsShortcutStore) Create(ctx context.Context, regrIdList []string) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "cacheRegressionsShortcutStore.Create")
+	defer span.End()
+
 	if len(regrIdList) == 0 {
 		return "", skerr.Fmt("regression id list cannot be empty")
 	}
@@ -62,6 +66,9 @@ func (c *cacheRegressionsShortcutStore) Create(ctx context.Context, regrIdList [
 
 // Get implements the regrshortcut.Store interface.
 func (c *cacheRegressionsShortcutStore) Get(ctx context.Context, shortcut string) (sql.NullBool, []string, error) {
+	ctx, span := trace.StartSpan(ctx, "cacheRegressionsShortcutStore.Get")
+	defer span.End()
+
 	if !strings.HasPrefix(shortcut, "\\x") {
 		shortcut = "\\x" + shortcut
 	}

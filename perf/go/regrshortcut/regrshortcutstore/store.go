@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v4"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/types"
@@ -31,6 +32,9 @@ func New(db pool.Pool) *RegressionsShortcutStore {
 
 // Create implements the regrshortcut.Store interface.
 func (rss *RegressionsShortcutStore) Create(ctx context.Context, regrIdList []string) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "regrshortcutstore.Create")
+	defer span.End()
+
 	slices.Sort(regrIdList)
 	shortcut := rss.calcHash(regrIdList)
 
@@ -48,6 +52,9 @@ func (rss *RegressionsShortcutStore) Create(ctx context.Context, regrIdList []st
 
 // Get implements the regrshortcut.Store interface.
 func (rss *RegressionsShortcutStore) Get(ctx context.Context, shortcut string) (sql.NullBool, []string, error) {
+	ctx, span := trace.StartSpan(ctx, "regrshortcutstore.Get")
+	defer span.End()
+
 	if !strings.HasPrefix(shortcut, "\\x") {
 		shortcut = "\\x" + shortcut
 	}

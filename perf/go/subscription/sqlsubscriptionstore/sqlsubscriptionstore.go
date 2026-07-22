@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v4"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
@@ -123,6 +124,9 @@ func New(db pool.Pool) (*SubscriptionStore, error) {
 
 // GetSubscription implements the subscription.Store interface.
 func (s *SubscriptionStore) GetSubscription(ctx context.Context, name string, revision string) (*pb.Subscription, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlsubscriptionstore.GetSubscription")
+	defer span.End()
+
 	sub := &pb.Subscription{}
 	if err := s.db.QueryRow(ctx, statements[getSubscription], name, revision).Scan(
 		&sub.Name,
@@ -145,6 +149,9 @@ func (s *SubscriptionStore) GetSubscription(ctx context.Context, name string, re
 
 // GetActiveSubscription implements the subscription.Store interface.
 func (s *SubscriptionStore) GetActiveSubscription(ctx context.Context, name string) (*pb.Subscription, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlsubscriptionstore.GetActiveSubscription")
+	defer span.End()
+
 	sub := &pb.Subscription{}
 	if err := s.db.QueryRow(ctx, statements[getActiveSubscription], name).Scan(
 		&sub.Name,
@@ -167,6 +174,8 @@ func (s *SubscriptionStore) GetActiveSubscription(ctx context.Context, name stri
 
 // InsertSubscriptions implements the subscription.Store interface.
 func (s *SubscriptionStore) InsertSubscriptions(ctx context.Context, subs []*pb.Subscription, tx pgx.Tx) error {
+	ctx, span := trace.StartSpan(ctx, "sqlsubscriptionstore.InsertSubscriptions")
+	defer span.End()
 
 	// Set all existing subscriptions to inactive
 	if _, err := tx.Exec(ctx, statements[deactivateAllSubscriptions]); err != nil {
@@ -186,6 +195,9 @@ func (s *SubscriptionStore) InsertSubscriptions(ctx context.Context, subs []*pb.
 // GetAllSubscriptions implements the subscription.Store interface.
 // This function queries the db to fetch all the subscriptions.
 func (s *SubscriptionStore) GetAllSubscriptions(ctx context.Context) ([]*pb.Subscription, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlsubscriptionstore.GetAllSubscriptions")
+	defer span.End()
+
 	stmt := statements[getAllSubscriptions]
 	rows, err := s.db.Query(ctx, stmt)
 	if err != nil {
@@ -218,6 +230,8 @@ func (s *SubscriptionStore) GetAllSubscriptions(ctx context.Context) ([]*pb.Subs
 
 // GetAllActiveSubscriptions retrieves all active subscriptions from the database.
 func (s *SubscriptionStore) GetAllActiveSubscriptions(ctx context.Context) ([]*pb.Subscription, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlsubscriptionstore.GetAllActiveSubscriptions")
+	defer span.End()
 
 	rows, err := s.db.Query(ctx, statements[getAllActiveSubscriptions])
 	if err != nil {

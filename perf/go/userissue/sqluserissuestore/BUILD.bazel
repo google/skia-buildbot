@@ -11,6 +11,7 @@ go_library(
         "//go/sql/pool",
         "//go/sql/sqlutil",
         "//perf/go/userissue:store",
+        "@io_opencensus_go//trace",
     ],
 )
 

@@ -8,6 +8,7 @@ import (
 	"text/template"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/sqlutil"
@@ -78,8 +79,11 @@ func New(db pool.Pool) *UserIssueStore {
 	}
 }
 
-// Create implements the userissue.Store interface.
+// Save implements the userissue.Store interface.
 func (s *UserIssueStore) Save(ctx context.Context, req *userissue.UserIssue) error {
+	ctx, span := trace.StartSpan(ctx, "sqluserissuestore.Save")
+	defer span.End()
+
 	now := time.Now()
 	if _, err := s.db.Exec(ctx, statements[saveUserIssue], req.UserId, req.TraceKey, req.CommitPosition, req.IssueId, now); err != nil {
 		return skerr.Wrapf(err, "Failed to insert userissue for traceKey=%s and commitPosition=%d", req.TraceKey, req.CommitPosition)
@@ -89,6 +93,9 @@ func (s *UserIssueStore) Save(ctx context.Context, req *userissue.UserIssue) err
 
 // Delete implements the userissues.Store interface.
 func (s *UserIssueStore) Delete(ctx context.Context, traceKey string, commitPosition int64) error {
+	ctx, span := trace.StartSpan(ctx, "sqluserissuestore.Delete")
+	defer span.End()
+
 	userIssue := userissue.UserIssue{}
 	if err := s.db.QueryRow(ctx, statements[getUserIssue], traceKey, commitPosition).Scan(
 		&userIssue.UserId,
@@ -108,6 +115,9 @@ func (s *UserIssueStore) Delete(ctx context.Context, traceKey string, commitPosi
 
 // GetPoints implements the userissues.Store interface.
 func (s *UserIssueStore) GetUserIssuesForTraceKeys(ctx context.Context, traceKeys []string, begin int64, end int64) ([]userissue.UserIssue, error) {
+	ctx, span := trace.StartSpan(ctx, "sqluserissuestore.GetUserIssuesForTraceKeys")
+	defer span.End()
+
 	// Get the raw statement for listing all user issues
 	statementTemplate, _ := template.New("list_user_template").Parse(statements[listUserIssues])
 	context := listUserIssuesContext{

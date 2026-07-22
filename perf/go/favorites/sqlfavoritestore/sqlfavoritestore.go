@@ -6,6 +6,7 @@ import (
 	"context"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/favorites"
@@ -90,6 +91,9 @@ func New(db pool.Pool) *FavoriteStore {
 
 // Get implements the favorites.Store interface.
 func (s *FavoriteStore) Get(ctx context.Context, id string) (*favorites.Favorite, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlfavoritestore.Get")
+	defer span.End()
+
 	fav := &favorites.Favorite{}
 	if err := s.db.QueryRow(ctx, statements[getFavorite], id).Scan(
 		&fav.ID,
@@ -106,6 +110,9 @@ func (s *FavoriteStore) Get(ctx context.Context, id string) (*favorites.Favorite
 
 // Create implements the favorites.Store interface.
 func (s *FavoriteStore) Create(ctx context.Context, req *favorites.SaveRequest) error {
+	ctx, span := trace.StartSpan(ctx, "sqlfavoritestore.Create")
+	defer span.End()
+
 	now := time.Now().Unix()
 	if _, err := s.db.Exec(ctx, statements[insertFavorite], req.UserId, req.Name, req.Url, req.Description, now); err != nil {
 		return skerr.Wrapf(err, "Failed to insert favorite")
@@ -115,6 +122,9 @@ func (s *FavoriteStore) Create(ctx context.Context, req *favorites.SaveRequest) 
 
 // Create implements the favorites.Store interface.
 func (s *FavoriteStore) Update(ctx context.Context, req *favorites.SaveRequest, id string) error {
+	ctx, span := trace.StartSpan(ctx, "sqlfavoritestore.Update")
+	defer span.End()
+
 	now := time.Now().Unix()
 	cmdRes, err := s.db.Exec(ctx, statements[updateFavorite], req.Name, req.Url, req.Description, now, id)
 	if err != nil {
@@ -128,6 +138,9 @@ func (s *FavoriteStore) Update(ctx context.Context, req *favorites.SaveRequest, 
 
 // Delete implements the favorites.Store interface.
 func (s *FavoriteStore) Delete(ctx context.Context, userId string, id string) error {
+	ctx, span := trace.StartSpan(ctx, "sqlfavoritestore.Delete")
+	defer span.End()
+
 	call, err := s.db.Exec(ctx, statements[deleteFavorite], id, userId)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to delete favorite with id=%s", id)
@@ -141,6 +154,9 @@ func (s *FavoriteStore) Delete(ctx context.Context, userId string, id string) er
 
 // List implements the favorites.Store interface.
 func (s *FavoriteStore) List(ctx context.Context, userId string) ([]*favorites.Favorite, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlfavoritestore.List")
+	defer span.End()
+
 	rows, err := s.db.Query(ctx, statements[listFavorites], userId)
 	if err != nil {
 		return nil, err
@@ -160,6 +176,9 @@ func (s *FavoriteStore) List(ctx context.Context, userId string) ([]*favorites.F
 }
 
 func (s *FavoriteStore) Liveness(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "sqlfavoritestore.Liveness")
+	defer span.End()
+
 	var live int
 	if err := s.db.QueryRow(ctx, statements[liveness]).Scan(&live); err != nil {
 		return skerr.Wrapf(err, "cockroachDB connection is lost")

@@ -17,6 +17,7 @@ go_library(
         "//go/sql/pool",
         "//perf/go/shortcut",
         "@com_github_jackc_pgx_v4//:pgx",
+        "@io_opencensus_go//trace",
     ],
 )
 

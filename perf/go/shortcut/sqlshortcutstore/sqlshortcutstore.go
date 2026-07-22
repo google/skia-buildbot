@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"github.com/jackc/pgx/v4"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -73,6 +74,9 @@ func New(db pool.Pool) (*SQLShortcutStore, error) {
 
 // Insert implements the shortcut.Store interface.
 func (s *SQLShortcutStore) Insert(ctx context.Context, r io.Reader) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlshortcutstore.Insert")
+	defer span.End()
+
 	shortcut := &shortcut.Shortcut{}
 	if err := json.NewDecoder(r).Decode(shortcut); err != nil {
 		return "", skerr.Wrapf(err, "Unable to read shortcut body")
@@ -82,6 +86,9 @@ func (s *SQLShortcutStore) Insert(ctx context.Context, r io.Reader) (string, err
 
 // InsertShortcut implements the shortcut.Store interface.
 func (s *SQLShortcutStore) InsertShortcut(ctx context.Context, sc *shortcut.Shortcut) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlshortcutstore.InsertShortcut")
+	defer span.End()
+
 	for _, key := range sc.Keys {
 		if !query.IsValid(key) {
 			return "", skerr.Fmt("Tried to store an invalid trace key: %q", key)
@@ -101,6 +108,9 @@ func (s *SQLShortcutStore) InsertShortcut(ctx context.Context, sc *shortcut.Shor
 
 // Get implements the shortcut.Store interface.
 func (s *SQLShortcutStore) Get(ctx context.Context, id string) (*shortcut.Shortcut, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlshortcutstore.Get")
+	defer span.End()
+
 	var encoded string
 	if err := s.db.QueryRow(ctx, statements[getShortcut], id).Scan(&encoded); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to load shortcuts.")
@@ -115,14 +125,18 @@ func (s *SQLShortcutStore) Get(ctx context.Context, id string) (*shortcut.Shortc
 
 // GetAll implements the shortcut.Store interface.
 func (s *SQLShortcutStore) GetAll(ctx context.Context) (<-chan *shortcut.Shortcut, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlshortcutstore.GetAll")
+
 	ret := make(chan *shortcut.Shortcut)
 
 	rows, err := s.db.Query(ctx, statements[getAllShortcuts])
 	if err != nil {
+		span.End()
 		return ret, skerr.Wrapf(err, "Failed to query for all shortcuts.")
 	}
 
 	go func() {
+		defer span.End()
 		defer rows.Close()
 		defer close(ret)
 
@@ -146,6 +160,9 @@ func (s *SQLShortcutStore) GetAll(ctx context.Context) (<-chan *shortcut.Shortcu
 
 // DeleteShortcut implements the shortcut.Store interface.
 func (s *SQLShortcutStore) DeleteShortcut(ctx context.Context, id string, tx pgx.Tx) error {
+	ctx, span := trace.StartSpan(ctx, "sqlshortcutstore.DeleteShortcut")
+	defer span.End()
+
 	var err error
 	if tx == nil {
 		_, err = s.db.Exec(ctx, statements[deleteShortcut], id)

@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/graphsshortcut"
@@ -55,6 +56,9 @@ func New(db pool.Pool) (*GraphsShortcutStore, error) {
 
 // InsertShortcut implements the graphsshortcut.Store interface.
 func (s *GraphsShortcutStore) InsertShortcut(ctx context.Context, sc *graphsshortcut.GraphsShortcut) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "graphsshortcutstore.InsertShortcut")
+	defer span.End()
+
 	id := (*sc).GetID()
 	var buff bytes.Buffer
 	err := json.NewEncoder(&buff).Encode(sc)
@@ -69,6 +73,9 @@ func (s *GraphsShortcutStore) InsertShortcut(ctx context.Context, sc *graphsshor
 
 // GetShortcut implements the graphsshortcut.Store interface.
 func (s *GraphsShortcutStore) GetShortcut(ctx context.Context, id string) (*graphsshortcut.GraphsShortcut, error) {
+	ctx, span := trace.StartSpan(ctx, "graphsshortcutstore.GetShortcut")
+	defer span.End()
+
 	var encoded string
 	if err := s.db.QueryRow(ctx, statements[getShortcut], id).Scan(&encoded); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to load shortcuts.")
