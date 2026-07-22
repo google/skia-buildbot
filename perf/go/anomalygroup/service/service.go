@@ -9,6 +9,7 @@ import (
 
 	tpr_client "go.temporal.io/sdk/client"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -64,6 +65,8 @@ func (s *anomalygroupService) GetServiceDescriptor() grpc.ServiceDesc {
 func (s *anomalygroupService) CreateNewAnomalyGroup(
 	ctx context.Context,
 	req *ag.CreateNewAnomalyGroupRequest) (*ag.CreateNewAnomalyGroupResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "anomalygroupService.CreateNewAnomalyGroup")
+	defer span.End()
 
 	new_group_id, err := s.anomalygroupStore.Create(
 		ctx,
@@ -88,6 +91,9 @@ func (s *anomalygroupService) CreateNewAnomalyGroup(
 func (s *anomalygroupService) LoadAnomalyGroupByID(
 	ctx context.Context,
 	req *ag.LoadAnomalyGroupByIDRequest) (*ag.LoadAnomalyGroupByIDResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "anomalygroupService.LoadAnomalyGroupByID")
+	defer span.End()
+
 	anomaly_group, err := s.anomalygroupStore.LoadById(ctx, req.AnomalyGroupId)
 	if err != nil {
 		return nil, fmt.Errorf(

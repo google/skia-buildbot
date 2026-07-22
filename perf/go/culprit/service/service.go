@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	v1 "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
@@ -59,6 +60,9 @@ func (s *culpritService) GetServiceDescriptor() grpc.ServiceDesc {
 }
 
 func (s *culpritService) PersistCulprit(ctx context.Context, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "culpritService.PersistCulprit")
+	defer span.End()
+
 	ids, err := s.culpritStore.Upsert(ctx, req.AnomalyGroupId, req.Commits)
 	if err != nil {
 		return nil, err
@@ -70,8 +74,11 @@ func (s *culpritService) PersistCulprit(ctx context.Context, req *pb.PersistCulp
 	return &pb.PersistCulpritResponse{CulpritIds: ids}, nil
 }
 
-func (s *culpritService) GetCulprit(context context.Context, req *pb.GetCulpritRequest) (*pb.GetCulpritResponse, error) {
-	culprits, err := s.culpritStore.Get(context, req.CulpritIds)
+func (s *culpritService) GetCulprit(ctx context.Context, req *pb.GetCulpritRequest) (*pb.GetCulpritResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "culpritService.GetCulprit")
+	defer span.End()
+
+	culprits, err := s.culpritStore.Get(ctx, req.CulpritIds)
 	if err != nil {
 		return nil, err
 	}
@@ -82,6 +89,8 @@ func (s *culpritService) GetCulprit(context context.Context, req *pb.GetCulpritR
 
 // File bugs per culprit for the anomaly group (from a bisect)
 func (s *culpritService) NotifyUserOfCulprit(ctx context.Context, req *pb.NotifyUserOfCulpritRequest) (*pb.NotifyUserOfCulpritResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "culpritService.NotifyUserOfCulprit")
+	defer span.End()
 	var err error
 	culprits, err := s.culpritStore.Get(ctx, req.CulpritIds)
 	sklog.Debugf("[CP] %d culprits loaded by %s.", len(culprits), req.CulpritIds)

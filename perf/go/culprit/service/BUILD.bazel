@@ -17,6 +17,7 @@ go_library(
         "//perf/go/culprit/proto/v1",
         "//perf/go/subscription:store",
         "//perf/go/subscription/proto/v1",
+        "@io_opencensus_go//trace",
         "@org_golang_google_grpc//:grpc",
     ],
 )

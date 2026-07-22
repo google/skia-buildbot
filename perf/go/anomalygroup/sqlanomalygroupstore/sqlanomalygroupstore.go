@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 
@@ -59,6 +60,8 @@ func (s *AnomalyGroupStore) Create(
 	start int64,
 	end int64,
 	action string) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlanomalygroupstore.Create")
+	defer span.End()
 
 	// Sanity checks
 	if len(subscription_name) == 0 || len(subscription_revision) == 0 || len(domain_name) == 0 || len(benchmark_name) == 0 || len(action) == 0 {
@@ -107,6 +110,8 @@ func (s *AnomalyGroupStore) Create(
 func (s *AnomalyGroupStore) LoadById(
 	ctx context.Context,
 	group_id string) (*pb.AnomalyGroup, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlanomalygroupstore.LoadById")
+	defer span.End()
 
 	// Sanity checks
 	if _, err := uuid.Parse(group_id); err != nil {
@@ -147,6 +152,9 @@ func (s *AnomalyGroupStore) LoadById(
 }
 
 func (s *AnomalyGroupStore) UpdateBisectID(ctx context.Context, group_id string, bisection_id string) error {
+	ctx, span := trace.StartSpan(ctx, "sqlanomalygroupstore.UpdateBisectID")
+	defer span.End()
+
 	if len(bisection_id) > 0 {
 		matched, err := regexp.MatchString("^[a-f0-9-]+$", bisection_id)
 		if err != nil || !matched {
@@ -170,6 +178,9 @@ func (s *AnomalyGroupStore) UpdateBisectID(ctx context.Context, group_id string,
 }
 
 func (s *AnomalyGroupStore) UpdateReportedIssueID(ctx context.Context, group_id string, reported_issue_id string) error {
+	ctx, span := trace.StartSpan(ctx, "sqlanomalygroupstore.UpdateReportedIssueID")
+	defer span.End()
+
 	if _, err := strconv.Atoi(reported_issue_id); err != nil {
 		return skerr.Wrapf(err, "invalid issue id: %s", reported_issue_id)
 	}
@@ -188,6 +199,9 @@ func (s *AnomalyGroupStore) UpdateReportedIssueID(ctx context.Context, group_id 
 }
 
 func (s *AnomalyGroupStore) AddAnomalyID(ctx context.Context, group_id string, anomaly_id string, anomaly_start_commit int64, anomaly_end_commit int64) error {
+	ctx, span := trace.StartSpan(ctx, "sqlanomalygroupstore.AddAnomalyID")
+	defer span.End()
+
 	if anomaly_end_commit <= 0 || anomaly_start_commit <= 0 || anomaly_end_commit < anomaly_start_commit {
 		return fmt.Errorf("invalid anomaly position detected: [%d. %d]", anomaly_start_commit, anomaly_end_commit)
 	}
@@ -217,6 +231,9 @@ func (s *AnomalyGroupStore) AddAnomalyID(ctx context.Context, group_id string, a
 }
 
 func (s *AnomalyGroupStore) AddCulpritIDs(ctx context.Context, group_id string, culprit_ids []string) error {
+	ctx, span := trace.StartSpan(ctx, "sqlanomalygroupstore.AddCulpritIDs")
+	defer span.End()
+
 	for _, v := range culprit_ids {
 		if _, err := uuid.Parse(v); err != nil {
 			err_msg := fmt.Sprintf("invalid UUID value for updating culprit_ids column with value %s ", culprit_ids)
@@ -246,6 +263,8 @@ func (s *AnomalyGroupStore) FindExistingGroup(
 	start_commit int64,
 	end_commit int64,
 	action string) ([]*pb.AnomalyGroup, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlanomalygroupstore.FindExistingGroup")
+	defer span.End()
 	// sanity check
 	if len(subscription_name) == 0 || len(subscription_revision) == 0 || len(domain_name) == 0 || len(benchmark_name) == 0 || len(action) == 0 || start_commit <= 0 || end_commit <= 0 {
 		err_msg := fmt.Sprintf(

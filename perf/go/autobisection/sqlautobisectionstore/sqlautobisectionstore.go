@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/autobisection"
@@ -41,6 +42,9 @@ func New(db pool.Pool) (*AutobisectionStore, error) {
 
 // Save implements the autobisection.Store interface.
 func (s *AutobisectionStore) Save(ctx context.Context, b *schema.AutobisectionSchema) error {
+	ctx, span := trace.StartSpan(ctx, "sqlautobisectionstore.Save")
+	defer span.End()
+
 	if err := validateAutobisection(b); err != nil {
 		return skerr.Wrap(err)
 	}

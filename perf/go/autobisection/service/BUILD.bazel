@@ -11,6 +11,7 @@ go_library(
         "//perf/go/autobisection/proto/v1:proto",
         "//perf/go/autobisection/sqlautobisectionstore/schema",
         "//perf/go/backend/shared",
+        "@io_opencensus_go//trace",
         "@org_golang_google_grpc//:grpc",
     ],
 )

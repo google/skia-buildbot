@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/perf/go/autobisection"
 	pb "go.skia.org/infra/perf/go/autobisection/proto/v1"
 	"go.skia.org/infra/perf/go/autobisection/sqlautobisectionstore/schema"
@@ -43,6 +44,9 @@ func (s *autobisectionService) GetServiceDescriptor() grpc.ServiceDesc {
 
 // SaveAutobisection saves the result of a autobisection into the store.
 func (s *autobisectionService) SaveAutobisection(ctx context.Context, req *pb.SaveAutobisectionRequest) (*pb.SaveAutobisectionResponse, error) {
+	_, span := trace.StartSpan(ctx, "autobisectionService.SaveAutobisection")
+	defer span.End()
+
 	autobisectionResult := &schema.AutobisectionSchema{
 		JobID:            req.JobId,
 		WorkflowID:       req.WorkflowId,

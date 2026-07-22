@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
@@ -34,6 +35,9 @@ func New(db pool.Pool) (*CulpritStore, error) {
 
 // Returns Culprit objects corresponding to given set of ids.
 func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlculpritstore.Get")
+	defer span.End()
+
 	statement := "SELECT id, host, project, ref, revision, anomaly_group_ids, issue_ids, group_issue_map FROM Culprits where id IN (%s)"
 	query := fmt.Sprintf(statement, quotedSlice(ids))
 	sklog.Debugf("[CP] Get query: %s", query)
@@ -75,6 +79,9 @@ func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, er
 }
 
 func (s *CulpritStore) GetAnomalyGroupIdsForIssueId(ctx context.Context, issueId string) ([]string, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlculpritstore.GetAnomalyGroupIdsForIssueId")
+	defer span.End()
+
 	query := "SELECT agid FROM Culprits, UNNEST(anomaly_group_ids) as agid WHERE $1 = ANY(issue_ids)"
 	rows, err := s.db.Query(ctx, query, issueId)
 	if err != nil {
@@ -95,6 +102,9 @@ func (s *CulpritStore) GetAnomalyGroupIdsForIssueId(ctx context.Context, issueId
 // Inserts the given culprit elements in the persistant storage. If a culprit already exists,
 // appends the anomaly_group_id into its corresponding field.
 func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_commits []*pb.Commit) ([]string, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlculpritstore.Upsert")
+	defer span.End()
+
 	if len(ip_commits) <= 0 || anomaly_group_id == "" {
 		return nil, skerr.Fmt("no culprits/anomaly_group_id provided")
 	}
@@ -180,6 +190,9 @@ func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_c
 
 // Adds issue id to a Culprit row.
 func (s *CulpritStore) AddIssueId(ctx context.Context, id string, issue_id string, group_id string) error {
+	ctx, span := trace.StartSpan(ctx, "sqlculpritstore.AddIssueId")
+	defer span.End()
+
 	// Fetch existing anomaly_group_ids
 	sklog.Debugf("[CP] AddIssueId. Culprit: %s, Issue: %s, Group: %s.", id, issue_id, group_id)
 	culprits, err := s.Get(ctx, []string{id})

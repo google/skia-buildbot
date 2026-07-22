@@ -12,6 +12,7 @@ go_library(
         "//perf/go/autobisection",
         "//perf/go/autobisection/proto/v1:proto",
         "//perf/go/autobisection/sqlautobisectionstore/schema",
+        "@io_opencensus_go//trace",
     ],
 )
 
