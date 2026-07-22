@@ -32,7 +32,6 @@ import (
 	"errors"
 	"fmt"
 	"html"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -158,7 +157,7 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 	if err := workflow.ExecuteActivity(ctx, GetChromeReleasesInfoActivity, otherBrowsers, isDev).Get(ctx, &commitInfo); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	log.Printf("commitInfo:%v", commitInfo)
+	sklog.Infof("commitInfo:%v", commitInfo)
 
 	if len(commitInfo.Builds) > 0 {
 		// Trigger CBB benchmark runs.
@@ -179,7 +178,7 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 		for _, build := range commitInfo.Builds {
 			platformBuilds[build.Platform] = append(platformBuilds[build.Platform], build)
 		}
-		for platform, builds := range platformBuilds {
+		for platform, builds := range common.SortedRange(platformBuilds) {
 			for _, bot := range platformBots[platform] {
 				wg.Add(1)
 				// Starting of the parallelism boundary. We kick off the following code
@@ -269,7 +268,7 @@ func CbbGetBrowserVersionsWorkflow(ctx workflow.Context, browser string) ([]Buil
 		return nil, skerr.Fmt("unsupported browser %s", browser)
 	}
 	var results []BuildInfo
-	for config, count := range configCounts {
+	for config, count := range common.SortedRange(configCounts) {
 		p := &SingleCommitRunnerParams{
 			PinpointJobID:  fmt.Sprintf("CBB get %s version on %s", browser, getShortBotName(config)),
 			BotConfig:      config,
@@ -420,7 +419,7 @@ func sendCbbRunnerErrorEmail(ctx workflow.Context, id string, p *CbbRunnerParams
 		}
 
 		body += "<p>Failed benchmarks:</p>\n<ul>\n"
-		for b, l := range cbbErr.SwarmingLinks {
+		for b, l := range common.SortedRange(cbbErr.SwarmingLinks) {
 			body += fmt.Sprintf("<li> %s: <a href=%q>swarming tasks</a> </li>\n", html.EscapeString(b), l)
 		}
 		body += "</ul>\n"
