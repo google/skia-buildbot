@@ -25,5 +25,6 @@ go_test(
         "//perf/go/autobisection/proto/v1:proto",
         "//perf/go/autobisection/sqlautobisectionstore/schema",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
     ],
 )

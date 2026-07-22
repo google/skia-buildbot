@@ -141,5 +141,4 @@ func (api sheriffConfigApi) validateConfigHandler(w http.ResponseWriter, r *http
 			sklog.Errorf("Failed to write or encode output: %s", err)
 		}
 	}
-
 }

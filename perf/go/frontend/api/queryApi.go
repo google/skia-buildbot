@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -65,6 +66,9 @@ type CountHandlerResponse struct {
 
 // PreflightQuery generates the query and calls PreflightQuery on dfBuilder
 func (api *queryApi) PreflightQuery(ctx context.Context, qs string) (int, paramtools.ReadOnlyParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "queryApi.PreflightQuery")
+	defer span.End()
+
 	u, err := url.ParseQuery(qs)
 	if err != nil {
 		return 0, nil, skerr.Wrapf(err, "Invalid URL query.")
@@ -95,7 +99,10 @@ func (api *queryApi) PreflightQuery(ctx context.Context, qs string) (int, paramt
 //   - the reponse does not includes all paramsets. It only returns the values for the
 //     'next' parameter in order.
 func (api *queryApi) nextParamListHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
+	ctx, span := trace.StartSpan(r.Context(), "queryApi.nextParamListHandler")
+	defer span.End()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
 	var npr NextParamListHandlerRequest
@@ -144,7 +151,10 @@ func (api *queryApi) nextParamListHandler(w http.ResponseWriter, r *http.Request
 // countHandler takes the POST'd query and runs that against the current
 // dataframe and returns how many traces match the query.
 func (api *queryApi) countHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
+	ctx, span := trace.StartSpan(r.Context(), "queryApi.countHandler")
+	defer span.End()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
 	var cr CountHandlerRequest

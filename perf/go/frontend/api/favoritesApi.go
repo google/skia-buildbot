@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -44,7 +45,11 @@ func (f favoritesApi) RegisterHandlers(router *chi.Mux) {
 // favoritesHandler returns the favorites config for the instance. If a user is
 // logged in this also returns the favorites specific to the logged in user.
 func (f favoritesApi) favoritesHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "favoritesApi.favoritesHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -97,8 +102,11 @@ type CreateFavRequest struct {
 
 // newFavoriteHandler creates a new favorite in the db
 func (f *favoritesApi) newFavoriteHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "favoritesApi.newFavoriteHandler")
+	defer span.End()
 
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -133,7 +141,11 @@ type DeleteFavRequest struct {
 
 // deleteFavoriteHandler deletes a favorite per id in the db
 func (f *favoritesApi) deleteFavoriteHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "favoritesApi.deleteFavoriteHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -165,7 +177,11 @@ type UpdateFavRequest struct {
 
 // updateFavoriteHandler updates a new favorite per id in the db
 func (f *favoritesApi) updateFavoriteHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "favoritesApi.updateFavoriteHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 

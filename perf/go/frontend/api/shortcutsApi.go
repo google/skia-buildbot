@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/graphsshortcut"
@@ -48,7 +49,11 @@ func (api shortcutsApi) RegisterHandlers(router *chi.Mux) {
 //	  "id": 123456,
 //	}
 func (api shortcutsApi) keysHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "shortcutsApi.keysHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -68,7 +73,11 @@ type GetGraphsShortcutRequest struct {
 
 // getGraphsShortcutHandler returns the graphsShortcut details for the given shortcut id.
 func (api shortcutsApi) getGraphsShortcutHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "shortcutsApi.getGraphsShortcutHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -92,7 +101,11 @@ func (api shortcutsApi) getGraphsShortcutHandler(w http.ResponseWriter, r *http.
 
 // createGraphsShortcutHandler creates a new graphsShortcut from the supplied information.
 func (api shortcutsApi) createGraphsShortcutHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "shortcutsApi.createGraphsShortcutHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 

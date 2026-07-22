@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/query"
@@ -174,6 +175,9 @@ func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.Chr
 }
 
 func (api anomaliesApi) CalculateRegrShortcutHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(r.Context(), "anomaliesApi.CalculateRegrShortcutHandler")
+	defer span.End()
+
 	if api.loginProvider.LoggedInAs(r) == "" {
 		httputils.ReportError(w, errors.New("Not logged in"), "You must be logged in to complete this action.", http.StatusUnauthorized)
 		return
@@ -190,7 +194,8 @@ func (api anomaliesApi) CalculateRegrShortcutHandler(w http.ResponseWriter, r *h
 
 	w.Header().Set("Content-Type", "application/json")
 
-	ctx, cancel := context.WithTimeout(r.Context(), defaultAnomaliesRequestTimeout)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultAnomaliesRequestTimeout)
 	defer cancel()
 
 	var request CalculateRegrShortcutRequest

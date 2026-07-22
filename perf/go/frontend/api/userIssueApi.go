@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -54,7 +55,11 @@ type GetUserIssuesForTraceKeysResponse struct {
 // userIssuesHandler returns list of user reported buganzier issues
 // corresponding to the a list of trace keys and commit position range.
 func (ui userIssueApi) userIssuesHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "userIssueApi.userIssuesHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -98,7 +103,11 @@ type SaveUserIssueRequest struct {
 
 // saveUserIssueHandler creates a new userissue in the db
 func (ui *userIssueApi) saveUserIssueHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "userIssueApi.saveUserIssueHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -144,7 +153,11 @@ type DeleteUserIssueRequest struct {
 
 // deleteUserIssueHandler deletes a user issue from the db
 func (ui *userIssueApi) deleteUserIssueHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "userIssueApi.deleteUserIssueHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -177,7 +190,11 @@ type CreateUserIssueResponse struct {
 
 // createUserIssueHandler creates a new user issue in Buganizer and saves it to the db
 func (ui *userIssueApi) createUserIssueHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	ctx, span := trace.StartSpan(r.Context(), "userIssueApi.createUserIssueHandler")
+	defer span.End()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 

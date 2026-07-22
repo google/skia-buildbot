@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/perf/go/autobisection/mocks"
 	pb "go.skia.org/infra/perf/go/autobisection/proto/v1"
 	"go.skia.org/infra/perf/go/autobisection/sqlautobisectionstore/schema"
@@ -31,7 +32,7 @@ func TestSaveAutobisection(t *testing.T) {
 		RegressionStatus: pb.RegressionStatus_NO_CULPRIT_FOUND.String(),
 	}
 
-	mockStore.On("Save", ctx, expectedSchema).Return(nil)
+	mockStore.On("Save", mock.Anything, expectedSchema).Return(nil)
 
 	resp, err := s.SaveAutobisection(ctx, req)
 	assert.NoError(t, err)

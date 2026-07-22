@@ -44,7 +44,7 @@ func (s *autobisectionService) GetServiceDescriptor() grpc.ServiceDesc {
 
 // SaveAutobisection saves the result of a autobisection into the store.
 func (s *autobisectionService) SaveAutobisection(ctx context.Context, req *pb.SaveAutobisectionRequest) (*pb.SaveAutobisectionResponse, error) {
-	_, span := trace.StartSpan(ctx, "autobisectionService.SaveAutobisection")
+	ctx, span := trace.StartSpan(ctx, "autobisectionService.SaveAutobisection")
 	defer span.End()
 
 	autobisectionResult := &schema.AutobisectionSchema{
