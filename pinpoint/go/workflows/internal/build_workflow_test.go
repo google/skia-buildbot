@@ -4,13 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
-
-	"go.skia.org/infra/pinpoint/go/workflows"
-
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.temporal.io/sdk/testsuite"
+
+	"go.skia.org/infra/pinpoint/go/workflows"
 )
 
 func Test_BuildChrome_ShouldReturnBuild(t *testing.T) {
@@ -23,7 +22,7 @@ func Test_BuildChrome_ShouldReturnBuild(t *testing.T) {
 		CasInstance: "fake-instance",
 	}
 
-	env.OnActivity(bca.SearchOrBuildActivity, mock.Anything, mock.Anything).Return(fakeBuildID, nil).Once()
+	env.OnActivity(bca.SearchOrBuildActivity, mock.Anything, mock.Anything, mock.Anything).Return(fakeBuildID, nil).Once()
 	env.OnActivity(bca.WaitBuildCompletionActivity, mock.Anything, fakeBuildID, mock.Anything).Return(buildbucketpb.Status_SUCCESS, nil).Once()
 	env.OnActivity(bca.RetrieveBuildArtifactActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(cas, nil).Once()
 
@@ -48,7 +47,7 @@ func Test_BuildChrome_ShouldPopulateBuildError(t *testing.T) {
 	var bca *BuildActivity
 	const fakeBuildID = int64(1234)
 
-	env.OnActivity(bca.SearchOrBuildActivity, mock.Anything, mock.Anything).Return(fakeBuildID, nil)
+	env.OnActivity(bca.SearchOrBuildActivity, mock.Anything, mock.Anything, mock.Anything).Return(fakeBuildID, nil)
 	env.OnActivity(bca.WaitBuildCompletionActivity, mock.Anything, fakeBuildID, mock.Anything).Return(buildbucketpb.Status_FAILURE, nil).Once()
 	env.OnActivity(bca.RetrieveBuildArtifactActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Never()
 

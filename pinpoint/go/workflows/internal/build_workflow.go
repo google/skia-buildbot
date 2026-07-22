@@ -22,16 +22,9 @@ func BuildWorkflow(ctx workflow.Context, params *workflows.BuildParams) (*workfl
 	logger := workflow.GetLogger(ctx)
 
 	project := params.Project
-	if params.Project == "" {
+	if project == "" {
 		project = "chromium"
 	}
-
-	buildClient, err := build.NewBuildClient(context.Background(), project)
-	if err != nil {
-		logger.Error("Failed to instantiate build client: ", err)
-		return nil, skerr.Wrap(err)
-	}
-	ctx = workflow.WithValue(ctx, build.BuildClientContextKey, buildClient)
 
 	bca := &BuildActivity{}
 	var buildID int64
@@ -52,7 +45,7 @@ func BuildWorkflow(ctx workflow.Context, params *workflows.BuildParams) (*workfl
 		}
 	}()
 
-	if err := workflow.ExecuteActivity(ctx, bca.SearchOrBuildActivity, params).Get(ctx, &buildID); err != nil {
+	if err := workflow.ExecuteActivity(ctx, bca.SearchOrBuildActivity, params, project).Get(ctx, &buildID); err != nil {
 		logger.Error("Failed to wait for SearchOrBuildActivity:", err)
 		return nil, skerr.Wrap(err)
 	}
@@ -89,10 +82,10 @@ func BuildWorkflow(ctx workflow.Context, params *workflows.BuildParams) (*workfl
 type BuildActivity struct{}
 
 // SearchOrBuildActivity searches for an existing build to reuse, or triggers a new one.
-func (bca *BuildActivity) SearchOrBuildActivity(ctx context.Context, params *workflows.BuildParams) (int64, error) {
+func (bca *BuildActivity) SearchOrBuildActivity(ctx context.Context, params *workflows.BuildParams, project string) (int64, error) {
 	logger := activity.GetLogger(ctx)
 
-	buildClient, err := build.NewBuildClient(ctx, "chrome")
+	buildClient, err := build.NewBuildClient(ctx, project)
 	if err != nil {
 		logger.Error("Failed to instantiate build client: ", err)
 		return 0, skerr.Wrapf(err, "failed to instantiate a build client")
@@ -138,14 +131,10 @@ func (bca *BuildActivity) SearchOrBuildActivity(ctx context.Context, params *wor
 func (bca *BuildActivity) WaitBuildCompletionActivity(ctx context.Context, buildID int64, project string) (buildbucketpb.Status, error) {
 	logger := activity.GetLogger(ctx)
 
-	buildClient, ok := ctx.Value(build.BuildClientContextKey).(build.BuildClient)
-	if !ok {
-		newBuildClient, err := build.NewBuildClient(ctx, project)
-		if err != nil {
-			logger.Error("Failed to instantiate build client missing from context: ", err)
-			return buildbucketpb.Status_STATUS_UNSPECIFIED, skerr.Wrap(err)
-		}
-		buildClient = newBuildClient
+	buildClient, err := build.NewBuildClient(ctx, project)
+	if err != nil {
+		logger.Error("Failed to instantiate build client: ", err)
+		return buildbucketpb.Status_STATUS_UNSPECIFIED, skerr.Wrap(err)
 	}
 
 	failureRetries := 10
@@ -175,14 +164,10 @@ func (bca *BuildActivity) WaitBuildCompletionActivity(ctx context.Context, build
 func (bca *BuildActivity) RetrieveBuildArtifactActivity(ctx context.Context, buildID int64, target, project string) (*apipb.CASReference, error) {
 	logger := activity.GetLogger(ctx)
 
-	buildClient, ok := ctx.Value(build.BuildClientContextKey).(build.BuildClient)
-	if !ok {
-		newBuildClient, err := build.NewBuildClient(ctx, project)
-		if err != nil {
-			logger.Error("Failed to instantiate build client missing from context: ", err)
-			return nil, skerr.Wrap(err)
-		}
-		buildClient = newBuildClient
+	buildClient, err := build.NewBuildClient(ctx, project)
+	if err != nil {
+		logger.Error("Failed to instantiate build client: ", err)
+		return nil, skerr.Wrap(err)
 	}
 
 	activity.RecordHeartbeat(ctx, fmt.Sprintf("start retrieving CAS for: (%v, %v)", buildID, target))
@@ -208,14 +193,10 @@ func (bca *BuildActivity) CleanupBuildActivity(ctx context.Context, buildID int6
 
 	logger := activity.GetLogger(ctx)
 
-	buildClient, ok := ctx.Value(build.BuildClientContextKey).(build.BuildClient)
-	if !ok {
-		newBuildClient, err := build.NewBuildClient(ctx, project)
-		if err != nil {
-			logger.Error("Failed to instantiate build client missing from context: ", err)
-			return skerr.Wrap(err)
-		}
-		buildClient = newBuildClient
+	buildClient, err := build.NewBuildClient(ctx, project)
+	if err != nil {
+		logger.Error("Failed to instantiate build client: ", err)
+		return skerr.Wrap(err)
 	}
 
 	activity.RecordHeartbeat(ctx, "cancelling the build.")
@@ -224,7 +205,7 @@ func (bca *BuildActivity) CleanupBuildActivity(ctx context.Context, buildID int6
 		BuildID: buildID,
 		Reason:  "Pinpoint job cancelled",
 	}
-	err := buildClient.CancelBuild(ctx, cancelReq)
+	err = buildClient.CancelBuild(ctx, cancelReq)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
