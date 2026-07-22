@@ -49,6 +49,7 @@ var (
 	local             = flag.Bool("local", false, "True if running locally. Uses an emulator for writing to the DB.")
 	apiKeySecret      = flag.String("api-key-secret", "autogardener-gemini-api-key", "GCP secret containing the Gemini API key.")
 	gcsBucketDebug    = flag.String("gcs-bucket-debug", "", "Optional, GCS bucket name to upload debug information.")
+	secretProject     = flag.String("secret-project", "skia-infra-public", "GCP project used for managing secrets.")
 )
 
 func main() {
@@ -121,7 +122,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		geminiAPIKey, err = sc.Get(ctx, *gcpProject, *apiKeySecret, secret.VersionLatest)
+		geminiAPIKey, err = sc.Get(ctx, *secretProject, *apiKeySecret, secret.VersionLatest)
 		if err != nil {
 			sklog.Fatal(err)
 		}
