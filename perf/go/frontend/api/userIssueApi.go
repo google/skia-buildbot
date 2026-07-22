@@ -59,8 +59,7 @@ func (ui userIssueApi) userIssuesHandler(w http.ResponseWriter, r *http.Request)
 	ctx, span := trace.StartSpan(r.Context(), "userIssueApi.userIssuesHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -107,8 +106,7 @@ func (ui *userIssueApi) saveUserIssueHandler(w http.ResponseWriter, r *http.Requ
 	ctx, span := trace.StartSpan(r.Context(), "userIssueApi.saveUserIssueHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -157,8 +155,7 @@ func (ui *userIssueApi) deleteUserIssueHandler(w http.ResponseWriter, r *http.Re
 	ctx, span := trace.StartSpan(r.Context(), "userIssueApi.deleteUserIssueHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -193,8 +190,7 @@ func (ui *userIssueApi) createUserIssueHandler(w http.ResponseWriter, r *http.Re
 	ctx, span := trace.StartSpan(r.Context(), "userIssueApi.createUserIssueHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 

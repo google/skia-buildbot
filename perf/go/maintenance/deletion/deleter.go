@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
@@ -52,7 +53,10 @@ func (d *Deleter) RunPeriodicDeletion(iterationPeriod time.Duration, shortcutBat
 // DeleteOneBatch deletes a batch of regressions from the regressions table
 // and a batch of shortcuts from the shortcuts table.
 func (d *Deleter) DeleteOneBatch(shortcutBatchSize int) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, span := trace.StartSpan(context.Background(), "deleter.DeleteOneBatch")
+	defer span.End()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 	sklog.Infof("delete one batch of shortcuts and regressions")
 	commitNumbers, shortcuts, err := d.getBatch(ctx, shortcutBatchSize)
@@ -89,6 +93,9 @@ func getOutdatedKeys(regressionsByCommit map[types.CommitNumber]*regression.AllR
 }
 
 func (d *Deleter) getBatch(ctx context.Context, shortcutBatchSize int) ([]types.CommitNumber, []string, error) {
+	ctx, span := trace.StartSpan(ctx, "deleter.getBatch")
+	defer span.End()
+
 	oldestCommitNumber, err := d.regressionStore.GetOldestCommit(ctx)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "could not get oldest commit from Regressions table")
@@ -126,6 +133,9 @@ func (d *Deleter) getBatch(ctx context.Context, shortcutBatchSize int) ([]types.
 }
 
 func (d *Deleter) deleteBatch(ctx context.Context, commitNumbers []types.CommitNumber, shortcuts []string) error {
+	ctx, span := trace.StartSpan(ctx, "deleter.deleteBatch")
+	defer span.End()
+
 	tx, err := d.db.Begin(ctx)
 	if err != nil {
 		return skerr.Wrap(err)

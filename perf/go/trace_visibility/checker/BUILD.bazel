@@ -12,6 +12,7 @@ go_library(
         "//go/sklog",
         "//perf/go/trace_visibility/provider",
         "//perf/go/trace_visibility/store",
+        "@io_opencensus_go//trace",
     ],
 )
 

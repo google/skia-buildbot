@@ -15,6 +15,7 @@ go_library(
         "//perf/go/shortcut",
         "//perf/go/shortcut/sqlshortcutstore",
         "//perf/go/types",
+        "@io_opencensus_go//trace",
     ],
 )
 

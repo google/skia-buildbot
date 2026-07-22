@@ -3,6 +3,7 @@ package sqlconfigstore
 import (
 	"context"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/trace_visibility/sqlconfigstore/schema"
@@ -22,6 +23,9 @@ func New(db pool.Pool) *SQLConfigStore {
 
 // GetAll returns all visibility configurations from the database.
 func (s *SQLConfigStore) GetAll(ctx context.Context) ([]schema.PublicTraceRulesSchema, error) {
+	ctx, span := trace.StartSpan(ctx, "sqlconfigstore.GetAll")
+	defer span.End()
+
 	stmt := `SELECT public_rule_expr FROM PublicTraceRules`
 	rows, err := s.db.Query(ctx, stmt)
 	if err != nil {
@@ -43,6 +47,9 @@ func (s *SQLConfigStore) GetAll(ctx context.Context) ([]schema.PublicTraceRulesS
 
 // Set adds or updates a visibility configuration entry.
 func (s *SQLConfigStore) Set(ctx context.Context, ruleExpression string) error {
+	ctx, span := trace.StartSpan(ctx, "sqlconfigstore.Set")
+	defer span.End()
+
 	stmt := `
 		INSERT INTO PublicTraceRules (public_rule_expr)
 		VALUES ($1)
@@ -57,6 +64,9 @@ func (s *SQLConfigStore) Set(ctx context.Context, ruleExpression string) error {
 
 // Delete removes a visibility configuration entry.
 func (s *SQLConfigStore) Delete(ctx context.Context, ruleExpression string) error {
+	ctx, span := trace.StartSpan(ctx, "sqlconfigstore.Delete")
+	defer span.End()
+
 	stmt := `DELETE FROM PublicTraceRules WHERE public_rule_expr = $1`
 	_, err := s.db.Exec(ctx, stmt, ruleExpression)
 	if err != nil {

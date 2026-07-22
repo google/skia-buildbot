@@ -13,6 +13,7 @@ go_library(
         "//go/util",
         "//perf/go/trace_visibility/sqlconfigstore/schema",
         "//perf/go/trace_visibility/store",
+        "@io_opencensus_go//trace",
     ],
 )
 

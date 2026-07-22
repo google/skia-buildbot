@@ -48,8 +48,7 @@ func (f favoritesApi) favoritesHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, span := trace.StartSpan(r.Context(), "favoritesApi.favoritesHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -105,8 +104,7 @@ func (f *favoritesApi) newFavoriteHandler(w http.ResponseWriter, r *http.Request
 	ctx, span := trace.StartSpan(r.Context(), "favoritesApi.newFavoriteHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -144,8 +142,7 @@ func (f *favoritesApi) deleteFavoriteHandler(w http.ResponseWriter, r *http.Requ
 	ctx, span := trace.StartSpan(r.Context(), "favoritesApi.deleteFavoriteHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -180,8 +177,7 @@ func (f *favoritesApi) updateFavoriteHandler(w http.ResponseWriter, r *http.Requ
 	ctx, span := trace.StartSpan(r.Context(), "favoritesApi.updateFavoriteHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 

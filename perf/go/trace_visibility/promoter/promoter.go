@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
@@ -58,6 +59,9 @@ func New(db pool.Pool, configStore store.Store) *Promoter {
 //   - int: The total number of traces successfully promoted to public.
 //   - error: An error if the operation failed.
 func (p *Promoter) Promote(ctx context.Context) (int, error) {
+	ctx, span := trace.StartSpan(ctx, "promoter.Promote")
+	defer span.End()
+
 	sklog.Info("Starting background trace visibility promotion sweep...")
 
 	// Create a query context with deadline if not already set.
@@ -94,6 +98,8 @@ func (p *Promoter) Promote(ctx context.Context) (int, error) {
 }
 
 func (p *Promoter) promoteMatchingTraces(ctx context.Context, rules []schema.PublicTraceRulesSchema) (int, error) {
+	ctx, span := trace.StartSpan(ctx, "promoter.promoteMatchingTraces")
+	defer span.End()
 	var ruleExprs []string
 	for _, rule := range rules {
 		ruleExprs = append(ruleExprs, rule.RuleExpression)

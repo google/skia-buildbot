@@ -52,8 +52,7 @@ func (api shortcutsApi) keysHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, span := trace.StartSpan(r.Context(), "shortcutsApi.keysHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -76,8 +75,7 @@ func (api shortcutsApi) getGraphsShortcutHandler(w http.ResponseWriter, r *http.
 	ctx, span := trace.StartSpan(r.Context(), "shortcutsApi.getGraphsShortcutHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
@@ -104,8 +102,7 @@ func (api shortcutsApi) createGraphsShortcutHandler(w http.ResponseWriter, r *ht
 	ctx, span := trace.StartSpan(r.Context(), "shortcutsApi.createGraphsShortcutHandler")
 	defer span.End()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultDatabaseTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 

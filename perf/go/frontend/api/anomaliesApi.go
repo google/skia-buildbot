@@ -194,8 +194,7 @@ func (api anomaliesApi) CalculateRegrShortcutHandler(w http.ResponseWriter, r *h
 
 	w.Header().Set("Content-Type", "application/json")
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, defaultAnomaliesRequestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, defaultAnomaliesRequestTimeout)
 	defer cancel()
 
 	var request CalculateRegrShortcutRequest

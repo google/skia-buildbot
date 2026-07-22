@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -41,6 +42,9 @@ func extractRulePrefix(rule string) string {
 //   - removedCount (int): Number of extra rules found in the database that were deleted.
 //   - error: An error if the check operation failed.
 func (c *Checker) Check(ctx context.Context) (int, int, error) {
+	ctx, span := trace.StartSpan(ctx, "checker.Check")
+	defer span.End()
+
 	sklog.Info("Starting check and sync of visibility rules...")
 
 	dbConfigs, err := c.store.GetAll(ctx)
