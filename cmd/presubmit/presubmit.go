@@ -142,8 +142,8 @@ func main() {
 	runCheck("GolangCILintForPinpoint", func() bool { return runGolangCILintForPinpoint(ctx, changedFiles, branchBaseCommit) })
 	runCheck("BetterAlignForPinpoint", func() bool { return runBetterAlignForPinpoint(ctx, changedFiles) })
 	runCheck("IdempotentDDL", func() bool { return checkIdempotentDDL(ctx, changedFiles, *repoDir) })
+	runCheck("WorkflowCheck", func() bool { return runWorkflowCheck(ctx, changedFiles, *repoDir) })
 	if !*commit {
-		runCheck("WorkflowCheck", func() bool { return runWorkflowCheck(ctx, changedFiles, *repoDir) })
 		runCheck("NonASCII", func() bool { return checkNonASCII(ctx, changedFiles) })
 		runCheck("Autoreview", func() bool { return runAutoreview(ctx, branchBaseCommit) })
 	}
