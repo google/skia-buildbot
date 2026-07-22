@@ -758,6 +758,10 @@ message VersionFileConfig_File {
   // replace all matching occurrences of the regex in the file when updating
   // it, as opposed to only the first.
   bool regex_replace_all = 3;
+  // regex_allow_no_match indicates whether the roller should error out if no
+  // match for the regex is found in this file. This should not be set to true
+  // for the file containing the source-of-truth version.
+  bool regex_allow_no_match = 4;
 }
 
 // DependencyConfig provides configuration for a dependency whose version is

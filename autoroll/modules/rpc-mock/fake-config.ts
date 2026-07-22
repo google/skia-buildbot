@@ -70,6 +70,7 @@ export function GetFakeConfig(): Config {
                 path: 'DEPS',
                 regex: 'un(used)',
                 regexReplaceAll: false,
+                regexAllowNoMatch: false,
               },
             ],
           },

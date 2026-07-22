@@ -2,6 +2,7 @@ package version_file_common
 
 import (
 	"context"
+	"errors"
 	"path"
 	"regexp"
 	"strings"
@@ -17,6 +18,8 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+var errRegexNoMatch = errors.New("no match found for regex")
+
 func getUsingRegex(dep *config.VersionFileConfig_File, contents string) ([]string, []string, error) {
 	re, err := regexp.Compile(dep.Regex)
 	if err != nil {
@@ -26,7 +29,7 @@ func getUsingRegex(dep *config.VersionFileConfig_File, contents string) ([]strin
 	}
 	matches := re.FindAllStringSubmatch(contents, -1)
 	if len(matches) == 0 {
-		return nil, nil, skerr.Fmt("no match found for regex `%s` in:\n%s", dep.Regex, contents)
+		return nil, nil, errRegexNoMatch
 	}
 	var fullMatches []string
 	var revisions []string
@@ -47,7 +50,12 @@ func getUsingRegex(dep *config.VersionFileConfig_File, contents string) ([]strin
 func getPinnedRevInFile(id string, file *config.VersionFileConfig_File, contents string) (string, map[string]string, error) {
 	if file.Regex != "" {
 		_, revisions, err := getUsingRegex(file, contents)
-		if err != nil {
+		if err == errRegexNoMatch {
+			// Note: we ignore file.RegexAllowNoMatch here, because if the
+			// caller is asking for the pinned revision in the file the
+			// assumption is that it's actually needed.
+			return "", nil, skerr.Wrapf(err, "`%s` in:\n%s", file.Regex, contents)
+		} else if err != nil {
 			return "", nil, skerr.Wrap(err)
 		}
 		return revisions[0], nil, nil
@@ -121,7 +129,13 @@ func GetPinnedRevs(ctx context.Context, deps []*config.VersionFileConfig, getFil
 func setPinnedRevInFile(id string, dep *config.VersionFileConfig_File, newRev *revision.Revision, oldContents string) (string, error) {
 	if dep.Regex != "" {
 		fullMatches, oldVersions, err := getUsingRegex(dep, oldContents)
-		if err != nil {
+		if err == errRegexNoMatch {
+			if dep.RegexAllowNoMatch {
+				return oldContents, nil
+			} else {
+				return "", skerr.Wrapf(err, "`%s` in:\n%s", dep.Regex, oldContents)
+			}
+		} else if err != nil {
 			return "", skerr.Wrap(err)
 		}
 		newContents := oldContents

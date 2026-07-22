@@ -716,12 +716,14 @@ export interface VersionFileConfig_File {
   path: string;
   regex: string;
   regexReplaceAll: boolean;
+  regexAllowNoMatch: boolean;
 }
 
 interface VersionFileConfig_FileJSON {
   path?: string;
   regex?: string;
   regex_replace_all?: boolean;
+  regex_allow_no_match?: boolean;
 }
 
 export interface DependencyConfig {
