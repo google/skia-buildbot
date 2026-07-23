@@ -50,12 +50,7 @@ func getUsingRegex(dep *config.VersionFileConfig_File, contents string) ([]strin
 func getPinnedRevInFile(id string, file *config.VersionFileConfig_File, contents string) (string, map[string]string, error) {
 	if file.Regex != "" {
 		_, revisions, err := getUsingRegex(file, contents)
-		if err == errRegexNoMatch {
-			// Note: we ignore file.RegexAllowNoMatch here, because if the
-			// caller is asking for the pinned revision in the file the
-			// assumption is that it's actually needed.
-			return "", nil, skerr.Wrapf(err, "`%s` in:\n%s", file.Regex, contents)
-		} else if err != nil {
+		if err != nil {
 			return "", nil, skerr.Wrap(err)
 		}
 		return revisions[0], nil, nil
@@ -115,7 +110,11 @@ func GetPinnedRevs(ctx context.Context, deps []*config.VersionFileConfig, getFil
 			cache[dep.File[0].Path] = contents
 		}
 		version, data, err := getPinnedRevInFile(dep.Id, dep.File[0], contents)
-		if err != nil {
+		if skerr.Unwrap(err) == errRegexNoMatch {
+			// Note: we ignore file.RegexAllowNoMatch here, because we need a
+			// revision to be present in the primary dependency file.
+			return nil, nil, skerr.Wrapf(err, "no match found for regex `%s` in:\n%s", dep.File[0].Regex, contents)
+		} else if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
 		rv[dep.Id] = version
@@ -129,11 +128,11 @@ func GetPinnedRevs(ctx context.Context, deps []*config.VersionFileConfig, getFil
 func setPinnedRevInFile(id string, dep *config.VersionFileConfig_File, newRev *revision.Revision, oldContents string) (string, error) {
 	if dep.Regex != "" {
 		fullMatches, oldVersions, err := getUsingRegex(dep, oldContents)
-		if err == errRegexNoMatch {
+		if skerr.Unwrap(err) == errRegexNoMatch {
 			if dep.RegexAllowNoMatch {
 				return oldContents, nil
 			} else {
-				return "", skerr.Wrapf(err, "`%s` in:\n%s", dep.Regex, oldContents)
+				return "", skerr.Wrapf(err, "no match found for regex `%s` in:\n%s", dep.Regex, oldContents)
 			}
 		} else if err != nil {
 			return "", skerr.Wrap(err)
@@ -228,7 +227,16 @@ func updateSingleDep(ctx context.Context, dep *config.VersionFileConfig, newRev 
 
 		// Find the currently-pinned revision.
 		oldVersion, _, err := getPinnedRevInFile(dep.Id, file, oldContents)
-		if err != nil {
+		if skerr.Unwrap(err) == errRegexNoMatch {
+			// If RegexAllowNoMatch is set AND this isn't the primary dependency
+			// file, we can ignore this file and move on. Otherwise we have to
+			// return an error.
+			if file.RegexAllowNoMatch && idx != 0 {
+				continue
+			} else {
+				return "", skerr.Wrapf(err, "no match found for regex `%s` in:\n%s", file.Regex, oldContents)
+			}
+		} else if err != nil {
 			return "", skerr.Wrap(err)
 		}
 		if idx == 0 {

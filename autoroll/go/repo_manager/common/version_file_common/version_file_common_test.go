@@ -464,6 +464,40 @@ use_repo(cipd, "goldctl_linux-amd64")
   ]
 }`,
 	)
+
+	test(
+		"RegexAllowNoMatch_NoMatch",
+		&config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path:              "some-file",
+					Regex:             `"my-dep-not-found@([a-z0-9]+)"`,
+					RegexAllowNoMatch: true,
+				},
+			},
+		},
+		`deps = {
+				"my-dep-path": "my-dep@old-rev",
+			}`,
+		&revision.Revision{
+			Id: "new-rev",
+		},
+		`deps = {
+				"my-dep-path": "my-dep@old-rev",
+			}`,
+	)
+
+	t.Run("RegexNoMatch_Error", func(t *testing.T) {
+		depFile := &config.VersionFileConfig_File{
+			Path:              "some-file",
+			Regex:             `"my-dep-not-found@([a-z0-9]+)"`,
+			RegexAllowNoMatch: false,
+		}
+		_, err := setPinnedRevInFile("my-dep", depFile, &revision.Revision{Id: "new-rev"}, `deps = {"my-dep-path": "my-dep@old-rev"}`)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "no match found for regex")
+	})
 }
 
 func TestUpdateSingleDep(t *testing.T) {
@@ -624,6 +658,98 @@ deps = {
   "my-dep-path": "my-dep@new-rev",
 }`, changes[deps_parser.DepsFileName])
 	require.Equal(t, "new-rev\n", changes[secondaryPath])
+}
+
+func TestUpdateSingleDep_MultipleFiles_RegexAllowNoMatch(t *testing.T) {
+	primaryPath := "primary-file"
+	primaryContents := `deps = {
+  "my-dep-path": "my-dep@old-rev",
+}`
+	secondaryPathNoMatchAllowed := "secondary-no-match-allowed"
+	secondaryContentsNoMatchAllowed := `unrelated-content = "abc"`
+
+	secondaryPathNoMatchNotAllowed := "secondary-no-match-not-allowed"
+	secondaryContentsNoMatchNotAllowed := `unrelated-content = "def"`
+
+	getFile := func(ctx context.Context, path string) (string, error) {
+		if path == primaryPath {
+			return primaryContents, nil
+		} else if path == secondaryPathNoMatchAllowed {
+			return secondaryContentsNoMatchAllowed, nil
+		} else if path == secondaryPathNoMatchNotAllowed {
+			return secondaryContentsNoMatchNotAllowed, nil
+		}
+		return "", fmt.Errorf("Unknown file path %s", path)
+	}
+
+	// 1. Success case: secondary file has no match, but RegexAllowNoMatch is true.
+	t.Run("success", func(t *testing.T) {
+		changes := map[string]string{}
+		oldRev, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path:  primaryPath,
+					Regex: `"my-dep@([a-z0-9-]+)"`,
+				},
+				{
+					Path:              secondaryPathNoMatchAllowed,
+					Regex:             `"my-dep-not-found@([a-z0-9-]+)"`,
+					RegexAllowNoMatch: true,
+				},
+			},
+		}, &revision.Revision{Id: "new-rev"}, changes, getFile)
+		require.NoError(t, err)
+		require.Equal(t, "old-rev", oldRev)
+
+		// Primary file should be updated.
+		require.Equal(t, `deps = {
+  "my-dep-path": "my-dep@new-rev",
+}`, changes[primaryPath])
+
+		// Secondary file should not be updated/recorded in changes map.
+		_, exists := changes[secondaryPathNoMatchAllowed]
+		require.False(t, exists)
+	})
+
+	// 2. Failure case: secondary file has no match, and RegexAllowNoMatch is false.
+	t.Run("failure no match not allowed", func(t *testing.T) {
+		changes := map[string]string{}
+		_, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path:  primaryPath,
+					Regex: `"my-dep@([a-z0-9-]+)"`,
+				},
+				{
+					Path:              secondaryPathNoMatchNotAllowed,
+					Regex:             `"my-dep-not-found@([a-z0-9-]+)"`,
+					RegexAllowNoMatch: false,
+				},
+			},
+		}, &revision.Revision{Id: "new-rev"}, changes, getFile)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "no match found for regex")
+	})
+
+	// 3. Failure case: primary file has no match, and RegexAllowNoMatch is true.
+	// Primary files MUST match even if RegexAllowNoMatch is true.
+	t.Run("failure primary file no match", func(t *testing.T) {
+		changes := map[string]string{}
+		_, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path:              primaryPath,
+					Regex:             `"my-dep-not-found@([a-z0-9-]+)"`,
+					RegexAllowNoMatch: true,
+				},
+			},
+		}, &revision.Revision{Id: "new-rev"}, changes, getFile)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "no match found for regex")
+	})
 }
 
 func TestUpdateDep(t *testing.T) {
