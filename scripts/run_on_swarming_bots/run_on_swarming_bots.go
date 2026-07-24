@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	swarmingv2 "go.skia.org/infra/go/swarming/v2"
@@ -31,6 +33,7 @@ import (
 */
 
 var (
+	collect     = flag.String("collect", "", "Label from a previous invocation of this script, used to wait for and collect all task results.")
 	dev         = flag.Bool("dev", false, "Run against dev swarming instance.")
 	dimensions  = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
 	dryRun      = flag.Bool("dry_run", false, "List the bots, don't actually run any tasks")
@@ -41,6 +44,7 @@ var (
 	rerun       = flag.String("rerun", "", "Label from a previous invocation of this script, used to re-run all non-successful tasks.")
 	script      = flag.String("script", "", "Path to a Python script to run.")
 	taskName    = flag.String("task_name", "", "Name of the task to run.")
+	wait        = flag.Bool("wait", false, "Wait for the triggered tasks to complete and collect their results.")
 	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
 )
 
@@ -99,7 +103,17 @@ func main() {
 
 	// Are we re-running a previous set of tasks?
 	if *rerun != "" {
-		rerunPrevious(ctx, swarmingServer, swarmApi, *rerun)
+		if err := rerunPrevious(ctx, swarmingServer, swarmApi, *rerun); err != nil {
+			sklog.Fatal(err)
+		}
+		return
+	}
+
+	// Are we collecting results of a previous set of tasks?
+	if *collect != "" {
+		if err := collectResults(ctx, swarmApi, *collect); err != nil {
+			sklog.Fatal(err)
+		}
 		return
 	}
 
@@ -228,6 +242,11 @@ func main() {
 	if !*dryRun {
 		tasksLink := fmt.Sprintf("https://%s/tasklist?f=group:%s", swarmingServer, group)
 		sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
+		if *wait {
+			if err := collectResults(ctx, swarmApi, group); err != nil {
+				sklog.Fatal(err)
+			}
+		}
 	}
 }
 
@@ -251,13 +270,13 @@ func matchesAny(s string, xr []*regexp.Regexp) bool {
 	return false
 }
 
-func rerunPrevious(ctx context.Context, swarmingServer string, swarmApi swarmingv2.SwarmingV2Client, rerun string) {
+func rerunPrevious(ctx context.Context, swarmingServer string, swarmApi swarmingv2.SwarmingV2Client, rerun string) error {
 	results, err := swarmingv2.ListTasksHelper(ctx, swarmApi, &apipb.TasksWithPerfRequest{
 		State: apipb.StateQuery_QUERY_ALL,
 		Tags:  []string{rerun},
 	})
 	if err != nil {
-		sklog.Fatal(err)
+		return skerr.Wrapf(err, "listing tasks failed")
 	}
 	newTag := rerun + "_rerun"
 	var g errgroup.Group
@@ -271,16 +290,76 @@ func rerunPrevious(ctx context.Context, swarmingServer string, swarmApi swarming
 				TaskId: result.TaskId,
 			})
 			if err != nil {
-				return err
+				return skerr.Wrap(err)
 			}
 			taskMeta.Tags = append(taskMeta.Tags, newTag)
 			_, err = swarmingv2.RetryTask(ctx, swarmApi, taskMeta)
-			return err
+			return skerr.Wrap(err)
 		})
 	}
 	if err := g.Wait(); err != nil {
-		sklog.Fatal(err)
+		return skerr.Wrap(err)
 	}
 	tasksLink := fmt.Sprintf("https://%s/tasklist?f=%s", swarmingServer, newTag)
 	sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
+	return nil
+}
+
+func collectResults(ctx context.Context, swarmApi swarmingv2.SwarmingV2Client, group string) error {
+	tag := group
+	if !strings.HasPrefix(tag, "group:") {
+		tag = "group:" + tag
+	}
+
+	sklog.Infof("Waiting for tasks with tag %s to complete...", tag)
+
+	outDir, err := os.MkdirTemp(*workdir, fmt.Sprintf("run_on_swarming_bots_%s_*", group))
+	if err != nil {
+		return skerr.Wrapf(err, "creating temp directory failed")
+	}
+	fmt.Printf("Writing log files to temporary directory: %s\n", outDir)
+
+	processed := map[string]bool{}
+
+	for {
+		results, err := swarmingv2.ListTasksHelper(ctx, swarmApi, &apipb.TasksWithPerfRequest{
+			State: apipb.StateQuery_QUERY_ALL,
+			Tags:  []string{tag},
+		})
+		if err != nil {
+			return skerr.Wrapf(err, "failed listing tasks with tag %q", tag)
+		}
+		if len(results) == 0 {
+			return skerr.Fmt("no tasks found with tag: %s", tag)
+		}
+
+		for _, t := range results {
+			if processed[t.TaskId] || t.State == apipb.TaskState_PENDING || t.State == apipb.TaskState_RUNNING {
+				continue
+			}
+			stdout, err := swarmApi.GetStdout(ctx, &apipb.TaskIdWithOffsetRequest{TaskId: t.TaskId})
+			if err != nil {
+				return skerr.Wrapf(err, "failed fetching log output for task %s", t.TaskId)
+			}
+			filename := filepath.Join(outDir, fmt.Sprintf("%s_%s.log", t.BotId, t.TaskId))
+			if err := os.WriteFile(filename, stdout.Output, 0644); err != nil {
+				sklog.Errorf("Error writing log file %s: %s", filename, err)
+			}
+
+			fmt.Printf("%s: %s\n", t.BotId, t.State)
+			processed[t.TaskId] = true
+		}
+
+		// Print live in-place progress indicator on the terminal
+		fmt.Printf("\rWaiting for tasks to complete: %d/%d", len(processed), len(results))
+
+		if len(processed) == len(results) {
+			fmt.Println()
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+
+	sklog.Infof("Successfully dumped %d log files to: %s", len(processed), outDir)
+	return nil
 }
