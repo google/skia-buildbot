@@ -11,7 +11,7 @@ var PACKAGES = map[string]*Package{
 	"infra/3pp/tools/git/${platform}": {
 		Path:    ".",
 		Name:    "infra/3pp/tools/git/${platform}",
-		Version: "version:3@2.51.2.chromium.11",
+		Version: "version:3@2.55.0.chromium.11",
 	},
 	"infra/tools/cipd/${platform}": {
 		Path:    ".",
