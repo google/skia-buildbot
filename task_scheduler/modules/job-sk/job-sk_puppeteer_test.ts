@@ -16,6 +16,7 @@ describe('job-sk', () => {
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
+      await testBed.page.waitForSelector('code');
       await takeScreenshot(testBed.page, 'task-scheduler', 'job-sk');
       // Take a screenshot in dark mode.
       await testBed.page.evaluate(() => {

@@ -82,7 +82,7 @@ export class QueryCountSk extends LitElement {
     const isLoading =
       this._fetchTask.status === TaskStatus.PENDING ||
       this._fetchTask.status === TaskStatus.INITIAL;
-    const count = isLoading ? 0 : this._fetchTask.value ?? 0;
+    const count = isLoading ? 0 : (this._fetchTask.value ?? 0);
 
     return html`
       <div>

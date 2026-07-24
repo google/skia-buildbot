@@ -33,18 +33,31 @@ task-scheduler-fe:
 task-scheduler-jc:
 	$(BAZEL) build --config=mayberemote //task_scheduler/go/task-scheduler-jc/...
 
-.PHONY: release-be
-release-be: task-scheduler-be build_base_cipd_release
-	$(BAZEL) run --config=mayberemote //task_scheduler:push_task_scheduler_be_container
-
-.PHONY: release-fe
-release-fe: task-scheduler-fe
-	$(BAZEL) run --config=mayberemote //task_scheduler:push_task_scheduler_fe_container
-
-.PHONY: release-jc
-release-jc: task-scheduler-jc
-	$(BAZEL) run --config=mayberemote //task_scheduler:push_task_scheduler_jc_container
-
 .PHONY: validate_db
 validate_db:
 	go install -v ./go/db/validate_db
+
+.PHONY: build-image-fe
+build-image-fe:
+	$(BAZEL) run --config=mayberemote //task_scheduler:load_task_scheduler_fe_container
+
+.PHONY: run-local-fe
+run-local-fe: build-image-fe
+	docker run \
+		-p 8090:8090 \
+		--user $$(id -u):$$(id -g) \
+		-v ~/.config/gcloud:/tmp/gcloud \
+		-e CLOUDSDK_CONFIG=/tmp/gcloud \
+		-e GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json \
+		gcr.io/skia-public/task-scheduler-fe:latest \
+		/usr/local/bin/task-scheduler-fe \
+		--buildbucket-target=skia://task-scheduler \
+		--resources-dir=/usr/local/share/task-scheduler-fe/dist \
+		--host=localhost \
+		--port=:8090 \
+		--firestore-instance=production \
+		--bigtable-project=skia-public \
+		--bigtable-instance=production \
+		--repo=https://skia.googlesource.com/skia.git \
+		--swarming-server=chromium-swarm.appspot.com/skia:skia.primary/Skia,SkiaCT,SkiaIOS \
+		--local

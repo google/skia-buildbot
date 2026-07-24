@@ -17,7 +17,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/cors"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 
+	autogardener_db "go.skia.org/infra/autogardener/go/db"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
@@ -59,6 +61,9 @@ const (
 var (
 	// Tasks to skip.
 	skipTasks *skip_tasks.DB
+
+	// AutoGardener DB.
+	autogardenerDB autogardener_db.AutoGardenerDB
 
 	// HTML templates.
 	skipTasksTemplate   *template.Template = nil
@@ -270,6 +275,31 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func taskSummaryHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	w.Header().Set("Content-Type", "application/json")
+
+	taskID := chi.URLParam(r, "taskId")
+	if taskID == "" {
+		httputils.ReportError(w, nil, "Missing Task ID in request path", http.StatusBadRequest)
+		return
+	}
+
+	summary, err := autogardenerDB.GetTaskSummary(r.Context(), taskID)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to retrieve task summary.", http.StatusInternalServerError)
+		return
+	}
+	if summary == nil {
+		httputils.ReportError(w, nil, fmt.Sprintf("no task summary for %s", taskID), http.StatusNotFound)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(summary); err != nil {
+		httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
+		return
+	}
+}
+
 func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte("google-site-verification: google2c59f97e1ced9fdc.html")); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to write response: %s", err), http.StatusInternalServerError)
@@ -299,6 +329,7 @@ func runServer(serverURL string, srv, bbHandler http.Handler, plogin alogin.Logi
 	r.HandleFunc("/job/{id}/timeline", jobTimelineHandler)
 	r.HandleFunc("/jobs/search", jobSearchHandler)
 	r.HandleFunc("/task/{id}", taskHandler)
+	r.HandleFunc("/json/task-summary/{taskId}", taskSummaryHandler)
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
 	r.HandleFunc("/res/*", httputils.MakeResourceHandler(*resourcesDir))
@@ -357,6 +388,12 @@ func main() {
 	cleanup.AtExit(func() {
 		util.Close(tsDb)
 	})
+
+	// Create the AutoGardener DB.
+	autogardenerDB, err = autogardener_db.NewFirestoreDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, option.WithTokenSource(tokenSource))
+	if err != nil {
+		sklog.Fatalf("Failed to create AutoGardener DB client: %s", err)
+	}
 
 	// Skip tasks DB.
 	skipTasks, err = skip_tasks.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource)

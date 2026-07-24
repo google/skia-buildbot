@@ -29,6 +29,7 @@ sk_element(
         "//status/modules:settings_ts_lib",
         "//status/modules:util_ts_lib",
         "//status/modules/rpc:index_ts_lib",
+        "//infra-sk/modules:task-summary_ts_lib",
     ],
     ts_srcs = [
         "details-dialog-sk.ts",

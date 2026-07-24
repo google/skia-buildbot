@@ -25,12 +25,7 @@ import '../../../elements-sk/modules/icons/content-copy-icon-sk';
 import '../../../elements-sk/modules/icons/launch-icon-sk';
 import '../../../infra-sk/modules/task-driver-sk';
 import { Status } from '../../../infra-sk/modules/json';
-
-// TODO(borenet): Consider using go2ts to generate this and other types.
-export interface TaskSummary {
-  analysis?: string;
-  errorMessage?: string;
-}
+import { taskSummaryRows, TaskSummary } from '../../../infra-sk/modules/task-summary';
 
 // Type defining the text and action of the upper-right button of the dialog.
 // For reverts of commits and re-running of tasks.
@@ -158,84 +153,18 @@ export class DetailsDialogSk extends ElementSk {
       .then(jsonOrThrow)
       .catch(() => null);
 
-    const summaryRows = (s: TaskSummary | null) => html`
-      ${s?.errorMessage
-        ? html`<tr>
-            <td><b>Error Message:</b></td>
-            <td class="pre ${`task-${(task.status || 'PENDING').toLowerCase()}`}">
-              <code>${s.errorMessage}</code>
-            </td>
-          </tr>`
-        : html``}
-      ${s?.analysis
-        ? html`<tr>
-            <td>Analysis:</td>
-            <td class="pre">${s.analysis}</td>
-          </tr>`
-        : html``}
-    `;
-
     const tdData = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
       .catch(() => null);
 
-    const detailsTable = html`
-      <div>
-        <table class="task-info">
-          <tr>
-            <td>Status:</td>
-            <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
-          </tr>
-          ${until(summaryData.then(summaryRows), html``)}
-          <tr>
-            <td>Context:</td>
-            <td>
-              <a href=${this.taskUrl(task)} target="_blank" rel="noopener noreferrer">
-                View on Task Scheduler
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td>This Task:</td>
-            <td>
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="${this.swarmingTaskUrl(task.taskExecutor, task.swarmingTaskId)}">
-                View on Swarming
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td>Other Tasks Like This:</td>
-            <td>
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href=${this.swarmingTaskListUrl(task.taskExecutor, task.name)}>
-                View on Swarming
-              </a>
-            </td>
-          </tr>
-        </table>
-      </div>
-    `;
-
     const td = tdData.then((data) => {
       if (!data) {
-        return detailsTable;
+        return this.detailsTable(task, summaryData);
       }
       return html`
-        ${until(
-          summaryData.then((s) =>
-            s && (s.errorMessage || s.analysis)
-              ? html`<table class="task-info">
-                  ${summaryRows(s)}
-                </table>`
-              : html``
-          ),
-          html``
-        )}
+        <table class="task-info">
+          ${until(summaryData.then(taskSummaryRows), html``)}
+        </table>
         <br /><task-driver-sk id="tdStatus" .data=${data} embedded></task-driver-sk>
       `;
     });
@@ -260,7 +189,7 @@ export class DetailsDialogSk extends ElementSk {
     `;
 
     this.detailsSection = html`
-      ${until(td, detailsTable)}
+      ${until(td, this.detailsTable(task, summaryData))}
       <h3>Blamelist</h3>
       <table class="blamelist">
         ${task.commits?.map((hash: string) => {
@@ -372,6 +301,50 @@ export class DetailsDialogSk extends ElementSk {
         : `https://codereview.chromium.org/${commit.issue}/revert`;
     const win = window.open(url, '_blank') as Window;
     win.focus();
+  }
+
+  private detailsTable(task: Task, summaryPromise: Promise<TaskSummary | null>) {
+    return html`
+      <div>
+        <table class="task-info">
+          <tr>
+            <td>Status:</td>
+            <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
+          </tr>
+          ${until(summaryPromise.then(taskSummaryRows), html``)}
+          <tr>
+            <td>Context:</td>
+            <td>
+              <a href=${this.taskUrl(task)} target="_blank" rel="noopener noreferrer">
+                View on Task Scheduler
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>This Task:</td>
+            <td>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="${this.swarmingTaskUrl(task.taskExecutor, task.swarmingTaskId)}">
+                View on Swarming
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>Other Tasks Like This:</td>
+            <td>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href=${this.swarmingTaskListUrl(task.taskExecutor, task.name)}>
+                View on Swarming
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
   }
 
   private taskUrl(task: Task) {

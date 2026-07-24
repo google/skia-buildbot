@@ -26,16 +26,28 @@ const element = document.querySelector('details-dialog-sk') as DetailsDialogSk;
 element.repo = 'skia';
 
 document.addEventListener('click', async (e) => {
-  switch ((<HTMLElement>e.target).id) {
+  const targetId = (<HTMLElement>e.target).id;
+  if (['taskButton', 'taskDriverButton', 'commitButton', 'taskSpecButton'].includes(targetId)) {
+    fetchMock.restore();
+  }
+  switch (targetId) {
     case 'taskButton':
-      fetchMock.getOnce('path:/json/task-summary/999990', 404);
-      fetchMock.getOnce('path:/json/td/999990', 404);
+      fetchMock.get('path:/json/task-summary/999990', {
+        errorMessage:
+          'Something went wrong while executing the task in EMCC release run.\nLine 42: compile error: undefined reference to function',
+        analysis: 'Compile failure in CanvasKit target.',
+      });
+      fetchMock.get('path:/json/td/999990', 404);
       element.displayTask(task, [comment], commitsByHash);
       await fetchMock.flush(true);
       return;
     case 'taskDriverButton':
-      fetchMock.getOnce('path:/json/td/999990', taskDriverData);
-      fetchMock.getOnce('path:/json/task-summary/999990', 404);
+      fetchMock.get('path:/json/td/999990', taskDriverData);
+      fetchMock.get('path:/json/task-summary/999990', {
+        errorMessage:
+          'Something went wrong while executing the task in EMCC release run.\nLine 42: compile error: undefined reference to function',
+        analysis: 'Compile failure in CanvasKit target.',
+      });
       element.displayTask(task, [comment], commitsByHash);
       await fetchMock.flush(true);
       return;

@@ -23,6 +23,8 @@ sk_element(
         "//infra-sk/modules:human_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//task_scheduler/modules/rpc:index_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:task-summary_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
@@ -38,7 +40,10 @@ sk_page(
         "//infra-sk/modules/theme-chooser-sk",
         ":task-sk",
     ],
-    ts_deps = ["//task_scheduler/modules/rpc-mock:index_ts_lib"],
+    ts_deps = [
+        "//task_scheduler/modules/rpc-mock:index_ts_lib",
+        "//:node_modules/fetch-mock",
+    ],
     ts_entry_point = "task-sk-demo.ts",
 )
 

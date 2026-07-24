@@ -20,13 +20,22 @@ import {
   GetJobResponse,
   JobStatus,
   CancelJobResponse,
+  TaskStatus,
 } from '../rpc';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { TaskGraphSk } from '../task-graph-sk/task-graph-sk';
 import '../task-graph-sk';
 import '../../../infra-sk/modules/human-date-sk';
+import { taskSummaryRows, TaskSummary } from '../../../infra-sk/modules/task-summary';
 import '../../../elements-sk/modules/icons/delete-icon-sk';
 import '../../../elements-sk/modules/icons/search-icon-sk';
 import '../../../elements-sk/modules/icons/timeline-icon-sk';
+
+export interface FailedTask {
+  id: string;
+  name: string;
+  summary?: TaskSummary;
+}
 
 const jobStatusToTextClass = new Map<JobStatus, [string, string]>();
 jobStatusToTextClass.set(JobStatus.JOB_STATUS_REQUESTED, ['requested', 'bg-in-progress']);
@@ -191,6 +200,41 @@ export class JobSk extends ElementSk {
       <h2>Tasks</h2>
       <task-graph-sk></task-graph-sk>
     </div>
+
+    ${ele.failedTasks && ele.failedTasks.length > 0
+      ? html`
+          <div class="container">
+            <h2>Failed Task Summaries</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Task Name</th>
+                  <th>Error Message</th>
+                  <th>Analysis</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${ele.failedTasks.map(
+                  (ft) => html`
+                    <tr>
+                      <td><a href="/task/${ft.id}" target="_blank">${ft.name}</a></td>
+                      <td>
+                        ${ft.summary
+                          ? html`
+                              <table>
+                                ${taskSummaryRows(ft.summary)}
+                              </table>
+                            `
+                          : html``}
+                      </td>
+                    </tr>
+                  `
+                )}
+              </tbody>
+            </table>
+          </div>
+        `
+      : html``}
   `;
 
   private codereviewLink: string = '';
@@ -200,6 +244,8 @@ export class JobSk extends ElementSk {
   private isTryJob: boolean = false;
 
   private job: Job | null = null;
+
+  private failedTasks: FailedTask[] = [];
 
   private revisionLink: string = '';
 
@@ -252,6 +298,43 @@ export class JobSk extends ElementSk {
       this.codereviewLink = `${p.server}/c/${p.issue}/${p.patchset}`;
     }
     [this.statusText, this.statusClass] = jobStatusToTextClass.get(this.job.status)!;
+
+    // Identify failed tasks in the job.
+    const failedTasks: FailedTask[] = [];
+    this.job.tasks?.forEach((taskSummaries) => {
+      taskSummaries.tasks?.forEach((task) => {
+        if (
+          task.status === TaskStatus.TASK_STATUS_FAILURE ||
+          task.status === TaskStatus.TASK_STATUS_MISHAP
+        ) {
+          failedTasks.push({
+            id: task.id!,
+            name: taskSummaries.name,
+          });
+        }
+      });
+    });
+
+    if (failedTasks.length > 0) {
+      const summaryPromises = failedTasks.map((ft) =>
+        fetch(`/json/task-summary/${ft.id}`)
+          .then(jsonOrThrow)
+          .then((s) => {
+            ft.summary = s;
+          })
+          .catch(() => null)
+      );
+
+      Promise.all(summaryPromises).then(() => {
+        this.failedTasks = failedTasks;
+        this._render();
+        const graph = $$<TaskGraphSk>('task-graph-sk', this);
+        graph?.draw([this.job!]);
+      });
+    } else {
+      this.failedTasks = [];
+    }
+
     this._render();
     const graph = $$<TaskGraphSk>('task-graph-sk', this);
     graph?.draw([this.job]);

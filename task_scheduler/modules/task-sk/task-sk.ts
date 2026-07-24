@@ -12,6 +12,7 @@ import { diffDate } from '../../../infra-sk/modules/human';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import {
   GetTaskSchedulerService,
   Job,
@@ -24,6 +25,7 @@ import {
 import { TaskGraphSk } from '../task-graph-sk/task-graph-sk';
 import '../task-graph-sk';
 import '../../../infra-sk/modules/human-date-sk';
+import { taskSummaryRows, TaskSummary } from '../../../infra-sk/modules/task-summary';
 
 const taskStatusToTextColor = new Map<TaskStatus, [string, string]>();
 taskStatusToTextColor.set(TaskStatus.TASK_STATUS_PENDING, ['pending', 'rgb(255, 255, 255)']);
@@ -124,6 +126,17 @@ export class TaskSk extends ElementSk {
       <h2>Context</h2>
       <task-graph-sk></task-graph-sk>
     </div>
+
+    ${ele.summary
+      ? html`
+          <div class="container">
+            <h2>Failed Task Summary</h2>
+            <table>
+              ${taskSummaryRows(ele.summary)}
+            </table>
+          </div>
+        `
+      : html``}
   `;
 
   private codereviewLink: string = '';
@@ -145,6 +158,8 @@ export class TaskSk extends ElementSk {
   private swarmingTaskLink: string = '';
 
   private task: Task | null = null;
+
+  private summary: TaskSummary | null = null;
 
   constructor() {
     super(TaskSk.template);
@@ -185,6 +200,10 @@ export class TaskSk extends ElementSk {
     if (!this.taskID || !this.rpc) {
       return;
     }
+    const summaryPromise = fetch(`/json/task-summary/${this.taskID}`)
+      .then(jsonOrThrow)
+      .catch(() => null);
+
     this.rpc!.getTask({
       id: this.taskID,
       includeStats: false,
@@ -206,14 +225,17 @@ export class TaskSk extends ElementSk {
       [this.statusText, this.statusColor] = taskStatusToTextColor.get(this.task.status)!;
       this.swarmingTaskLink = `https://${this.task.taskExecutor}/task?id=${this.task.swarmingTaskId}`;
       const jobReqs = this.task.jobs!.map((jobID: string) => this.rpc!.getJob({ id: jobID }));
-      Promise.all(jobReqs).then((jobResps: GetJobResponse[]) => {
-        this.jobs = jobResps
-          .map((resp: GetJobResponse) => resp.job!)
-          .sort((a: Job, b: Job) => (a.name < b.name ? -1 : 1));
-        this._render();
-        const graph = $$<TaskGraphSk>('task-graph-sk', this);
-        graph?.draw(this.jobs, taskResp.task);
-      });
+      Promise.all([summaryPromise, Promise.all(jobReqs)]).then(
+        ([summary, jobResps]: [TaskSummary | null, GetJobResponse[]]) => {
+          this.summary = summary;
+          this.jobs = jobResps
+            .map((resp: GetJobResponse) => resp.job!)
+            .sort((a: Job, b: Job) => (a.name < b.name ? -1 : 1));
+          this._render();
+          const graph = $$<TaskGraphSk>('task-graph-sk', this);
+          graph?.draw(this.jobs, taskResp.task);
+        }
+      );
     });
   }
 }

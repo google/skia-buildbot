@@ -3,4 +3,12 @@
 
 task-sk {
   font-family: Arial, sans-serif;
+
+  .pre {
+    white-space: pre-wrap;
+
+    code {
+      font-family: monospace;
+    }
+  }
 }

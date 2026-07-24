@@ -64,11 +64,11 @@ describe('details-dialog-sk', () => {
   });
 
   it('displays tasks with task summary', async () => {
-    fetchMock.getOnce('path:/json/task-summary/999990', {
+    fetchMock.get('path:/json/task-summary/999990', {
       analysis: 'task failed due to an error!',
       errorMessage: 'test XYZ failed',
     });
-    fetchMock.getOnce('path:/json/td/999990', {
+    fetchMock.get('path:/json/td/999990', {
       status: 404,
       body: { error: 'Not Found' },
     });
@@ -77,9 +77,7 @@ describe('details-dialog-sk', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
-    // The task summary has an error message which, in addition to the task
-    // status row, gives us two elements with class `task-failure`.
-    expect($('.task-failure', element)).to.have.length(2);
+    expect($('code', element)).to.have.length(1); // The TaskSummary error message.
     expect($('task-driver-sk', element)).to.have.length(0); // No task driver displayed.
     // 3 sections, seperated by lines.
     expect($('hr', element)).to.have.length(1);
@@ -88,11 +86,11 @@ describe('details-dialog-sk', () => {
   });
 
   it('displays tasks with taskdriver', async () => {
-    fetchMock.getOnce('path:/json/task-summary/999990', {
+    fetchMock.get('path:/json/task-summary/999990', {
       status: 404,
       body: { error: 'Not Found' },
     });
-    fetchMock.getOnce('path:/json/td/999990', taskDriverData);
+    fetchMock.get('path:/json/td/999990', taskDriverData);
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -110,19 +108,17 @@ describe('details-dialog-sk', () => {
   });
 
   it('displays tasks with summary and taskdriver', async () => {
-    fetchMock.getOnce('path:/json/task-summary/999990', {
+    fetchMock.get('path:/json/task-summary/999990', {
       analysis: 'task failed due to an error!',
       errorMessage: 'test XYZ failed',
     });
-    fetchMock.getOnce('path:/json/td/999990', taskDriverData);
+    fetchMock.get('path:/json/td/999990', taskDriverData);
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
-    // The task summary has an error message which gives us one element with
-    // class `task-failure`, since there is no task status row.
-    expect($('.task-failure', element)).to.have.length(1);
+    expect($('code', element)).to.have.length(1); // The TaskSummary error message.
     expect($('task-driver-sk', element)).to.have.length(1);
     // 3 sections, seperated by lines.
     expect($('hr', element)).to.have.length(1);

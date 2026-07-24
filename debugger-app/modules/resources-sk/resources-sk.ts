@@ -143,8 +143,8 @@ export class ResourcesSk extends ElementDocSk {
 
     for (let i = 0; i < imageCount; i++) {
       const info = player.getImageInfo(i);
-      const colorTypeName = info ? colorTypeLookup.get(info.colorType) ?? 'Unknown' : 'Unknown';
-      const alphaTypeName = info ? alphaTypeLookup.get(info.alphaType) ?? 'Unknown' : 'Unknown';
+      const colorTypeName = info ? (colorTypeLookup.get(info.colorType) ?? 'Unknown') : 'Unknown';
+      const alphaTypeName = info ? (alphaTypeLookup.get(info.alphaType) ?? 'Unknown') : 'Unknown';
       this.list.push({
         index: i,
         width: info.width,
