@@ -61,7 +61,7 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/luci/vpython3/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/luci/vpython3/${platform}",
-		Version: "git_revision:b2fad5ab18774b86d84aa867287bfb4f2394893b",
+		Version: "git_revision:7af4577a75d54724a2dbd92b17da3a579d6f8f1d",
 	},
 	"skia/bots/bazel": {
 		Path:    "bazel",
