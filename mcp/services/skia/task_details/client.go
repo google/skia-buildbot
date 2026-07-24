@@ -352,7 +352,7 @@ type GetTaskStepsResult struct {
 
 func (r GetTaskStepsResult) String() string {
 	var sb strings.Builder
-	if r.TaskDriver != nil {
+	if r.TaskDriver != nil && r.TaskDriver.StepDisplay != nil {
 		_, _ = fmt.Fprintf(&sb, "## Task Driver details\n\n")
 		printTaskDriverStep(&sb, r.TaskDriver.StepDisplay, 0)
 	} else if r.Recipe != nil {
