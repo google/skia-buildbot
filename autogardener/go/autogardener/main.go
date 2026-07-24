@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/autogardener/go/ingester"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
@@ -67,10 +66,10 @@ func main() {
 	}
 
 	// Parse the report interval.
-	generateReportInterval, err := human.ParseDuration(*reportInterval)
-	if err != nil {
-		sklog.Fatal(err)
-	}
+	// generateReportInterval, err := human.ParseDuration(*reportInterval)
+	// if err != nil {
+	// 	sklog.Fatal(err)
+	// }
 
 	ctx := context.Background()
 
@@ -140,7 +139,7 @@ func main() {
 	sklog.Infof("Setup complete. Starting loop.")
 	for _, repoURL := range *repoURLs {
 		ing.StartIngestingTaskSummariesForRepo(ctx, repoURL, period)
-		ing.StartGeneratingReportsForRepo(ctx, repoURL, git.MainBranch, *numCommits, generateReportInterval)
+		//ing.StartGeneratingReportsForRepo(ctx, repoURL, git.MainBranch, *numCommits, generateReportInterval)
 	}
 	httputils.RunHealthCheckServer(*port)
 }
