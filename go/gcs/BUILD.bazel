@@ -4,12 +4,14 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "gcs",
     srcs = [
+        "fs.go",
         "helpers.go",
         "types.go",
     ],
     importpath = "go.skia.org/infra/go/gcs",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/fileutil/browser",
         "//go/skerr",
         "//go/untar",
         "//go/util",

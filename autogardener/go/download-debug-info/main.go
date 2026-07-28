@@ -14,6 +14,8 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autogardener/go/gemini"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/fileutil/browser"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2/google"
@@ -33,12 +35,24 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	gcs, err := storage.NewClient(ctx, option.WithTokenSource(ts))
+	client, err := storage.NewClient(ctx, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	fmt.Printf("%v\n", os.Args)
-	r, err := gcs.Bucket(*gcsBucketDebug).Object(*object).NewReader(ctx)
+
+	selectedObject := *object
+	if selectedObject == "" {
+		gcsFs := gcs.NewFS(ctx, client, *gcsBucketDebug)
+		var err error
+		selectedObject, err = browser.Browse(ctx, gcsFs, "")
+		if err == browser.ErrUserCanceled {
+			return
+		} else if err != nil {
+			sklog.Fatal(err)
+		}
+	}
+
+	r, err := client.Bucket(*gcsBucketDebug).Object(selectedObject).NewReader(ctx)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -51,11 +65,18 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// Write the prompt to a file.
-	if err := os.WriteFile(filepath.Join(tmp, "prompt.txt"), []byte(debug.Prompt), os.ModePerm); err != nil {
-		util.RemoveAll(tmp)
-		sklog.Fatal(err)
+	var writtenFiles []string
+	writeFile := func(filename string, contents []byte) {
+		p := filepath.Join(tmp, filename)
+		if err := os.WriteFile(p, contents, os.ModePerm); err != nil {
+			util.RemoveAll(tmp)
+			sklog.Fatal(err)
+		}
+		writtenFiles = append(writtenFiles, p)
 	}
+
+	// Write the prompt to a file.
+	writeFile("prompt.txt", []byte(debug.Prompt))
 
 	// Attempt to decode the result as JSON and reformat it for readability.
 	resultFileName := "result.txt"
@@ -69,10 +90,7 @@ func main() {
 		}
 		resultContents = b
 	}
-	if err := os.WriteFile(filepath.Join(tmp, resultFileName), resultContents, os.ModePerm); err != nil {
-		util.RemoveAll(tmp)
-		sklog.Fatal(err)
-	}
+	writeFile(resultFileName, resultContents)
 
 	// Write details for each tool call to files.
 	for idx, toolCall := range debug.ToolCalls {
@@ -89,10 +107,11 @@ func main() {
 		}
 		_, _ = fmt.Fprintf(&sb, "\nResult:\n\n%s\n", toolCall.Result)
 
-		if err := os.WriteFile(filepath.Join(tmp, fmt.Sprintf("tool_call_%d.txt", idx)), []byte(sb.String()), os.ModePerm); err != nil {
-			util.RemoveAll(tmp)
-			sklog.Fatal(err)
-		}
+		writeFile(fmt.Sprintf("tool_call_%d.txt", idx), []byte(sb.String()))
 	}
-	fmt.Printf("Wrote debug info to %s\n", tmp)
+
+	fmt.Printf("Wrote debug info to %s:\n", tmp)
+	for _, f := range writtenFiles {
+		fmt.Printf("- %s\n", f)
+	}
 }

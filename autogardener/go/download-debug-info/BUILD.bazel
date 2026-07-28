@@ -8,6 +8,8 @@ go_library(
     deps = [
         "//autogardener/go/gemini",
         "//go/auth",
+        "//go/fileutil/browser",
+        "//go/gcs",
         "//go/sklog",
         "//go/util",
         "@com_google_cloud_go_storage//:storage",

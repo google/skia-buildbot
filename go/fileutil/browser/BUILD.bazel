@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "browser",
+    srcs = ["browser.go"],
+    importpath = "go.skia.org/infra/go/fileutil/browser",
+    visibility = ["//visibility:public"],
+    deps = ["@org_golang_x_term//:term"],
+)
+
+go_test(
+    name = "browser_test",
+    srcs = ["browser_test.go"],
+    embed = [":browser"],
+)
