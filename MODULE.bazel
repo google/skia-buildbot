@@ -704,13 +704,13 @@ cipd.download_http(
     name = "vpython3",
     cipd_package = "infra/tools/luci/vpython3/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "f536c34ffca9c6c2bd73d06403b667b9d250917cf2d58070671ab6a89af47e7d",
-        "linux-arm64": "668b06d25ca2893e6545dd6db35486dfb1a89f86169b1116e385c34de5d27cd2",
-        "mac-amd64": "40637e208b8452bd1ad322e562d5588cf605d70d68dfd415adde77e479e6bb2b",
-        "mac-arm64": "0ade0d2e63b9143a495d78f594622909c5dd0ca0aa4b083b08015ab2664be150",
-        "windows-amd64": "06eedab6785cf4a55a97ae8437a72fed9cac513c8f2d469266901538ee1399b5",
+        "linux-amd64": "56d2ce6c48f10f237717def1c29c33dcc5492e73ed9cec86183eb4938f7b0c14",
+        "linux-arm64": "f88ce128ee0d9a2cab49dbb54bb584d1c528eda07e228b9cb2105ff080e37dc3",
+        "mac-amd64": "2e9729b7ab006dea274d6d093591a1a517345df1bd92e730961cf8e6fde5c23b",
+        "mac-arm64": "a8aeac2ce2d96296d322680ac3c7347008bcc4b9a020c9418648bc6c4a0fa24a",
+        "windows-amd64": "587e6a605eb25ffc0b2b710754621d979f3465d9e7278ee4c49ce6857fa92c89",
     },
-    tag = "git_revision:7af4577a75d54724a2dbd92b17da3a579d6f8f1d",
+    tag = "git_revision:e78819f3a5210e0d8adc3a12677226a8fd012268",
 )
 use_repo(cipd, "vpython3_linux-amd64")
 
