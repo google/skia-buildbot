@@ -24,6 +24,9 @@ type StepProperties struct {
 	// Parent step ID. This is set by the framework and should not be set
 	// by callers.
 	Parent string `json:"parent,omitempty"`
+
+	// Index is a sequence number representing the order in which steps were started.
+	Index int `json:"index"`
 }
 
 // Props sets the name of the step. It returns a StepProperties instance which
@@ -59,6 +62,7 @@ func (p *StepProperties) Copy() *StepProperties {
 		IsInfra: p.IsInfra,
 		Environ: util.CopyStringSlice(p.Environ),
 		Parent:  p.Parent,
+		Index:   p.Index,
 	}
 }
 

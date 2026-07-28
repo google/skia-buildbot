@@ -18,5 +18,10 @@ go_test(
     name = "display_test",
     srcs = ["display_test.go"],
     embed = [":display"],
-    deps = ["@com_github_stretchr_testify//assert"],
+    deps = [
+        "//task_driver/go/db",
+        "//task_driver/go/td",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )

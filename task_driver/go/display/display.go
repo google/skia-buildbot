@@ -48,6 +48,9 @@ func (s StepSlice) Swap(i, j int) {
 }
 
 func (s StepSlice) Less(i, j int) bool {
+	if s[i].Index != 0 && s[j].Index != 0 {
+		return s[i].Index < s[j].Index
+	}
 	return s[i].Started.Before(s[j].Started)
 }
 

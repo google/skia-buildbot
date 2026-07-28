@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -242,8 +243,9 @@ func EndRun(ctx context.Context) {
 
 // run represents a full test automation run.
 type run struct {
-	receiver Receiver
-	taskId   string
+	receiver    Receiver
+	taskId      string
+	stepCounter int64
 }
 
 // newRun returns a context.Context representing a Task Driver run, including
@@ -320,6 +322,7 @@ func (r *run) send(msg *Message) {
 
 // Send a Message indicating that a new step has started.
 func (r *run) Start(props *StepProperties) {
+	props.Index = int(atomic.AddInt64(&r.stepCounter, 1))
 	msg := &Message{
 		Type:   MsgType_StepStarted,
 		StepId: props.Id,

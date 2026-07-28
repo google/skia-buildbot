@@ -25,6 +25,7 @@ export interface StepDisplay {
 	isInfra?: boolean;
 	environment?: string[];
 	parent?: string;
+	index?: number;
 }
 
 export interface TaskDriverRunDisplay {
@@ -40,6 +41,7 @@ export interface TaskDriverRunDisplay {
 	isInfra?: boolean;
 	environment?: string[];
 	parent?: string;
+	index?: number;
 }
 
 export type StepResult = string;
