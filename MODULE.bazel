@@ -676,13 +676,13 @@ cipd.download_http(
     name = "lucicfg",
     cipd_package = "infra/tools/luci/lucicfg/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "5a0ca196bff94ba3ebc3e45f055d5d224abc4a48a4d0c1a696b25f148a1995c1",
-        "linux-arm64": "4c0bbca80801a8637940cf76632127a12638946b60bf5f09c59e5845bb4098ef",
-        "mac-amd64": "494793b137b13d10ce5db40f6039b195ecd613fc40ce61ca82f5938fdda35b49",
-        "mac-arm64": "b61f86e0a27305975ce9ba68819359f21669d8dd80314dbf9a027bfb6c09dad2",
-        "windows-amd64": "cf7429337845f9e168613b22ab0d627f510f213cd92b8f415910e74c7760f0ae",
+        "linux-amd64": "ff424f6cd7e18d418f12ac37da4ceaeab3aadb20e2e40f8967e771a9a3a657da",
+        "linux-arm64": "42e2a04a72bc3bc55192e360c23ed65cd36892b7f9e9b9e38ee9673613954c1e",
+        "mac-amd64": "2d84ac46c3e0d2dc87d269a90449cac8f93cae08ef0be53904c173cbd1cd71b0",
+        "mac-arm64": "1d5c5d4f7c14adf68b3481e16fcbea625ad9c2aefb7bf2c23b3b9a9fe5e06fce",
+        "windows-amd64": "3b6ed0a73891cfd7512d49a37b1451bd28a741f976dad421db4ddc7f249fa6bc",
     },
-    tag = "git_revision:e78819f3a5210e0d8adc3a12677226a8fd012268",
+    tag = "git_revision:184210f295937da7708d5787bdc611ca990bb629",
 )
 use_repo(cipd, "lucicfg_linux-amd64")
 
