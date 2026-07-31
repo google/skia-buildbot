@@ -2,7 +2,7 @@ use_relative_paths = True
 
 deps = {
   'depot_tools': {
-    'url': 'https://chromium.googlesource.com/chromium/tools/depot_tools.git@621cd2a212921328b0a552582c0bc18ba786588c',
+    'url': 'https://chromium.googlesource.com/chromium/tools/depot_tools.git@e051c661c3785286de8623547e3a1574b989a428',
     'condition': 'False',
   },
 }
