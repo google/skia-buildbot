@@ -516,6 +516,8 @@ class State {
   displayCommitSubject: boolean = false;
 
   repo: string = defaultRepo();
+
+  branchFilter: string = '';
 }
 
 export class CommitsTableSk extends ElementSk {
@@ -526,6 +528,10 @@ export class CommitsTableSk extends ElementSk {
   private _search: string = '';
 
   private _repo: string = defaultRepo();
+
+  private _branchFilter: string = '';
+
+  commits: Array<Commit> = [];
 
   private lastColumn: number = 1;
 
@@ -569,14 +575,15 @@ export class CommitsTableSk extends ElementSk {
         <div class="refresh">
           <input-sk
             type="number"
-            textPrefix="Reload (s):&nbsp;"
-            id="reloadInput"
-            @change=${() => el.update()}></input-sk>
-          <input-sk
-            type="number"
             textPrefix="Commits:&nbsp;&nbsp;&nbsp;"
             id="commitsInput"
             @change=${() => el.update()}>
+          </input-sk>
+          <input-sk
+            id="branchSearchInput"
+            class=${el.branchFilter ? 'selected' : ''}
+            textPrefix="Branch:&nbsp;&nbsp;&nbsp;&nbsp;"
+            @change=${(e: Event) => (el.branchFilter = (e.target as HTMLInputElement).value)}>
           </input-sk>
           <div class="lastLoaded">
             ${el.data.lastLoaded
@@ -589,7 +596,7 @@ export class CommitsTableSk extends ElementSk {
         style=${el.gridLocation(
           COMMIT_START_ROW,
           BRANCH_START_COL,
-          COMMIT_START_ROW + el.data.commits.length
+          COMMIT_START_ROW + el.commits.length
         )}></branches-sk>
       <div
         class="controls"
@@ -661,7 +668,6 @@ export class CommitsTableSk extends ElementSk {
     document.addEventListener('click', this.onClick);
     this._render();
     // input-sk value is backed by its <inputs>'s value directly, so set after render.
-    (<HTMLInputElement>$$('#reloadInput', this)).value = '60';
     (<HTMLInputElement>$$('#commitsInput', this)).value = '35';
     (<HTMLSelectElement>$$('#repoSelector', this)).value = defaultRepo();
 
@@ -685,6 +691,7 @@ export class CommitsTableSk extends ElementSk {
       search: '',
       repo: '',
       displayCommitSubject: false,
+      branchFilter: '',
     };
     return hintableSettings;
   };
@@ -695,6 +702,7 @@ export class CommitsTableSk extends ElementSk {
       search: this.search,
       displayCommitSubject: this.displayCommitSubject,
       repo: this.repo,
+      branchFilter: this.branchFilter,
     };
     return state as unknown as HintableObject;
   }
@@ -709,6 +717,9 @@ export class CommitsTableSk extends ElementSk {
     }
     this._search = state.search;
     $$<HTMLInputElement>('#searchInput', this)!.value = this._search;
+    this._branchFilter = state.branchFilter || '';
+    $$<HTMLInputElement>('#branchSearchInput', this)!.value = this._branchFilter;
+    this.filterCommits();
     this._displayCommitSubject = state.displayCommitSubject;
     if (state.repo) {
       this.repo = state.repo;
@@ -736,11 +747,11 @@ export class CommitsTableSk extends ElementSk {
     this.stateHasChanged();
     $('.commit-text').forEach((el, i) => {
       if (v) {
-        el.innerHTML = this.data.commits[i].shortSubject;
-        el.setAttribute('title', this.data.commits[i].shortAuthor);
+        el.innerHTML = this.commits[i].shortSubject;
+        el.setAttribute('title', this.commits[i].shortAuthor);
       } else {
-        el.innerHTML = this.data.commits[i].shortAuthor;
-        el.setAttribute('title', this.data.commits[i].shortSubject);
+        el.innerHTML = this.commits[i].shortAuthor;
+        el.setAttribute('title', this.commits[i].shortSubject);
       }
     });
   }
@@ -763,6 +774,50 @@ export class CommitsTableSk extends ElementSk {
     this._search = v;
     this.stateHasChanged();
     this.draw();
+  }
+
+  get branchFilter(): string {
+    return this._branchFilter;
+  }
+
+  set branchFilter(v: string) {
+    this._branchFilter = v;
+    this.filterCommits();
+    this.stateHasChanged();
+    this.draw();
+  }
+
+  private filterCommits(): void {
+    if (!this._branchFilter) {
+      this.commits = this.data.commits;
+      return;
+    }
+
+    let regex: RegExp | null = null;
+    try {
+      regex = new RegExp(this._branchFilter, 'i');
+    } catch (e) {
+      errorMessage(e as Error);
+      return;
+    }
+
+    const branchHeads = this.data.branchHeads
+      .filter((branch) => regex.test(branch.name))
+      .map((branch) => branch.head);
+    if (branchHeads.length === 0) {
+      this.commits = [];
+      return;
+    }
+
+    const reachable = new Set<string>(branchHeads);
+    const filteredCommits: Commit[] = [];
+    for (const commit of this.data.commits) {
+      if (reachable.has(commit.hash)) {
+        filteredCommits.push(commit);
+        commit.parents?.forEach((p) => reachable.add(p));
+      }
+    }
+    this.commits = filteredCommits;
   }
 
   get repo(): string {
@@ -803,7 +858,7 @@ export class CommitsTableSk extends ElementSk {
         dialog.displayTaskSpec(taskExecutor || '', spec, comments);
       }
     } else if (target.classList.contains('commit')) {
-      const commit = this.data.commits[Number(target.dataset.commitIndex)]!;
+      const commit = this.commits[Number(target.dataset.commitIndex)]!;
       const comments = this.data.comments.get(commit.hash)?.get('') || [];
       dialog.displayCommit(commit, comments);
     } else if (target.hasAttribute('data-task-id')) {
@@ -1181,11 +1236,11 @@ export class CommitsTableSk extends ElementSk {
     ];
     timePoints.sort((a, b) => b.time.valueOf() - a.time.valueOf());
     // Commits are ordered newest to oldest, so the first commit is visually near the top.
-    for (const [i, commit] of this.data.commits.entries()) {
+    for (const [i, commit] of this.commits.entries()) {
       const rowStart = taskStartRow + i;
       const title = this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
       const text = !this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
-      const timeLabel = this.timeLabel(this.data.commits, i, timePoints);
+      const timeLabel = this.timeLabel(this.commits, i, timePoints);
 
       const tasksBySpec = this.data.tasksByCommit.get(commit.hash);
       if (tasksBySpec) {
@@ -1219,9 +1274,7 @@ export class CommitsTableSk extends ElementSk {
     const nextRowDiv = () =>
       html` <div style=${this.gridLocation(row, 1, ++row, this.lastColumn)}></div>`;
     res.push(
-      html` <div class="rowUnderlay">
-        ${Array(this.data.commits.length).fill(1).map(nextRowDiv)}
-      </div>`
+      html` <div class="rowUnderlay">${Array(this.commits.length).fill(1).map(nextRowDiv)}</div>`
     );
     return res;
   }
@@ -1254,26 +1307,26 @@ export class CommitsTableSk extends ElementSk {
    */
   private displayTaskRows(task: Task, latestCommitIndex: number) {
     // Only a single commit, or the last shown commit, obviously contiguous.
-    if (task.commits!.length < 2 || latestCommitIndex >= this.data.commits.length - 1) {
+    if (task.commits!.length < 2 || latestCommitIndex >= this.commits.length - 1) {
       return [true];
     }
     const thisTaskOverCommits: Array<boolean> = [true];
     // Check for parental gaps. Commits may be sorted, but we don't assume that.
     let displayCommitsCount = 1;
     // We update this as we 'walk backward' through the commits this task covers.
-    let currentCommitInTask = this.data.commits[latestCommitIndex];
+    let currentCommitInTask = this.commits[latestCommitIndex];
     // Follow the ancestory up to the penultimate commit, since we look ahead by 1.
     // Earlier here means visually below.
     for (
       let earlierCommitIndex = latestCommitIndex + 1;
-      earlierCommitIndex < this.data.commits.length;
+      earlierCommitIndex < this.commits.length;
       earlierCommitIndex++
     ) {
       // Exit if we know we've account for all commits in the task, to avoid an extra 'false' at
       // the end of the returned array.
       if (displayCommitsCount === task.commits!.length) break;
 
-      const earlierCommit = this.data.commits[earlierCommitIndex];
+      const earlierCommit = this.commits[earlierCommitIndex];
       if (currentCommitInTask.parents!.indexOf(earlierCommit.hash) === -1) {
         // Branch leaves a gap.
         thisTaskOverCommits.push(false);
@@ -1294,16 +1347,19 @@ export class CommitsTableSk extends ElementSk {
       return;
     }
     this.updatesRunning = true;
-    const refreshSeconds = Number((<HTMLInputElement>$$('#reloadInput', this)).value);
+    const refreshSeconds = 60;
     const numCommits = Number((<HTMLInputElement>$$('#commitsInput', this)).value);
     window.clearTimeout(this.refreshHandle);
     this.refreshHandle = undefined;
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
     this.data.update(this.repo, numCommits).finally(() => {
+      this.filterCommits();
       this.draw();
       const branchesSk = $$('branches-sk', this) as BranchesSk;
-      branchesSk.commits = this.data.commits;
-      branchesSk.branchHeads = this.data.branchHeads;
+      if (branchesSk) {
+        branchesSk.commits = this.commits;
+        branchesSk.branchHeads = this.data.branchHeads;
+      }
       this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       // If an additional update was requested, start it, otherwise schedule it.
       if (this.requestLimiter.endUpdate()) {
@@ -1317,6 +1373,11 @@ export class CommitsTableSk extends ElementSk {
   private draw() {
     console.time('render');
     this._render();
+    const branchesSk = $$('branches-sk', this) as BranchesSk;
+    if (branchesSk) {
+      branchesSk.commits = this.commits;
+      branchesSk.branchHeads = this.data.branchHeads;
+    }
     console.timeEnd('render');
   }
 }

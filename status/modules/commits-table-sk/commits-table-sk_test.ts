@@ -209,10 +209,10 @@ describe('commits-table-sk', () => {
     expect(
       $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value
     ).to.contain('bg-failure');
-    // Mock an incremental update, and change the reload interval to trigger it.
+    // Mock an incremental update, and change the commits input to trigger it.
     mocker.expectGetIncrementalCommits(incrementalResponse1);
-    const reloadInput = $$('#reloadInput input', table) as HTMLInputElement;
-    reloadInput.dispatchEvent(new Event('change', { bubbles: true }));
+    const commitsInput = $$('#commitsInput input', table) as HTMLInputElement;
+    commitsInput.dispatchEvent(new Event('change', { bubbles: true }));
     // eventPromise for the same event 'end-task' seems to instantly resolve, so hack the delay.
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -246,10 +246,10 @@ describe('commits-table-sk', () => {
     await ep;
     let commitDivs = $('.commit', table);
     expect(commitDivs).to.have.length(5);
-    // Mock an incremental update, and change the reload interval to trigger it.
+    // Mock an incremental update, and change the commits input to trigger it.
     mocker.expectGetIncrementalCommits(resetResponse0);
-    const reloadInput = $$('#reloadInput input', table) as HTMLInputElement;
-    reloadInput.dispatchEvent(new Event('change', { bubbles: true }));
+    const commitsInput = $$('#commitsInput input', table) as HTMLInputElement;
+    commitsInput.dispatchEvent(new Event('change', { bubbles: true }));
     // eventPromise for the same event 'end-task' seems to instantly resolve, so hack the delay.
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -265,6 +265,71 @@ describe('commits-table-sk', () => {
     await setupWithResponse(responseMultiCommitTask, (req: GetIncrementalCommitsRequest) => {
       expect(req.repoPath).to.equal('infra');
     });
+  });
+
+  it('filters commits by branch name', async () => {
+    const branch_main = { name: 'main', head: 'abc123' };
+    const branch_feature = { name: 'feature', head: 'xyz789' };
+    const commit_main = {
+      hash: 'abc123',
+      author: 'alice@example.com',
+      parents: ['parent1'],
+      subject: 'commit main',
+      body: 'commit main',
+      timestamp: new Date(Date.now() - 1000).toISOString(),
+    };
+    const commit_feature = {
+      hash: 'xyz789',
+      author: 'bob@example.com',
+      parents: ['parent1'],
+      subject: 'commit feature',
+      body: 'commit feature',
+      timestamp: new Date(Date.now() - 2000).toISOString(),
+    };
+    const commit_parent = {
+      hash: 'parent1',
+      author: 'charlie@example.com',
+      parents: [],
+      subject: 'commit parent',
+      body: 'commit parent',
+      timestamp: new Date(Date.now() - 3000).toISOString(),
+    };
+    const resp: GetIncrementalCommitsResponse = {
+      metadata: { pod: 'podd', startOver: true },
+      update: {
+        branchHeads: [branch_main, branch_feature],
+        commits: [commit_main, commit_feature, commit_parent],
+        tasks: [],
+      },
+    };
+
+    const table = await setupWithResponse(resp);
+    // At first, all 3 commits are displayed.
+    expect($('.commit', table)).to.have.length(3);
+
+    // Filter by branch 'feature'
+    table.branchFilter = 'feature';
+    // Now only commit_feature ('xyz789') and commit_parent ('parent1') should be shown.
+    expect($('.commit', table)).to.have.length(2);
+    expect($('.commit-xyz789', table)).to.have.length(1);
+    expect($('.commit-parent1', table)).to.have.length(1);
+    expect($('.commit-abc123', table)).to.have.length(0);
+
+    // Filter by branch 'main'
+    table.branchFilter = 'main';
+    // Now only commit_main ('abc123') and commit_parent ('parent1') should be shown.
+    expect($('.commit', table)).to.have.length(2);
+    expect($('.commit-abc123', table)).to.have.length(1);
+    expect($('.commit-parent1', table)).to.have.length(1);
+    expect($('.commit-xyz789', table)).to.have.length(0);
+
+    // Filter by invalid regex
+    table.branchFilter = 'non-existent';
+    expect($('.commit', table)).to.have.length(0);
+
+    // Clear filter
+    table.branchFilter = '';
+    expect($('.commit', table)).to.have.length(3);
   });
 
   describe('dialog', () => {
