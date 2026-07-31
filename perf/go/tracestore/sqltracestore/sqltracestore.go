@@ -1298,6 +1298,16 @@ func cacheKeyForParamSets(tileNumber types.TileNumber, paramKey, paramValue stri
 
 // WriteTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, ps paramtools.ParamSet, source string, _ time.Time) error {
+	startTime := time.Now()
+	finishedSuccessfully := false
+	defer func() {
+		status := "successfully"
+		if !finishedSuccessfully {
+			status = "unsuccessfully"
+		}
+		sklog.Infof("WriteTraces: Finished writing trace values for commit number %d %s in %s.", commitNumber, status, time.Since(startTime))
+	}()
+
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces")
 	defer span.End()
 
@@ -1333,14 +1343,14 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 			chunk := paramSetsContext[startIdx:endIdx]
 			var b bytes.Buffer
 			if err := s.unpreparedStatements[insertIntoParamSets].Execute(&b, chunk); err != nil {
-				return skerr.Wrapf(err, "failed to expand paramsets template in slice [%d, %d]", startIdx, endIdx)
+				return skerr.Wrapf(err, "WriteTraces: failed to expand paramsets template in slice [%d, %d]", startIdx, endIdx)
 			}
 
 			sql := b.String()
 
 			sklog.Infof("About to write %d paramset entries with sql of length %d", endIdx-startIdx, len(sql))
 			if _, err := s.db.Exec(ctx, sql); err != nil {
-				return skerr.Wrapf(err, "Executing: %q", b.String())
+				return skerr.Wrapf(err, "WriteTraces: Executing: %q", b.String())
 			}
 			for _, ele := range chunk {
 				s.cache.Add(ele.cacheKey)
@@ -1367,13 +1377,13 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	for i, p := range params {
 		traceName, err := query.MakeKey(p)
 		if err != nil {
-			sklog.Errorf("Somehow still invalid: %v", p)
+			sklog.Errorf("WriteTraces: Somehow still invalid: %v", p)
 			continue
 		}
 		traceID := types.TraceIDForSQLFromTraceName(traceName)
 		traceIDKey := string(traceID)
 		if _, exists := traceParams[traceIDKey]; exists {
-			sklog.Warningf("Many values for the same trace name found, skipping all but the first: %s", traceName)
+			sklog.Warningf("WriteTraces: Many values for the same trace name found, skipping all but the first: %s", traceName)
 			continue
 		}
 		traceParams[traceIDKey] = p
@@ -1395,9 +1405,9 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	if traceParamsError != nil {
 		// Log and ignore this error while we release and test this feature.
 		// TODO(ashwinpv): Return the error once we have fully tested.
-		sklog.Infof("Error writing trace params: %v", traceParamsError)
+		sklog.Infof("WriteTraces: Error writing trace params: %v", traceParamsError)
 	}
-	sklog.Infof("About to format %d trace values", len(valuesTemplateContext))
+	sklog.Infof("WriteTraces: About to format %d trace values", len(valuesTemplateContext))
 
 	err = util.ChunkIterParallelPool(ctx, len(valuesTemplateContext), writeTracesValuesChunkSize, writeTracesParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
 		ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeTraceValuesChunkParallel")
@@ -1405,12 +1415,12 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 
 		var b bytes.Buffer
 		if err := s.unpreparedStatements[insertIntoTraceValues].Execute(&b, valuesTemplateContext[startIdx:endIdx]); err != nil {
-			return skerr.Wrapf(err, "failed to expand trace values template")
+			return skerr.Wrapf(err, "WriteTraces: failed to expand trace values template")
 		}
 
 		sql := b.String()
 		if _, err := s.db.Exec(ctx, sql); err != nil {
-			return skerr.Wrapf(err, "Executing: %q", sql)
+			return skerr.Wrapf(err, "WriteTraces: Executing: %q", sql)
 		}
 		return nil
 	})
@@ -1419,7 +1429,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 		return err
 	}
 
-	sklog.Info("Finished writing trace values.")
+	finishedSuccessfully = true
 
 	return nil
 }

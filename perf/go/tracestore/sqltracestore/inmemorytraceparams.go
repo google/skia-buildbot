@@ -203,6 +203,9 @@ func (tp *InMemoryTraceParams) readAllTraceParams(ctx context.Context, tracepara
 				// Store encoded value for this row in column
 				traceparams[paramCol] = append(traceparams[paramCol], valueE)
 			}
+			if traceIdCount%100000 == 0 {
+				sklog.Infof("InMemoryTraceParams: Processed %d traces, encoding size: %d", traceIdCount, len(encoding))
+			}
 			traceIdCount++
 		}
 	}()

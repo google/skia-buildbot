@@ -122,6 +122,15 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 	defer span.End()
 	// This is also being tracked separate from trace.Span to gather the metrics
 	// in Prom.
+	startTime := time.Now()
+	finishedSuccessfully := false
+	defer func() {
+		status := "successfully"
+		if !finishedSuccessfully {
+			status = "unsuccessfully"
+		}
+		sklog.Infof("Finished processing file %q %s in %s.", f.Name, status, time.Since(startTime))
+	}()
 	processLatency := metrics2.NewTimer("ingest_processSingleFile_latency")
 	processLatency.Start()
 	defer processLatency.Stop()
@@ -252,6 +261,7 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 		}
 		w.successfulWrite.Inc(1)
 		w.successfulWriteCount.Inc(int64(len(params)))
+		finishedSuccessfully = true
 	}
 
 	if err := sendPubSubEvent(ctx, w.pubSubClient, w.instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), f.Name); err != nil {
