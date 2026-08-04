@@ -90,7 +90,7 @@ func NewDataFrameIterator(
 			}
 		}
 
-		if dfProvider != nil {
+		if dfProvider != nil && len(traceIDs) == 0 {
 			df, err = dfProvider.GetDataFrame(ctx, dfBuilder, q, domain.End, domain.N, progress)
 			if err != nil {
 				// Log the error and fall back to the usual NewNFromQuery.
