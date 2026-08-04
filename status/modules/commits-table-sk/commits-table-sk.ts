@@ -1180,7 +1180,7 @@ export class CommitsTableSk extends ElementSk {
 
   private taskMouseInOut(task: Task) {
     task.commits!.forEach((hash) => {
-      $$<HTMLDivElement>(`.${this.attributeStringFromHash(hash)}`, this)!.classList.toggle(
+      $$<HTMLDivElement>(`.${this.attributeStringFromHash(hash)}`, this)?.classList.toggle(
         `task-emphasize-${task.status.toLowerCase()}`
       );
     });
@@ -1310,6 +1310,13 @@ export class CommitsTableSk extends ElementSk {
     if (task.commits!.length < 2 || latestCommitIndex >= this.commits.length - 1) {
       return [true];
     }
+    const visibleCommitsCount = task.commits!.filter((hash) => {
+      const commit = this.data.commitsByHash.get(hash);
+      if (!commit) return false;
+      const index = this.commits.indexOf(commit);
+      return index >= latestCommitIndex;
+    }).length;
+
     const thisTaskOverCommits: Array<boolean> = [true];
     // Check for parental gaps. Commits may be sorted, but we don't assume that.
     let displayCommitsCount = 1;
@@ -1324,7 +1331,7 @@ export class CommitsTableSk extends ElementSk {
     ) {
       // Exit if we know we've account for all commits in the task, to avoid an extra 'false' at
       // the end of the returned array.
-      if (displayCommitsCount === task.commits!.length) break;
+      if (displayCommitsCount === visibleCommitsCount) break;
 
       const earlierCommit = this.commits[earlierCommitIndex];
       if (currentCommitInTask.parents!.indexOf(earlierCommit.hash) === -1) {

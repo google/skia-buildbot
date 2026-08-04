@@ -124,6 +124,90 @@ describe('commits-table-sk', () => {
     expect(relandCommitDiv.classList.value).to.not.include('highlight-reland');
   });
 
+  it('handles mouseenter/mouseleave on tasks with missing commits gracefully', async () => {
+    const table = await setupWithResponse(incrementalResponse0);
+    const mockTask = {
+      id: 'mockTask',
+      name: 'Mock-Task',
+      commits: ['abc123', 'missingcommit'],
+      status: 'FAILURE',
+    };
+    const commitDiv = $$('.commit-abc123', table)!;
+
+    // Trigger taskMouseInOut directly, which should not throw an exception.
+    expect(() => {
+      (table as any).taskMouseInOut(mockTask);
+    }).to.not.throw();
+    // It should have toggled the class on the visible commit div.
+    expect(commitDiv.classList.value).to.include('task-emphasize-failure');
+
+    expect(() => {
+      (table as any).taskMouseInOut(mockTask);
+    }).to.not.throw();
+    // It should have untoggled the class on the visible commit div.
+    expect(commitDiv.classList.value).to.not.include('task-emphasize-failure');
+  });
+
+  it('displays task boxes correctly for tasks with commits outside the window', async () => {
+    const copy = <T>(x: T): T => JSON.parse(JSON.stringify(x));
+    const r = copy(responseNoncontiguousCommitsTask);
+
+    // Customize the commits and task
+    // We add commit_below and commit_below_below to the bottom of the window.
+    const commit_below = {
+      hash: '789012',
+      author: 'charles@example.com',
+      parents: ['901234'],
+      subject: 'older commit',
+      body: 'older commit',
+      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    };
+    const commit_below_below = {
+      hash: '901234',
+      author: 'dave@example.com',
+      parents: ['876543'],
+      subject: 'even older commit',
+      body: 'even older commit',
+      timestamp: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+    };
+
+    // The parent of commit1 ('parentofabc123') needs to be '789012' (commit_below)
+    // r.update!.commits has [commit0, branchCommit0, commit1].
+    r.update!.commits![2].parents = [commit_below.hash];
+    r.update!.commits!.push(commit_below, commit_below_below);
+
+    // Now let's set the task commits. 'unseen_newer_commit' is unseen.
+    // 'abc123' is visible commit 0, 'parentofabc123' is visible commit 2.
+    r.update!.tasks = [
+      {
+        commits: ['unseen_newer_commit', 'abc123', 'parentofabc123'],
+        id: '99999',
+        name: 'Build-Some-Stuff',
+        revision: 'abc123',
+        status: 'FAILURE',
+        swarmingTaskId: 'swarmy0',
+        taskExecutor: '',
+      },
+    ];
+
+    const table = await setupWithResponse(r);
+    expect($('.multicommit-task', table)).to.have.length(1);
+    const multicommitDiv = $$('.multicommit-task', table)!;
+
+    // We expect the multicommit task to only span:
+    // 1. abc123 (task commit) -> true
+    // 2. 456789 (branch commit) -> false (gap)
+    // 3. parentofabc123 (task commit) -> true
+    // Total: 3 divs inside multicommit-task.
+    // If it incorrectly stretched to the bottom of the window, it would also include a gap
+    // for commit_below_below, resulting in 4 or 5 divs inside multicommit-task.
+    expect($('.task', multicommitDiv)).to.have.length(3);
+
+    // Specifically verify the structure of displayTaskRows output
+    const taskRows = (table as any).displayTaskRows(r.update!.tasks[0], 0);
+    expect(taskRows).to.deep.equal([true, false, true]);
+  });
+
   it('filters task specs', async () => {
     const table = await setupWithResponse(responseTasksToFilter);
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
