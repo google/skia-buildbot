@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS by_traceid_commit_number_desc_include_val;
