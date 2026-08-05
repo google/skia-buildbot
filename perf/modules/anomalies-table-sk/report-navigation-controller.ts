@@ -61,7 +61,7 @@ export class ReportNavigationController implements ReactiveController {
       return true;
     }
     const sid: string = response.sid || '';
-    const url = `/u/?sid=${sid}`;
+    const url = sid ? `/u/?sid=${sid}` : `/u/?anomalyIDs=${encodeURIComponent(idString)}`;
     if (newTab) {
       newTab.location.href = url;
     } else {

@@ -92,6 +92,44 @@ describe('ReportNavigationController', () => {
       assert.isTrue(fetchMock.called('/_/anomalies/group_report'));
     });
 
+    it('falls back to anomalyIDs URL when SID is empty for multiple anomalies', async () => {
+      const openStub = sinon.stub(window, 'open');
+      const anomalies = [
+        dummyAnomaly('123', 0, 100, 200, 'test/path/1'),
+        dummyAnomaly('456', 0, 100, 200, 'test/path/2'),
+      ];
+
+      fetchMock.post('/_/anomalies/group_report', {
+        sid: '',
+        anomaly_list: [],
+        selected_keys: [],
+        error: '',
+        timerange_map: null,
+        is_commit_number_based: false,
+      } as GetGroupReportResponse);
+
+      await controller.openReportForAnomalyIds(anomalies);
+
+      assert.isTrue(openStub.calledWith('/u/?anomalyIDs=123%2C456', '_blank'));
+    });
+
+    it('falls back to anomalyIDs URL when calculate_regr_shortcut returns empty SID (fetch_anomalies_from_sql)', async () => {
+      window.perf = { fetch_anomalies_from_sql: true } as any;
+      const openStub = sinon.stub(window, 'open');
+      const anomalies = [
+        dummyAnomaly('123', 0, 100, 200, 'test/path/1'),
+        dummyAnomaly('456', 0, 100, 200, 'test/path/2'),
+      ];
+
+      fetchMock.post('/_/anomalies/calculate_regr_shortcut', {
+        sid: '',
+      });
+
+      await controller.openReportForAnomalyIds(anomalies);
+
+      assert.isTrue(openStub.calledWith('/u/?anomalyIDs=123%2C456', '_blank'));
+    });
+
     it('handles fetch error gracefully', async () => {
       const openStub = sinon.stub(window, 'open');
       const anomalies = [
