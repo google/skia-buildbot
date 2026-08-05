@@ -17,6 +17,14 @@ sk_page(
 )
 
 sk_page(
+    name = "status-experimental",
+    assets_serving_path = "/dist",
+    html_file = "status-experimental.html",
+    sk_element_deps = ["//status/modules/status-experimental-sk"],
+    ts_entry_point = "status-experimental.ts",
+)
+
+sk_page(
     name = "orphaned-tasks-machines",
     assets_serving_path = "/dist",
     html_file = "orphaned-tasks-machines.html",
