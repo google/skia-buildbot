@@ -36,6 +36,7 @@ var (
 func Env(depotToolsPath string) []string {
 	return []string{
 		"DEPOT_TOOLS_UPDATE=0",
+		"DEPOT_TOOLS_PYTHON_BYPASS=1",
 		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
 		fmt.Sprintf("LUCI_CONTEXT=%s", os.Getenv("LUCI_CONTEXT")),
 		fmt.Sprintf("PATH=%s:%s", depotToolsPath, os.Getenv("PATH")),
