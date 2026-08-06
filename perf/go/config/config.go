@@ -1173,6 +1173,18 @@ type InstanceConfig struct {
 	// Chrome perf
 	ShowTriageLink bool `json:"show_triage_link,omitempty"`
 
+	// Whether to show the 'Explore' link on side panel/nav bar.
+	ShowExploreLink *bool `json:"show_explore_link,omitempty"`
+
+	// Whether to show the 'Clustering' link on side panel/nav bar.
+	ShowClusteringLink *bool `json:"show_clustering_link,omitempty"`
+
+	// Whether to show the 'Playground' link on side panel/nav bar.
+	ShowPlaygroundLink *bool `json:"show_playground_link,omitempty"`
+
+	// Whether to show the 'Pinpoint' link on side panel/nav bar.
+	ShowPinpointLink *bool `json:"show_pinpoint_link,omitempty"`
+
 	// wheter or not to show Bisect button in the chart-tooltip
 	ShowBisectBtn bool `json:"show_bisect_btn,omitempty"`
 

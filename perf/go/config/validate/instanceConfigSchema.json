@@ -484,6 +484,18 @@
         "show_triage_link": {
           "type": "boolean"
         },
+        "show_explore_link": {
+          "type": "boolean"
+        },
+        "show_clustering_link": {
+          "type": "boolean"
+        },
+        "show_playground_link": {
+          "type": "boolean"
+        },
+        "show_pinpoint_link": {
+          "type": "boolean"
+        },
         "show_bisect_btn": {
           "type": "boolean"
         },

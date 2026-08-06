@@ -449,6 +449,10 @@ type SkPerfConfig struct {
 	EnableSkiaBridgeAggregation    bool               `json:"enable_skia_bridge_aggregation"`               // experimental flag to enable aggregation at skia_bridge.
 	ShowJsonResourceDisplay        bool               `json:"show_json_file_display"`                       // Boolean to display json commit detail or not
 	ShowTriageLink                 bool               `json:"show_triage_link"`                             // Boolean to display traige link on side panel or not
+	ShowExploreLink                *bool              `json:"show_explore_link,omitempty"`                  // Boolean to display explore link or not
+	ShowClusteringLink             *bool              `json:"show_clustering_link,omitempty"`               // Boolean to display clustering link or not
+	ShowPlaygroundLink             *bool              `json:"show_playground_link,omitempty"`               // Boolean to display playground link or not
+	ShowPinpointLink               *bool              `json:"show_pinpoint_link,omitempty"`                 // Boolean to display pinpoint link or not
 	ShowBisectBtn                  bool               `json:"show_bisect_btn"`                              // Boolean to display bisect button or not
 	ShowNewPinpointBackendCheckbox bool               `json:"show_new_pinpoint_backend_checkbox,omitempty"` // Boolean to show new pinpoint backend checkbox
 	ShowHashRangesInTooltip        bool               `json:"show_hash_ranges_in_tooltip,omitempty"`        // Boolean to display hash ranges instead of commit positions in tooltip.
@@ -512,6 +516,10 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		ShowJsonResourceDisplay:        config.Config.DataPointConfig.ShowJsonResourceDisplay,
 		AlwaysShowCommitInfo:           config.Config.DataPointConfig.AlwaysShowCommitInfo,
 		ShowTriageLink:                 config.Config.ShowTriageLink,
+		ShowExploreLink:                config.Config.ShowExploreLink,
+		ShowClusteringLink:             config.Config.ShowClusteringLink,
+		ShowPlaygroundLink:             config.Config.ShowPlaygroundLink,
+		ShowPinpointLink:               config.Config.ShowPinpointLink,
 		ShowBisectBtn:                  config.Config.ShowBisectBtn,
 		ShowNewPinpointBackendCheckbox: config.Config.ShowNewPinpointBackendCheckbox,
 		ShowHashRangesInTooltip:        config.Config.ShowHashRangesInTooltip,

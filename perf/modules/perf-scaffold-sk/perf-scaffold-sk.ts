@@ -86,6 +86,40 @@ export class PerfScaffoldSk extends LitElement {
     return '/m';
   }
 
+  private get showExploreLink(): boolean {
+    if (window.perf?.show_explore_link !== undefined && window.perf?.show_explore_link !== null) {
+      return window.perf.show_explore_link;
+    }
+    return !window.perf?.default_to_explore_v2;
+  }
+
+  private get showClusteringLink(): boolean {
+    if (
+      window.perf?.show_clustering_link !== undefined &&
+      window.perf?.show_clustering_link !== null
+    ) {
+      return window.perf.show_clustering_link;
+    }
+    return true;
+  }
+
+  private get showPlaygroundLink(): boolean {
+    if (
+      window.perf?.show_playground_link !== undefined &&
+      window.perf?.show_playground_link !== null
+    ) {
+      return window.perf.show_playground_link;
+    }
+    return true;
+  }
+
+  private get showPinpointLink(): boolean {
+    if (window.perf?.show_pinpoint_link !== undefined && window.perf?.show_pinpoint_link !== null) {
+      return window.perf.show_pinpoint_link;
+    }
+    return !!window.perf?.fetch_chrome_perf_anomalies;
+  }
+
   constructor() {
     super();
     // Override window.perf if a local preference exists.
@@ -191,7 +225,11 @@ export class PerfScaffoldSk extends LitElement {
         </header>
         <aside id="sidebar">
           <div id="links">
-            <a href="/e" tab-index="0"><home-icon-sk></home-icon-sk><span>New Query</span></a>
+            ${this.showExploreLink
+              ? html`<a href="/e" tab-index="0"
+                  ><home-icon-sk></home-icon-sk><span>New Query</span></a
+                >`
+              : ''}
             <a href="/f" tab-index="0"
               ><favorite-icon-sk></favorite-icon-sk><span>Favorites</span></a
             >
@@ -221,7 +259,11 @@ export class PerfScaffoldSk extends LitElement {
               ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a
             >
             <a href="/d" tab-index="0"><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
-            <a href="/c" tab-index="0"><sort-icon-sk></sort-icon-sk><span>Clustering</span></a>
+            ${this.showClusteringLink
+              ? html`<a href="/c" tab-index="0"
+                  ><sort-icon-sk></sort-icon-sk><span>Clustering</span></a
+                >`
+              : ''}
             ${PerfScaffoldSk.revisionLinkTemplateOld()}
             <a href="${this._helpUrl}" target="_blank" tab-index="0">
               <help-icon-sk></help-icon-sk><span>Help</span>
@@ -256,7 +298,7 @@ export class PerfScaffoldSk extends LitElement {
             <h1 class="name">${this.instanceTitleTemplate()}</h1>
           </a>
           <nav id="header-nav-items">
-            ${!window.perf.default_to_explore_v2
+            ${this.showExploreLink
               ? html`
                   <a href="/e" tab-index="0" class="${this.isPageActive('/e') ? 'active' : ''}"
                     >Explore</a
@@ -293,17 +335,29 @@ export class PerfScaffoldSk extends LitElement {
             <a href="/d" tab-index="0" class="${this.isPageActive('/d') ? 'active' : ''}"
               >Dry Run</a
             >
-            <a href="/c" tab-index="0" class="${this.isPageActive('/c') ? 'active' : ''}"
-              >Clustering</a
-            >
-            <a href="/pg" tab-index="0" class="${this.isPageActive('/pg') ? 'active' : ''}"
-              >Playground</a
-            >
+            ${this.showClusteringLink
+              ? html`
+                  <a href="/c" tab-index="0" class="${this.isPageActive('/c') ? 'active' : ''}"
+                    >Clustering</a
+                  >
+                `
+              : ''}
+            ${this.showPlaygroundLink
+              ? html`
+                  <a href="/pg" tab-index="0" class="${this.isPageActive('/pg') ? 'active' : ''}"
+                    >Playground</a
+                  >
+                `
+              : ''}
             ${PerfScaffoldSk.revisionLinkTemplateNew(this)}
-            <a href="${PINPOINT_URL}" target="_blank" tab-index="0">
-              Pinpoint
-              <launch-icon-sk></launch-icon-sk>
-            </a>
+            ${this.showPinpointLink
+              ? html`
+                  <a href="${PINPOINT_URL}" target="_blank" tab-index="0">
+                    Pinpoint
+                    <launch-icon-sk></launch-icon-sk>
+                  </a>
+                `
+              : ''}
           </nav>
           <div id="header-aside-container">
             <div id="header-aside">

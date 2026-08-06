@@ -199,6 +199,56 @@ describe('perf-scaffold-sk', () => {
     assert.isNotNull(element.querySelector('gemini-side-panel-sk'));
   });
 
+  it('hides clustering when show_clustering_link is false', async () => {
+    window.perf.enable_v2_ui = true;
+    window.perf.show_clustering_link = false;
+    element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    await element.updateComplete;
+    assert.isNull(element.querySelector('#header-nav-items a[href="/c"]'));
+  });
+
+  it('hides playground when show_playground_link is false', async () => {
+    window.perf.enable_v2_ui = true;
+    window.perf.show_playground_link = false;
+    element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    await element.updateComplete;
+    assert.isNull(element.querySelector('#header-nav-items a[href="/pg"]'));
+  });
+
+  it('hides pinpoint when show_pinpoint_link is false', async () => {
+    window.perf.enable_v2_ui = true;
+    window.perf.show_pinpoint_link = false;
+    element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    await element.updateComplete;
+    assert.isNull(
+      element.querySelector(
+        '#header-nav-items a[href="https://pinpoint-dot-chromeperf.appspot.com/"]'
+      )
+    );
+  });
+
+  it('shows clustering, playground, and pinpoint when enabled in V2 UI', async () => {
+    window.perf.enable_v2_ui = true;
+    window.perf.fetch_chrome_perf_anomalies = true;
+    element = newInstance((_) => {
+      localStorage.setItem('v2_ui', 'true');
+    });
+    await element.updateComplete;
+    assert.isNotNull(element.querySelector('#header-nav-items a[href="/c"]'));
+    assert.isNotNull(element.querySelector('#header-nav-items a[href="/pg"]'));
+    assert.isNotNull(
+      element.querySelector(
+        '#header-nav-items a[href="https://pinpoint-dot-chromeperf.appspot.com/"]'
+      )
+    );
+  });
+
   it('does not render gemini-side-panel-sk in Legacy UI', async () => {
     window.perf.enable_v2_ui = false;
     element = newInstance((_) => {

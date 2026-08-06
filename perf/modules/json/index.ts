@@ -494,6 +494,10 @@ export interface SkPerfConfig {
 	enable_skia_bridge_aggregation: boolean;
 	show_json_file_display: boolean;
 	show_triage_link: boolean;
+	show_explore_link?: boolean | null;
+	show_clustering_link?: boolean | null;
+	show_playground_link?: boolean | null;
+	show_pinpoint_link?: boolean | null;
 	show_bisect_btn: boolean;
 	show_new_pinpoint_backend_checkbox?: boolean;
 	show_hash_ranges_in_tooltip?: boolean;

@@ -159,6 +159,10 @@
     "show_triage_link": true,
     "show_bisect_btn": false,
     "enable_v2_ui": true,
-    "default_to_explore_v2": true
+    "default_to_explore_v2": true,
+    "show_explore_link": false,
+    "show_clustering_link": false,
+    "show_playground_link": false,
+    "show_pinpoint_link": false
 }
 
