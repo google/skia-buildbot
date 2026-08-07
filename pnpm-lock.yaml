@@ -3074,6 +3074,7 @@ packages:
   '@verdaccio/commons-api@10.2.0':
     resolution: {integrity: sha512-F/YZANu4DmpcEV0jronzI7v2fGVWkQ5Mwi+bVmV+ACJ+EzR0c9Jbhtbe5QyLUuzR97t8R5E/Xe53O0cc2LukdQ==}
     engines: {node: '>=8'}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   '@verdaccio/config@7.0.0-next-7.15':
     resolution: {integrity: sha512-hXPfDakeyPz2YUo7ORGukKBqOPrNuOpohzWB1GSx6pNDYEepZiRbtpkOTNINiFbFbaXRU42co55PGEsMC3jyPg==}
