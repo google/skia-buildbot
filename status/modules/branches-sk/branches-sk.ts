@@ -53,6 +53,7 @@ class DisplayCommit {
     this.label = [];
     this.parents = commit.parents || [];
     this.children = [];
+    this.continuesUpward = false;
   }
 
   hash: string;
@@ -68,6 +69,8 @@ class DisplayCommit {
   parents: Array<string>;
 
   children: Array<string>;
+
+  continuesUpward: boolean;
 
   color() {
     return palette[this.column % palette.length];
@@ -235,6 +238,18 @@ class DisplayCommit {
     ctx.fillText(this.labelText(), labelCoords.x, labelCoords.y);
   }
 
+  // Draw a line from the commit's dot to the top of the graph, indicating
+  // that this commit has descendants in the future which aren't displayed in
+  // the current window.
+  drawContinuationLine(ctx: CanvasRenderingContext2D) {
+    const center = this.dotCenter();
+    ctx.strokeStyle = this.color();
+    ctx.lineWidth = 1.5;
+    ctx.moveTo(center.x, center.y);
+    ctx.lineTo(center.x, 0); // Straight up to the very top edge of the canvas
+    ctx.stroke();
+  }
+
   draw(ctx: CanvasRenderingContext2D, displayCommits: Map<string, DisplayCommit>) {
     const color = this.color();
     const center = this.dotCenter();
@@ -249,11 +264,14 @@ class DisplayCommit {
       this.drawConnection(ctx, parent, displayCommits);
     }
 
+    // Draw the dashed upward continuation line if this is a virtual branch head that continues
+    // into the future (off the top of the canvas).
+    if (this.continuesUpward) {
+      this.drawContinuationLine(ctx);
+    }
+
     // Draw a dot.
     drawDot(ctx, center, radius, color);
-
-    // Draw a label, if applicable.
-    this.drawLabel(ctx);
   }
 }
 
@@ -473,6 +491,12 @@ export class BranchesSk extends ElementSk {
       this.displayCommits.get(commit.hash)!.draw(ctx, this.displayCommits);
     }
 
+    // Draw the labels after the commits, to ensure that we don't draw
+    // connective lines over labels.
+    for (const commit of this.commits) {
+      this.displayCommits.get(commit.hash)!.drawLabel(ctx);
+    }
+
     this.computeLinkMap();
     this.computeTitleMap();
 
@@ -511,6 +535,33 @@ function prepareCommitsForDisplay(
       branches.push(branch);
     }
   }
+
+  // Gather all commits that are pointed to by actual branch heads or other commits' parents.
+  const commitsPointedTo = new Set<string>();
+  branches.forEach((b) => {
+    commitsPointedTo.add(b.head);
+  });
+  commits.forEach((c) => {
+    c.parents?.forEach((p) => {
+      commitsPointedTo.add(p);
+    });
+  });
+
+  // Treat any commits which no other commit points to as "virtual" branch
+  // heads, ie. they aren't the actual branch head (that's scrolled off the top
+  // of the display) but we'll label them with the branch name for clarity.
+  for (const branch of branches) {
+    if (!displayCommits.has(branch.head)) {
+      const virtualHead = commits.find(
+        (c) => c.isAncestorOf?.includes(branch.name) && !commitsPointedTo.has(c.hash)
+      );
+      if (virtualHead) {
+        branch.head = virtualHead.hash;
+        displayCommits.get(virtualHead.hash)!.continuesUpward = true;
+      }
+    }
+  }
+
   // Add Autoroller labels.
   branches.push(...rolls);
 
@@ -531,7 +582,7 @@ function prepareCommitsForDisplay(
   }
 
   // Add the remaining commits to their own columns.
-  for (const hash in remaining) {
+  for (const hash of remaining.keys()) {
     if (traceCommits(displayCommits, commits, remaining, hash, column)) {
       column++;
     }

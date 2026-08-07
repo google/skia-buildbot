@@ -18,7 +18,6 @@ import {
   commentTask,
   commentTaskSpec,
   incrementalResponse1,
-  resetResponse0,
 } from '../rpc-mock/test_data';
 import { GetIncrementalCommitsRequest, GetIncrementalCommitsResponse } from '../rpc';
 import { CommitsTableExperimentalSk } from './commits-table-experimental-sk';
@@ -47,13 +46,72 @@ describe('commits-table-experimental-sk', () => {
   });
 
   let mocks: MockStatusService;
+  let originalEventSource: any;
+
   beforeEach(async () => {
     mocks = SetupMocks();
+    originalEventSource = window.EventSource;
+
+    (window as any).EventSource = class MockEventSource {
+      static activeInstance: MockEventSource | null = null;
+
+      url: string;
+
+      onmessage: ((ev: MessageEvent) => void) | null = null;
+
+      onerror: ((ev: Event) => void) | null = null;
+
+      constructor(url: string) {
+        this.url = url;
+        MockEventSource.activeInstance = this;
+
+        const queryStr = url.includes('?') ? url.split('?')[1] : '';
+        const query = new URLSearchParams(queryStr);
+        const req: GetIncrementalCommitsRequest = {
+          n: Number(query.get('n') || '0'),
+          repoPath: query.get('repo') || '',
+          pod: '',
+          from: query.get('cursor') || '',
+        };
+
+        const client = (window as any).rpcClient as MockStatusService;
+        client
+          .getIncrementalCommits(req)
+          .then((resp) => {
+            setTimeout(() => {
+              if (this.onmessage) {
+                this.onmessage({ data: JSON.stringify(resp) } as MessageEvent);
+              }
+            }, 0);
+          })
+          .catch((err) => {
+            setTimeout(() => {
+              if (this.onerror) {
+                this.onerror(new Event(err));
+              }
+            }, 0);
+          });
+      }
+
+      close() {
+        if (MockEventSource.activeInstance === this) {
+          MockEventSource.activeInstance = null;
+        }
+      }
+
+      triggerMessage(data: any) {
+        if (this.onmessage) {
+          this.onmessage({ data: JSON.stringify(data) } as MessageEvent);
+        }
+      }
+    };
+
     // Clear Url between tests.
     window.history.replaceState(null, '', window.location.origin + window.location.pathname);
   });
 
   afterEach(async () => {
+    window.EventSource = originalEventSource;
     expect(mocks.exhausted()).to.equal(true);
   });
 
@@ -297,12 +355,12 @@ describe('commits-table-experimental-sk', () => {
     expect(
       $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value
     ).to.contain('bg-failure');
-    // Mock an incremental update, and change the commits input to trigger it.
+
+    // Simulate server-side push of incremental update.
     mocker.expectGetIncrementalCommits(incrementalResponse1);
-    const commitsInput = $$('#commitsInput input', table) as HTMLInputElement;
-    commitsInput.dispatchEvent(new Event('change', { bubbles: true }));
-    // eventPromise for the same event 'end-task' seems to instantly resolve, so hack the delay.
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    const activeES = (window.EventSource as any).activeInstance;
+    const resp = await mocker.getIncrementalCommits({ n: 35, pod: '', repoPath: 'skia' });
+    activeES.triggerMessage(resp);
 
     commitDivs = $('.commit', table);
     expect(commitDivs).to.have.length(6);
@@ -325,29 +383,6 @@ describe('commits-table-experimental-sk', () => {
     expect(
       $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value
     ).to.contain('bg-success');
-  });
-
-  it('resets with startOver update', async () => {
-    const mocker = SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
-    const ep = eventPromise('end-task');
-    const table = newTableInstance(
-      (el) => ((<CommitsTableExperimentalSk>el).filter = 'All')
-    ) as CommitsTableExperimentalSk;
-    await ep;
-    let commitDivs = $('.commit', table);
-    expect(commitDivs).to.have.length(5);
-    // Mock an incremental update, and change the commits input to trigger it.
-    mocker.expectGetIncrementalCommits(resetResponse0);
-    const commitsInput = $$('#commitsInput input', table) as HTMLInputElement;
-    commitsInput.dispatchEvent(new Event('change', { bubbles: true }));
-    // eventPromise for the same event 'end-task' seems to instantly resolve, so hack the delay.
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    commitDivs = $('.commit', table);
-    expect(commitDivs).to.have.length(1);
-    // Only the new commit and it's single task are present.
-    expect(commitDivs[0].classList.toString()).to.contain(resetResponse0.update!.commits![0].hash);
-    expect($('.task[title="Build-Some-Stuff @ childofabc123"]', table)).to.have.length(1);
   });
 
   it('initial request uses repo from query string', async () => {
@@ -398,7 +433,19 @@ describe('commits-table-experimental-sk', () => {
     expect($('.commit', table)).to.have.length(3);
 
     // Filter by branch 'feature'
+    const resp_feature: GetIncrementalCommitsResponse = {
+      metadata: { pod: 'podd', startOver: true },
+      update: {
+        branchHeads: [branch_main, branch_feature],
+        commits: [commit_feature, commit_parent],
+        tasks: [],
+      },
+    };
+    mocks.expectGetIncrementalCommits(resp_feature);
+    const ep_feature = eventPromise('end-task');
     table.branchFilter = 'feature';
+    await ep_feature;
+
     // Now only commit_feature ('xyz789') and commit_parent ('parent1') should be shown.
     expect($('.commit', table)).to.have.length(2);
     expect($('.commit-xyz789', table)).to.have.length(1);
@@ -406,7 +453,19 @@ describe('commits-table-experimental-sk', () => {
     expect($('.commit-abc123', table)).to.have.length(0);
 
     // Filter by branch 'main'
+    const resp_main: GetIncrementalCommitsResponse = {
+      metadata: { pod: 'podd', startOver: true },
+      update: {
+        branchHeads: [branch_main, branch_feature],
+        commits: [commit_main, commit_parent],
+        tasks: [],
+      },
+    };
+    mocks.expectGetIncrementalCommits(resp_main);
+    const ep_main = eventPromise('end-task');
     table.branchFilter = 'main';
+    await ep_main;
+
     // Now only commit_main ('abc123') and commit_parent ('parent1') should be shown.
     expect($('.commit', table)).to.have.length(2);
     expect($('.commit-abc123', table)).to.have.length(1);
@@ -414,11 +473,27 @@ describe('commits-table-experimental-sk', () => {
     expect($('.commit-xyz789', table)).to.have.length(0);
 
     // Filter by invalid regex
+    const resp_nonexistent: GetIncrementalCommitsResponse = {
+      metadata: { pod: 'podd', startOver: true },
+      update: {
+        branchHeads: [branch_main, branch_feature],
+        commits: [],
+        tasks: [],
+      },
+    };
+    mocks.expectGetIncrementalCommits(resp_nonexistent);
+    const ep_nonexistent = eventPromise('end-task');
     table.branchFilter = 'non-existent';
+    await ep_nonexistent;
+
     expect($('.commit', table)).to.have.length(0);
 
     // Clear filter
+    mocks.expectGetIncrementalCommits(resp);
+    const ep_clear = eventPromise('end-task');
     table.branchFilter = '';
+    await ep_clear;
+
     expect($('.commit', table)).to.have.length(3);
   });
 

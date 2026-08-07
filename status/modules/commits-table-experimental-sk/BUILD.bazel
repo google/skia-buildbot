@@ -25,7 +25,6 @@ sk_element(
     ts_deps = [
         "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
-        "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:query_ts_lib",
@@ -34,7 +33,6 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//status/modules:settings_ts_lib",
         "//status/modules:util_ts_lib",
-        "//status/modules/rpc:index_ts_lib",
         "//status/modules/rpc:status_ts_lib",
     ],
     ts_srcs = [

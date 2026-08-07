@@ -20,7 +20,6 @@ import { fromObject } from '../../../infra-sk/modules/query';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { define } from '../../../elements-sk/modules/define';
-import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Commit } from '../util';
 
@@ -40,15 +39,12 @@ import '../details-dialog-sk';
 import {
   Branch,
   Comment,
-  GetIncrementalCommitsRequest,
   GetIncrementalCommitsResponse,
   IncrementalUpdate,
   LongCommit,
-  StatusService,
   Task,
 } from '../rpc/status';
 import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
-import { GetStatusService } from '../rpc';
 import { BranchesSk } from '../branches-sk/branches-sk';
 import { defaultRepo, repos, taskSchedulerUrl } from '../settings';
 import { truncate } from '../../../infra-sk/modules/string';
@@ -208,7 +204,7 @@ class Data {
   // Internal state.
   private serverPodId: string = '';
 
-  private client: StatusService = GetStatusService();
+  private eventSource: EventSource | null = null;
 
   private _lastLoaded?: Date;
 
@@ -217,42 +213,101 @@ class Data {
 
   private numCommits: number = -1;
 
+  private branchFilter: string = '';
+
+  private cursor: string = '';
+
   get lastLoaded() {
     return this._lastLoaded;
   }
 
-  update(repo: string, numCommits: number) {
-    const req: GetIncrementalCommitsRequest = {
-      n: numCommits,
-      pod: this.serverPodId,
-      repoPath: repo,
-    };
-    if (this.lastLoaded && repo === this.repo && numCommits === this.numCommits) {
-      // We incrementally update if this is the same repo and numCommits as the
-      // previous call, and we have a starting point.
-      req.from = this.lastLoaded.toISOString();
-    }
-    this.repo = repo;
-    this.numCommits = numCommits;
-    // Date.now to allow mocking of time. Take time before the server gets the request to make sure
-    // we don't miss commits, but only set it if the request was successful.
-    const reqTime = new Date(Date.now());
-    return this.client
-      .getIncrementalCommits(req)
-      .then((json: GetIncrementalCommitsResponse) => {
-        this._lastLoaded = reqTime;
-        if (json.metadata!.startOver) {
-          this.clearData();
-        }
-        this.serverPodId = json.metadata!.pod;
-        this.extractData(json.update!);
-        // We clear this derived data, as it may have changed with incremental updates.
-        this.taskSpecs = new Map();
-        this.categories = new Map();
+  resetEventSource(
+    repo: string,
+    numCommits: number,
+    branchFilter: string,
+    cursor: string,
+    onUpdate: () => void
+  ): Promise<void> {
+    if (
+      this.repo !== repo ||
+      this.numCommits !== numCommits ||
+      this.branchFilter !== branchFilter ||
+      this.cursor !== cursor
+    ) {
+      if (this.eventSource) {
+        this.eventSource.close();
+        this.eventSource = null;
+      }
+      this.repo = repo;
+      this.numCommits = numCommits;
+      this.branchFilter = branchFilter;
+      this.cursor = cursor;
 
-        this.processCommits();
-      })
-      .catch(errorMessage);
+      const queryParams = new URLSearchParams({
+        repo: repo,
+        n: numCommits.toString(),
+      });
+      if (branchFilter) {
+        queryParams.set('branch', branchFilter);
+      }
+      if (cursor) {
+        queryParams.set('cursor', cursor);
+      }
+
+      const url = `/sse?${queryParams.toString()}`;
+      try {
+        this.eventSource = new EventSource(url);
+      } catch (err) {
+        console.error('Failed to create event source');
+        console.error(err);
+        return Promise.reject();
+      }
+
+      return new Promise<void>((resolve, reject) => {
+        let firstMessage = true;
+        let disconnected = false;
+        this.eventSource!.onmessage = (event) => {
+          console.log('Received message:');
+          try {
+            const json: GetIncrementalCommitsResponse = JSON.parse(event.data);
+            console.log(json);
+            this._lastLoaded = new Date(Date.now());
+            if (firstMessage || disconnected) {
+              this.clearData();
+              disconnected = false;
+            }
+            this.serverPodId = json.metadata!.pod;
+            this.extractData(json.update!);
+            // We clear this derived data, as it may have changed with incremental updates.
+            this.taskSpecs = new Map();
+            this.categories = new Map();
+
+            this.processCommits();
+            onUpdate();
+            if (firstMessage) {
+              firstMessage = false;
+              resolve();
+            }
+          } catch (err) {
+            console.error('Failed to parse SSE event data', err);
+            if (firstMessage) {
+              firstMessage = false;
+              reject(err);
+            }
+          }
+        };
+
+        this.eventSource!.onerror = (err) => {
+          console.error('SSE EventSource encountered an error, reconnecting...', err);
+          disconnected = true;
+          if (firstMessage) {
+            firstMessage = false;
+            reject(err);
+          }
+        };
+      });
+    }
+    return Promise.resolve();
   }
 
   private clearData() {
@@ -518,6 +573,8 @@ class State {
   repo: string = defaultRepo();
 
   branchFilter: string = '';
+
+  cursor: string = '';
 }
 
 export class CommitsTableExperimentalSk extends ElementSk {
@@ -531,7 +588,11 @@ export class CommitsTableExperimentalSk extends ElementSk {
 
   private _branchFilter: string = '';
 
-  commits: Array<Commit> = [];
+  private _cursor: string = '';
+
+  private cursorStack: string[] = [];
+
+  private loading: boolean = false;
 
   private lastColumn: number = 1;
 
@@ -594,9 +655,9 @@ export class CommitsTableExperimentalSk extends ElementSk {
       </div>
       <branches-sk
         style=${el.gridLocation(
-          COMMIT_START_ROW,
+          COMMIT_START_ROW + (el.cursor ? 2 : 0),
           BRANCH_START_COL,
-          COMMIT_START_ROW + el.commits.length
+          COMMIT_START_ROW + (el.cursor ? 2 : 0) + el.data.commits.length
         )}></branches-sk>
       <div
         class="controls"
@@ -692,6 +753,7 @@ export class CommitsTableExperimentalSk extends ElementSk {
       repo: '',
       displayCommitSubject: false,
       branchFilter: '',
+      cursor: '',
     };
     return hintableSettings;
   };
@@ -703,6 +765,7 @@ export class CommitsTableExperimentalSk extends ElementSk {
       displayCommitSubject: this.displayCommitSubject,
       repo: this.repo,
       branchFilter: this.branchFilter,
+      cursor: this.cursor,
     };
     return state as unknown as HintableObject;
   }
@@ -719,7 +782,7 @@ export class CommitsTableExperimentalSk extends ElementSk {
     $$<HTMLInputElement>('#searchInput', this)!.value = this._search;
     this._branchFilter = state.branchFilter || '';
     $$<HTMLInputElement>('#branchSearchInput', this)!.value = this._branchFilter;
-    this.filterCommits();
+    this._cursor = state.cursor || '';
     this._displayCommitSubject = state.displayCommitSubject;
     if (state.repo) {
       this.repo = state.repo;
@@ -747,13 +810,52 @@ export class CommitsTableExperimentalSk extends ElementSk {
     this.stateHasChanged();
     $('.commit-text').forEach((el, i) => {
       if (v) {
-        el.innerHTML = this.commits[i].shortSubject;
-        el.setAttribute('title', this.commits[i].shortAuthor);
+        el.innerHTML = this.data.commits[i].shortSubject;
+        el.setAttribute('title', this.data.commits[i].shortAuthor);
       } else {
-        el.innerHTML = this.commits[i].shortAuthor;
-        el.setAttribute('title', this.commits[i].shortSubject);
+        el.innerHTML = this.data.commits[i].shortAuthor;
+        el.setAttribute('title', this.data.commits[i].shortSubject);
       }
     });
+  }
+
+  get branchFilter(): string {
+    return this._branchFilter;
+  }
+
+  set branchFilter(v: string) {
+    this._branchFilter = v;
+    this.update();
+    this.stateHasChanged();
+    this.draw();
+  }
+
+  get cursor(): string {
+    return this._cursor;
+  }
+
+  set cursor(v: string) {
+    this._cursor = v;
+    this.update();
+    this.stateHasChanged();
+    this.draw();
+  }
+
+  pageOlder() {
+    if (this.data.commits.length > 0) {
+      const oldestCommit = this.data.commits[this.data.commits.length - 1];
+      this.cursorStack.push(this.cursor);
+      this.cursor = oldestCommit.hash;
+    }
+  }
+
+  pageNewer() {
+    const prevCursor = this.cursorStack.pop();
+    if (prevCursor !== undefined) {
+      this.cursor = prevCursor;
+    } else {
+      this.cursor = '';
+    }
   }
 
   get filter(): Filter {
@@ -774,50 +876,6 @@ export class CommitsTableExperimentalSk extends ElementSk {
     this._search = v;
     this.stateHasChanged();
     this.draw();
-  }
-
-  get branchFilter(): string {
-    return this._branchFilter;
-  }
-
-  set branchFilter(v: string) {
-    this._branchFilter = v;
-    this.filterCommits();
-    this.stateHasChanged();
-    this.draw();
-  }
-
-  private filterCommits(): void {
-    if (!this._branchFilter) {
-      this.commits = this.data.commits;
-      return;
-    }
-
-    let regex: RegExp | null = null;
-    try {
-      regex = new RegExp(this._branchFilter, 'i');
-    } catch (e) {
-      errorMessage(e as Error);
-      return;
-    }
-
-    const branchHeads = this.data.branchHeads
-      .filter((branch) => regex.test(branch.name))
-      .map((branch) => branch.head);
-    if (branchHeads.length === 0) {
-      this.commits = [];
-      return;
-    }
-
-    const reachable = new Set<string>(branchHeads);
-    const filteredCommits: Commit[] = [];
-    for (const commit of this.data.commits) {
-      if (reachable.has(commit.hash)) {
-        filteredCommits.push(commit);
-        commit.parents?.forEach((p) => reachable.add(p));
-      }
-    }
-    this.commits = filteredCommits;
   }
 
   get repo(): string {
@@ -858,7 +916,7 @@ export class CommitsTableExperimentalSk extends ElementSk {
         dialog.displayTaskSpec(taskExecutor || '', spec, comments);
       }
     } else if (target.classList.contains('commit')) {
-      const commit = this.commits[Number(target.dataset.commitIndex)]!;
+      const commit = this.data.commits[Number(target.dataset.commitIndex)]!;
       const comments = this.data.comments.get(commit.hash)?.get('') || [];
       dialog.displayCommit(commit, comments);
     } else if (target.hasAttribute('data-task-id')) {
@@ -1220,7 +1278,21 @@ export class CommitsTableExperimentalSk extends ElementSk {
     // at least 1 more than the commits panel, even if we have no tasks displayed.
     this.lastColumn = Math.max(taskSpecStartCols.size + TASK_START_COL, TASK_START_COL + 1);
     this.mishapTasks = [];
-    const taskStartRow = COMMIT_START_ROW;
+    let taskStartRow = COMMIT_START_ROW;
+    if (this.cursor) {
+      res.push(html`
+        <div
+          class="pagination-bar newer-bar in-grid"
+          style=${this.gridLocation(COMMIT_START_ROW, 1, COMMIT_START_ROW + 2, this.lastColumn)}
+          @click=${() => this.pageNewer()}>
+          ${this.loading
+            ? html`<autorenew-icon-sk class="loading-spinner"></autorenew-icon-sk>`
+            : html`<expand-less-icon-sk></expand-less-icon-sk>`}
+          Newer Commits
+        </div>
+      `);
+      taskStartRow += 2;
+    }
     const tasksAddedToTemplate: Set<TaskId> = new Set();
     const now = Date.now();
     // Explicitly privide 'now' in case we patched it out for testing.
@@ -1236,11 +1308,11 @@ export class CommitsTableExperimentalSk extends ElementSk {
     ];
     timePoints.sort((a, b) => b.time.valueOf() - a.time.valueOf());
     // Commits are ordered newest to oldest, so the first commit is visually near the top.
-    for (const [i, commit] of this.commits.entries()) {
+    for (const [i, commit] of this.data.commits.entries()) {
       const rowStart = taskStartRow + i;
       const title = this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
       const text = !this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
-      const timeLabel = this.timeLabel(this.commits, i, timePoints);
+      const timeLabel = this.timeLabel(this.data.commits, i, timePoints);
 
       const tasksBySpec = this.data.tasksByCommit.get(commit.hash);
       if (tasksBySpec) {
@@ -1274,8 +1346,25 @@ export class CommitsTableExperimentalSk extends ElementSk {
     const nextRowDiv = () =>
       html` <div style=${this.gridLocation(row, 1, ++row, this.lastColumn)}></div>`;
     res.push(
-      html` <div class="rowUnderlay">${Array(this.commits.length).fill(1).map(nextRowDiv)}</div>`
+      html` <div class="rowUnderlay">
+        ${Array(this.data.commits.length).fill(1).map(nextRowDiv)}
+      </div>`
     );
+
+    // Render Older Commits button inside the grid
+    const olderRowStart = taskStartRow + this.data.commits.length;
+    res.push(html`
+      <div
+        class="pagination-bar older-bar in-grid"
+        style=${this.gridLocation(olderRowStart, 1, olderRowStart + 2, this.lastColumn)}
+        @click=${() => this.pageOlder()}>
+        ${this.loading
+          ? html`<autorenew-icon-sk class="loading-spinner"></autorenew-icon-sk>`
+          : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+        Older Commits
+      </div>
+    `);
+
     return res;
   }
 
@@ -1307,13 +1396,13 @@ export class CommitsTableExperimentalSk extends ElementSk {
    */
   private displayTaskRows(task: Task, latestCommitIndex: number) {
     // Only a single commit, or the last shown commit, obviously contiguous.
-    if (task.commits!.length < 2 || latestCommitIndex >= this.commits.length - 1) {
+    if (task.commits!.length < 2 || latestCommitIndex >= this.data.commits.length - 1) {
       return [true];
     }
     const visibleCommitsCount = task.commits!.filter((hash) => {
       const commit = this.data.commitsByHash.get(hash);
       if (!commit) return false;
-      const index = this.commits.indexOf(commit);
+      const index = this.data.commits.indexOf(commit);
       return index >= latestCommitIndex;
     }).length;
 
@@ -1321,19 +1410,19 @@ export class CommitsTableExperimentalSk extends ElementSk {
     // Check for parental gaps. Commits may be sorted, but we don't assume that.
     let displayCommitsCount = 1;
     // We update this as we 'walk backward' through the commits this task covers.
-    let currentCommitInTask = this.commits[latestCommitIndex];
+    let currentCommitInTask = this.data.commits[latestCommitIndex];
     // Follow the ancestory up to the penultimate commit, since we look ahead by 1.
     // Earlier here means visually below.
     for (
       let earlierCommitIndex = latestCommitIndex + 1;
-      earlierCommitIndex < this.commits.length;
+      earlierCommitIndex < this.data.commits.length;
       earlierCommitIndex++
     ) {
       // Exit if we know we've account for all commits in the task, to avoid an extra 'false' at
       // the end of the returned array.
       if (displayCommitsCount === visibleCommitsCount) break;
 
-      const earlierCommit = this.commits[earlierCommitIndex];
+      const earlierCommit = this.data.commits[earlierCommitIndex];
       if (currentCommitInTask.parents!.indexOf(earlierCommit.hash) === -1) {
         // Branch leaves a gap.
         thisTaskOverCommits.push(false);
@@ -1349,42 +1438,31 @@ export class CommitsTableExperimentalSk extends ElementSk {
   }
 
   private update() {
-    if (!this.requestLimiter.beginUpdate()) {
-      // There is already an outstanding request, we'll re-update once that resolves.
-      return;
-    }
-    this.updatesRunning = true;
-    const refreshSeconds = 60;
     const numCommits = Number((<HTMLInputElement>$$('#commitsInput', this)).value);
     window.clearTimeout(this.refreshHandle);
     this.refreshHandle = undefined;
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-    this.data.update(this.repo, numCommits).finally(() => {
-      this.filterCommits();
-      this.draw();
-      const branchesSk = $$('branches-sk', this) as BranchesSk;
-      if (branchesSk) {
-        branchesSk.commits = this.commits;
-        branchesSk.branchHeads = this.data.branchHeads;
-      }
-      this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
-      // If an additional update was requested, start it, otherwise schedule it.
-      if (this.requestLimiter.endUpdate()) {
-        this.update();
-      } else {
-        this.refreshHandle = window.setTimeout(() => this.update(), refreshSeconds * 1000);
-      }
-    });
+    this.loading = true;
+    this.draw();
+
+    this.data
+      .resetEventSource(this.repo, numCommits, this.branchFilter, this.cursor, () => {
+        this.loading = false;
+        this.draw();
+        const branchesSk = $$('branches-sk', this) as BranchesSk;
+        if (branchesSk) {
+          branchesSk.commits = this.data.commits;
+          branchesSk.branchHeads = this.data.branchHeads;
+        }
+      })
+      .finally(() => {
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      });
   }
 
   private draw() {
     console.time('render');
     this._render();
-    const branchesSk = $$('branches-sk', this) as BranchesSk;
-    if (branchesSk) {
-      branchesSk.commits = this.commits;
-      branchesSk.branchHeads = this.data.branchHeads;
-    }
     console.timeEnd('render');
   }
 }
