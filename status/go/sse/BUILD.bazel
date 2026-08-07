@@ -1,0 +1,46 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sse",
+    srcs = ["sse.go"],
+    importpath = "go.skia.org/infra/status/go/sse",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git",
+        "//go/git/repograph",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//status/go/rpc",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/cache",
+        "//task_scheduler/go/types",
+        "//task_scheduler/go/window",
+        "@org_golang_google_protobuf//encoding/protojson",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_test(
+    name = "sse_test",
+    srcs = ["sse_test.go"],
+    embed = [":sse"],
+    deps = [
+        "//go/git",
+        "//go/git/repograph",
+        "//go/vcsinfo",
+        "//status/go/rpc",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/cache/mocks",
+        "//task_scheduler/go/mocks",
+        "//task_scheduler/go/types",
+        "//task_scheduler/go/window/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_protobuf//encoding/protojson",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)

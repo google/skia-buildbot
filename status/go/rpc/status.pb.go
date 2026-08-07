@@ -378,6 +378,7 @@ type LongCommit struct {
 	Parents       []string               `protobuf:"bytes,4,rep,name=parents,proto3" json:"parents,omitempty"`
 	Body          string                 `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
 	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	IsAncestorOf  []string               `protobuf:"bytes,7,rep,name=is_ancestor_of,json=isAncestorOf,proto3" json:"is_ancestor_of,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -450,6 +451,13 @@ func (x *LongCommit) GetBody() string {
 func (x *LongCommit) GetTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.Timestamp
+	}
+	return nil
+}
+
+func (x *LongCommit) GetIsAncestorOf() []string {
+	if x != nil {
+		return x.IsAncestorOf
 	}
 	return nil
 }
@@ -1272,7 +1280,7 @@ const file_status_proto_rawDesc = "" +
 	"\brevision\x18\x04 \x01(\tR\brevision\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status\x12(\n" +
 	"\x10swarming_task_id\x18\x06 \x01(\tR\x0eswarmingTaskId\x12#\n" +
-	"\rtask_executor\x18\a \x01(\tR\ftaskExecutor\"\xba\x01\n" +
+	"\rtask_executor\x18\a \x01(\tR\ftaskExecutor\"\xe0\x01\n" +
 	"\n" +
 	"LongCommit\x12\x12\n" +
 	"\x04hash\x18\x01 \x01(\tR\x04hash\x12\x16\n" +
@@ -1280,7 +1288,8 @@ const file_status_proto_rawDesc = "" +
 	"\asubject\x18\x03 \x01(\tR\asubject\x12\x18\n" +
 	"\aparents\x18\x04 \x03(\tR\aparents\x12\x12\n" +
 	"\x04body\x18\x05 \x01(\tR\x04body\x128\n" +
-	"\ttimestamp\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\xc3\x02\n" +
+	"\ttimestamp\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12$\n" +
+	"\x0eis_ancestor_of\x18\a \x03(\tR\fisAncestorOf\"\xc3\x02\n" +
 	"\aComment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04repo\x18\x02 \x01(\tR\x04repo\x128\n" +

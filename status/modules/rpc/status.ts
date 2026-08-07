@@ -122,6 +122,7 @@ export interface LongCommit {
   parents?: string[];
   body: string;
   timestamp?: string;
+  isAncestorOf?: string[];
 }
 
 interface LongCommitJSON {
@@ -131,6 +132,7 @@ interface LongCommitJSON {
   parents?: string[];
   body?: string;
   timestamp?: string;
+  is_ancestor_of?: string[];
 }
 
 const JSONToLongCommit = (m: LongCommitJSON): LongCommit => {
@@ -141,6 +143,7 @@ const JSONToLongCommit = (m: LongCommitJSON): LongCommit => {
     parents: m.parents,
     body: m.body || "",
     timestamp: m.timestamp,
+    isAncestorOf: m.is_ancestor_of,
   };
 };
 
