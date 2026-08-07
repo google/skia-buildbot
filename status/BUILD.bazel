@@ -30,6 +30,7 @@ skia_app_container(
                 "status",
                 "capacity",
                 "orphaned-tasks-machines",
+                "status-experimental",
             ]
             for ext in [
                 "css",

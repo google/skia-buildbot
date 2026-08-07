@@ -45,6 +45,7 @@ import (
 	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/status/go/lkgr"
 	"go.skia.org/infra/status/go/rpc"
+	"go.skia.org/infra/status/go/sse"
 	task_driver_db "go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
 	"go.skia.org/infra/task_driver/go/handlers"
@@ -72,6 +73,7 @@ var (
 	capacityClient             *capacity.CapacityClientImpl       = nil
 	capacityTemplate           *template.Template                 = nil
 	commitsTemplate            *template.Template                 = nil
+	experimentalTemplate       *template.Template                 = nil
 	tasksMachinesTemplate      *template.Template                 = nil
 	iCache                     *incremental.IncrementalCacheImpl  = nil
 	lkgrObj                    *lkgr.LKGR                         = nil
@@ -80,6 +82,7 @@ var (
 	taskDriverLogs             *logs.LogsManager                  = nil
 	tasksPerCommit             *tasksPerCommitCache               = nil
 	tCache                     cache.TaskCache                    = nil
+	sseServer                  *sse.SSEServer                     = nil
 	plogin                     alogin.Login
 	orphanedTasksMachinesCache *orphaned_tasks_machines.Cache = nil
 
@@ -138,6 +141,9 @@ func reloadTemplates() {
 	}
 	commitsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "dist", "status.html"),
+	))
+	experimentalTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "dist", "status-experimental.html"),
 	))
 	capacityTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "dist", "capacity.html"),
@@ -220,6 +226,44 @@ func defaultHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	if err := commitsTemplate.Execute(w, d); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
+	}
+}
+
+func experimentalHandler(w http.ResponseWriter, _ *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	defaultRepo := repoUrlToName((*repoUrls)[0])
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	d := struct {
+		Title             string
+		SwarmingURL       string
+		TreeStatusBaseURL string
+		LogsURLTemplate   string
+		TaskSchedulerURL  string
+		DefaultRepo       string
+		// Repo name to repo URL.
+		Repos map[string]string
+		// Repo name to LUCI project ID.
+		RepoToProject map[string]string
+	}{
+		Title:             fmt.Sprintf("Status: %s", defaultRepo),
+		SwarmingURL:       *swarmingUrl,
+		TreeStatusBaseURL: *treeStatusBaseUrl,
+		LogsURLTemplate:   *taskLogsUrlTemplate,
+		TaskSchedulerURL:  *taskSchedulerUrl,
+		DefaultRepo:       defaultRepo,
+		Repos:             repoURLsByName,
+		RepoToProject:     repoNameToProject,
+	}
+
+	if err := experimentalTemplate.Execute(w, d); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
 	}
 }
@@ -307,8 +351,10 @@ func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter.Use(alogin.StatusMiddleware(plogin))
 	// Our 'main' router doesn't include the Twirp server, since it would double gzip responses.
 	topLevelRouter.Handle(rpc.StatusServicePathPrefix+"*", httputils.LoggingRequestResponse(srv))
+	topLevelRouter.HandleFunc("/sse", sseServer.Handler)
 	topLevelRouter.With(httputils.LoggingGzipRequestResponse).Route("/", func(r chi.Router) {
 		r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
+		r.HandleFunc("/experimental", httputils.CorsHandler(experimentalHandler))
 		r.HandleFunc("/capacity", capacityHandler)
 		r.HandleFunc("/orphaned-tasks-machines", orphanedTasksMachinesHandler)
 		r.HandleFunc("/lkgr", lkgrHandler)
@@ -422,6 +468,21 @@ func main() {
 	tCache, err = cache.NewTaskCache(ctx, taskDb, w, nil)
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCache: %s", err)
+	}
+	sseServer, err = sse.New(ctx, sse.Config{
+		Repos:                repos,
+		TaskDb:               taskDb,
+		TCache:               tCache,
+		Window:               w,
+		PodId:                podId,
+		DefaultCommitsToLoad: defaultCommitsToLoad,
+		MaxCommitsToLoad:     maxCommitsToLoad,
+		RepoUrls:             *repoUrls,
+		GetRepoTwirp:         getRepoTwirp,
+		RepoUrlToName:        repoUrlToName,
+	})
+	if err != nil {
+		sklog.Fatalf("Failed to create SSEServer: %s", err)
 	}
 	lvTaskCache := metrics2.NewLiveness("status_task_cache")
 	go util.RepeatCtx(ctx, 60*time.Second, func(ctx context.Context) {

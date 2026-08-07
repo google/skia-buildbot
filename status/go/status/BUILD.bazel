@@ -28,6 +28,7 @@ go_library(
         "//status/go/incremental",
         "//status/go/lkgr",
         "//status/go/rpc",
+        "//status/go/sse",
         "//task_driver/go/db",
         "//task_driver/go/db/bigtable",
         "//task_driver/go/handlers",
