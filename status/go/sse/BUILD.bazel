@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "sse",
-    srcs = ["sse.go"],
+    srcs = [
+        "cache.go",
+        "sse.go",
+    ],
     importpath = "go.skia.org/infra/status/go/sse",
     visibility = ["//visibility:public"],
     deps = [

@@ -161,6 +161,7 @@ type IncrementalUpdate struct {
 	BranchHeads   []*Branch              `protobuf:"bytes,2,rep,name=branch_heads,json=branchHeads,proto3" json:"branch_heads,omitempty"`
 	Tasks         []*Task                `protobuf:"bytes,3,rep,name=tasks,proto3" json:"tasks,omitempty"`
 	Comments      []*Comment             `protobuf:"bytes,4,rep,name=comments,proto3" json:"comments,omitempty"`
+	HideTaskSpecs []string               `protobuf:"bytes,5,rep,name=hide_task_specs,json=hideTaskSpecs,proto3" json:"hide_task_specs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -219,6 +220,13 @@ func (x *IncrementalUpdate) GetTasks() []*Task {
 func (x *IncrementalUpdate) GetComments() []*Comment {
 	if x != nil {
 		return x.Comments
+	}
+	return nil
+}
+
+func (x *IncrementalUpdate) GetHideTaskSpecs() []string {
+	if x != nil {
+		return x.HideTaskSpecs
 	}
 	return nil
 }
@@ -1264,12 +1272,13 @@ const file_status_proto_rawDesc = "" +
 	"\trepo_path\x18\x05 \x01(\tR\brepoPath\"\x88\x01\n" +
 	"\x1dGetIncrementalCommitsResponse\x124\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x18.status.ResponseMetadataR\bmetadata\x121\n" +
-	"\x06update\x18\x02 \x01(\v2\x19.status.IncrementalUpdateR\x06update\"\xc5\x01\n" +
+	"\x06update\x18\x02 \x01(\v2\x19.status.IncrementalUpdateR\x06update\"\xed\x01\n" +
 	"\x11IncrementalUpdate\x12,\n" +
 	"\acommits\x18\x01 \x03(\v2\x12.status.LongCommitR\acommits\x121\n" +
 	"\fbranch_heads\x18\x02 \x03(\v2\x0e.status.BranchR\vbranchHeads\x12\"\n" +
 	"\x05tasks\x18\x03 \x03(\v2\f.status.TaskR\x05tasks\x12+\n" +
-	"\bcomments\x18\x04 \x03(\v2\x0f.status.CommentR\bcomments\"0\n" +
+	"\bcomments\x18\x04 \x03(\v2\x0f.status.CommentR\bcomments\x12&\n" +
+	"\x0fhide_task_specs\x18\x05 \x03(\tR\rhideTaskSpecs\"0\n" +
 	"\x06Branch\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04head\x18\x02 \x01(\tR\x04head\"\xc7\x01\n" +

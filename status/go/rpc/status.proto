@@ -42,6 +42,7 @@ message IncrementalUpdate {
   repeated Branch branch_heads = 2;
   repeated Task tasks = 3;
   repeated Comment comments = 4;
+  repeated string hide_task_specs = 5;
 }
 
 // Branch names and their associated HEAD commit hash.

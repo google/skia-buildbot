@@ -121,14 +121,14 @@ export class TaskSpecDetails {
   }
 }
 
-type Filter = 'Interesting' | 'Failures' | 'All' | 'Nocomment' | 'Comments' | 'Search';
+type TaskFilter = 'Interesting' | 'Failures' | 'All' | 'Search';
 
-interface FilterInfo {
+interface TaskFilterInfo {
   text: string;
   title: string;
 }
 
-const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
+const TASK_FILTER_INFO: Map<TaskFilter, TaskFilterInfo> = new Map([
   [
     'Interesting',
     {
@@ -141,20 +141,6 @@ const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
     {
       text: 'Failures',
       title: 'Tasks which have failures within the visible commit window.',
-    },
-  ],
-  [
-    'Comments',
-    {
-      text: 'Comments',
-      title: 'Tasks which have comments.',
-    },
-  ],
-  [
-    'Nocomment',
-    {
-      text: 'Failing w/o comment',
-      title: 'Tasks which have failures within the visible commit window but have no comments.',
     },
   ],
   [
@@ -173,8 +159,8 @@ const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
     },
   ],
 ]);
-// Used to translate tabs-sk event indices to Filters.
-const FILTER_INDEX = Array.from(FILTER_INFO).map(([filter, _]) => filter);
+// Used to translate tabs-sk event indices to TaskFilters.
+const TASK_FILTER_INDEX = Array.from(TASK_FILTER_INFO).map(([filter, _]) => filter);
 
 // An internal class used to keep the fetching and preprocessing of data untangled from the logic
 // to render the table itself.
@@ -217,6 +203,10 @@ class Data {
 
   private cursor: string = '';
 
+  private taskFilter: TaskFilter = 'Interesting';
+
+  private taskSearch: string = '';
+
   get lastLoaded() {
     return this._lastLoaded;
   }
@@ -226,13 +216,17 @@ class Data {
     numCommits: number,
     branchFilter: string,
     cursor: string,
+    taskFilter: TaskFilter,
+    taskSearch: string,
     onUpdate: () => void
   ): Promise<void> {
     if (
       this.repo !== repo ||
       this.numCommits !== numCommits ||
       this.branchFilter !== branchFilter ||
-      this.cursor !== cursor
+      this.cursor !== cursor ||
+      this.taskFilter !== taskFilter ||
+      (taskFilter === 'Search' && this.taskSearch !== taskSearch)
     ) {
       if (this.eventSource) {
         this.eventSource.close();
@@ -242,16 +236,22 @@ class Data {
       this.numCommits = numCommits;
       this.branchFilter = branchFilter;
       this.cursor = cursor;
+      this.taskFilter = taskFilter;
+      this.taskSearch = taskSearch;
 
       const queryParams = new URLSearchParams({
         repo: repo,
         n: numCommits.toString(),
+        taskFilter: taskFilter,
       });
       if (branchFilter) {
         queryParams.set('branch', branchFilter);
       }
       if (cursor) {
         queryParams.set('cursor', cursor);
+      }
+      if (taskFilter === 'Search' && taskSearch) {
+        queryParams.set('taskSearch', taskSearch);
       }
 
       const url = `/sse?${queryParams.toString()}`;
@@ -363,6 +363,20 @@ class Data {
         if (task.revision === commit.hash) {
           this.tasks.delete(id);
         }
+      }
+    }
+
+    // Handle hidden task specs
+    const hideSpecs = update.hideTaskSpecs;
+    if (hideSpecs && hideSpecs.length > 0) {
+      const hideSet = new Set(hideSpecs);
+      for (const [id, task] of this.tasks) {
+        if (hideSet.has(task.name)) {
+          this.tasks.delete(id);
+        }
+      }
+      for (const spec of hideSpecs) {
+        this.taskSpecs.delete(spec);
       }
     }
 
@@ -564,9 +578,9 @@ class RequestLimiter {
 }
 
 class State {
-  filter: Filter = 'Interesting';
+  taskFilter: TaskFilter = 'Interesting';
 
-  search: string = '';
+  taskSearch: string = '';
 
   displayCommitSubject: boolean = false;
 
@@ -580,9 +594,9 @@ class State {
 export class CommitsTableExperimentalSk extends ElementSk {
   private _displayCommitSubject: boolean = false;
 
-  private _filter: Filter = 'Interesting';
+  private _taskFilter: TaskFilter = 'Interesting';
 
-  private _search: string = '';
+  private _taskSearch: string = '';
 
   private _repo: string = defaultRepo();
 
@@ -683,13 +697,14 @@ export class CommitsTableExperimentalSk extends ElementSk {
 
           <div class="horizontal">
             <tabs-sk
-              @tab-selected-sk=${(e: CustomEvent) => (el.filter = FILTER_INDEX[e.detail.index])}>
-              ${Array.from(FILTER_INFO).map(([filter, info]) =>
+              @tab-selected-sk=${(e: CustomEvent) =>
+                (el.taskFilter = TASK_FILTER_INDEX[e.detail.index])}>
+              ${Array.from(TASK_FILTER_INFO).map(([filter, info]) =>
                 filter === 'Search'
                   ? html``
                   : html`<button
                       title=${info.title}
-                      class=${el._filter === filter ? 'selected' : ''}>
+                      class=${el._taskFilter === filter ? 'selected' : ''}>
                       ${info.text}
                       <help-icon-sk class="tiny"></help-icon-sk>
                     </button> `
@@ -697,9 +712,9 @@ export class CommitsTableExperimentalSk extends ElementSk {
             </tabs-sk>
             <input-sk
               id="searchInput"
-              class=${el.filter === 'Search' ? 'selected' : ''}
+              class=${el.taskFilter === 'Search' ? 'selected' : ''}
               label="Filter task spec"
-              @change=${el.searchFilter}>
+              @change=${el.taskSearchFilter}>
             </input-sk>
             <a href="${taskSchedulerUrl()}/trigger" target="_blank" rel="noopener">
               <button>
@@ -748,8 +763,8 @@ export class CommitsTableExperimentalSk extends ElementSk {
   // deltas from.  This allows our 'default' values to still be reflected in the url.
   private getState = () => {
     const hintableSettings: HintableObject = {
-      filter: '',
-      search: '',
+      taskFilter: '',
+      taskSearch: '',
       repo: '',
       displayCommitSubject: false,
       branchFilter: '',
@@ -760,8 +775,8 @@ export class CommitsTableExperimentalSk extends ElementSk {
 
   private getCurrentState(): HintableObject {
     const state: State = {
-      filter: this.filter,
-      search: this.search,
+      taskFilter: this.taskFilter,
+      taskSearch: this.taskSearch,
       displayCommitSubject: this.displayCommitSubject,
       repo: this.repo,
       branchFilter: this.branchFilter,
@@ -773,13 +788,13 @@ export class CommitsTableExperimentalSk extends ElementSk {
   private setState(fromUrl: HintableObject) {
     const state = fromUrl as unknown as State;
     // Using empty default values in the default State object (so all values, including our true
-    // defaults are reflected in the url) means the initial load will try to set filter and
+    // defaults are reflected in the url) means the initial load will try to set taskFilter and
     // repo to the empty string, prevent this.
-    if (state.filter) {
-      this._filter = state.filter;
+    if (state.taskFilter) {
+      this._taskFilter = state.taskFilter;
     }
-    this._search = state.search;
-    $$<HTMLInputElement>('#searchInput', this)!.value = this._search;
+    this._taskSearch = state.taskSearch;
+    $$<HTMLInputElement>('#searchInput', this)!.value = this._taskSearch;
     this._branchFilter = state.branchFilter || '';
     $$<HTMLInputElement>('#branchSearchInput', this)!.value = this._branchFilter;
     this._cursor = state.cursor || '';
@@ -858,22 +873,24 @@ export class CommitsTableExperimentalSk extends ElementSk {
     }
   }
 
-  get filter(): Filter {
-    return this._filter;
+  get taskFilter(): TaskFilter {
+    return this._taskFilter;
   }
 
-  set filter(v: Filter) {
-    this._filter = v;
+  set taskFilter(v: TaskFilter) {
+    this._taskFilter = v;
+    this.update();
     this.stateHasChanged();
     this.draw();
   }
 
-  get search(): string {
-    return this._search;
+  get taskSearch(): string {
+    return this._taskSearch;
   }
 
-  set search(v: string) {
-    this._search = v;
+  set taskSearch(v: string) {
+    this._taskSearch = v;
+    this.update();
     this.stateHasChanged();
     this.draw();
   }
@@ -892,9 +909,9 @@ export class CommitsTableExperimentalSk extends ElementSk {
     }
   }
 
-  private searchFilter(e: Event) {
-    this._filter = 'Search'; // Use the private member to avoid double-render
-    this.search = (<HTMLInputElement>e.target).value;
+  private taskSearchFilter(e: Event) {
+    this._taskFilter = 'Search'; // Use the private member to avoid double-render
+    this.taskSearch = (<HTMLInputElement>e.target).value;
   }
 
   // Arrow notation to allow for reference of same function in removeEventListener.
@@ -961,35 +978,6 @@ export class CommitsTableExperimentalSk extends ElementSk {
     return styleMap({
       gridArea: `${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}`,
     });
-  }
-
-  /**
-   * includeTaskSpec checks the spec against the filter type currently set for the table and
-   * returns true if the taskspec should be displayed.
-   * @param taskSpec The taskSpec name to check against the filter.
-   * @param searchRegex Regex to search with, must be set if this._filter === "Search".
-   */
-  private includeTaskSpec(taskSpec: string, searchRegex?: RegExp): boolean {
-    const specDetails = this.data.taskSpecs.get(taskSpec);
-    if (!specDetails) {
-      return true;
-    }
-    switch (this._filter) {
-      case 'All':
-        return true;
-      case 'Comments':
-        return specDetails.hasComment();
-      case 'Nocomment':
-        return specDetails.hasFailingNoComment();
-      case 'Failures':
-        return specDetails.hasFailing();
-      case 'Interesting':
-        return specDetails.interesting();
-      case 'Search':
-        return searchRegex!.test(taskSpec);
-      default:
-        return false;
-    }
   }
 
   /**
@@ -1082,8 +1070,6 @@ export class CommitsTableExperimentalSk extends ElementSk {
   private addTaskHeaders(res: Array<TemplateResult>): Map<TaskSpec, number> {
     const taskSpecStartCols: Map<TaskSpec, number> = new Map();
     let categoryStartCol = TASK_START_COL;
-    // We compile our regex once, rather than on ever taskspec.
-    const searchRegex = this._filter === 'Search' ? new RegExp(this._search, 'i') : undefined;
     // We walk category/subcategory/taskspec info 'depth-first' so filtered out taskspecs can
     // correctly filter out unnecessary subcategories, etc.
     const sortedCategoryNames = Array.from(this.data.categories.keys()).sort();
@@ -1096,20 +1082,17 @@ export class CommitsTableExperimentalSk extends ElementSk {
       sortedSubcategoryNames.forEach((subcategoryName: string) => {
         const taskSpecs = categoryDetails.taskSpecsBySubCategory.get(subcategoryName)!;
         let taskSpecStartCol = subcategoryStartCol;
-        taskSpecs
-          .sort()
-          .filter((ts) => this.includeTaskSpec(ts, searchRegex))
-          .forEach((taskSpec: string) => {
-            taskSpecStartCols.set(taskSpec, taskSpecStartCol);
-            res.push(
-              html`<div
-                class="category task-spec"
-                style=${this.gridLocation(TASKSPEC_START_ROW, taskSpecStartCol++)}
-                title=${taskSpec}>
-                ${this.taskSpecIcons(taskSpec)}
-              </div>`
-            );
-          });
+        taskSpecs.sort().forEach((taskSpec: string) => {
+          taskSpecStartCols.set(taskSpec, taskSpecStartCol);
+          res.push(
+            html`<div
+              class="category task-spec"
+              style=${this.gridLocation(TASKSPEC_START_ROW, taskSpecStartCol++)}
+              title=${taskSpec}>
+              ${this.taskSpecIcons(taskSpec)}
+            </div>`
+          );
+        });
         if (taskSpecStartCol !== subcategoryStartCol) {
           // Added at least one TaskSpec in this subcategory, so add a Subcategory header.
           const subcategoryEndCol = taskSpecStartCol;
@@ -1438,6 +1421,9 @@ export class CommitsTableExperimentalSk extends ElementSk {
   }
 
   private update() {
+    if (!this.isConnected) {
+      return;
+    }
     const numCommits = Number((<HTMLInputElement>$$('#commitsInput', this)).value);
     window.clearTimeout(this.refreshHandle);
     this.refreshHandle = undefined;
@@ -1446,24 +1432,32 @@ export class CommitsTableExperimentalSk extends ElementSk {
     this.draw();
 
     this.data
-      .resetEventSource(this.repo, numCommits, this.branchFilter, this.cursor, () => {
-        this.loading = false;
-        this.draw();
-        const branchesSk = $$('branches-sk', this) as BranchesSk;
-        if (branchesSk) {
-          branchesSk.commits = this.data.commits;
-          branchesSk.branchHeads = this.data.branchHeads;
+      .resetEventSource(
+        this.repo,
+        numCommits,
+        this.branchFilter,
+        this.cursor,
+        this.taskFilter,
+        this.taskSearch,
+        () => {
+          this.loading = false;
+          this.draw();
+          const branchesSk = $$('branches-sk', this) as BranchesSk;
+          if (branchesSk) {
+            branchesSk.commits = this.data.commits;
+            branchesSk.branchHeads = this.data.branchHeads;
+          }
         }
-      })
+      )
       .finally(() => {
         this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       });
   }
 
   private draw() {
-    console.time('render');
+    //console.time('render');
     this._render();
-    console.timeEnd('render');
+    //console.timeEnd('render');
   }
 }
 

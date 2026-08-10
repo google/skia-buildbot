@@ -132,6 +132,27 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 
 	cursor := r.URL.Query().Get("cursor")
 
+	taskFilter := taskFilter(r.URL.Query().Get("taskFilter"))
+	if taskFilter == "" {
+		taskFilter = taskFilter_Default
+	}
+	if !taskFilter.Valid() {
+		httputils.ReportError(w, skerr.Fmt("invalid value for taskFilter: %s", taskFilter), "invalid value for taskFilter", http.StatusBadRequest)
+		return
+	}
+
+	var taskSearch *regexp.Regexp
+	if taskFilter == taskFilter_Search {
+		taskSearchStr := r.URL.Query().Get("taskSearch")
+		if taskSearchStr != "" {
+			taskSearch, err = regexp.Compile(taskSearchStr)
+			if err != nil {
+				httputils.ReportError(w, skerr.Wrapf(err, "failed to parse taskSearch"), "invalid regex for taskSearch", http.StatusBadRequest)
+				return
+			}
+		}
+	}
+
 	// Retrieve the graph for this repo.
 	repo, ok := s.cfg.Repos[repoURL]
 	if !ok {
@@ -169,12 +190,15 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 	// but cannot send updates until after the initial load.
 	// Set up the client stream.
 	clientStream := &clientStream{
+		activeTaskSpecs: map[string]bool{},
 		branchRegex:     branchRegex,
 		ctx:             ctx,
 		db:              s.cfg.TaskDb,
 		flusher:         flusher,
 		limit:           n,
 		repoURL:         repoURL,
+		taskFilter:      taskFilter,
+		taskSearch:      taskSearch,
 		tCache:          s.cfg.TCache,
 		w:               gzipWriter,
 		wantsNewCommits: cursor == "",
@@ -196,7 +220,8 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 	s.ancestryCacheMtx.RUnlock()
 
 	// Build the initial response.
-	if err := clientStream.sendUpdateLocked(rpcCommits, branchHeads, repoURL, nil); err != nil {
+	rq := newRequestCache()
+	if err := clientStream.sendUpdateLocked(rpcCommits, branchHeads, repoURL, nil, rq); err != nil {
 		clientStream.mtx.Unlock()
 		httputils.ReportError(w, err, "failed to build send response", http.StatusInternalServerError)
 		return
@@ -276,6 +301,7 @@ func (s *SSEServer) checkForNewCommits() {
 func (s *SSEServer) broadcastUpdate(commits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, tasks []*types.Task) {
 	s.clientsMtx.Lock()
 	var eg errgroup.Group
+	rq := newRequestCache()
 	for client := range s.clients {
 		eg.Go(func() error {
 			select {
@@ -284,7 +310,7 @@ func (s *SSEServer) broadcastUpdate(commits []*rpc.LongCommit, branchHeads []*gi
 				return nil
 			default:
 			}
-			if err := client.SendUpdate(commits, branchHeads, repoURL, tasks); err != nil {
+			if err := client.SendUpdate(commits, branchHeads, repoURL, tasks, rq); err != nil {
 				s.unregister(client)
 				return skerr.Wrapf(err, "failed to send response; unregistered the client")
 			}
@@ -371,6 +397,7 @@ func (s *SSEServer) sortCandidates(candidates []*repograph.Commit) {
 }
 
 type clientStream struct {
+	activeTaskSpecs  map[string]bool
 	branchRegex      *regexp.Regexp
 	ctx              context.Context
 	db               db.TaskReader
@@ -379,6 +406,8 @@ type clientStream struct {
 	limit            int
 	mtx              sync.Mutex
 	repoURL          string
+	taskFilter       taskFilter
+	taskSearch       *regexp.Regexp
 	tCache           cache.TaskCache
 	w                *gzip.Writer
 	wantsNewCommits  bool
@@ -393,15 +422,15 @@ func (c *clientStream) Done() <-chan struct{} {
 //
 // repoURL must always be set. Either newTasks or newCommits and branchHeads,
 // or all of the above must be set.
-func (s *clientStream) SendUpdate(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task) error {
+func (s *clientStream) SendUpdate(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	return s.sendUpdateLocked(newCommits, branchHeads, repoURL, newTasks)
+	return s.sendUpdateLocked(newCommits, branchHeads, repoURL, newTasks, rq)
 }
 
 // sendUpdateLocked is a helper function for SendUpdate which assumes that the
 // caller holds clientStream.mtx.
-func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task) error {
+func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache) error {
 	if repoURL != s.repoURL {
 		return nil
 	}
@@ -442,36 +471,61 @@ func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHead
 				})
 			}
 		}
+	}
 
-		// Since we have new commits, retrieve their tasks.
-		if len(filteredCommits) > 0 {
-			tasks, err := getTasksForCommits(s.ctx, s.window, s.tCache, s.db, s.repoURL, filteredCommits)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			for _, t := range tasks {
-				resp.Update.Tasks = append(resp.Update.Tasks, &rpc.Task{
-					Commits:        t.Commits,
-					Name:           t.Name,
-					Id:             t.Id,
-					Revision:       t.Revision,
-					Status:         string(t.Status),
-					SwarmingTaskId: t.SwarmingTaskId,
-					TaskExecutor:   t.TaskExecutor,
-				})
+	// Determine which task specs the client needs to be displaying.
+	// Unfortunately, to correctly handle filtering, we must consider ALL tasks
+	// in the commit range, not just the new ones. Fortunately, those tasks
+	// should be cached in the vast majority of cases.
+	var err error
+	resp.Update.Tasks, resp.Update.HideTaskSpecs, err = rq.GetOrCache(repoURL, s.displayedCommits, s.taskFilter, s.taskSearch, func() ([]*rpc.Task, []string, error) {
+		allTasks, err := getTasksForCommits(s.ctx, s.window, s.tCache, s.db, s.repoURL, s.displayedCommits)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		tasksByName := map[string][]*types.Task{}
+		for _, t := range allTasks {
+			tasksByName[t.Name] = append(tasksByName[t.Name], t)
+		}
+		wantTaskSpecs := map[string]bool{}
+		for spec, tasks := range tasksByName {
+			if specMatchesFilter(tasks, s.taskFilter, s.taskSearch) {
+				wantTaskSpecs[spec] = true
 			}
 		}
-	}
 
-	// Filter modified tasks by displayed commits.
-	displayedCommits := make(map[string]bool, len(s.displayedCommits))
-	for _, c := range s.displayedCommits {
-		displayedCommits[c.Hash] = true
-	}
-	var updatedTasks []*rpc.Task
-	for _, t := range newTasks {
-		if t.Repo == s.repoURL && displayedCommits[t.Revision] {
-			updatedTasks = append(updatedTasks, &rpc.Task{
+		// Determine which tasks to send.
+		tasksToSend := make(map[string]*types.Task, len(newTasks))
+		for _, t := range newTasks {
+			if s.repoURL == t.Repo && wantTaskSpecs[t.Name] {
+				tasksToSend[t.Id] = t
+			}
+		}
+
+		// Add any task specs that aren't currently displayed but should be. Note
+		// that in this case we need to send ALL tasks of this spec, not just the
+		// new ones.
+		for spec := range wantTaskSpecs {
+			if !s.activeTaskSpecs[spec] {
+				s.activeTaskSpecs[spec] = true
+				for _, t := range tasksByName[spec] {
+					tasksToSend[t.Id] = t
+				}
+			}
+		}
+		// Remove any task specs that are currently displayed but should not be.
+		var hideTaskSpecs []string
+		for spec := range s.activeTaskSpecs {
+			if !wantTaskSpecs[spec] {
+				delete(s.activeTaskSpecs, spec)
+				hideTaskSpecs = append(hideTaskSpecs, spec)
+			}
+		}
+
+		// Add the tasks to the response.
+		displayTasks := make([]*rpc.Task, 0, len(tasksToSend))
+		for _, t := range tasksToSend {
+			displayTasks = append(displayTasks, &rpc.Task{
 				Commits:        t.Commits,
 				Name:           t.Name,
 				Id:             t.Id,
@@ -481,9 +535,10 @@ func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHead
 				TaskExecutor:   t.TaskExecutor,
 			})
 		}
-	}
-	if len(updatedTasks) > 0 {
-		resp.Update.Tasks = append(resp.Update.Tasks, updatedTasks...)
+		return displayTasks, hideTaskSpecs, nil
+	})
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 
 	// Send the update, if non-empty.
@@ -574,6 +629,25 @@ func convertCommits(commits []*repograph.Commit, ancestryCache map[string][]stri
 	return rv
 }
 
+type taskFilter string
+
+const (
+	taskFilter_All         = "All"
+	taskFilter_Interesting = "Interesting"
+	taskFilter_Failures    = "Failures"
+	taskFilter_Search      = "Search"
+	taskFilter_Default     = taskFilter_Interesting
+)
+
+func (f taskFilter) Valid() bool {
+	switch f {
+	case taskFilter_All, taskFilter_Interesting, taskFilter_Failures, taskFilter_Search:
+		return true
+	default:
+		return false
+	}
+}
+
 func getTasksForCommits(ctx context.Context, w window.Window, tCache cache.TaskCache, tsDB db.TaskReader, repoURL string, commits []*rpc.LongCommit) ([]*types.Task, error) {
 	// Separate commits into cached (in-window) and uncached (out-of-window).
 	var cachedCommits []string
@@ -659,8 +733,53 @@ func updateIsEmpty(resp *rpc.GetIncrementalCommitsResponse) bool {
 	if len(resp.Update.Commits) > 0 {
 		return false
 	}
+	if len(resp.Update.HideTaskSpecs) > 0 {
+		return false
+	}
 	if len(resp.Update.Tasks) > 0 {
 		return false
 	}
 	return true
+}
+
+func specMatchesFilter(tasks []*types.Task, filter taskFilter, search *regexp.Regexp) bool {
+	if len(tasks) == 0 {
+		return false
+	}
+	switch filter {
+	case taskFilter_All:
+		return true
+	case taskFilter_Search:
+		if search == nil {
+			return true
+		}
+		return search.MatchString(tasks[0].Name)
+	case taskFilter_Failures:
+		for _, t := range tasks {
+			if t.Done() && !t.Success() {
+				return true
+			}
+		}
+		return false
+	case taskFilter_Interesting:
+		// A task spec is considered interesting if it has both successes and
+		// failures within the set of commits.
+		hasSuccess := false
+		hasFailure := false
+		for _, task := range tasks {
+			if !task.Done() {
+				continue
+			}
+			if task.Success() {
+				hasSuccess = true
+			} else {
+				hasFailure = true
+			}
+			if hasSuccess && hasFailure {
+				return true
+			}
+		}
+		return false
+	}
+	return false
 }

@@ -441,7 +441,7 @@ export class BranchesSk extends ElementSk {
   }
 
   private draw = () => {
-    console.time('draw');
+    //console.time('draw');
     // Initialize all commits.
     this.displayCommits = prepareCommitsForDisplay(this.commits, this.branchHeads, this.rollLabels);
 
@@ -500,7 +500,7 @@ export class BranchesSk extends ElementSk {
     this.computeLinkMap();
     this.computeTitleMap();
 
-    console.timeEnd('draw');
+    //console.timeEnd('draw');
   };
 }
 

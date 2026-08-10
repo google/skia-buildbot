@@ -337,6 +337,20 @@ func TestHandler_Validation(t *testing.T) {
 		tc.server.Handler(w, r)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 	})
+
+	t.Run("invalid taskFilter", func(t *testing.T) {
+		r := httptest.NewRequest("GET", "/sse?taskFilter=bbad", nil)
+		w := httptest.NewRecorder()
+		tc.server.Handler(w, r)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("invalid taskSearch", func(t *testing.T) {
+		r := httptest.NewRequest("GET", "/sse?taskFilter=Search&taskSearch=[[[[", nil)
+		w := httptest.NewRecorder()
+		tc.server.Handler(w, r)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
 }
 
 func TestHandler_ClientLifecycle(t *testing.T) {
@@ -488,13 +502,15 @@ func TestSendUpdate_RemovesOldCommits(t *testing.T) {
 			{Hash: "c2", IsAncestorOf: []string{"main"}},
 			{Hash: "c1", IsAncestorOf: []string{"main"}},
 		},
+		taskFilter:      taskFilter_All,
+		activeTaskSpecs: map[string]bool{},
 	}
 
 	// Add 2 new commits: "c5", "c4" (sorted newest first)
 	err := client.SendUpdate([]*rpc.LongCommit{
 		{Hash: "c5", IsAncestorOf: []string{"main"}},
 		{Hash: "c4", IsAncestorOf: []string{"main"}},
-	}, nil, "https://repo.git", nil)
+	}, nil, "https://repo.git", nil, newRequestCache())
 	require.NoError(t, err)
 
 	// Since limit is 3, c.displayedCommits should be exactly ["c5", "c4", "c3"]
@@ -571,9 +587,11 @@ func TestSendUpdate_CombinesCachedAndUncachedTasks(t *testing.T) {
 		repoURL:         "https://repo.git",
 		limit:           10,
 		wantsNewCommits: true,
+		taskFilter:      taskFilter_All,
+		activeTaskSpecs: map[string]bool{},
 	}
 
-	err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil)
+	err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil, newRequestCache())
 	require.NoError(t, err)
 
 	err = gzipWriter.Close()
@@ -649,6 +667,8 @@ func TestSendUpdate_OnlyTasksForDisplayedCommits(t *testing.T) {
 		repoURL:          "https://repo.git",
 		limit:            10,
 		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
+		taskFilter:       taskFilter_All,
+		activeTaskSpecs:  map[string]bool{},
 	}
 
 	// Call SendUpdate. One matches client, one does not.
@@ -677,7 +697,7 @@ func TestSendUpdate_OnlyTasksForDisplayedCommits(t *testing.T) {
 		},
 	}
 
-	err := client.SendUpdate(nil, nil, "https://repo.git", tasks)
+	err := client.SendUpdate(nil, nil, "https://repo.git", tasks, newRequestCache())
 	require.NoError(t, err)
 
 	// Close client stream to flush everything
@@ -697,4 +717,333 @@ func TestSendUpdate_OnlyTasksForDisplayedCommits(t *testing.T) {
 	require.Contains(t, output, "data:")
 	require.Contains(t, output, "task-matching-commit")
 	require.NotContains(t, output, "task-not-matching-commit")
+}
+
+func TestSendUpdate_Filtering(t *testing.T) {
+	tc := setupTestServer(t)
+
+	c0 := "commit0"
+	c1 := "c1"
+
+	tc.mockWindow.On("TestCommitHash", "https://repo.git", c1).Return(true, nil)
+	tc.mockWindow.On("TestCommitHash", "https://repo.git", c0).Return(true, nil)
+	tc.mockWindow.On("EarliestStart").Return(time.Time{})
+
+	// Setup tasks for c1 and c0
+	tasks := map[string]map[string]*types.Task{
+		c1: {
+			"task-success-only": {
+				Id:      "t1",
+				Commits: []string{c1},
+				Status:  types.TASK_STATUS_SUCCESS,
+				TaskKey: types.TaskKey{Name: "task-success-only", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c1}},
+			},
+			"task-interesting": {
+				Id:      "t2",
+				Commits: []string{c1},
+				Status:  types.TASK_STATUS_SUCCESS,
+				TaskKey: types.TaskKey{Name: "task-interesting", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c1}},
+			},
+		},
+		c0: {
+			"task-interesting": {
+				Id:      "t3",
+				Commits: []string{c0},
+				Status:  types.TASK_STATUS_FAILURE,
+				TaskKey: types.TaskKey{Name: "task-interesting", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
+			},
+		},
+	}
+	tc.mockCache.On("GetTasksForCommits", "https://repo.git", []string{c1, c0}).Return(tasks, nil)
+
+	cfg := Config{
+		Repos:                repograph.Map{"https://repo.git": tc.repo},
+		TaskDb:               tc.mockDB,
+		TCache:               tc.mockCache,
+		Window:               tc.mockWindow,
+		RepoUrls:             []string{"https://repo.git"},
+		GetRepoTwirp:         func(name string) (string, string, error) { return "", "https://repo.git", nil },
+		RepoUrlToName:        func(url string) string { return "foo" },
+		DefaultCommitsToLoad: 10,
+		MaxCommitsToLoad:     100,
+	}
+	s, err := New(tc.ctx, cfg)
+	require.NoError(t, err)
+
+	rpcCommits := []*rpc.LongCommit{
+		{Hash: c1, Timestamp: timestamppb.New(time.Now().Add(-8 * time.Minute)), IsAncestorOf: []string{"main"}},
+		{Hash: c0, Timestamp: timestamppb.New(time.Now().Add(-10 * time.Minute)), IsAncestorOf: []string{"main"}},
+	}
+	branchHeads := []*git.Branch{{Name: "main", Head: c1}}
+
+	getTasksForFilter := func(filter taskFilter, search string) []string {
+		w := httptest.NewRecorder()
+		gzipWriter := gzip.NewWriter(w)
+		var taskSearch *regexp.Regexp
+		if search != "" {
+			var err error
+			taskSearch, err = regexp.Compile(search)
+			require.NoError(t, err)
+		}
+		client := &clientStream{
+			db:              s.cfg.TaskDb,
+			tCache:          s.cfg.TCache,
+			window:          s.cfg.Window,
+			w:               gzipWriter,
+			ctx:             tc.ctx,
+			repoURL:         "https://repo.git",
+			limit:           10,
+			wantsNewCommits: true,
+			taskFilter:      filter,
+			taskSearch:      taskSearch,
+			activeTaskSpecs: map[string]bool{},
+		}
+
+		err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil, newRequestCache())
+		require.NoError(t, err)
+
+		err = gzipWriter.Close()
+		require.NoError(t, err)
+
+		gzipReader, err := gzip.NewReader(w.Body)
+		require.NoError(t, err)
+		defer gzipReader.Close()
+
+		var buf bytes.Buffer
+		_, err = io.Copy(&buf, gzipReader)
+		require.NoError(t, err)
+
+		output := buf.String()
+		if !strings.HasPrefix(output, "data: ") {
+			return nil
+		}
+		jsonData := strings.TrimSuffix(strings.TrimPrefix(output, "data: "), "\n\n")
+
+		var resp rpc.GetIncrementalCommitsResponse
+		err = protojson.Unmarshal([]byte(jsonData), &resp)
+		require.NoError(t, err)
+
+		var names []string
+		for _, t := range resp.Update.Tasks {
+			names = append(names, t.Name)
+		}
+		return names
+	}
+
+	t.Run("Interesting", func(t *testing.T) {
+		taskNames := getTasksForFilter(taskFilter_Interesting, "")
+		// Only "task-interesting" should be kept (it has success on c1 and failure on c0)
+		// "task-success-only" has only success.
+		require.Contains(t, taskNames, "task-interesting")
+		require.NotContains(t, taskNames, "task-success-only")
+	})
+
+	t.Run("Failures", func(t *testing.T) {
+		taskNames := getTasksForFilter(taskFilter_Failures, "")
+		// Only "task-interesting" (with failure on c0) should be kept.
+		require.Contains(t, taskNames, "task-interesting")
+		require.NotContains(t, taskNames, "task-success-only")
+	})
+
+	t.Run("Search", func(t *testing.T) {
+		taskNames := getTasksForFilter(taskFilter_Search, "success")
+		// Only "task-success-only" should be kept.
+		require.Contains(t, taskNames, "task-success-only")
+		require.NotContains(t, taskNames, "task-interesting")
+	})
+}
+
+func TestSendUpdate_SendsAllTasksForNewlyVisibleTaskSpecs(t *testing.T) {
+	ctx := context.Background()
+	c0 := "commit0"
+
+	mockDB := &db_mocks.RemoteDB{}
+	mockCache := &cache_mocks.TaskCache{}
+	mockWindow := &window_mocks.Window{}
+
+	mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
+	mockWindow.On("EarliestStart").Return(time.Time{})
+
+	w := httptest.NewRecorder()
+	gzipWriter := gzip.NewWriter(w)
+	client := &clientStream{
+		db:               mockDB,
+		tCache:           mockCache,
+		window:           mockWindow,
+		w:                gzipWriter,
+		flusher:          nil,
+		ctx:              ctx,
+		branchRegex:      nil,
+		repoURL:          "https://repo.git",
+		wantsNewCommits:  false,
+		limit:            10,
+		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
+		taskFilter:       taskFilter_Interesting, // Wants success and failure
+		activeTaskSpecs:  map[string]bool{"task-dynamic": false},
+	}
+
+	// Set up mockCache to return a successful task + the failing task to represent "Interesting" status
+	mockCache.On("GetTasksForCommits", "https://repo.git", []string{c0}).Return(map[string]map[string]*types.Task{
+		c0: {
+			"t-success": {
+				Id:      "t-success",
+				Commits: []string{c0},
+				Status:  types.TASK_STATUS_SUCCESS,
+				TaskKey: types.TaskKey{Name: "task-dynamic", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
+			},
+			"t-failure": {
+				Id:      "t-failure",
+				Commits: []string{c0},
+				Status:  types.TASK_STATUS_FAILURE,
+				TaskKey: types.TaskKey{Name: "task-dynamic", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
+			},
+		},
+	}, nil).Once()
+
+	taskUpdate := &types.Task{
+		Id:      "t-failure",
+		Commits: []string{c0},
+		Status:  types.TASK_STATUS_FAILURE,
+		TaskKey: types.TaskKey{Name: "task-dynamic", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
+	}
+
+	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache())
+	require.NoError(t, err)
+
+	err = gzipWriter.Close()
+	require.NoError(t, err)
+
+	gzipReader, err := gzip.NewReader(w.Body)
+	require.NoError(t, err)
+	var buf bytes.Buffer
+	_, err = io.Copy(&buf, gzipReader)
+	require.NoError(t, err)
+	output := buf.String()
+
+	// Verify that task-dynamic now appears in client's activeTaskSpecs.
+	require.True(t, client.activeTaskSpecs["task-dynamic"])
+	// Verify both "t-success" and "t-failure" were sent in the response.
+	require.Contains(t, output, "t-success")
+	require.Contains(t, output, "t-failure")
+}
+
+func TestSendUpdate_HideTaskSpecs(t *testing.T) {
+	ctx := context.Background()
+	c0 := "commit0"
+
+	mockDB := &db_mocks.RemoteDB{}
+	mockCache := &cache_mocks.TaskCache{}
+	mockWindow := &window_mocks.Window{}
+
+	mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
+	mockWindow.On("EarliestStart").Return(time.Time{})
+
+	w := httptest.NewRecorder()
+	gzipWriter := gzip.NewWriter(w)
+	client := &clientStream{
+		db:               mockDB,
+		tCache:           mockCache,
+		window:           mockWindow,
+		w:                gzipWriter,
+		flusher:          nil,
+		ctx:              ctx,
+		branchRegex:      nil,
+		repoURL:          "https://repo.git",
+		wantsNewCommits:  false,
+		limit:            10,
+		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
+		taskFilter:       taskFilter_Interesting,
+		activeTaskSpecs:  map[string]bool{"task-dynamic": true},
+	}
+
+	// Set up mockCache to return only a successful task (meaning it is no
+	// longer Interesting since no failure exists).
+	mockCache.On("GetTasksForCommits", "https://repo.git", []string{c0}).Return(map[string]map[string]*types.Task{
+		c0: {
+			"task-dynamic": {
+				Id:      "t-success",
+				Commits: []string{c0},
+				Status:  types.TASK_STATUS_SUCCESS,
+				TaskKey: types.TaskKey{Name: "task-dynamic", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
+			},
+		},
+	}, nil).Once()
+
+	taskUpdate := &types.Task{
+		Id:      "t-success",
+		Commits: []string{c0},
+		Status:  types.TASK_STATUS_SUCCESS,
+		TaskKey: types.TaskKey{Name: "task-dynamic", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
+	}
+
+	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache())
+	require.NoError(t, err)
+
+	err = gzipWriter.Close()
+	require.NoError(t, err)
+
+	gzipReader, err := gzip.NewReader(w.Body)
+	require.NoError(t, err)
+	var buf bytes.Buffer
+	_, err = io.Copy(&buf, gzipReader)
+	require.NoError(t, err)
+	output := buf.String()
+
+	// Verify task-dynamic is no longer in client's activeTaskSpecs.
+	require.False(t, client.activeTaskSpecs["task-dynamic"])
+	// Verify hideTaskSpecs was sent containing "task-dynamic"
+	require.Contains(t, output, "hideTaskSpecs")
+	require.Contains(t, output, "task-dynamic")
+}
+
+func TestRequestCache(t *testing.T) {
+	rc := newRequestCache()
+
+	commits1 := []*rpc.LongCommit{{Hash: "c1"}}
+	commits2 := []*rpc.LongCommit{{Hash: "c2"}}
+
+	calls1 := 0
+	tasks1, _, err := rc.GetOrCache("repo", commits1, taskFilter_All, nil, func() ([]*rpc.Task, []string, error) {
+		calls1++
+		return []*rpc.Task{{Id: "t1"}}, nil, nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, calls1)
+	require.Len(t, tasks1, 1)
+	require.Equal(t, "t1", tasks1[0].Id)
+
+	calls2 := 0
+	tasks2, _, err := rc.GetOrCache("repo", commits2, taskFilter_All, nil, func() ([]*rpc.Task, []string, error) {
+		calls2++
+		return []*rpc.Task{{Id: "t2"}}, nil, nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, calls2, "Expected cache miss due to different displayed commits")
+	require.Len(t, tasks2, 1)
+	require.Equal(t, "t2", tasks2[0].Id)
+}
+
+func TestRequestCache_Concurrent(t *testing.T) {
+	rc := newRequestCache()
+	commits := []*rpc.LongCommit{{Hash: "c1"}}
+
+	var wg sync.WaitGroup
+	calls := 0
+	numGoroutines := 10
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, _, err := rc.GetOrCache("repo", commits, taskFilter_All, nil, func() ([]*rpc.Task, []string, error) {
+				time.Sleep(10 * time.Millisecond) // Simulate DB query latency
+				calls++
+				return []*rpc.Task{{Id: "t1"}}, nil, nil
+			})
+			require.NoError(t, err)
+		}()
+	}
+
+	wg.Wait()
+	require.Equal(t, 1, calls, "Expected generator to be called exactly once")
 }

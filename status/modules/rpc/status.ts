@@ -48,6 +48,7 @@ export interface IncrementalUpdate {
   branchHeads?: Branch[];
   tasks?: Task[];
   comments?: Comment[];
+  hideTaskSpecs?: string[];
 }
 
 interface IncrementalUpdateJSON {
@@ -55,6 +56,7 @@ interface IncrementalUpdateJSON {
   branch_heads?: BranchJSON[];
   tasks?: TaskJSON[];
   comments?: CommentJSON[];
+  hide_task_specs?: string[];
 }
 
 const JSONToIncrementalUpdate = (m: IncrementalUpdateJSON): IncrementalUpdate => {
@@ -63,6 +65,7 @@ const JSONToIncrementalUpdate = (m: IncrementalUpdateJSON): IncrementalUpdate =>
     branchHeads: m.branch_heads && m.branch_heads.map(JSONToBranch),
     tasks: m.tasks && m.tasks.map(JSONToTask),
     comments: m.comments && m.comments.map(JSONToComment),
+    hideTaskSpecs: m.hide_task_specs,
   };
 };
 

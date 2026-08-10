@@ -122,7 +122,7 @@ describe('commits-table-experimental-sk', () => {
     mocks.expectGetIncrementalCommits(resp, validator);
     const ep = eventPromise('end-task');
     const table = newTableInstance(
-      (el) => ((<CommitsTableExperimentalSk>el).filter = 'All')
+      (el) => ((<CommitsTableExperimentalSk>el).taskFilter = 'All')
     ) as CommitsTableExperimentalSk;
     await ep;
     return table;
@@ -277,37 +277,59 @@ describe('commits-table-experimental-sk', () => {
       'Only-Failed-On-Commented-Commit-Spec',
     ]);
 
-    const clickLabel = (i: number, expectText: string) => {
+    const clickLabel = async (
+      i: number,
+      expectText: string,
+      expectedResp: GetIncrementalCommitsResponse
+    ) => {
+      mocks.expectGetIncrementalCommits(expectedResp);
       const label = $('tabs-sk button', table)[i] as HTMLLabelElement;
       expect(label.innerText).to.contain(expectText);
+      const ep = eventPromise('end-task');
       label.click();
+      await ep;
     };
-    clickLabel(0, 'Interesting');
+
+    const interestingResponse = JSON.parse(JSON.stringify(responseTasksToFilter));
+    interestingResponse.update!.tasks = interestingResponse.update!.tasks.filter(
+      (task: any) => task.name === 'Interesting-Spec'
+    );
+    await clickLabel(0, 'Interesting', interestingResponse);
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Interesting-Spec',
     ]);
 
-    clickLabel(1, 'Failures');
+    const failuresResponse = JSON.parse(JSON.stringify(responseTasksToFilter));
+    failuresResponse.update!.tasks = failuresResponse.update!.tasks.filter(
+      (task: any) => task.name !== 'Always-Green-Spec'
+    );
+    await clickLabel(1, 'Failures', failuresResponse);
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Always-Red-Spec',
       'Interesting-Spec',
       'Only-Failed-On-Commented-Commit-Spec',
     ]);
 
-    clickLabel(2, 'Comments');
+    const allResponse = JSON.parse(JSON.stringify(responseTasksToFilter));
+    await clickLabel(2, 'All', allResponse);
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
+      'Always-Green-Spec',
       'Always-Red-Spec',
-    ]);
-    clickLabel(3, 'Failing w/o comment');
-    expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Interesting-Spec',
+      'Only-Failed-On-Commented-Commit-Spec',
     ]);
+
+    const searchResponse = JSON.parse(JSON.stringify(responseTasksToFilter));
+    searchResponse.update!.tasks = searchResponse.update!.tasks.filter((task: any) =>
+      task.name.startsWith('Always')
+    );
+    mocks.expectGetIncrementalCommits(searchResponse);
 
     const searchbox = $$('.controls input-sk input', table) as HTMLInputElement;
     searchbox.value = 'Always';
-    const ep = eventPromise('change');
+    const endTaskPromise = eventPromise('end-task');
     searchbox.dispatchEvent(new Event('change', { bubbles: true }));
-    await ep;
+    await endTaskPromise;
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Always-Green-Spec',
       'Always-Red-Spec',
@@ -346,7 +368,7 @@ describe('commits-table-experimental-sk', () => {
     const mocker = SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');
     const table = newTableInstance(
-      (el) => ((<CommitsTableExperimentalSk>el).filter = 'All')
+      (el) => ((<CommitsTableExperimentalSk>el).taskFilter = 'All')
     ) as CommitsTableExperimentalSk;
     await ep;
     let commitDivs = $('.commit', table);
