@@ -4,6 +4,8 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "mcp",
     srcs = [
+        "client.go",
+        "embedded.go",
         "mcp.go",
         "pseudotools.go",
     ],
@@ -17,6 +19,7 @@ go_library(
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
+        "//mcp/common",
         "//mcp/services/skia/format",
         "@com_github_cenkalti_backoff_v4//:backoff",
         "@com_github_mark3labs_mcp_go//client",

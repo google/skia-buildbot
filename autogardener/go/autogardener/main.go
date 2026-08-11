@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/autogardener/go/db"
 	"go.skia.org/infra/autogardener/go/gemini"
 	"go.skia.org/infra/autogardener/go/ingester"
+	"go.skia.org/infra/autogardener/go/mcp"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
@@ -16,6 +19,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/mcp/services/skia"
 	ts_firestore "go.skia.org/infra/task_scheduler/go/db/firestore"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -38,7 +42,6 @@ var (
 	expensiveModel    = flag.String("expensive-model", "gemini-flash-latest", "Gemini model name to use for more-intensive tasks")
 	expensiveTPM      = flag.Int("expensive-tpm", 1000000, "Maximum tokens per minute for the expensive model")
 	expensiveRPM      = flag.Int("expensive-rpm", 1000, "Maximum requests per minute for the expensive model")
-	mcpServer         = flag.String("mcp-server", "https://mcp-skia.luci.app/sse", "MCP server to use.")
 	firestoreProject  = flag.String("firestore-project", firestore.FIRESTORE_PROJECT, "Project to use for firestore.")
 	firestoreInstance = flag.String("firestore-instance", "production", "Firestore instance to use.")
 	repoURLs          = common.NewMultiStringFlag("repo", nil, "Repositories for which to perform gardening.")
@@ -126,7 +129,26 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}
-	geminiClient, err := gemini.NewClient(ctx, db, *gcpProject, *location, *cheapModel, *expensiveModel, geminiAPIKey, *mcpServer, *gcsBucketDebug, *cheapRPM, *cheapTPM, *expensiveRPM, *expensiveTPM)
+
+	// Embedded MCP server.
+	srv := &skia.SkiaService{}
+	cleanup.AtExit(func() {
+		if err := srv.Shutdown(); err != nil {
+			sklog.Errorf("Error performing shutdown for service: %v", err)
+		}
+	})
+	mcpArgs := fmt.Sprintf(
+		"--firestore_instance=%s --bigtable_project=%s --bigtable_instance=%s",
+		*firestoreInstance,
+		*btProject,
+		*btInstance,
+	)
+	if err := srv.Init(mcpArgs); err != nil {
+		sklog.Fatal(err)
+	}
+	mcpClient := mcp.NewEmbeddedService(srv)
+
+	geminiClient, err := gemini.NewClient(ctx, db, mcpClient, *gcpProject, *location, *cheapModel, *expensiveModel, geminiAPIKey, *gcsBucketDebug, *cheapRPM, *cheapTPM, *expensiveRPM, *expensiveTPM)
 	if err != nil {
 		sklog.Fatal(err)
 	}

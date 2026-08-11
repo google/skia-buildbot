@@ -73,11 +73,7 @@ type clientImpl struct {
 }
 
 // NewClient returns a Client instance.
-func NewClient(ctx context.Context, db db.AutoGardenerDB, project, location, cheapModel, expensiveModel, apiKey, mcpServer, gcsBucketDebug string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (Client, error) {
-	mcpClient, err := mcp.NewMCPClient(ctx, mcpServer)
-	if err != nil {
-		sklog.Fatal(err)
-	}
+func NewClient(ctx context.Context, db db.AutoGardenerDB, mcpClient mcp.MCPClient, project, location, cheapModel, expensiveModel, apiKey, gcsBucketDebug string, cheapRPM, cheapTPM, expensiveRPM, expensiveTPM int) (Client, error) {
 	genaiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey:  apiKey,
 		Backend: genai.BackendGeminiAPI,
