@@ -86,6 +86,11 @@
                 "description": "CBB results on Mac M4 Mini"
             },
             {
+                "text": "Mac M5 (go/cbb-mac-m5)",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=0c609ef4fdee51b42a8a023b41779635&splitByKeys=benchmark",
+                "description": "CBB results on Mac M5 Pro"
+            },
+            {
                 "text": "Windows x64 (go/cbb-win)",
                 "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=6f8219f904ec038dc053b4eb8235625c&splitByKeys=benchmark",
                 "description": "CBB results on Windows (Intel CPU)"
