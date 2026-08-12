@@ -112,22 +112,22 @@
             },
             {
                 "text": "Speedometer3 (go/cbb-sp3)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=e39a17d6ae347b06ae734285397b6c1b&splitByKeys=bot",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=cb8524bef9eb7a24893f1cc23b356340&splitByKeys=bot",
                 "description": "CBB Speedometer3 results"
             },
             {
                 "text": "JetStream2 (go/cbb-js2)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=f1df8324435ebae1114029bd50e0bc33&splitByKeys=bot",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=e1af395c5bcc2a519ccc02bcf45e2e2a&splitByKeys=bot",
                 "description": "CBB JetStream2 results"
             },
             {
                 "text": "JetStream3 (go/cbb-js3)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=795e1fa20382486a43de0975c2185855&splitByKeys=bot",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=035adbbad4f91e0c16cf62f057ce8f80&splitByKeys=bot",
                 "description": "CBB JetStream3 results"
             },
             {
                 "text": "MotionMark (go/cbb-mm)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=95ef2325b3d33a0babd031062de6ffcd&splitByKeys=bot",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=dfc214ce1db4237f61c8ac772a3c084f&splitByKeys=bot",
                 "description": "CBB MotionMark results"
             },
             {
@@ -137,7 +137,7 @@
             },
             {
                 "text": "Overall results (go/cbb-all)",
-                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=b32bbebb77650b350f8c723ddd904c41&splitByKeys=benchmark",
+                "href": "https://chrome-perf.corp.goog/m?begin=1752000000&end=1798761600&numCommits=50&shortcut=65dbfddc43f92482be5c6e97023ad2d9&splitByKeys=benchmark",
                 "description": "CBB results for all benchmarks and platforms"
             }
         ]
