@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/shlex"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/mcp/common"
 	"go.skia.org/infra/mcp/services/skia/task_details"
 	"go.skia.org/infra/mcp/services/skia/task_scheduler"
@@ -25,6 +26,7 @@ func (s *SkiaService) Init(serviceArgs string) error {
 	firestoreInstance := fs.String("firestore_instance", "production", "Firestore DB instance to use.")
 	btProject := fs.String("bigtable_project", "", "BigTable project to use.")
 	btInstance := fs.String("bigtable_instance", "", "BigTable instance to use.")
+	swarmingServer := fs.String("swarming_server", swarming.SWARMING_SERVER, "Swarming server to use.")
 
 	// Args are passed in as a quoted string.
 	args, err := shlex.Split(strings.Trim(serviceArgs, "\"'"))
@@ -42,7 +44,7 @@ func (s *SkiaService) Init(serviceArgs string) error {
 	}
 	s.tsClient = tsClient
 
-	taskDetailsClient, err := task_details.NewClient(ctx, *btProject, *btInstance, *firestoreInstance)
+	taskDetailsClient, err := task_details.NewClient(ctx, *btProject, *btInstance, *firestoreInstance, *swarmingServer)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

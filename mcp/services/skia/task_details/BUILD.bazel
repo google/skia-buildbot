@@ -14,7 +14,6 @@ go_library(
         "//go/auth",
         "//go/httputils",
         "//go/skerr",
-        "//go/swarming",
         "//go/swarming/v2:swarming",
         "//go/timer",
         "//mcp/common",

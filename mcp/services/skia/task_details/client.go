@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/swarming"
 	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/timer"
 	td_db "go.skia.org/infra/task_driver/go/db"
@@ -47,7 +46,7 @@ type TaskDetailsClient struct {
 	logdog LogDogClient
 }
 
-func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance string) (*TaskDetailsClient, error) {
+func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance, swarmingServer string) (*TaskDetailsClient, error) {
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, bigtable.Scope, datastore.ScopeDatastore)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -74,7 +73,7 @@ func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance str
 	}
 
 	swarmHttpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	swarm := swarmingv2.NewDefaultClient(swarmHttpClient, swarming.SWARMING_SERVER)
+	swarm := swarmingv2.NewDefaultClient(swarmHttpClient, swarmingServer)
 
 	return &TaskDetailsClient{
 		swarm:  swarm,
