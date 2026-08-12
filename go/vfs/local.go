@@ -48,7 +48,9 @@ func (fs *localFS) Open(_ context.Context, name string) (File, error) {
 		return nil, skerr.Fmt("path %s is not rooted within %s", name, fs.root)
 	}
 	f, err := os.Open(name)
-	if err != nil {
+	if os.IsNotExist(err) {
+		return nil, err
+	} else if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &localFile{file: f}, nil

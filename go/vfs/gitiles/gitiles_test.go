@@ -2,6 +2,7 @@ package gitiles
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"testing"
 
@@ -43,6 +44,8 @@ func TestFS(t *testing.T) {
 	mr.MockReadFile(ctx, "rootFile", hash)
 	mr.MockReadFile(ctx, "subdir", hash)
 	mr.MockReadFile(ctx, "subdir/subDirFile", hash)
+
+	urlMock.Mock("https://fake.repo.git/a//+show/"+hash+"/bogus?format=TEXT", mockhttpclient.MockGetError("404 not found", http.StatusNotFound))
 
 	fs, err := New(ctx, repo, hash)
 	require.NoError(t, err)

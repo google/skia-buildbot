@@ -57,6 +57,7 @@ go_library(
 go_test(
     name = "parent_test",
     srcs = [
+        "copy_test.go",
         "git_checkout_test.go",
         "gitiles_test.go",
         "go_mod_test.go",
@@ -77,6 +78,7 @@ go_test(
         "//go/golang",
         "//go/mockhttpclient",
         "//go/testutils",
+        "//go/vfs/mocks",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

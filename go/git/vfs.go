@@ -33,7 +33,7 @@ type FS struct {
 }
 
 // Open implements vfs.FS.
-func (fs *FS) Open(_ context.Context, name string) (vfs.File, error) {
+func (fs *FS) Open(ctx context.Context, name string) (vfs.File, error) {
 	repoRoot, err := filepath.Abs(fs.g.Dir())
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -42,12 +42,19 @@ func (fs *FS) Open(_ context.Context, name string) (vfs.File, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return &File{
+	f := &File{
 		g:      fs.g,
 		isRoot: repoRoot == absPath,
 		hash:   fs.hash,
 		path:   name,
-	}, nil
+	}
+	if _, err := f.get(ctx); err != nil {
+		if strings.Contains(err.Error(), "does not exist") {
+			return nil, os.ErrNotExist
+		}
+		return nil, skerr.Wrap(err)
+	}
+	return f, nil
 }
 
 // Create implements vfs.FS.

@@ -3,6 +3,7 @@ package parent
 import (
 	"context"
 	"os"
+	"path"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
@@ -62,7 +63,11 @@ func copyParentGetCopies(ctx context.Context, copies []*config.CopyParentConfig_
 	for _, cp := range copies {
 		// Get the existing contents in the parent repo.
 		oldParentContents, err := copyParentGetFileContents(ctx, parentFs, cp.DstRelPath)
-		if err != nil {
+		if os.IsNotExist(skerr.Unwrap(err)) {
+			// If the path doesn't currently exist in the parent repo, we'll
+			// create it with the copied contents.
+			oldParentContents = map[string]string{}
+		} else if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		for path, contents := range oldParentContents {
@@ -71,17 +76,20 @@ func copyParentGetCopies(ctx context.Context, copies []*config.CopyParentConfig_
 
 		// Get the updated contents from the child repo.
 		childContents, err := copyParentGetFileContents(ctx, childFs, cp.SrcRelPath)
-		if err != nil {
+		if os.IsNotExist(skerr.Unwrap(err)) {
+			// If the path doesn't exist in the child repo, we'll delete its
+			// contents.
+			childContents = map[string]string{}
+		} else if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 
 		// Map the child repo path to the parent repo path to set the
 		// updated contents in the parent repo.
 		for childPath, childContents := range childContents {
-			parentPath := cp.DstRelPath + strings.TrimPrefix(childPath, cp.SrcRelPath)
+			parentPath := path.Join(cp.DstRelPath, strings.TrimPrefix(childPath, cp.SrcRelPath))
 			newContents[parentPath] = childContents
 		}
-
 	}
 
 	// Determine what needs to go into the CL. Scanning both maps ensures
@@ -119,9 +127,6 @@ func copyParentGetFileContents(ctx context.Context, fs vfs.FS, path string) (map
 		contents, err := vfs.ReadFile(ctx, fs, fp)
 		if err != nil {
 			return skerr.Wrap(err)
-		}
-		if !strings.HasPrefix(fp, path) {
-			return skerr.Fmt("Path %q does not have expected prefix %q", fp, path)
 		}
 		rv[fp] = string(contents)
 		return nil

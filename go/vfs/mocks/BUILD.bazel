@@ -1,15 +1,29 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "mocks",
     srcs = [
         "FS.go",
         "File.go",
+        "helpers.go",
     ],
     importpath = "go.skia.org/infra/go/vfs/mocks",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/testutils",
         "//go/vfs",
         "@com_github_stretchr_testify//mock",
+    ],
+)
+
+go_test(
+    name = "mocks_test",
+    srcs = ["helpers_test.go"],
+    embed = [":mocks"],
+    deps = [
+        "//go/skerr",
+        "//go/vfs",
+        "@com_github_stretchr_testify//require",
     ],
 )

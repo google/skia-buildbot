@@ -96,6 +96,12 @@ func TestFS(ctx context.Context, t sktest.TestingT, fs vfs.FS) {
 	require.True(t, visited[FakeFileName])
 	require.True(t, visited["subdir"])
 	require.True(t, visited[path.Join("subdir", "subDirFile")])
+
+	// Open, file does not exist.
+	f, err := fs.Open(ctx, "bogus")
+	require.NotNil(t, err)
+	require.True(t, os.IsNotExist(err))
+	require.Nil(t, f)
 }
 
 // MakeTestFiles creates a temporary directory containing the files and

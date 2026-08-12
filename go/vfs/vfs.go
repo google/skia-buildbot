@@ -21,15 +21,14 @@ import (
 
 // FS represents a virtual filesystem.
 type FS interface {
-	// Open the given path for reading only. If the path is a directory,
-	// implementations should return a ReadDirFile.
+	// Open the given path. If it does not exist, implementations should return
+	// os.ErrNotExist.
 	Open(ctx context.Context, name string) (File, error)
 
 	// Create creates or truncates the named file. If the file already exists,
 	// it is truncated. If the file does not exist, it is created with mode 0666
 	// (before umask). If successful, methods on the returned File can be used
-	// for I/O; the associated file descriptor has mode O_RDWR. If there is an
-	// error, it will be of type *PathError.
+	// for I/O; the associated file descriptor has mode O_RDWR.
 	Create(ctx context.Context, name string) (File, error)
 
 	// Close causes any resources associated with the FS to be cleaned up.

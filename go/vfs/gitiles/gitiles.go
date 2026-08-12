@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"os"
+	"strings"
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
@@ -43,6 +44,9 @@ func (fs *FS) Open(ctx context.Context, name string) (vfs.File, error) {
 		if !ok {
 			fi, contents, err := fs.repo.ReadObject(ctx, name, fs.hash)
 			if err != nil {
+				if strings.Contains(skerr.Unwrap(err).Error(), "404") {
+					return nil, os.ErrNotExist
+				}
 				return nil, skerr.Wrap(err)
 			}
 			fs.cachedFileInfos[name] = fi
