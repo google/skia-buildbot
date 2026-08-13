@@ -74,6 +74,36 @@ func (_m *IssueTracker) CreateIssue(ctx context.Context, req *issuetracker.Creat
 	return r0, r1
 }
 
+// CreateRawIssue provides a mock function with given fields: ctx, issue
+func (_m *IssueTracker) CreateRawIssue(ctx context.Context, issue *v1.Issue) (*v1.Issue, error) {
+	ret := _m.Called(ctx, issue)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateRawIssue")
+	}
+
+	var r0 *v1.Issue
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.Issue) (*v1.Issue, error)); ok {
+		return rf(ctx, issue)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.Issue) *v1.Issue); ok {
+		r0 = rf(ctx, issue)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*v1.Issue)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *v1.Issue) error); ok {
+		r1 = rf(ctx, issue)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FileBug provides a mock function with given fields: ctx, req
 func (_m *IssueTracker) FileBug(ctx context.Context, req *issuetracker.FileBugRequest) (int, error) {
 	ret := _m.Called(ctx, req)
@@ -176,6 +206,36 @@ func (_m *IssueTracker) ModifyIssue(ctx context.Context, req *issuetracker.Modif
 	}
 
 	return r0
+}
+
+// ModifyRawIssue provides a mock function with given fields: ctx, issueID, req
+func (_m *IssueTracker) ModifyRawIssue(ctx context.Context, issueID int64, req *v1.ModifyIssueRequest) (*v1.Issue, error) {
+	ret := _m.Called(ctx, issueID, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ModifyRawIssue")
+	}
+
+	var r0 *v1.Issue
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64, *v1.ModifyIssueRequest) (*v1.Issue, error)); ok {
+		return rf(ctx, issueID, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int64, *v1.ModifyIssueRequest) *v1.Issue); ok {
+		r0 = rf(ctx, issueID, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*v1.Issue)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int64, *v1.ModifyIssueRequest) error); ok {
+		r1 = rf(ctx, issueID, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NewIssueTracker creates a new instance of IssueTracker. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -745,3 +745,124 @@ func TestModifyIssue_OnlyComment(t *testing.T) {
 
 	require.Equal(t, "Just a comment", receivedReq.IssueComment.Comment)
 }
+
+func TestCreateRawIssue_Success(t *testing.T) {
+	var receivedReq issuetracker.Issue
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		err = json.Unmarshal(body, &receivedReq)
+		require.NoError(t, err)
+
+		w.Header().Set("Content-Type", "application/json")
+		resp := &issuetracker.Issue{
+			IssueId: 777,
+			IssueState: &issuetracker.IssueState{
+				Title: "Raw Issue Title",
+			},
+		}
+		err = json.NewEncoder(w).Encode(resp)
+		require.NoError(t, err)
+	}))
+	defer ts.Close()
+
+	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
+	require.NoError(t, err)
+
+	s := &issueTrackerImpl{
+		client: c,
+	}
+
+	issue := &issuetracker.Issue{
+		IssueComment: &issuetracker.IssueComment{
+			Comment: "Raw Issue Comment",
+		},
+		IssueState: &issuetracker.IssueState{
+			Title:       "Raw Issue Title",
+			ComponentId: 12345,
+			Priority:    "P1",
+			Severity:    "S1",
+		},
+	}
+
+	createdIssue, err := s.CreateRawIssue(context.Background(), issue)
+	require.NoError(t, err)
+	require.NotNil(t, createdIssue)
+	require.Equal(t, int64(777), createdIssue.IssueId)
+	require.Equal(t, "Raw Issue Title", createdIssue.IssueState.Title)
+
+	require.Equal(t, "Raw Issue Title", receivedReq.IssueState.Title)
+	require.Equal(t, "Raw Issue Comment", receivedReq.IssueComment.Comment)
+	require.Equal(t, int64(12345), receivedReq.IssueState.ComponentId)
+	require.Equal(t, "P1", receivedReq.IssueState.Priority)
+	require.Equal(t, "S1", receivedReq.IssueState.Severity)
+}
+
+func TestCreateRawIssue_NilIssue(t *testing.T) {
+	s := &issueTrackerImpl{}
+	_, err := s.CreateRawIssue(context.Background(), nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Create raw issue request is null")
+}
+
+func TestModifyRawIssue_Success(t *testing.T) {
+	var receivedReq issuetracker.ModifyIssueRequest
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		err = json.Unmarshal(body, &receivedReq)
+		require.NoError(t, err)
+
+		w.Header().Set("Content-Type", "application/json")
+		resp := &issuetracker.Issue{
+			IssueId: 456,
+			IssueState: &issuetracker.IssueState{
+				Status: "FIXED",
+			},
+		}
+		err = json.NewEncoder(w).Encode(resp)
+		require.NoError(t, err)
+	}))
+	defer ts.Close()
+
+	c, err := issuetracker.NewService(context.Background(), option.WithEndpoint(ts.URL), option.WithoutAuthentication())
+	require.NoError(t, err)
+
+	s := &issueTrackerImpl{
+		client: c,
+	}
+
+	req := &issuetracker.ModifyIssueRequest{
+		Add: &issuetracker.IssueState{
+			Status: "FIXED",
+		},
+		AddMask: "status",
+		IssueComment: &issuetracker.IssueComment{
+			Comment: "Fixed in commit 123",
+		},
+	}
+
+	modifiedIssue, err := s.ModifyRawIssue(context.Background(), 456, req)
+	require.NoError(t, err)
+	require.NotNil(t, modifiedIssue)
+	require.Equal(t, int64(456), modifiedIssue.IssueId)
+	require.Equal(t, "FIXED", modifiedIssue.IssueState.Status)
+
+	require.Equal(t, "FIXED", receivedReq.Add.Status)
+	require.Equal(t, "status", receivedReq.AddMask)
+	require.Equal(t, "Fixed in commit 123", receivedReq.IssueComment.Comment)
+}
+
+func TestModifyRawIssue_NilRequest(t *testing.T) {
+	s := &issueTrackerImpl{}
+	_, err := s.ModifyRawIssue(context.Background(), 123, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Modify raw issue request is null")
+}
+
+func TestModifyRawIssue_InvalidIssueID(t *testing.T) {
+	s := &issueTrackerImpl{}
+	_, err := s.ModifyRawIssue(context.Background(), 0, &issuetracker.ModifyIssueRequest{})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Invalid issue ID")
+}

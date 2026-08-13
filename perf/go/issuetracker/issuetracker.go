@@ -52,6 +52,12 @@ type IssueTracker interface {
 
 	// ModifyIssue modifies an existing issue (status and/or comment).
 	ModifyIssue(ctx context.Context, req *ModifyIssueRequest) error
+
+	// ModifyRawIssue modifies an existing issue using the raw issuetracker.ModifyIssueRequest.
+	ModifyRawIssue(ctx context.Context, issueID int64, req *issuetracker.ModifyIssueRequest) (*issuetracker.Issue, error)
+
+	// CreateRawIssue creates a new issue from the raw issuetracker.Issue object.
+	CreateRawIssue(ctx context.Context, issue *issuetracker.Issue) (*issuetracker.Issue, error)
 }
 
 // / IssueTrackerImpl implements IssueTracker using the issue tracker API
@@ -646,4 +652,35 @@ func (s *issueTrackerImpl) ModifyIssue(ctx context.Context, req *ModifyIssueRequ
 	}
 
 	return nil
+}
+
+// ModifyRawIssue implements IssueTracker.
+func (s *issueTrackerImpl) ModifyRawIssue(ctx context.Context, issueID int64, req *issuetracker.ModifyIssueRequest) (*issuetracker.Issue, error) {
+	if req == nil {
+		return nil, skerr.Fmt("Modify raw issue request is null.")
+	}
+	if issueID <= 0 {
+		return nil, skerr.Fmt("Invalid issue ID: %d", issueID)
+	}
+
+	resp, err := s.client.Issues.Modify(issueID, req).Context(ctx).Do()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to modify raw issue %d", issueID)
+	}
+
+	return resp, nil
+}
+
+// CreateRawIssue implements IssueTracker.
+func (s *issueTrackerImpl) CreateRawIssue(ctx context.Context, issue *issuetracker.Issue) (*issuetracker.Issue, error) {
+	if issue == nil {
+		return nil, skerr.Fmt("Create raw issue request is null.")
+	}
+
+	resp, err := s.client.Issues.Create(issue).TemplateOptionsApplyTemplate(true).Context(ctx).Do()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create raw issue")
+	}
+
+	return resp, nil
 }
