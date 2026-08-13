@@ -25,7 +25,7 @@ const (
 	issuePriority         = "P1"
 	issueSeverity         = "S1"
 	issueStatus           = "ASSIGNED"
-	defaultCCUser         = "rmistry@google.com"
+	defaultCCUser         = "jsca@google.com"
 	issueAccessLevel      = "LIMIT_VIEW_TRUSTED"
 	commentFormattingMode = "MARKDOWN"
 )
