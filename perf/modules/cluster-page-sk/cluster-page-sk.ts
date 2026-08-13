@@ -7,7 +7,7 @@
  */
 import { html, LitElement } from 'lit';
 import { customElement, state, query } from 'lit/decorators.js';
-import { fromObject, toParamSet } from '../../../infra-sk/modules/query';
+import { fromObject, fromParamSet, toParamSet } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
@@ -40,6 +40,7 @@ import {
 } from '../json';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
+import { ParamSetSkRemoveClickEventDetail } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { ClusterSummary2SkOpenKeysEventDetail } from '../cluster-summary2-sk/cluster-summary2-sk';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import { messagesToErrorString, startRequest } from '../progress/progress';
@@ -129,7 +130,11 @@ export class ClusterPageSk extends LitElement {
           current_query=${this.state.query}></query-sk>
         <div id="selections">
           <h3>Selections</h3>
-          <paramset-sk id="summary" .paramsets=${[toParamSet(this.state.query)]}></paramset-sk>
+          <paramset-sk
+            id="summary"
+            removable_values
+            @paramset-value-remove-click=${this.paramsetRemoveClick}
+            .paramsets=${[toParamSet(this.state.query)]}></paramset-sk>
           <div>
             Matches:
             <query-count-sk
@@ -259,6 +264,20 @@ export class ClusterPageSk extends LitElement {
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
     this.paramset = e.detail;
+  }
+
+  private paramsetRemoveClick(e: CustomEvent<ParamSetSkRemoveClickEventDetail>) {
+    const paramset = toParamSet(this.state.query);
+    const values = paramset[e.detail.key] || [];
+    const index = values.indexOf(e.detail.value);
+    if (index > -1) {
+      values.splice(index, 1);
+      if (values.length === 0) {
+        delete paramset[e.detail.key];
+      }
+    }
+    this.state = { ...this.state, query: fromParamSet(paramset) };
+    this.stateHasChanged();
   }
 
   private openKeys(e: CustomEvent<ClusterSummary2SkOpenKeysEventDetail>) {

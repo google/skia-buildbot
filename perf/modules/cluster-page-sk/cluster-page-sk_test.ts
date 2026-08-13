@@ -292,4 +292,30 @@ describe('cluster-page-sk', () => {
     );
     assert.equal((element as any).state.offset, 500);
   });
+
+  it('removes a selected value when cancel icon is clicked and updates state', async () => {
+    await setupElement();
+    (element as any).state = {
+      ...(element as any).state,
+      query: 'config=gl&config=8888&config2=123',
+    };
+    let stateHasChangedCalled = false;
+    (element as any).stateHasChanged = () => {
+      stateHasChangedCalled = true;
+    };
+    await (element as any).updateComplete;
+
+    const paramsetSk = element.querySelector<any>('#summary')!;
+    assert.isTrue(paramsetSk.removable_values);
+
+    paramsetSk.dispatchEvent(
+      new CustomEvent('paramset-value-remove-click', {
+        detail: { key: 'config', value: '8888' },
+        bubbles: true,
+      })
+    );
+
+    assert.equal((element as any).state.query, 'config=gl&config2=123');
+    assert.isTrue(stateHasChangedCalled);
+  });
 });
