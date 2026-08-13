@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/mcp/services/skia"
 	ts_firestore "go.skia.org/infra/task_scheduler/go/db/firestore"
 	"golang.org/x/oauth2/google"
@@ -52,6 +53,7 @@ var (
 	apiKeySecret      = flag.String("api-key-secret", "autogardener-gemini-api-key", "GCP secret containing the Gemini API key.")
 	gcsBucketDebug    = flag.String("gcs-bucket-debug", "", "Optional, GCS bucket name to upload debug information.")
 	secretProject     = flag.String("secret-project", "skia-infra-public", "GCP project used for managing secrets.")
+	swarmingServer    = flag.String("swarming-server", swarming.SWARMING_SERVER, "Swarming server to use.")
 )
 
 func main() {
@@ -138,10 +140,11 @@ func main() {
 		}
 	})
 	mcpArgs := fmt.Sprintf(
-		"--firestore_instance=%s --bigtable_project=%s --bigtable_instance=%s",
+		"--firestore_instance=%s --bigtable_project=%s --bigtable_instance=%s --swarming_server=%s",
 		*firestoreInstance,
 		*btProject,
 		*btInstance,
+		*swarmingServer,
 	)
 	if err := srv.Init(mcpArgs); err != nil {
 		sklog.Fatal(err)

@@ -18,6 +18,7 @@ go_library(
         "//go/human",
         "//go/secret",
         "//go/sklog",
+        "//go/swarming",
         "//mcp/services/skia",
         "//task_scheduler/go/db/firestore",
         "@com_google_cloud_go_datastore//:datastore",
