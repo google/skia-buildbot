@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -39,11 +40,12 @@ const (
 )
 
 type TaskDetailsClient struct {
-	swarm  swarmingv2.SwarmingV2Client
-	td     td_db.DB
-	tdLogs *logs.LogsManager
-	ts     ts_db.DBCloser
-	logdog LogDogClient
+	swarm           swarmingv2.SwarmingV2Client
+	swarmHttpClient *http.Client
+	td              td_db.DB
+	tdLogs          *logs.LogsManager
+	ts              ts_db.DBCloser
+	logdog          LogDogClient
 }
 
 func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance, swarmingServer string) (*TaskDetailsClient, error) {
@@ -76,11 +78,12 @@ func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance, sw
 	swarm := swarmingv2.NewDefaultClient(swarmHttpClient, swarmingServer)
 
 	return &TaskDetailsClient{
-		swarm:  swarm,
-		td:     tdDB,
-		tdLogs: tdLogs,
-		ts:     tsDB,
-		logdog: &logDogClientImpl{coord},
+		swarm:           swarm,
+		swarmHttpClient: swarmHttpClient,
+		td:              tdDB,
+		tdLogs:          tdLogs,
+		ts:              tsDB,
+		logdog:          &logDogClientImpl{coord},
 	}, nil
 }
 
@@ -115,7 +118,11 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	if task == nil {
 		return nil, skerr.Fmt("No such task with ID %s", taskID)
 	}
-	swarmTask, err := c.swarm.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: task.SwarmingTaskId})
+	swarm := c.swarm
+	if task.TaskExecutor != "" {
+		swarm = swarmingv2.NewDefaultClient(c.swarmHttpClient, task.TaskExecutor)
+	}
+	swarmTask, err := swarm.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: task.SwarmingTaskId})
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -133,7 +140,7 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	}
 
 	// If we couldn't find recipe steps, just return the Swarming task logs.
-	swarmOutput, err := c.swarm.GetStdout(ctx, &apipb.TaskIdWithOffsetRequest{TaskId: task.SwarmingTaskId})
+	swarmOutput, err := swarm.GetStdout(ctx, &apipb.TaskIdWithOffsetRequest{TaskId: task.SwarmingTaskId})
 	if err != nil {
 		if !strings.Contains(err.Error(), "404 page not found") {
 			return nil, skerr.Wrap(err)
