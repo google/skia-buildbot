@@ -9,7 +9,9 @@ go_library(
     deps = [
         "//autogardener/go/db",
         "//autogardener/go/gemini",
+        "//autogardener/go/types",
         "//go/auth",
+        "//go/firestore",
         "//go/git/repograph",
         "//go/httputils",
         "//go/metrics2",
@@ -31,7 +33,10 @@ go_test(
         "//autogardener/go/db/mocks",
         "//autogardener/go/gemini/mocks",
         "//autogardener/go/types",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/mocks",
         "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )

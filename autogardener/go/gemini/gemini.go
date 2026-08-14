@@ -3,6 +3,7 @@ package gemini
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -54,6 +55,7 @@ const (
 // Client is an interface for the Gemini client, used for testing.
 type Client interface {
 	GetTaskSummary(ctx context.Context, task *ts_types.Task) (*types.TaskSummary, error)
+	ClassifyFailure(ctx context.Context, res *types.TaskSummary, failureClasses []*types.FailureClass, repoURL string) (string, error)
 	GenerateReport(ctx context.Context, repo, branch string, numCommits int) (*types.Report, error)
 }
 
@@ -839,4 +841,81 @@ type DebugInfo_ToolCall struct {
 	Tool   string                 `json:"tool"`
 	Args   map[string]interface{} `json:"args"`
 	Result string                 `json:"result"`
+}
+
+func (c *clientImpl) ClassifyFailure(ctx context.Context, res *types.TaskSummary, failureClasses []*types.FailureClass, repoURL string) (string, error) {
+	errorText := strings.TrimSpace(res.ErrorMessage)
+	if errorText == "" {
+		return "", nil
+	}
+
+	// Case 1: No Candidates found. Propose a new class.
+	if len(failureClasses) == 0 {
+		return "", nil
+	}
+
+	// Case 2: Exact match of existing candidate.
+	for _, cand := range failureClasses {
+		if errorText == cand.ErrorMessage {
+			return cand.Id, nil
+		}
+	}
+
+	// Case 3: Use Gemini to match against recently active candidates.
+	var candidateDescriptions []string
+	for _, cand := range failureClasses {
+		candidateDescriptions = append(candidateDescriptions, fmt.Sprintf(`
+Class %s:
+Error Message:
+`+"```"+`
+%s
+`+"```"+`
+Analysis:
+`+"```"+`
+%s
+`+"```"+`
+`, cand.Id, errorText, cand.Analysis))
+	}
+	prompt := fmt.Sprintf(`# Failure Classification Task
+
+## Known Failure Classes
+
+%s
+
+## Instructions
+
+We have a new task failure with the following details:
+Error Message:
+`+"```"+`
+%s
+`+"```"+`
+Analysis:
+`+"```"+`
+%s
+`+"```"+`
+
+Please determine whether this failure is the same as one of the above known
+failure classes.
+
+Choose the existing class only if it represents the same root cause or the same
+exact error (even if variables like hex addresses or absolute file paths differ
+slightly). If it matches one of the classes, return its ID in the "id" field of
+the JSON. If it does not match any of the candidates (it is a new type of
+failure), return an empty string "" in the "id" field.
+
+CRITICAL: Do NOT conflate similar errors or group them into general umbrella
+classes. Only choose an existing failure class if you are 100 percent certain
+that the new error has the SAME root cause.
+`, errorText, res.Analysis, strings.Join(candidateDescriptions, "---"))
+
+	mcpWrapper := mcp.MCPClientWithPseudoTools(c.mcpClient, nil, nil)
+	type Decision struct {
+		Id string `json:"id"`
+	}
+	var decision Decision
+	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, "ClassifyFailure", fmt.Sprintf("ClassifyFailure/%s", fmt.Sprintf("%x", sha256.Sum256([]byte(errorText)))), &decision); err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	return decision.Id, nil
 }

@@ -3,13 +3,15 @@ package types
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 type TaskSummary struct {
-	Analysis     string `json:"analysis"`
-	ErrorMessage string `json:"errorMessage"`
+	Analysis       string `json:"analysis"`
+	ErrorMessage   string `json:"errorMessage"`
+	FailureClassId string `json:"failureClassId"`
 }
 
 func (s TaskSummary) String() string {
@@ -24,6 +26,7 @@ type TaskAndSummary struct {
 type Classification string
 
 const (
+	ClassificationUnknown      Classification = ""
 	ClassificationPersistent   Classification = "Persistent"
 	ClassificationFlaky        Classification = "Flaky"
 	ClassificationResolved     Classification = "Resolved"
@@ -111,4 +114,16 @@ func (r SummaryForTasks) String() string {
 **Error:** %s
 **Analysis:** %s
 `, strings.Join(r.TaskNames, ", "), strings.Join(r.TaskIDs, ", "), r.ErrorMessage, r.Analysis)
+}
+
+// FailureClass represents a set of task failures with the same root cause.
+type FailureClass struct {
+	Id             string         `json:"id"`
+	ErrorMessage   string         `json:"errorMessage"`
+	Analysis       string         `json:"analysis"`
+	LastSeen       time.Time      `json:"lastSeen"`
+	Repo           string         `json:"repo"`
+	Classification Classification `json:"classification"`
+	Culprits       []string       `json:"culprits"`
+	Resolved       bool           `json:"resolved"`
 }

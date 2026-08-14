@@ -17,6 +17,34 @@ type Client struct {
 	mock.Mock
 }
 
+// ClassifyFailure provides a mock function with given fields: ctx, res, failureClasses, repoURL
+func (_m *Client) ClassifyFailure(ctx context.Context, res *types.TaskSummary, failureClasses []*types.FailureClass, repoURL string) (string, error) {
+	ret := _m.Called(ctx, res, failureClasses, repoURL)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ClassifyFailure")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *types.TaskSummary, []*types.FailureClass, string) (string, error)); ok {
+		return rf(ctx, res, failureClasses, repoURL)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *types.TaskSummary, []*types.FailureClass, string) string); ok {
+		r0 = rf(ctx, res, failureClasses, repoURL)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *types.TaskSummary, []*types.FailureClass, string) error); ok {
+		r1 = rf(ctx, res, failureClasses, repoURL)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GenerateReport provides a mock function with given fields: ctx, repo, branch, numCommits
 func (_m *Client) GenerateReport(ctx context.Context, repo string, branch string, numCommits int) (*types.Report, error) {
 	ret := _m.Called(ctx, repo, branch, numCommits)

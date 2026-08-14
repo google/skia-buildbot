@@ -2,124 +2,105 @@ package ingester
 
 import (
 	"context"
-	"fmt"
-	"sync"
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	db_mocks "go.skia.org/infra/autogardener/go/db/mocks"
 	gemini_mocks "go.skia.org/infra/autogardener/go/gemini/mocks"
 	"go.skia.org/infra/autogardener/go/types"
+	ts_db "go.skia.org/infra/task_scheduler/go/db"
+	ts_mocks "go.skia.org/infra/task_scheduler/go/mocks"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
 )
 
-func TestIngestionQueue(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	q := newIngestionQueue(ctx)
+func TestTaskProcessingRegistry(t *testing.T) {
+	r := newTaskProcessingRegistry()
 
-	task1 := &ts_types.Task{
-		Id: "task1",
-	}
-	task2 := &ts_types.Task{
-		Id: "task2",
-	}
+	// 1. First claim succeeds
+	release1, ok := r.TryClaimTask("task1")
+	require.True(t, ok)
+	require.NotNil(t, release1)
 
-	// Push task1 twice.
-	q.Push(task1)
-	q.Push(task1)
+	// 2. Second concurrent claim for same task ID fails
+	release2, ok := r.TryClaimTask("task1")
+	require.False(t, ok)
+	require.Nil(t, release2)
 
-	// We should only get one task1.
-	select {
-	case popped := <-q.Pop():
-		require.Equal(t, task1.Id, popped.Id)
-	case <-time.After(time.Second):
-		t.Fatal("Timed out waiting for task1")
-	}
-
-	// Ensure no second task1 is coming.
-	select {
-	case <-q.Pop():
-		t.Fatal("Received duplicate task1")
-	case <-time.After(100 * time.Millisecond):
-		// Expected
-	}
-
-	// Push task1 again. Since it was popped, it should be re-accepted.
-	q.Push(task1)
-	select {
-	case popped := <-q.Pop():
-		require.Equal(t, task1.Id, popped.Id)
-	case <-time.After(time.Second):
-		t.Fatal("Timed out waiting for task1")
-	}
-
-	// Push task1 then task2.
-	q.Push(task1)
-	q.Push(task2)
-
-	// Pop task1 and task2. Ensure FIFO order.
-	select {
-	case popped := <-q.Pop():
-		require.Equal(t, "task1", popped.Id)
-	case <-time.After(time.Second):
-		t.Fatal("Timed out waiting for task")
-	}
-	select {
-	case popped := <-q.Pop():
-		require.Equal(t, "task2", popped.Id)
-	case <-time.After(time.Second):
-		t.Fatal("Timed out waiting for task")
-	}
-
-	// Concurrent test.
-	const numTasks = 100
-	const numPushers = 10
-	var wg sync.WaitGroup
-	startCh := make(chan struct{})
-	for j := 0; j < numPushers; j++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			<-startCh
-			for k := 0; k < numTasks; k++ {
-				q.Push(&ts_types.Task{
-					Id: fmt.Sprintf("task-%d", k),
-				})
-			}
-		}()
-	}
-
-	// Start pushers and consume tasks.
-	close(startCh)
-	received := map[string]bool{}
-	for len(received) < numTasks {
-		select {
-		case popped := <-q.Pop():
-			received[popped.Id] = true
-		case <-time.After(5 * time.Second):
-			t.Fatalf("Timed out waiting for tasks; received %d/%d", len(received), numTasks)
-		}
-	}
-
-	// Wait for all pushers to finish.
-	wg.Wait()
-
-	// Drain any remaining tasks. Since pushers might have pushed more if they
-	// finished after a task was popped and removed from inQueue, we just
-	// make sure we don't hang.
-	for {
-		select {
-		case <-q.Pop():
-		case <-time.After(100 * time.Millisecond):
-			return
-		}
-	}
+	// 3. Releasing first claim allows claiming again
+	release1()
+	release3, ok := r.TryClaimTask("task1")
+	require.True(t, ok)
+	require.NotNil(t, release3)
+	release3()
 }
 
 func TestIngestTask(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
+	mockDB := db_mocks.NewAutoGardenerDB(t)
+	mockG := gemini_mocks.NewClient(t)
+	i := &Ingester{
+		db:     mockDB,
+		gemini: mockG,
+	}
+
+	task := &ts_types.Task{
+		Id:       "task1",
+		Finished: time.Now().Add(-5 * time.Minute),
+	}
+
+	// 1. Task already has a summary in the DB.
+	t.Run("already ingested", func(t *testing.T) {
+		registry := newTaskProcessingRegistry()
+		existing := &types.TaskSummary{
+			ErrorMessage: "error",
+			Analysis:     "analysis",
+		}
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(existing, nil).Once()
+		taskSummary, err := i.ingestTask(ctx, registry, task)
+		require.NoError(t, err)
+		require.Equal(t, existing, taskSummary)
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+	})
+
+	// 2. Task needs to be summarized.
+	t.Run("not yet ingested", func(t *testing.T) {
+		registry := newTaskProcessingRegistry()
+		summary := &types.TaskSummary{
+			Analysis:     "analysis",
+			ErrorMessage: "error",
+		}
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
+		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+
+		taskSummary, err := i.ingestTask(ctx, registry, task)
+		require.NoError(t, err)
+		require.Equal(t, summary, taskSummary)
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+	})
+
+	// 3. Task is already being processed, return nil, nil.
+	t.Run("already being processed", func(t *testing.T) {
+		registry := newTaskProcessingRegistry()
+		release, ok := registry.TryClaimTask(task.Id)
+		require.True(t, ok)
+		defer release()
+
+		taskSummary, err := i.ingestTask(ctx, registry, task)
+		require.NoError(t, err)
+		require.Nil(t, taskSummary)
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+	})
+}
+
+func TestClassifyTaskSummary(t *testing.T) {
+	ctx := t.Context()
 	mockDB := db_mocks.NewAutoGardenerDB(t)
 	mockG := gemini_mocks.NewClient(t)
 	i := &Ingester{
@@ -129,22 +110,328 @@ func TestIngestTask(t *testing.T) {
 
 	task := &ts_types.Task{
 		Id: "task1",
+		TaskKey: ts_types.TaskKey{
+			RepoState: ts_types.RepoState{
+				Repo: "my_repo",
+			},
+		},
 	}
-
-	// 1. Task already has a summary in the DB.
-	mockDB.On("GetTaskSummary", ctx, task.Id).Return(&types.TaskSummary{}, nil).Once()
-	err := i.ingestTask(ctx, task)
-	require.NoError(t, err)
-
-	// 2. Task needs to be summarized.
-	summary := &types.TaskSummary{
+	taskSummary := &types.TaskSummary{
 		Analysis:     "analysis",
 		ErrorMessage: "error",
 	}
-	mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
-	mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
-	mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
 
-	err = i.ingestTask(ctx, task)
-	require.NoError(t, err)
+	// Case 1: No previous matching failure classes exist, Gemini returns empty class ID.
+	// This results in a new failure class being registered.
+	t.Run("no existing failure class", func(t *testing.T) {
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
+		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 10).Return([]*types.FailureClass{}, nil).Once()
+		mockG.On("ClassifyFailure", mock.Anything, taskSummary, []*types.FailureClass{}, task.Repo).Return("", nil).Once()
+		mockDB.On("PutFailureClass", mock.Anything, mock.MatchedBy(func(fc *types.FailureClass) bool {
+			return fc.Repo == task.Repo && fc.ErrorMessage == taskSummary.ErrorMessage && fc.Analysis == taskSummary.Analysis && fc.Id != ""
+		})).Return(nil).Once()
+		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
+			return ts.FailureClassId == ""
+		})).Return(nil).Once()
+
+		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		require.NoError(t, err)
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+	})
+
+	// Case 2: Matching failure class exists, Gemini returns its ID.
+	t.Run("has matching failure class", func(t *testing.T) {
+		fc := &types.FailureClass{
+			Id:   "class_abc",
+			Repo: task.Repo,
+		}
+		failureClasses := []*types.FailureClass{fc}
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
+		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 10).Return(failureClasses, nil).Once()
+		mockG.On("ClassifyFailure", mock.Anything, taskSummary, failureClasses, task.Repo).Return("class_abc", nil).Once()
+		mockDB.On("PutFailureClass", mock.Anything, fc).Return(nil).Once()
+		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
+			return ts.FailureClassId == "class_abc"
+		})).Return(nil).Once()
+
+		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		require.NoError(t, err)
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+	})
+
+	// Case 3: Shortcut if we already classified the TaskSummary.
+	t.Run("already classified", func(t *testing.T) {
+		alreadyClassified := &types.TaskSummary{
+			ErrorMessage:   taskSummary.ErrorMessage,
+			Analysis:       taskSummary.Analysis,
+			FailureClassId: "some-failure-class",
+		}
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(alreadyClassified, nil).Once()
+		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		require.NoError(t, err)
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+	})
+}
+
+func TestEnqueueModifiedTasks(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	mockTSDB := ts_mocks.NewRemoteDB(t)
+	repoURL := "http://my-repo.git"
+	i := &Ingester{
+		tsDB: mockTSDB,
+	}
+
+	modCh := make(chan []*ts_types.Task)
+	mockTSDB.On("ModifiedTasksCh", mock.Anything).Return((<-chan []*ts_types.Task)(modCh))
+
+	taskCh := make(chan *ts_types.Task)
+
+	taskValid := &ts_types.Task{
+		Id:       "valid-task",
+		Status:   ts_types.TASK_STATUS_FAILURE,
+		Finished: time.Now().Add(-10 * time.Minute),
+		TaskKey: ts_types.TaskKey{
+			RepoState: ts_types.RepoState{
+				Repo: repoURL,
+			},
+		},
+	}
+
+	taskMismatchedRepo := &ts_types.Task{
+		Id:       "mismatched-repo-task",
+		Status:   ts_types.TASK_STATUS_FAILURE,
+		Finished: time.Now().Add(-10 * time.Minute),
+		TaskKey: ts_types.TaskKey{
+			RepoState: ts_types.RepoState{
+				Repo: "http://other-repo.git",
+			},
+		},
+	}
+
+	taskRunning := &ts_types.Task{
+		Id:       "running-task",
+		Status:   ts_types.TASK_STATUS_RUNNING,
+		Finished: time.Time{},
+		TaskKey: ts_types.TaskKey{
+			RepoState: ts_types.RepoState{
+				Repo: repoURL,
+			},
+		},
+	}
+
+	taskSuccess := &ts_types.Task{
+		Id:       "success-task",
+		Status:   ts_types.TASK_STATUS_SUCCESS,
+		Finished: time.Now().Add(-10 * time.Minute),
+		TaskKey: ts_types.TaskKey{
+			RepoState: ts_types.RepoState{
+				Repo: repoURL,
+			},
+		},
+	}
+
+	go i.enqueueModifiedTasks(ctx, repoURL, taskCh)
+
+	// Send tasks to modCh. enqueueModifiedTasks processes tasks in the order
+	// that they arrive, so sending taskValid last allows us to use its arrival
+	// from taskCh to signal that all other tasks have been processed as well.
+	modCh <- []*ts_types.Task{taskMismatchedRepo, taskRunning, taskSuccess}
+	modCh <- []*ts_types.Task{taskValid}
+
+	// Verify only the valid task is written to taskCh
+	popped := <-taskCh
+	require.Equal(t, taskValid.Id, popped.Id)
+}
+
+func TestPeriodicTaskPollingFallback(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	mockDB := db_mocks.NewAutoGardenerDB(t)
+	mockG := gemini_mocks.NewClient(t)
+	mockTSDB := ts_mocks.NewRemoteDB(t)
+	repoURL := "http://my-repo.git"
+	period := 24 * time.Hour
+
+	i := &Ingester{
+		db:     mockDB,
+		gemini: mockG,
+		tsDB:   mockTSDB,
+	}
+
+	task := &ts_types.Task{
+		Id:     "failed-task",
+		Status: ts_types.TASK_STATUS_FAILURE,
+	}
+
+	// Query fallback tasks: SearchTasks is called twice (for FAILURE and MISHAP status)
+	mockTSDB.On("SearchTasks", mock.Anything, mock.MatchedBy(func(p *ts_db.TaskSearchParams) bool {
+		return *p.Status == ts_types.TASK_STATUS_FAILURE
+	})).Return([]*ts_types.Task{task}, nil).Once()
+	mockTSDB.On("SearchTasks", mock.Anything, mock.MatchedBy(func(p *ts_db.TaskSearchParams) bool {
+		return *p.Status == ts_types.TASK_STATUS_MISHAP
+	})).Return([]*ts_types.Task{}, nil).Once()
+
+	taskCh := make(chan *ts_types.Task)
+
+	go i.periodicTaskPollingFallback(ctx, repoURL, period, taskCh)
+
+	popped := <-taskCh
+	require.Equal(t, task.Id, popped.Id)
+}
+
+func TestIngestTasks(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	mockDB := db_mocks.NewAutoGardenerDB(t)
+	mockG := gemini_mocks.NewClient(t)
+	i := &Ingester{
+		db:     mockDB,
+		gemini: mockG,
+	}
+
+	task1 := &ts_types.Task{
+		Id: "task1",
+	}
+	summary := &types.TaskSummary{
+		Analysis: "analysis",
+	}
+
+	mockDB.On("GetTaskSummary", mock.Anything, task1.Id).Return(nil, nil).Once()
+	mockG.On("GetTaskSummary", mock.Anything, task1).Return(summary, nil).Once()
+	mockDB.On("PutTaskSummary", mock.Anything, task1.Id, summary).Return(nil).Once()
+
+	task2 := &ts_types.Task{
+		Id: "task2",
+	}
+	someError := errors.New("uh oh")
+	mockDB.On("GetTaskSummary", mock.Anything, task2.Id).Return(nil, nil).Once()
+	mockG.On("GetTaskSummary", mock.Anything, task2).Return(nil, someError).Once()
+
+	inputCh := make(chan *ts_types.Task)
+	outputCh := make(chan *taskIngestionResult)
+
+	go i.ingestTasks(ctx, inputCh, outputCh)
+
+	inputCh <- task1
+	result1 := <-outputCh
+	require.NoError(t, result1.err)
+	require.Equal(t, task1.Id, result1.Task.Id)
+	require.Equal(t, summary.Analysis, result1.Summary.Analysis)
+
+	inputCh <- task2
+	result2 := <-outputCh
+	require.ErrorContains(t, result2.err, someError.Error())
+	require.Nil(t, result2.Task)
+	require.Nil(t, result2.Summary)
+}
+
+func TestPeriodicUnclassifiedTaskSummaryPollingFallback(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	mockDB := db_mocks.NewAutoGardenerDB(t)
+	mockTSDB := ts_mocks.NewRemoteDB(t)
+	i := &Ingester{
+		db:   mockDB,
+		tsDB: mockTSDB,
+	}
+
+	task := &ts_types.Task{
+		Id: "unclassified-task",
+	}
+	summary := &types.TaskSummary{
+		Analysis: "unclassified analysis",
+	}
+
+	mockDB.On("GetUnclassifiedTaskSummaries", mock.Anything, 100).Return(map[string]*types.TaskSummary{
+		task.Id: summary,
+	}, nil).Once()
+	mockTSDB.On("GetTaskById", mock.Anything, task.Id).Return(task, nil).Once()
+
+	classifyCh := make(chan *types.TaskAndSummary)
+
+	go i.periodicUnclassifiedTaskSummaryPollingFallback(ctx, classifyCh)
+
+	item := <-classifyCh
+	require.Equal(t, task.Id, item.Task.Id)
+	require.Equal(t, summary.Analysis, item.Summary.Analysis)
+}
+
+func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
+	repoURL := "http://my-repo.git"
+
+	task := &ts_types.Task{
+		Id:       "failed-task-123",
+		Status:   ts_types.TASK_STATUS_FAILURE,
+		Finished: time.Now().Add(-10 * time.Minute),
+		TaskKey: ts_types.TaskKey{
+			RepoState: ts_types.RepoState{
+				Repo: repoURL,
+			},
+		},
+	}
+
+	summary := &types.TaskSummary{
+		Analysis:     "test analysis",
+		ErrorMessage: "test error",
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	mockDB := db_mocks.NewAutoGardenerDB(t)
+	mockG := gemini_mocks.NewClient(t)
+	mockTSDB := ts_mocks.NewRemoteDB(t)
+
+	modCh := make(chan []*ts_types.Task)
+	mockTSDB.On("ModifiedTasksCh", mock.Anything).Return((<-chan []*ts_types.Task)(modCh))
+	mockTSDB.On("SearchTasks", mock.Anything, mock.Anything).Return([]*ts_types.Task{}, nil)
+
+	// We must use .Maybe() because the backup unclassified repeat loop runs asynchronously in a concurrent
+	// background goroutine immediately upon StartIngestingTaskSummariesForRepo starting.
+	// It may or may not execute before the test's context is canceled and asserts expectations,
+	// making its execution non-deterministic during the test run.
+	mockDB.On("GetUnclassifiedTaskSummaries", mock.Anything, 100).Return(map[string]*types.TaskSummary{}, nil).Maybe()
+
+	i := &Ingester{
+		db:     mockDB,
+		gemini: mockG,
+		tsDB:   mockTSDB,
+	}
+
+	// Step 1: Ingest task summary
+	mockDB.On("GetTaskSummary", mock.Anything, task.Id).Return(nil, nil).Once()
+	mockG.On("GetTaskSummary", mock.Anything, task).Return(summary, nil).Once()
+	mockDB.On("PutTaskSummary", mock.Anything, task.Id, summary).Return(nil).Once()
+
+	// Step 2: Classify task summary
+	mockDB.On("GetTaskSummary", mock.Anything, task.Id).Return(summary, nil).Once()
+	mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 10).Return([]*types.FailureClass{}, nil).Once()
+	mockG.On("ClassifyFailure", mock.Anything, summary, []*types.FailureClass{}, task.Repo).Return("", nil).Once()
+	mockDB.On("PutFailureClass", mock.Anything, mock.Anything).Return(nil).Once()
+
+	// The final call to PutTaskSummary indicates that the ingestion is
+	// finished. We'll close doneCh to reflect that.
+	doneCh := make(chan struct{})
+	mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		close(doneCh)
+	}).Once()
+
+	i.StartIngestingTaskSummariesForRepo(ctx, repoURL, 24*time.Hour)
+
+	// Send the task to modCh to trigger ingestion
+	modCh <- []*ts_types.Task{task}
+
+	// Wait for the whole pipeline to finish
+	<-doneCh // Wait for ingestion to complete.
+	mockDB.AssertExpectations(t)
+	mockG.AssertExpectations(t)
+	mockTSDB.AssertExpectations(t)
 }
