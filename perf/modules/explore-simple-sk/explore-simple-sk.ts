@@ -133,6 +133,7 @@ import { CommitLinks } from '../point-links-sk/point-links-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
 import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { DataService, DataServiceError } from '../data-service';
+import { dataframeToCSV, downloadCSV } from '../csv';
 
 import { DEFAULT_OPTION_LABEL } from '../common/test-picker';
 
@@ -667,6 +668,13 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
         <md-icon id="icon">settings</md-icon>
       </md-icon-button>
       <md-icon-button
+        id="exportCsvBtn"
+        title="Export traces as CSV"
+        ?disabled=${!ele.hasTraces}
+        @click=${ele.exportCsvHandler}>
+        <md-icon id="icon">download</md-icon>
+      </md-icon-button>
+      <md-icon-button
         id="removeAll"
         ?disabled=${!ele.enableRemoveButton}
         @click=${() => ele.closeExplore()}
@@ -925,6 +933,33 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
     </plot-summary-sk>`;
   }
+
+  get hasTraces(): boolean {
+    const df = this.getDataFrame();
+    if (!!(df && df.traceset && Object.keys(df.traceset).length > 0)) {
+      const traceIds = Object.keys(df.traceset).filter((id) => !id.startsWith('special_'));
+      return traceIds.length !== 0;
+    }
+    return false;
+  }
+
+  exportCsvHandler = () => {
+    const df = this.getDataFrame();
+    if (!df || !df.traceset || Object.keys(df.traceset).length === 0) {
+      errorMessage('No traces available to export.');
+      return;
+    }
+
+    const csvContent = dataframeToCSV(df);
+
+    if (!csvContent) {
+      errorMessage('Failed to generate CSV from traces.');
+      return;
+    }
+
+    const filename = `perf-traces-${Date.now()}.csv`;
+    downloadCSV(filename, csvContent);
+  };
 
   private openAddFavoriteDialog = async () => {
     const d = $$<FavoritesDialogSk>('#fav-dialog', this) as FavoritesDialogSk;
@@ -3249,7 +3284,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
           // Merge new data with the existing state.
           const frameResponse = json as FrameResponse;
           const newDf = frameResponse.dataframe!;
-          const fullDf = this.dfRepo.value?.dataframe || this._dataframe;
+          const fullDf = this.getDataFrame();
           const mergedDataFrame = joinDataframes(fullDf, newDf);
           frameResponse.dataframe = mergedDataFrame;
           // Don't merge anomalies because DataFrameRepository already does that.
@@ -3835,6 +3870,13 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   getParamSet(): { [key: string]: string[] } {
     return this.query?.paramset ?? {};
+  }
+
+  getDataFrame() {
+    return this.dfRepo.value?.dataframe &&
+      Object.keys(this.dfRepo.value.dataframe.traceset || {}).length > 0
+      ? this.dfRepo.value.dataframe
+      : this._dataframe;
   }
 
   set defaults(val: QueryConfig | null) {

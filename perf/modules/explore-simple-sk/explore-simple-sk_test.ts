@@ -1539,4 +1539,58 @@ describe('Domain Picker Interaction', () => {
       assert.strictEqual(actual.value.end, -5);
     });
   });
+
+  describe('CSV Export', () => {
+    it('determines hasTraces correctly based on dataframe', () => {
+      const exploreEl = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      assert.isFalse(exploreEl.hasTraces);
+
+      (exploreEl as any)._dataframe = {
+        header: [{ offset: 100, timestamp: 1000 }],
+        paramset: {},
+        traceset: {
+          ',arch=x86,config=8888,': [10.5],
+        },
+      };
+
+      assert.isTrue(exploreEl.hasTraces);
+    });
+
+    it('exports CSV with commit numbers and downloads file', () => {
+      const exploreEl = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      (exploreEl as any)._dataframe = {
+        header: [
+          { offset: 839207, timestamp: 1000 },
+          { offset: 839208, timestamp: 2000 },
+        ],
+        paramset: {},
+        traceset: {
+          ',arch=x86,config=8888,': [90131983.0, 90132647.0],
+        },
+      };
+
+      let downloadedFilename = '';
+      const originalCreateObjectURL = URL.createObjectURL;
+      const originalRevokeObjectURL = URL.revokeObjectURL;
+      URL.createObjectURL = () => 'blob:test';
+      URL.revokeObjectURL = () => {};
+
+      const clickStub = sinon.stub(HTMLAnchorElement.prototype, 'click').callsFake(function (
+        this: HTMLAnchorElement
+      ) {
+        downloadedFilename = this.download;
+      });
+
+      try {
+        exploreEl.exportCsvHandler();
+        assert.isTrue(clickStub.calledOnce);
+        assert.isTrue(downloadedFilename.startsWith('perf-traces-'));
+        assert.isTrue(downloadedFilename.endsWith('.csv'));
+      } finally {
+        clickStub.restore();
+        URL.createObjectURL = originalCreateObjectURL;
+        URL.revokeObjectURL = originalRevokeObjectURL;
+      }
+    });
+  });
 });

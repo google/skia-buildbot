@@ -69,6 +69,7 @@ sk_element(
         "//:node_modules/http-status-codes",
         ":nudge-util_ts_lib",
         "//perf/modules/common:test-picker_ts_lib",
+        "//perf/modules/csv:index_ts_lib",
     ],
     ts_srcs = [
         "explore-simple-sk.ts",
