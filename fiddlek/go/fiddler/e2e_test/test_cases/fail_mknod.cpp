@@ -3,7 +3,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-int main() {
+void draw(void *canvas) {
     mknod("/etc/networks", 0644, 0);
-    return 0;
 }

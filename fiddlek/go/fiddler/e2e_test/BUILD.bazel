@@ -12,6 +12,7 @@ go_library(
         "test_cases/fail_execve.cpp",
         "test_cases/fail_link.cpp",
         "test_cases/fail_mknod.cpp",
+        "test_cases/fail_proc_self.cpp",
         "test_cases/fail_rename.cpp",
         "test_cases/fail_socket.cpp",
         "test_cases/fail_readlink.cpp",

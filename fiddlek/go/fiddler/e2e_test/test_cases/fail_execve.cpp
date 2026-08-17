@@ -1,8 +1,7 @@
 #include <unistd.h>
 
-int main() {
+void draw(void* canvas) {
     char *newargv[] = { (char *)"/bin/ls", NULL };
     char *newenviron[] = { NULL };
     execve("/bin/ls", newargv, newenviron);
-    return 0;
 }

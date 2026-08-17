@@ -1,6 +1,5 @@
 #include <unistd.h>
 
-int main() {
+void draw(void *canvas) {
     link("/bin/echo", "/bin/sudo");
-    return 0;
 }

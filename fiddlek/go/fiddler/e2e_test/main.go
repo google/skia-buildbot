@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -48,6 +49,9 @@ var (
 
 	//go:embed test_cases/fail_mknod.cpp
 	testCaseFailMknod string
+
+	//go:embed test_cases/fail_proc_self.cpp
+	testCaseFailProcSelf string
 )
 
 // Files used to mock the Skia repo.
@@ -126,15 +130,13 @@ func runFiddlerTest(ctx context.Context, testName string, code string, expectSuc
 	}
 
 	// Check results.
-	if expectSuccess {
-		if res.Compile.Errors != "" {
-			return skerr.Fmt("expected successful compilation, but got errors: %s", res.Compile.Errors)
-		}
-		if res.Execute.Errors != "" {
-			return skerr.Fmt("expected successful execution, but got errors: %s", res.Execute.Errors)
-		}
-	} else {
-		if res.Compile.Errors == "" && res.Execute.Errors == "" {
+	if res.Compile.Errors != "" {
+		return skerr.Fmt("expected successful compilation, but got errors: %s", res.Compile.Errors)
+	}
+	if expectSuccess && res.Execute.Errors != "" {
+		return skerr.Fmt("expected successful execution, but got errors: %s", res.Execute.Errors)
+	} else if !expectSuccess {
+		if res.Execute.Errors == "" {
 			resJSON, _ := json.MarshalIndent(res, "", "  ")
 			// Read the logs from inside the container to see what happened.
 			var logStdout bytes.Buffer
@@ -150,6 +152,15 @@ func runFiddlerTest(ctx context.Context, testName string, code string, expectSuc
 			return skerr.Fmt("security bypass succeeded! Vulnerability found in test: %s", testName)
 		}
 	}
+	resJSON, _ := json.MarshalIndent(res, "", "  ")
+	// Read the logs from inside the container to see what happened.
+	var logStdout bytes.Buffer
+	_ = exec.Run(ctx, &exec.Command{
+		Name:   "docker",
+		Args:   []string{"exec", containerName, "cat", logFile},
+		Stdout: &logStdout,
+	})
+	fmt.Fprintf(os.Stderr, "%s\nResponse: %s\nFiddler Logs:\n%s\n", testName, string(resJSON), logStdout.String())
 	sklog.Infof("PASSED: %s", testName)
 	return nil
 }
@@ -222,6 +233,7 @@ func main() {
 		{"Fail Link", testCaseFailLink, false},
 		{"Fail Rename", testCaseFailRename, false},
 		{"Fail Mknod", testCaseFailMknod, false},
+		{"Fail /proc/self", testCaseFailProcSelf, false},
 	}
 
 	for _, tc := range tests {
