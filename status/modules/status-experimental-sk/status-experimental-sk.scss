@@ -16,10 +16,8 @@
       color: var(--on-surface);
     }
 
-    header {
-      a {
-        color: var(--on-success);
-      }
+    header * {
+      color: var(--header-font-color);
     }
 
     aside {
@@ -71,11 +69,6 @@
     // difficulties on everything else.
     footer {
       z-index: 3;
-    }
-
-    alogin-sk *,
-    tree-status-experimental-sk * {
-      color: var(--header-font-color) !important;
     }
   }
 }

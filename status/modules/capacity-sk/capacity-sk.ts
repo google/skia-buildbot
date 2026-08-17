@@ -14,7 +14,7 @@ import { define } from '../../../elements-sk/modules/define';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/alogin-sk';
-import '../../../ct/modules/input-sk';
+import '../../../infra-sk/modules/input-sk';
 import '../../../elements-sk/modules/error-toast-sk';
 import '../../../elements-sk/modules/icons/battery-charging-80-icon-sk';
 import '../../../elements-sk/modules/icons/dashboard-icon-sk';

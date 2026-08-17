@@ -7,9 +7,6 @@ sk_demo_page_server(
 
 sk_element(
     name = "input-sk",
-    sass_deps = [
-        "//ct/modules:colors_sass_lib",
-    ],
     sass_srcs = ["input-sk.scss"],
     ts_deps = [
         "//:node_modules/lit",

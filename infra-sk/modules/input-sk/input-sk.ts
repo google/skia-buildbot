@@ -1,7 +1,6 @@
 /**
  * @module modules/input-sk
  * @description A custom element that is a styled, labeled input.
- * TODO(westont): Move this to infra-sk.
  *
  * @attr {Boolean} label - Placeholder style text that moves out of the way
  * when element is in focus.
@@ -95,7 +94,7 @@ export class InputSk extends ElementSk {
   }
 
   set textPrefix(val: string) {
-    this.setAttribute('type', val);
+    this.setAttribute('textPrefix', val);
     this._render();
   }
 }

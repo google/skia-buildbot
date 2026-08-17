@@ -23,7 +23,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AddCommentRequest, Comment, GetStatusService, StatusService } from '../rpc';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 
-import '../../../ct/modules/input-sk';
+import '../../../infra-sk/modules/input-sk';
 import '../../../infra-sk/modules/human-date-sk';
 import '../../../elements-sk/modules/icons/check-box-icon-sk';
 import '../../../elements-sk/modules/icons/check-box-outline-blank-icon-sk';
