@@ -21,7 +21,12 @@ import {
   JSONEditorPropsOptional,
 } from 'vanilla-jsoneditor';
 import LottiePlayer from 'lottie-web';
-import { RendererType } from 'lottie-web';
+import {
+  RendererType,
+  SVGRendererConfig,
+  CanvasRendererConfig,
+  HTMLRendererConfig,
+} from 'lottie-web';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { define } from '../../../elements-sk/modules/define';
@@ -1467,6 +1472,13 @@ export class SkottieSk extends ElementSk {
         animationData: JSON.parse(JSON.stringify(this.state.lottie)) as LottieAnimation,
         rendererSettings: {
           preserveAspectRatio: 'xMidYMid meet',
+          // Disable expressions to prevent XSS issues.
+          // Note: Even though it's documented officially [1], LottieWeb does not include
+          // runExpressions in its TS declarations - hence the yucky workaround below.
+          // [1] https://github.com/airbnb/lottie-web/wiki/Renderer-Settings#runexpressions
+          runExpressions: false,
+        } as (SVGRendererConfig | CanvasRendererConfig | HTMLRendererConfig) & {
+          runExpressions?: boolean;
         },
       });
     }
