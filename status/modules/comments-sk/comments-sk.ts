@@ -64,7 +64,6 @@ export class CommentsSk extends ElementSk {
           <tr class="comment">
             <td>
               <human-date-sk .date=${c.timestamp} .diff=${true}></human-date-sk>
-              ago
             </td>
             <td>${c.user}</td>
             <td class="commentMessage">${escapeAndLinkify(c.message)}</td>
