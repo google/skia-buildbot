@@ -147,6 +147,7 @@ ts_library(
         ":trace-chart-tooltip-sk_ts_lib",
         "//:node_modules/lit",
         "//perf/modules/common:commit_ts_lib",
+        "//perf/modules/csv:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
 )

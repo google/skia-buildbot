@@ -199,4 +199,34 @@ describe('cluster-summary2-sk', () => {
     // Check that we didn't crash and rendered something.
     assert.include(element.innerHTML, 'Cluster Size');
   });
+
+  it('exports cluster centroid and traces as CSV on export click', async () => {
+    element.full_summary = fullSummary;
+    await (element as any).updateComplete;
+
+    let downloadedFilename = '';
+    const origCreateObjectURL = URL.createObjectURL;
+    const origRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = () => 'blob:test';
+    URL.revokeObjectURL = () => {};
+
+    const origClick = HTMLAnchorElement.prototype.click;
+    let clicked = false;
+    HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
+      clicked = true;
+      downloadedFilename = this.download;
+    };
+
+    try {
+      const btn = element.querySelector('#exportCsvBtn') as HTMLElement;
+      assert.isNotNull(btn);
+      btn.click();
+      assert.isTrue(clicked);
+      assert.equal(downloadedFilename, 'cluster-X123.csv');
+    } finally {
+      URL.createObjectURL = origCreateObjectURL;
+      URL.revokeObjectURL = origRevokeObjectURL;
+      HTMLAnchorElement.prototype.click = origClick;
+    }
+  });
 });

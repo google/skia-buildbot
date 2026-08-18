@@ -831,4 +831,41 @@ describe('trace-chart-sk', () => {
     expect(hoveredPoint).to.not.be.null;
     expect(hoveredPoint.row.commit_number).to.equal(20);
   });
+
+  it('exports traces as CSV when exportCsv is called', async () => {
+    element.series = [
+      {
+        id: ',arch=x86,config=8888,',
+        color: '#fff',
+        rows: [
+          { commit_number: 100, val: 10, createdat: 1000, hash: 'h100' },
+          { commit_number: 101, val: 20, createdat: 2000, hash: 'h101' },
+        ],
+      },
+    ];
+    await element.updateComplete;
+
+    let downloadedFilename = '';
+    const origCreateObjectURL = URL.createObjectURL;
+    const origRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = () => 'blob:test';
+    URL.revokeObjectURL = () => {};
+
+    const origClick = HTMLAnchorElement.prototype.click;
+    let clicked = false;
+    HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
+      clicked = true;
+      downloadedFilename = this.download;
+    };
+
+    try {
+      element.exportCsv();
+      expect(clicked).to.be.true;
+      expect(downloadedFilename).to.match(/^perf-traces-\d+\.csv$/);
+    } finally {
+      URL.createObjectURL = origCreateObjectURL;
+      URL.revokeObjectURL = origRevokeObjectURL;
+      HTMLAnchorElement.prototype.click = origClick;
+    }
+  });
 });

@@ -55,7 +55,10 @@ import {
   StepDetection,
   StepFit,
   CommitNumber,
+  Trace,
+  TraceSet,
 } from '../json';
+import { dataframeToCSV, downloadCSV, removeSpecialTraces } from '../csv';
 import { PlotShowTooltipEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
 import '../window/window';
 import { lookupCids } from '../cid/cid';
@@ -311,6 +314,9 @@ export class ClusterSummary2Sk extends LitElement {
       <div class="actions">
         <button id="shortcut" @click=${this.openShortcut}>View on dashboard</button>
         <button @click=${this.toggleWordCloud}>Word Cloud</button>
+        <button id="exportCsvBtn" ?disabled=${!this.hasTraces} @click=${this.exportCsv}>
+          Export CSV
+        </button>
         <a id="permalink" class=${this.hiddenClass()} href=${this.permaLink()}> Permlink </a>
         <commit-range-sk
           .trace=${this.summary.centroid || []}
@@ -322,6 +328,49 @@ export class ClusterSummary2Sk extends LitElement {
       </collapse-sk>
     `;
   }
+
+  get hasTraces(): boolean {
+    const df = this.frame?.dataframe;
+    if (!df || !df.header || df.header.length === 0) {
+      return false;
+    }
+    const cleanDf = removeSpecialTraces(df);
+    const hasTraceset = !!(cleanDf.traceset && Object.keys(cleanDf.traceset).length > 0);
+    const hasCentroid = !!(this.summary?.centroid && this.summary.centroid.length > 0);
+    return hasTraceset || hasCentroid;
+  }
+
+  exportCsv = () => {
+    let df = this.frame?.dataframe;
+    if (!df || !df.header || df.header.length === 0) {
+      errorMessage('No data available to export.');
+      return;
+    }
+    const cleanDf = removeSpecialTraces(df);
+    if (!cleanDf.traceset || Object.keys(cleanDf.traceset).length === 0) {
+      if (this.summary.centroid && this.summary.centroid.length > 0) {
+        df = {
+          ...df,
+          traceset: TraceSet({
+            centroid: Trace(this.summary.centroid),
+          }),
+        };
+      } else {
+        errorMessage('No traces available to export.');
+        return;
+      }
+    } else {
+      df = cleanDf;
+    }
+    const csvContent = dataframeToCSV(df);
+    if (!csvContent) {
+      errorMessage('Failed to generate CSV from traces.');
+      return;
+    }
+
+    const filename = `cluster-${this.summary.shortcut || Date.now()}.csv`;
+    downloadCSV(filename, csvContent);
+  };
 
   private leastSquares() {
     return html`

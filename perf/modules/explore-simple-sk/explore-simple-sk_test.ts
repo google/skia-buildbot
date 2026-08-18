@@ -1265,7 +1265,7 @@ describe('Domain Picker Interaction', () => {
       dataServiceStub.callsFake(async (_body: any, options: any) => {
         if (options.onStart) options.onStart();
         if (options.onSettled) options.onSettled();
-        return Promise.resolve({
+        return await Promise.resolve({
           dataframe: { traceset: {}, header: [], paramset: {}, skip: 0, traceMetadata: [] },
           anomalymap: {},
         });
@@ -1549,14 +1549,35 @@ describe('Domain Picker Interaction', () => {
         header: [{ offset: 100, timestamp: 1000 }],
         paramset: {},
         traceset: {
-          ',arch=x86,config=8888,': [10.5],
+          special_zero: [0],
+          special_centroid: [1],
         },
       };
 
+      assert.isFalse(exploreEl.hasTraces);
+
+      (exploreEl as any)._dataframe.traceset[',arch=x86,config=8888,'] = [10.5];
       assert.isTrue(exploreEl.hasTraces);
     });
 
-    it('exports CSV with commit numbers and downloads file', () => {
+    it('determines hasData correctly excluding special_ traces', () => {
+      const exploreEl = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      (exploreEl as any)._dataframe = {
+        header: [{ offset: 100, timestamp: 1000 }],
+        paramset: {},
+        traceset: {
+          special_zero: [0],
+          special_centroid: [1],
+        },
+      };
+
+      assert.isFalse((exploreEl as any).hasData());
+
+      (exploreEl as any)._dataframe.traceset[',arch=x86,config=8888,'] = [10.5];
+      assert.isTrue((exploreEl as any).hasData());
+    });
+
+    it('exports CSV with commit numbers and downloads file without special_ traces', () => {
       const exploreEl = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
       (exploreEl as any)._dataframe = {
         header: [
@@ -1565,6 +1586,7 @@ describe('Domain Picker Interaction', () => {
         ],
         paramset: {},
         traceset: {
+          special_zero: [0.0, 0.0],
           ',arch=x86,config=8888,': [90131983.0, 90132647.0],
         },
       };

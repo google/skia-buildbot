@@ -10,6 +10,7 @@ import {
 import { smoothPoints } from './smoothing';
 import { Regression } from '../json';
 import { TrimHash } from '../common/commit';
+import { traceSeriesToCSV, downloadCSV, removeSpecialTraces } from '../csv';
 import './trace-chart-tooltip-sk';
 
 export interface TraceRow {
@@ -2221,15 +2222,86 @@ export class TraceChartSk extends LitElement {
         transform: rotate(360deg);
       }
     }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .actions button {
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--on-surface-variant);
+      font-family: inherit;
+      transition:
+        background 0.2s ease,
+        color 0.2s ease;
+    }
+
+    .actions button:hover {
+      color: var(--on-surface);
+    }
+
+    .action-btn {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .action-btn:hover {
+      background: color-mix(in srgb, var(--on-surface) 10%, transparent);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .close-btn {
+      font-size: 16px;
+      line-height: 1;
+      padding: 0 4px;
+    }
   `;
 
+  exportCsv = () => {
+    if (!this.series || this.series.length === 0) {
+      return;
+    }
+    const cleanSeries = removeSpecialTraces(this.series);
+    if (cleanSeries.length === 0) {
+      return;
+    }
+    const csvContent = traceSeriesToCSV(cleanSeries);
+    if (!csvContent) {
+      return;
+    }
+    const filename = `perf-traces-${Date.now()}.csv`;
+    downloadCSV(filename, csvContent);
+  };
+
   render() {
+    const hasTraces = !!(
+      this.series &&
+      removeSpecialTraces(this.series).some((s) => !s.hidden && s.rows && s.rows.length > 0)
+    );
+
     return html`
       <div class="header">
         <span class="title">${this.title || 'Untitled Chart'}</span>
         <div class="actions">
           <button
-            style="border:none; background:none; cursor:pointer; color:#666;"
+            class="action-btn"
+            title="Export traces as CSV"
+            ?disabled=${!hasTraces}
+            @click=${this.exportCsv}>
+            Export CSV
+          </button>
+          <button
+            class="close-btn"
+            title="Close chart"
             @click=${() =>
               this.dispatchEvent(
                 new CustomEvent('close-chart', { bubbles: true, composed: true })

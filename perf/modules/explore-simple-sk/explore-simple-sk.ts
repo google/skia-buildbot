@@ -133,7 +133,7 @@ import { CommitLinks } from '../point-links-sk/point-links-sk';
 import { handleKeyboardShortcut, KeyboardShortcutHandler } from '../common/keyboard-shortcuts';
 import { GraphConfig, updateShortcut } from '../common/graph-config';
 import { DataService, DataServiceError } from '../data-service';
-import { dataframeToCSV, downloadCSV } from '../csv';
+import { dataframeToCSV, downloadCSV, removeSpecialTraces } from '../csv';
 
 import { DEFAULT_OPTION_LABEL } from '../common/test-picker';
 
@@ -143,12 +143,6 @@ const EXPLORE_SIMPLE_PAGE_SOURCE = 'explore-simple-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot' | 'json';
-
-// The trace id of the zero line, a trace of all zeros.
-const ZERO_NAME = 'special_zero';
-
-// A list of all special trace names.
-const SPECIAL_TRACE_NAMES = [ZERO_NAME];
 
 // Amount of datapoints that is expected to begin affecting performance.
 const DATAPOINT_THRESHOLD = 100000;
@@ -936,9 +930,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
 
   get hasTraces(): boolean {
     const df = this.getDataFrame();
-    if (!!(df && df.traceset && Object.keys(df.traceset).length > 0)) {
-      const traceIds = Object.keys(df.traceset).filter((id) => !id.startsWith('special_'));
-      return traceIds.length !== 0;
+    if (df && df.traceset) {
+      const cleanDf = removeSpecialTraces(df);
+      return Object.keys(cleanDf.traceset).length > 0;
     }
     return false;
   }
@@ -950,7 +944,13 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       return;
     }
 
-    const csvContent = dataframeToCSV(df);
+    const cleanDf = removeSpecialTraces(df);
+    if (!cleanDf.traceset || Object.keys(cleanDf.traceset).length === 0) {
+      errorMessage('No traces available to export.');
+      return;
+    }
+
+    const csvContent = dataframeToCSV(cleanDf);
 
     if (!csvContent) {
       errorMessage('Failed to generate CSV from traces.');
@@ -1977,9 +1977,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   /**  Returns true if we have any traces to be displayed. */
   private hasData() {
     // We have data if at least one traceID isn't a special name.
-    return Object.keys(this._dataframe.traceset).some(
-      (traceID) => !SPECIAL_TRACE_NAMES.includes(traceID)
-    );
+    return Object.keys(this._dataframe.traceset).some((traceID) => !traceID.startsWith('special_'));
   }
 
   /** Open the query dialog box. */
