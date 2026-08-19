@@ -734,13 +734,13 @@ cipd.download_http(
     name = "goldctl",
     cipd_package = "skia/tools/goldctl/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "bbbddfc61a0db28b14b57518cf1d6010c96e1b4b9716d043e004883dbfd17590",
-        "linux-arm64": "63288c1a30ea2b336077f9d46524138068f5d9f47de484d5f5886d2e7ace5335",
-        "mac-amd64": "f83485467cbe1e7882cbbbe0b925c0e5122215582abb600345a19b4f0091bc70",
-        "mac-arm64": "4eab39d6405e8d2db3e7d2db743abefcfb1a2c693f3509d99bdb20357e74ed8e",
-        "windows-amd64": "5e1353a6502d6970717fc37487f1b508cf697a34a92a31d424c5a69c1c5a2da8",
+        "linux-amd64": "6710979f8893f4e949de5ba3fb73c84c505c68399a993f7fb5f98465081bd936",
+        "linux-arm64": "1f9df5df5f6ae52e2b6b70fc5e19082781f34fc8564455bad56bb5850727b07f",
+        "mac-amd64": "1f60bcfc04345cff867dc6099904af4f980e0796f0b18b65a83bad94968cde0a",
+        "mac-arm64": "d2e04d371aac9b3c09f381d12071a00dc62c33e0644c9198b2c8e4890e2323f4",
+        "windows-amd64": "176c2343de9306e1bc3845398a370cf3a0c6884c547802d9cce5c3942c64ec0b",
     },
-    tag = "git_revision:03460cbcb7fcfe86272f3eabd45a8b0e7675f46b",
+    tag = "git_revision:0e4cb6152e3aee32eca411edf436f6017c39068a",
 )
 use_repo(cipd, "goldctl_linux-amd64")
 
