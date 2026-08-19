@@ -14,8 +14,11 @@
  */
 export function escapeAndLinkifyToString(s: string): string {
   // sanitize the incoming string, so we aren't vulnerable to XSS.
+  s = s.replace(/&/g, '&amp;');
   s = s.replace(/</g, '&lt');
   s = s.replace(/>/g, '&gt');
+  s = s.replace(/"/g, '&quot;');
+  s = s.replace(/'/g, '&#39;');
 
   // Replace http://... with actual links
   const sub = '<a href="$&" target=_blank rel=noopener>$&</a>';
