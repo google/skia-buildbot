@@ -825,10 +825,10 @@ export class CommitsTableExperimentalSk extends ElementSk {
     this.stateHasChanged();
     $('.commit-text').forEach((el, i) => {
       if (v) {
-        el.innerHTML = this.data.commits[i].shortSubject;
+        el.textContent = this.data.commits[i].shortSubject;
         el.setAttribute('title', this.data.commits[i].shortAuthor);
       } else {
-        el.innerHTML = this.data.commits[i].shortAuthor;
+        el.textContent = this.data.commits[i].shortAuthor;
         el.setAttribute('title', this.data.commits[i].shortSubject);
       }
     });
