@@ -32,6 +32,8 @@ var (
 	// Flags
 	btInstance        = flag.String("bigtable-instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable-project", "", "GCE project to use for BigTable.")
+	tdBtInstance      = flag.String("task-driver-bigtable-instance", "", "BigTable instance to use for Task Driver.")
+	tdBtProject       = flag.String("task-driver-bigtable-project", "", "GCE project to use for BigTable for Task Driver.")
 	gitstoreTable     = flag.String("gitstore-bt-table", "git-repos2", "BigTable table used for GitStore.")
 	port              = flag.String("port", ":8000", "HTTP service port.")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -142,8 +144,8 @@ func main() {
 	mcpArgs := fmt.Sprintf(
 		"--firestore_instance=%s --bigtable_project=%s --bigtable_instance=%s --swarming_server=%s",
 		*firestoreInstance,
-		*btProject,
-		*btInstance,
+		*tdBtProject,
+		*tdBtInstance,
 		*swarmingServer,
 	)
 	if err := srv.Init(mcpArgs); err != nil {
