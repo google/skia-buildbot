@@ -270,8 +270,9 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 	// every single failed task.
 	failureClasses, err := i.db.GetRecentFailureClasses(ctx, task.Repo, windowStart, 10)
 	if err != nil {
-		sklog.Errorf("Failed to retrieve failure class")
+		sklog.Errorf("Failed to retrieve recent failure classes: %s", err)
 	}
+	sklog.Debugf("Found %d recent failure classes", len(failureClasses))
 	classID, err := i.gemini.ClassifyFailure(ctx, taskSummary, failureClasses, task.Repo)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to classify failure for task %s", task.Id)

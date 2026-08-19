@@ -851,12 +851,14 @@ func (c *clientImpl) ClassifyFailure(ctx context.Context, res *types.TaskSummary
 
 	// Case 1: No Candidates found. Propose a new class.
 	if len(failureClasses) == 0 {
+		sklog.Debug("No failure classes found; will register a new one.")
 		return "", nil
 	}
 
 	// Case 2: Exact match of existing candidate.
 	for _, cand := range failureClasses {
 		if errorText == cand.ErrorMessage {
+			sklog.Debug("Exact match of error message; no need to use gemini.")
 			return cand.Id, nil
 		}
 	}

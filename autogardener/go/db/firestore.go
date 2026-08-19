@@ -127,9 +127,9 @@ func (d *firestoreDB) PutFailureClass(ctx context.Context, fc *types.FailureClas
 
 func (d *firestoreDB) GetRecentFailureClasses(ctx context.Context, repo string, since time.Time, limit int) ([]*types.FailureClass, error) {
 	query := d.client.Collection(collectionFailureClass).
-		Where("repo", "==", repo).
-		Where("lastSeen", ">=", since).
-		OrderBy("lastSeen", fs.Desc)
+		Where("Repo", "==", repo).
+		Where("LastSeen", ">=", since).
+		OrderBy("LastSeen", fs.Desc)
 	if limit > 0 {
 		query = query.Limit(limit)
 	}
