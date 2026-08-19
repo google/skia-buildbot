@@ -66,6 +66,10 @@ const TASK_STATUS_SUCCESS = 'SUCCESS';
 const TASK_STATUS_FAILURE = 'FAILURE';
 const TASK_STATUS_MISHAP = 'MISHAP';
 
+export const KEEPALIVE_TIMEOUT_MS = 2 * 60 * 1000;
+export const KEEPALIVE_CHECK_INTERVAL_MS = 5000;
+export const RECONNECT_DELAY_MS = 5000;
+
 // Makes some maps more self-documenting.
 export type CommitHash = string;
 export type TaskSpec = string;
@@ -207,8 +211,70 @@ class Data {
 
   private taskSearch: string = '';
 
+  private keepaliveReconnectTimeout?: number;
+
+  private lastKeepaliveTime: number = Date.now();
+
+  private keepaliveInterval?: number;
+
   get lastLoaded() {
     return this._lastLoaded;
+  }
+
+  private startKeepaliveCheck(onUpdate: () => void) {
+    this.lastKeepaliveTime = Date.now();
+    this.stopKeepaliveCheck();
+    this.keepaliveInterval = window.setInterval(() => {
+      const elapsed = Date.now() - this.lastKeepaliveTime;
+      if (elapsed > KEEPALIVE_TIMEOUT_MS) {
+        console.warn(
+          `No SSE activity for ${KEEPALIVE_TIMEOUT_MS / 1000}s. Connection has stalled. Reconnecting...`
+        );
+        this.resetEventSource(
+          this.repo,
+          this.numCommits,
+          this.branchFilter,
+          this.cursor,
+          this.taskFilter,
+          this.taskSearch,
+          onUpdate,
+          true
+        );
+      }
+    }, KEEPALIVE_CHECK_INTERVAL_MS);
+  }
+
+  private stopKeepaliveCheck() {
+    if (this.keepaliveInterval) {
+      window.clearInterval(this.keepaliveInterval);
+      this.keepaliveInterval = undefined;
+    }
+  }
+
+  private scheduleKeepaliveReconnect(onUpdate: () => void) {
+    // Debounce concurrent connection triggers by clearing any existing
+    // scheduled reconnect.
+    if (this.keepaliveReconnectTimeout) {
+      window.clearTimeout(this.keepaliveReconnectTimeout);
+    }
+    // Delay reconnection by RECONNECT_DELAY_MS. This ensures that we don't
+    // overwhelm the server with requests or create a tight client-side loop
+    // which wastes CPU unnecessarily.
+    this.keepaliveReconnectTimeout = window.setTimeout(() => {
+      if (this.eventSource && this.eventSource.readyState === EventSource.CLOSED) {
+        console.log('EventSource is CLOSED. Forcing reconnection...');
+        this.resetEventSource(
+          this.repo,
+          this.numCommits,
+          this.branchFilter,
+          this.cursor,
+          this.taskFilter,
+          this.taskSearch,
+          onUpdate,
+          true
+        );
+      }
+    }, RECONNECT_DELAY_MS);
   }
 
   resetEventSource(
@@ -218,9 +284,11 @@ class Data {
     cursor: string,
     taskFilter: TaskFilter,
     taskSearch: string,
-    onUpdate: () => void
+    onUpdate: () => void,
+    force: boolean = false
   ): Promise<void> {
     if (
+      force ||
       this.repo !== repo ||
       this.numCommits !== numCommits ||
       this.branchFilter !== branchFilter ||
@@ -228,6 +296,11 @@ class Data {
       this.taskFilter !== taskFilter ||
       (taskFilter === 'Search' && this.taskSearch !== taskSearch)
     ) {
+      if (this.keepaliveReconnectTimeout) {
+        window.clearTimeout(this.keepaliveReconnectTimeout);
+        this.keepaliveReconnectTimeout = undefined;
+      }
+      this.stopKeepaliveCheck();
       if (this.eventSource) {
         this.eventSource.close();
         this.eventSource = null;
@@ -257,6 +330,10 @@ class Data {
       const url = `/sse?${queryParams.toString()}`;
       try {
         this.eventSource = new EventSource(url);
+        this.eventSource.addEventListener('keepalive', () => {
+          console.log('Received SSE keepalive event');
+          this.lastKeepaliveTime = Date.now();
+        });
       } catch (err) {
         console.error('Failed to create event source');
         console.error(err);
@@ -266,8 +343,14 @@ class Data {
       return new Promise<void>((resolve, reject) => {
         let firstMessage = true;
         let disconnected = false;
+        this.startKeepaliveCheck(onUpdate);
         this.eventSource!.onmessage = (event) => {
           console.log('Received message:');
+          this.lastKeepaliveTime = Date.now();
+          if (this.keepaliveReconnectTimeout) {
+            window.clearTimeout(this.keepaliveReconnectTimeout);
+            this.keepaliveReconnectTimeout = undefined;
+          }
           try {
             const json: GetIncrementalCommitsResponse = JSON.parse(event.data);
             console.log(json);
@@ -304,6 +387,7 @@ class Data {
             firstMessage = false;
             reject(err);
           }
+          this.scheduleKeepaliveReconnect(onUpdate);
         };
       });
     }
@@ -612,8 +696,6 @@ export class CommitsTableExperimentalSk extends ElementSk {
 
   private mishapTasks: Array<Task> = [];
 
-  private refreshHandle?: number;
-
   private requestLimiter: RequestLimiter = new RequestLimiter();
 
   private stateHasChanged: () => void = () => {};
@@ -642,7 +724,7 @@ export class CommitsTableExperimentalSk extends ElementSk {
           <select
             id="repoSelector"
             @change=${(e: Event) => {
-              el.repo = (e.target as any).value;
+              el.repo = (e.target as HTMLSelectElement).value;
             }}>
             ${repos().map((r) => html`<option value=${r}>${r}</option>`)}
           </select>
@@ -1425,8 +1507,6 @@ export class CommitsTableExperimentalSk extends ElementSk {
       return;
     }
     const numCommits = Number((<HTMLInputElement>$$('#commitsInput', this)).value);
-    window.clearTimeout(this.refreshHandle);
-    this.refreshHandle = undefined;
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
     this.loading = true;
     this.draw();

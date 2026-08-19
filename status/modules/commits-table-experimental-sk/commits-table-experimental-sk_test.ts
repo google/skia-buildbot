@@ -20,7 +20,12 @@ import {
   incrementalResponse1,
 } from '../rpc-mock/test_data';
 import { GetIncrementalCommitsRequest, GetIncrementalCommitsResponse } from '../rpc';
-import { CommitsTableExperimentalSk } from './commits-table-experimental-sk';
+import {
+  CommitsTableExperimentalSk,
+  KEEPALIVE_TIMEOUT_MS,
+  KEEPALIVE_CHECK_INTERVAL_MS,
+  RECONNECT_DELAY_MS,
+} from './commits-table-experimental-sk';
 import { MockStatusService, SetupMocks } from '../rpc-mock';
 import { SetTestSettings } from '../settings';
 
@@ -57,9 +62,26 @@ describe('commits-table-experimental-sk', () => {
 
       url: string;
 
+      readyState: number = EventSource.OPEN;
+
       onmessage: ((ev: MessageEvent) => void) | null = null;
 
       onerror: ((ev: Event) => void) | null = null;
+
+      private listeners: Record<string, Array<() => void>> = {};
+
+      addEventListener(type: string, listener: () => void) {
+        if (!this.listeners[type]) {
+          this.listeners[type] = [];
+        }
+        this.listeners[type].push(listener);
+      }
+
+      triggerEvent(type: string) {
+        if (this.listeners[type]) {
+          this.listeners[type].forEach((l) => l());
+        }
+      }
 
       constructor(url: string) {
         this.url = url;
@@ -94,6 +116,7 @@ describe('commits-table-experimental-sk', () => {
       }
 
       close() {
+        this.readyState = EventSource.CLOSED;
         if (MockEventSource.activeInstance === this) {
           MockEventSource.activeInstance = null;
         }
@@ -686,6 +709,100 @@ describe('commits-table-experimental-sk', () => {
       expect(
         commitsData.comments.get(commentTask.commit)!.get(commentTask.taskSpecName)![0]
       ).to.deep.include({ message: commentTask.message });
+    });
+
+    it('automatically reconnects when EventSource errors and goes CLOSED', async () => {
+      const _ = await setupWithResponse(incrementalResponse0);
+
+      // Get the active MockEventSource instance.
+      const firstES = (window.EventSource as any).activeInstance;
+      expect(firstES).to.not.be.null;
+
+      // Mock window.setTimeout to trigger immediately for the reconnection logic.
+      const originalTimeout = window.setTimeout;
+      let triggerImmediately: (() => void) | null = null;
+      (window as any).setTimeout = (cb: () => void, delay: number) => {
+        if (delay === RECONNECT_DELAY_MS) {
+          triggerImmediately = cb;
+          return 0;
+        }
+        return originalTimeout(cb, delay);
+      };
+
+      try {
+        // Set up the mock expectation for the reconnection query.
+        mocks.expectGetIncrementalCommits(incrementalResponse0);
+
+        // Simulate an error which closes the connection.
+        firstES.readyState = EventSource.CLOSED;
+        if (firstES.onerror) {
+          firstES.onerror(new Event('error'));
+        }
+
+        // Trigger the scheduled reconnection instantly.
+        expect(triggerImmediately).to.not.be.null;
+        triggerImmediately!();
+
+        // Check that a new EventSource was created.
+        const secondES = (window.EventSource as any).activeInstance;
+        expect(secondES).to.not.be.null;
+        expect(secondES).to.not.equal(firstES);
+      } finally {
+        window.setTimeout = originalTimeout;
+      }
+    });
+
+    it('automatically reconnects when no keepalive is received for over the timeout threshold', async () => {
+      const table = await setupWithResponse(incrementalResponse0);
+      const data = (table as any).data;
+
+      // Get the active MockEventSource instance.
+      const firstES = (window.EventSource as any).activeInstance;
+      expect(firstES).to.not.be.null;
+
+      // Mock window.setInterval to trigger instantly for our keepalive check.
+      const originalInterval = window.setInterval;
+      const originalTimeout = window.setTimeout;
+      let keepaliveCallback: (() => void) | null = null;
+
+      (window as any).setInterval = (cb: () => void, delay: number) => {
+        if (delay === KEEPALIVE_CHECK_INTERVAL_MS) {
+          keepaliveCallback = cb;
+          return 123; // Dummy ID
+        }
+        return originalInterval(cb, delay);
+      };
+
+      (window as any).setTimeout = (cb: () => void, delay: number) => {
+        if (delay === RECONNECT_DELAY_MS) {
+          return 456; // Dummy ID
+        }
+        return originalTimeout(cb, delay);
+      };
+
+      try {
+        // Start the keepalive check so our interval mock grabs its callback.
+        data.startKeepaliveCheck(() => {});
+        expect(keepaliveCallback).to.not.be.null;
+
+        // Set up the mock expectation for the reconnection query.
+        mocks.expectGetIncrementalCommits(incrementalResponse0);
+
+        // Advance fake time: set lastKeepaliveTime to > KEEPALIVE_TIMEOUT_MS ago.
+        data.lastKeepaliveTime = Date.now() - (KEEPALIVE_TIMEOUT_MS + 1000);
+
+        // Trigger the keepalive check tick.
+        keepaliveCallback!();
+
+        // Check that a new EventSource was created.
+        const secondES = (window.EventSource as any).activeInstance;
+        expect(secondES).to.not.be.null;
+        expect(secondES).to.not.equal(firstES);
+      } finally {
+        window.setInterval = originalInterval;
+        window.setTimeout = originalTimeout;
+        data.stopKeepaliveCheck();
+      }
     });
   });
 });

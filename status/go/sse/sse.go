@@ -30,6 +30,12 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+const (
+	commitPollInterval  = 10 * time.Second
+	commentPollInterval = 10 * time.Second
+	keepaliveInterval   = 30 * time.Second
+)
+
 type Config struct {
 	Repos                repograph.Map
 	TaskDb               db.RemoteDB
@@ -267,10 +273,12 @@ func (s *SSEServer) unregister(client *clientStream) {
 }
 
 func (s *SSEServer) broadcastLoop(ctx context.Context) {
-	commitsTicker := time.NewTicker(10 * time.Second)
+	commitsTicker := time.NewTicker(commitPollInterval)
 	defer commitsTicker.Stop()
-	commentsTicker := time.NewTicker(10 * time.Second)
+	commentsTicker := time.NewTicker(commentPollInterval)
 	defer commentsTicker.Stop()
+	keepaliveTicker := time.NewTicker(keepaliveInterval)
+	defer keepaliveTicker.Stop()
 
 	for {
 		select {
@@ -282,6 +290,8 @@ func (s *SSEServer) broadcastLoop(ctx context.Context) {
 			s.checkForNewCommits()
 		case <-commentsTicker.C:
 			s.checkForNewComments(ctx)
+		case <-keepaliveTicker.C:
+			s.broadcastKeepalives()
 		}
 	}
 }
@@ -295,6 +305,31 @@ func (s *SSEServer) broadcastTasks(tasks []*types.Task) {
 	}
 	for repoURL, repoTasks := range tasksByRepo {
 		s.broadcastUpdate(nil, nil, repoURL, repoTasks, nil)
+	}
+}
+
+func (s *SSEServer) broadcastKeepalives() {
+	s.clientsMtx.Lock()
+	var eg errgroup.Group
+	for client := range s.clients {
+		client := client // https://golang.org/doc/faq#closures_and_goroutines
+		eg.Go(func() error {
+			select {
+			case <-client.Done():
+				s.unregister(client)
+				return nil
+			default:
+			}
+			if err := client.SendKeepalive(); err != nil {
+				s.unregister(client)
+				return skerr.Wrapf(err, "failed to send keepalive; unregistered the client")
+			}
+			return nil
+		})
+	}
+	s.clientsMtx.Unlock()
+	if err := eg.Wait(); err != nil {
+		sklog.Error(err)
 	}
 }
 
@@ -660,6 +695,20 @@ func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHead
 
 func (c *clientStream) matchBranch(branchName string) bool {
 	return c.branchRegex == nil || c.branchRegex.MatchString(branchName)
+}
+
+// SendKeepalive sends a named "keepalive" event keeping the connection alive.
+func (s *clientStream) SendKeepalive() error {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+	_, err := fmt.Fprint(s.w, "event: keepalive\ndata: {}\n\n")
+	if err != nil {
+		return skerr.Wrapf(err, "failed to send SSE keepalive")
+	}
+	if err := s.w.Flush(); err != nil {
+		return skerr.Wrapf(err, "failed to flush SSE stream")
+	}
+	return nil
 }
 
 // updateAncestryCache updates the given sub-map of the ancestryCache. The
