@@ -40,7 +40,7 @@
         {
           "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2de3d5d5b1e9c5e75f930c363904413000823425"
+          "version": "git_revision:0e4cb6152e3aee32eca411edf436f6017c39068a"
         },
         {
           "name": "skia/tools/command_wrapper/${platform}",
@@ -259,7 +259,7 @@
         {
           "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2de3d5d5b1e9c5e75f930c363904413000823425"
+          "version": "git_revision:0e4cb6152e3aee32eca411edf436f6017c39068a"
         },
         {
           "name": "skia/tools/command_wrapper/${platform}",
@@ -342,7 +342,7 @@
         {
           "name": "infra/tools/luci-auth/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:2de3d5d5b1e9c5e75f930c363904413000823425"
+          "version": "git_revision:0e4cb6152e3aee32eca411edf436f6017c39068a"
         },
         {
           "name": "skia/tools/command_wrapper/${platform}",
