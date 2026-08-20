@@ -101,37 +101,43 @@ func TestIngestTask(t *testing.T) {
 
 func TestClassifyTaskSummary(t *testing.T) {
 	ctx := t.Context()
-	mockDB := db_mocks.NewAutoGardenerDB(t)
-	mockG := gemini_mocks.NewClient(t)
-	i := &Ingester{
-		db:     mockDB,
-		gemini: mockG,
-	}
 
-	task := &ts_types.Task{
-		Id: "task1",
-		TaskKey: ts_types.TaskKey{
-			RepoState: ts_types.RepoState{
-				Repo: "my_repo",
+	setup := func(t *testing.T) (*db_mocks.AutoGardenerDB, *gemini_mocks.Client, *Ingester, *ts_types.Task, *types.TaskSummary) {
+		mockDB := db_mocks.NewAutoGardenerDB(t)
+		mockG := gemini_mocks.NewClient(t)
+		i := &Ingester{
+			db:     mockDB,
+			gemini: mockG,
+		}
+
+		task := &ts_types.Task{
+			Id: "task1",
+			TaskKey: ts_types.TaskKey{
+				RepoState: ts_types.RepoState{
+					Repo: "my_repo",
+				},
 			},
-		},
-	}
-	taskSummary := &types.TaskSummary{
-		Analysis:     "analysis",
-		ErrorMessage: "error",
+		}
+		taskSummary := &types.TaskSummary{
+			Analysis:     "analysis",
+			ErrorMessage: "error",
+		}
+		return mockDB, mockG, i, task, taskSummary
 	}
 
 	// Case 1: No previous matching failure classes exist, Gemini returns empty class ID.
 	// This results in a new failure class being registered.
 	t.Run("no existing failure class", func(t *testing.T) {
+		mockDB, mockG, i, task, taskSummary := setup(t)
+
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
-		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 10).Return([]*types.FailureClass{}, nil).Once()
+		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, maxRecentFailureClasses).Return([]*types.FailureClass{}, nil).Once()
 		mockG.On("ClassifyFailure", mock.Anything, taskSummary, []*types.FailureClass{}, task.Repo).Return("", nil).Once()
 		mockDB.On("PutFailureClass", mock.Anything, mock.MatchedBy(func(fc *types.FailureClass) bool {
 			return fc.Repo == task.Repo && fc.ErrorMessage == taskSummary.ErrorMessage && fc.Analysis == taskSummary.Analysis && fc.Id != ""
 		})).Return(nil).Once()
 		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
-			return ts.FailureClassId == ""
+			return ts.FailureClassId != ""
 		})).Return(nil).Once()
 
 		err := i.classifyTaskSummary(ctx, task, taskSummary)
@@ -142,13 +148,15 @@ func TestClassifyTaskSummary(t *testing.T) {
 
 	// Case 2: Matching failure class exists, Gemini returns its ID.
 	t.Run("has matching failure class", func(t *testing.T) {
+		mockDB, mockG, i, task, taskSummary := setup(t)
+
 		fc := &types.FailureClass{
 			Id:   "class_abc",
 			Repo: task.Repo,
 		}
 		failureClasses := []*types.FailureClass{fc}
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
-		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 10).Return(failureClasses, nil).Once()
+		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, maxRecentFailureClasses).Return(failureClasses, nil).Once()
 		mockG.On("ClassifyFailure", mock.Anything, taskSummary, failureClasses, task.Repo).Return("class_abc", nil).Once()
 		mockDB.On("PutFailureClass", mock.Anything, fc).Return(nil).Once()
 		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
@@ -163,6 +171,8 @@ func TestClassifyTaskSummary(t *testing.T) {
 
 	// Case 3: Shortcut if we already classified the TaskSummary.
 	t.Run("already classified", func(t *testing.T) {
+		mockDB, mockG, i, task, taskSummary := setup(t)
+
 		alreadyClassified := &types.TaskSummary{
 			ErrorMessage:   taskSummary.ErrorMessage,
 			Analysis:       taskSummary.Analysis,
@@ -350,7 +360,7 @@ func TestPeriodicUnclassifiedTaskSummaryPollingFallback(t *testing.T) {
 		Analysis: "unclassified analysis",
 	}
 
-	mockDB.On("GetUnclassifiedTaskSummaries", mock.Anything, 100).Return(map[string]*types.TaskSummary{
+	mockDB.On("GetUnclassifiedTaskSummaries", mock.Anything, getUnclassifiedTaskSummariesBatchSize).Return(map[string]*types.TaskSummary{
 		task.Id: summary,
 	}, nil).Once()
 	mockTSDB.On("GetTaskById", mock.Anything, task.Id).Return(task, nil).Once()
@@ -398,7 +408,7 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 	// background goroutine immediately upon StartIngestingTaskSummariesForRepo starting.
 	// It may or may not execute before the test's context is canceled and asserts expectations,
 	// making its execution non-deterministic during the test run.
-	mockDB.On("GetUnclassifiedTaskSummaries", mock.Anything, 100).Return(map[string]*types.TaskSummary{}, nil).Maybe()
+	mockDB.On("GetUnclassifiedTaskSummaries", mock.Anything, getUnclassifiedTaskSummariesBatchSize).Return(map[string]*types.TaskSummary{}, nil).Maybe()
 
 	i := &Ingester{
 		db:     mockDB,
@@ -413,7 +423,7 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 
 	// Step 2: Classify task summary
 	mockDB.On("GetTaskSummary", mock.Anything, task.Id).Return(summary, nil).Once()
-	mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 10).Return([]*types.FailureClass{}, nil).Once()
+	mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, maxRecentFailureClasses).Return([]*types.FailureClass{}, nil).Once()
 	mockG.On("ClassifyFailure", mock.Anything, summary, []*types.FailureClass{}, task.Repo).Return("", nil).Once()
 	mockDB.On("PutFailureClass", mock.Anything, mock.Anything).Return(nil).Once()
 

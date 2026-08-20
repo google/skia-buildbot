@@ -876,7 +876,7 @@ Analysis:
 `+"```"+`
 %s
 `+"```"+`
-`, cand.Id, errorText, cand.Analysis))
+`, cand.Id, cand.ErrorMessage, cand.Analysis))
 	}
 	prompt := fmt.Sprintf(`# Failure Classification Task
 
@@ -908,7 +908,7 @@ failure), return an empty string "" in the "id" field.
 CRITICAL: Do NOT conflate similar errors or group them into general umbrella
 classes. Only choose an existing failure class if you are 100 percent certain
 that the new error has the SAME root cause.
-`, errorText, res.Analysis, strings.Join(candidateDescriptions, "---"))
+`, strings.Join(candidateDescriptions, "---"), errorText, res.Analysis)
 
 	mcpWrapper := mcp.MCPClientWithPseudoTools(c.mcpClient, nil, nil)
 	type Decision struct {

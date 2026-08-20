@@ -23,7 +23,11 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-const workerPoolSize = 10
+const (
+	getUnclassifiedTaskSummariesBatchSize = 100
+	maxRecentFailureClasses               = 25
+	workerPoolSize                        = 10
+)
 
 type Ingester struct {
 	db         db.AutoGardenerDB
@@ -134,7 +138,7 @@ func (i *Ingester) ingestTasks(ctx context.Context, input <-chan *ts_types.Task,
 func (i *Ingester) periodicUnclassifiedTaskSummaryPollingFallback(ctx context.Context, classifyCh chan<- *types.TaskAndSummary) {
 	util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
 		// TODO(borenet): This retrieves task summaries for ALL repos.
-		unclassified, err := i.db.GetUnclassifiedTaskSummaries(ctx, 100)
+		unclassified, err := i.db.GetUnclassifiedTaskSummaries(ctx, getUnclassifiedTaskSummariesBatchSize)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve unclassified task summaries: %s", err)
 			return
@@ -169,7 +173,7 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 	// We classify failures sequentially to prevent the race condition in which
 	// multiple task failures with the same, new, failure class are processed at
 	// the same time and thus add duplicates to the DB.
-	classifyCh := make(chan *types.TaskAndSummary, 100)
+	classifyCh := make(chan *types.TaskAndSummary, getUnclassifiedTaskSummariesBatchSize)
 
 	// Consume task ingestion results from that channel and enqueue them into
 	// the classification channel.
@@ -268,7 +272,7 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 	windowStart := time.Now().Add(-4 * 24 * time.Hour)
 	// TODO(borenet): These need to be cached, rather than hitting the DB for
 	// every single failed task.
-	failureClasses, err := i.db.GetRecentFailureClasses(ctx, task.Repo, windowStart, 10)
+	failureClasses, err := i.db.GetRecentFailureClasses(ctx, task.Repo, windowStart, maxRecentFailureClasses)
 	if err != nil {
 		sklog.Errorf("Failed to retrieve recent failure classes: %s", err)
 	}
@@ -306,7 +310,7 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 	}
 
 	// Store the task summary with the resolved FailureClassId.
-	taskSummary.FailureClassId = classID
+	taskSummary.FailureClassId = assignedFailureClass.Id
 	return skerr.Wrap(i.db.PutTaskSummary(ctx, task.Id, taskSummary))
 }
 
