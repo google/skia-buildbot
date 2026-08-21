@@ -2,6 +2,9 @@ package ingester
 
 import (
 	"context"
+	"crypto/sha256"
+	"errors"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -11,7 +14,6 @@ import (
 	"go.skia.org/infra/autogardener/go/gemini"
 	"go.skia.org/infra/autogardener/go/types"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -257,6 +259,18 @@ func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingReg
 	return taskSummary, nil
 }
 
+var errDone = errors.New("done")
+
+func newFailureClass(task *ts_types.Task, taskSummary *types.TaskSummary) *types.FailureClass {
+	return &types.FailureClass{
+		Id:           fmt.Sprintf("%x", sha256.Sum256([]byte(taskSummary.ErrorMessage))),
+		ErrorMessage: taskSummary.ErrorMessage,
+		Analysis:     taskSummary.Analysis,
+		LastSeen:     time.Now(),
+		Repo:         task.Repo,
+	}
+}
+
 func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task, taskSummary *types.TaskSummary) error {
 	// Retrieve the TaskSummary from the DB to ensure that we haven't already
 	// classified it (since the primary and backup queuing mechanisms may
@@ -272,41 +286,68 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 	windowStart := time.Now().Add(-4 * 24 * time.Hour)
 	// TODO(borenet): These need to be cached, rather than hitting the DB for
 	// every single failed task.
-	failureClasses, err := i.db.GetRecentFailureClasses(ctx, task.Repo, windowStart, maxRecentFailureClasses)
+	failureClasses, err := i.db.GetRecentFailureClasses(ctx, task.Repo, windowStart, 0)
 	if err != nil {
 		sklog.Errorf("Failed to retrieve recent failure classes: %s", err)
 	}
 	sklog.Debugf("Found %d recent failure classes", len(failureClasses))
-	classID, err := i.gemini.ClassifyFailure(ctx, taskSummary, failureClasses, task.Repo)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to classify failure for task %s", task.Id)
-	}
+
+	// Case 1: No Candidates found. Propose a new class.
 	var assignedFailureClass *types.FailureClass
-	if classID == "" {
-		assignedFailureClass = &types.FailureClass{
-			Id:           firestore.AlphaNumID(),
-			ErrorMessage: taskSummary.ErrorMessage,
-			Analysis:     taskSummary.Analysis,
-			LastSeen:     time.Now(),
-			Repo:         task.Repo,
-		}
-	} else {
-		for _, fc := range failureClasses {
-			if fc.Id == classID {
-				fc.LastSeen = time.Now()
-				assignedFailureClass = fc
+	isNew := false
+	if len(failureClasses) == 0 {
+		sklog.Debug("No failure classes found; will register a new one.")
+		assignedFailureClass = newFailureClass(task, taskSummary)
+		isNew = true
+	}
+
+	// Case 2: Exact match of existing candidate.
+	if assignedFailureClass == nil {
+		for _, cand := range failureClasses {
+			if taskSummary.ErrorMessage == cand.ErrorMessage {
+				sklog.Debugf("Exact match of error message for %s; no need to use gemini.", task.Id)
+				assignedFailureClass = cand
 			}
 		}
 	}
+
+	// Case 3: Use Gemini to match against recently active candidates.
 	if assignedFailureClass == nil {
-		return skerr.Fmt("Failed to classify failure for task %s: unknown failure class with ID %q", task.Id, classID)
+		var classID string
+		err = util.ChunkIter(len(failureClasses), maxRecentFailureClasses, func(start, end int) error {
+			classID, err = i.gemini.ClassifyFailure(ctx, taskSummary, failureClasses[start:end], task.Repo)
+			if err != nil {
+				return skerr.Wrapf(err, "Failed to classify failure for task %s", task.Id)
+			}
+			if classID != "" {
+				return errDone
+			}
+			return nil
+		})
+		if err != nil && err != errDone {
+			return skerr.Wrap(err)
+		}
+		if classID == "" {
+			assignedFailureClass = newFailureClass(task, taskSummary)
+			isNew = true
+		} else {
+			for _, fc := range failureClasses {
+				if fc.Id == classID {
+					fc.LastSeen = time.Now()
+					assignedFailureClass = fc
+				}
+			}
+			if assignedFailureClass == nil {
+				return skerr.Fmt("Failed to classify failure for task %s: unknown failure class with ID %q", task.Id, classID)
+			}
+		}
 	}
 
 	if err := i.db.PutFailureClass(ctx, assignedFailureClass); err != nil {
-		return skerr.Wrapf(err, "failed to save failure class %s", classID)
+		return skerr.Wrapf(err, "failed to save failure class %s", assignedFailureClass.Id)
 	}
-	if classID == "" {
-		sklog.Infof("Successfully registered new FailureClass: %s", assignedFailureClass.Id)
+	if isNew {
+		sklog.Infof("Successfully registered new FailureClass %s for task %s", assignedFailureClass.Id, task.Id)
 	}
 
 	// Store the task summary with the resolved FailureClassId.
