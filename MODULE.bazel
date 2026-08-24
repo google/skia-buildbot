@@ -776,13 +776,13 @@ cipd.download_http(
     name = "bazel_test_all",
     cipd_package = "skia/tools/bazel_test_all/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "802d5e0fd5e6f0f81422811be511c26e6c76ea763440c81eb90ec41a871bbc1e",
-        "linux-arm64": "9da7f071885e75b7683542b64b1cd3fee9485dc79516e6f883423c985874801a",
-        "mac-amd64": "66c5fb8a27f720f0dd3ad40d8b605ba8c99196ef819c6f84f09d89690be0a4f4",
-        "mac-arm64": "f8eaf29c4772678e2c04f36ac474526964e074de7ef8a5f1ae2d1359d22a1049",
-        "windows-amd64": "2c3a35394ce05b582aec9492287b004c9ad22251606d42bdcaa327060c2dc1b3",
+        "linux-amd64": "7edeaa278b589c89038cbda2ca5201e28e7a32d5d919b27259e936b166e46a78",
+        "linux-arm64": "517ba7a7f1fc8920f398b88110c8122af74014506ba0e03511bf593a7246d7a8",
+        "mac-amd64": "09a5e1d775aa103f4e8697ee0281d117d573b74a7243ff2f1d3e0ecbbe811597",
+        "mac-arm64": "c0fa81511389824ceccbdcf18c890aa6f360d7f6e13c800696ad70621cc4d340",
+        "windows-amd64": "33223479b420aa6c2f5b631215897e3b9632b84a2bb38e21f26b752f1f1e34a4",
     },
-    tag = "git_revision:345a3b36019cf8f9431ca1971e31ba46172e9d09",
+    tag = "git_revision:d952bc76efa4b7ba149df0154fecb979631a30d2",
 )
 use_repo(cipd, "bazel_test_all_linux-amd64")
 
