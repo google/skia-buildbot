@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -97,4 +99,111 @@ func (l *RateLimiter) RecordResponseTokens(ctx context.Context, tokens int32) er
 	}()
 
 	return nil
+}
+
+var (
+	hexRegex          = regexp.MustCompile(`\b0x[0-9a-fA-F]{9,}\b`)
+	stackPointerRegex = regexp.MustCompile(`([{(,]\s*)0x[0-9a-fA-F]+(\??\b)`)
+	funcOffsetRegex   = regexp.MustCompile(`\+0x[0-9a-fA-F]+\b`)
+	pidTidRegex       = regexp.MustCompile(`\b(pid|PID|process|tid|TID|thread|Thread|LWP|goroutine)(\s*[=:]\s*|\s+)(\[[0-9]+\]|[0-9]+\b)`)
+	swarmingRegex     = regexp.MustCompile(`/b/s/w/ir(?:/(?:cache|work|git|build|out|task_driver|recipe_bootstrap|kitchen-workdir))*/?`)
+	tmpPrefixRegex    = regexp.MustCompile(`(\s|^|")(/tmp/[a-zA-Z0-9_\-\.]+/?)`)
+	portRegex         = regexp.MustCompile(`(localhost|\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):([1-9][0-9]{3,4})\b`)
+	dateRegex         = regexp.MustCompile(`\d{4}-\d{2}-\d{2}`)
+	timeRegex         = regexp.MustCompile(`\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[-+]\d{2}:\d{2})?`)
+	ipRegex           = regexp.MustCompile(`\b(?:127\.0\.0\.1|0\.0\.0\.0|169\.254\.169\.254|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})\b`)
+	logStampRegex     = regexp.MustCompile(`(?:\b([DIWEF])(\d{4}) <TIME>\s+(\d+)\b|\[([DIWEF])<DATE>T<TIME>\s+(\d+)\s+(\d+)\s*)`)
+	failuresRegex     = regexp.MustCompile(`(?m)^(\d+[ \t]+)?[Ff]ailures(:)?[ \t]*$`)
+	stdoutStderr      = regexp.MustCompile(`; Stdout\+Stderr:\n`)
+)
+
+// SanitizeErrorText normalizes dynamic noise (such as memory addresses,
+// temporary Swarming path prefixes, process/thread IDs, ports, timestamps,
+// and IP addresses) from error messages to make failure classification more
+// stable, preventing runaway FailureClass proliferation.
+func SanitizeErrorText(errText string) string {
+	errText = strings.TrimSpace(errText)
+	if errText == "" {
+		return ""
+	}
+
+	errText = dateRegex.ReplaceAllString(errText, "<DATE>")
+	errText = timeRegex.ReplaceAllString(errText, "<TIME>")
+	errText = pidTidRegex.ReplaceAllString(errText, "${1}${2}<ID>")
+
+	errText = logStampRegex.ReplaceAllStringFunc(errText, func(match string) string {
+		if strings.HasPrefix(match, "[") {
+			severity := string(match[1])
+			return "[" + severity + "<DATE>T<TIME> <PID> <TID> "
+		}
+		severity := string(match[0])
+		return severity + "<DATE> <TIME> <TID>"
+	})
+
+	errText = hexRegex.ReplaceAllString(errText, "0x...")
+	errText = stackPointerRegex.ReplaceAllString(errText, "${1}0x...${2}")
+	errText = funcOffsetRegex.ReplaceAllString(errText, "+0x...")
+	errText = swarmingRegex.ReplaceAllString(errText, "/<workdir>/")
+	errText = tmpPrefixRegex.ReplaceAllString(errText, "${1}/<workdir>/")
+	errText = portRegex.ReplaceAllString(errText, "${1}:<port>")
+	errText = ipRegex.ReplaceAllString(errText, "<IP>")
+	errText = failuresRegex.ReplaceAllString(errText, "")
+	errText = stdoutStderr.ReplaceAllString(errText, "\n")
+
+	// Clean up any double-slashes or orphaned slashes resulting from replacement
+	errText = strings.ReplaceAll(errText, "/<workdir>//", "/<workdir>/")
+
+	// Clear leading newlines and trailing whitespace.
+	errText = strings.TrimLeft(errText, "\r\n")
+	errText = strings.TrimRight(errText, "\t\r\n ")
+
+	return dedent(errText)
+}
+
+func dedent(text string) string {
+	lines := strings.Split(text, "\n")
+	var commonIndent string
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		var indent string
+		for _, char := range line {
+			if char == ' ' || char == '\t' {
+				indent += string(char)
+			} else {
+				break
+			}
+		}
+		if commonIndent == "" {
+			commonIndent = indent
+		} else {
+			commonIndent = longestCommonPrefix(commonIndent, indent)
+		}
+		// If we have no common indent, we can exit without modifying anything.
+		if commonIndent == "" {
+			return text
+		}
+	}
+
+	if len(commonIndent) > 0 {
+		for i, line := range lines {
+			if strings.HasPrefix(line, commonIndent) {
+				lines[i] = strings.TrimPrefix(line, commonIndent)
+			}
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+func longestCommonPrefix(a, b string) string {
+	limit := len(a)
+	if len(b) < limit {
+		limit = len(b)
+	}
+	i := 0
+	for i < limit && a[i] == b[i] {
+		i++
+	}
+	return a[:i]
 }

@@ -331,6 +331,7 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
 	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, "GetTaskSummary", fmt.Sprintf("GetTaskSummary/%s", task.Id), &res); err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	res.ErrorMessage = utils.SanitizeErrorText(res.ErrorMessage)
 	return &res, nil
 }
 
@@ -844,8 +845,7 @@ type DebugInfo_ToolCall struct {
 }
 
 func (c *clientImpl) ClassifyFailure(ctx context.Context, res *types.TaskSummary, failureClasses []*types.FailureClass, repoURL string) (string, error) {
-	errorText := strings.TrimSpace(res.ErrorMessage)
-	if errorText == "" {
+	if res.ErrorMessage == "" {
 		return "", nil
 	}
 
@@ -893,14 +893,14 @@ failure), return an empty string "" in the "id" field.
 CRITICAL: Do NOT conflate similar errors or group them into general umbrella
 classes. Only choose an existing failure class if you are 100 percent certain
 that the new error has the SAME root cause.
-`, strings.Join(candidateDescriptions, "---"), errorText, res.Analysis)
+`, strings.Join(candidateDescriptions, "---"), res.ErrorMessage, res.Analysis)
 
 	mcpWrapper := mcp.MCPClientWithPseudoTools(c.mcpClient, nil, nil)
 	type Decision struct {
 		Id string `json:"id"`
 	}
 	var decision Decision
-	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, "ClassifyFailure", fmt.Sprintf("ClassifyFailure/%s", fmt.Sprintf("%x", sha256.Sum256([]byte(errorText)))), &decision); err != nil {
+	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, "ClassifyFailure", fmt.Sprintf("ClassifyFailure/%s", fmt.Sprintf("%x", sha256.Sum256([]byte(res.ErrorMessage)))), &decision); err != nil {
 		return "", skerr.Wrap(err)
 	}
 
