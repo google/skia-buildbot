@@ -200,7 +200,7 @@ export class PointLinksSk extends LitElement {
     const url = new URL(link);
     url.searchParams.set('format', 'JSON');
 
-    const proxyUrl = `/_/json//?url=${encodeURIComponent(url.toString())}`;
+    const proxyUrl = `/_/json/?url=${encodeURIComponent(url.toString())}`;
 
     try {
       const resp = await fetch(proxyUrl);

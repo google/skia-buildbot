@@ -1434,7 +1434,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Get("/_/defaults", f.defaultsHandler)
 	router.Get("/_/revision", f.revisionHandler)
 	router.Post("/_/playground/anomaly/v1/detect", anomaly.Handler)
-	router.Get("/_/json/", Proxy_GetHandler)
+	router.Get("/_/json", Proxy_GetHandler)
 	router.Post("/_/chat", f.chatHandler)
 
 	if f.flags.DevMode {
