@@ -10,6 +10,7 @@ go_library(
         "//autogardener/go/db",
         "//autogardener/go/gemini",
         "//autogardener/go/types",
+        "//autogardener/go/utils",
         "//go/auth",
         "//go/git/repograph",
         "//go/httputils",

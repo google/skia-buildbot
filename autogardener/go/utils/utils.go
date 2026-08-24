@@ -207,3 +207,37 @@ func longestCommonPrefix(a, b string) string {
 	}
 	return a[:i]
 }
+
+var genericErrorPatterns = []*regexp.Regexp{
+	regexp.MustCompile(`^(?i)(?:command\s+)?(?:exited|failed)?\s*(?:with\s+)?(?:exit\s+|status\s+|code\s+)*-?[0-9]*(?::\s*.*)?$`),
+	regexp.MustCompile(`^(?i)failed to run command$`),
+	regexp.MustCompile(`^(?i)task timed out$`),
+	regexp.MustCompile(`^(?i)context deadline exceeded$`),
+	regexp.MustCompile(`^(?i)recipe failed$`),
+	regexp.MustCompile(`^(?i)step failed$`),
+	regexp.MustCompile(`^(?i)unknown error$`),
+	regexp.MustCompile(`^(?i)error$`),
+	regexp.MustCompile(`^(?i)failed$`),
+	regexp.MustCompile(`^(?i)segmentation fault$`),
+	regexp.MustCompile(`^(?i)panic: exit status -?[0-9]+( \[recovered\])?$`),
+	regexp.MustCompile(`^(?i)caught signal [0-9]+.*$`),
+}
+
+// ErrorIsGeneric returns true if the error text is too short, empty, or consists
+// only of standard generic error boilerplates (like "exit status 1") that do not
+// contain specific diagnostic details. Creating distinct FailureClasses for these
+// would cause unrelated errors to be incorrectly grouped together.
+func ErrorIsGeneric(errText string) bool {
+	errText = strings.TrimSpace(errText)
+	if len(errText) == 0 {
+		return true
+	}
+
+	for _, pattern := range genericErrorPatterns {
+		if pattern.MatchString(errText) {
+			return true
+		}
+	}
+
+	return false
+}

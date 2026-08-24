@@ -425,3 +425,48 @@ func hello() {
 		})
 	}
 }
+
+func TestErrorIsGeneric(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		// Single-line errors with no context are too generic.
+		{input: "", expected: true},
+		{input: "   ", expected: true},
+		{input: "failed", expected: true},
+		{input: "error", expected: true},
+		{input: "exit status 1", expected: true},
+		{input: "exit status -1", expected: true},
+		{input: "Exit Status 139", expected: true},
+		{input: "Command exited with code 1", expected: true},
+		{input: "command exited with status -1", expected: true},
+		{input: "Command failed with exit status 1", expected: true},
+		{input: "Command failed with code 1", expected: true},
+		{input: "exit status 1: ENVVAR=VAL somecommand", expected: true},
+		{input: "exit status 1: ENVVAR1=VAL1 ENVVAR2=VAL2 somecommand --someflag --etc", expected: true},
+		{input: "Command exited with exit status 1: ENVVAR1=VAL1 ENVVAR2=VAL2 somecommand --someflag --etc", expected: true},
+		{input: "Command failed: somecommand --flag", expected: true},
+		{input: "failed to run command", expected: true},
+		{input: "task timed out", expected: true},
+		{input: "context deadline exceeded", expected: true},
+		{input: "recipe failed", expected: true},
+		{input: "Segmentation fault", expected: true},
+		{input: "panic: exit status 2", expected: true},
+		{input: "panic: exit status 2 [recovered]", expected: true},
+		{input: "Caught signal 6 [Abort trap: 6]", expected: true},
+
+		// Any error with more context is not generic.
+		{input: "Command exited with exit status 1: somecommand\nError: file not found", expected: false},
+		{input: "panic: exit status 2\n\ngoroutine 1 [running]:\nmain.main()", expected: false},
+		{input: "Segmentation fault\n  #0 0x103d3dd5c in DM.cpp:407", expected: false},
+		{input: "expected color 0xff0000ff", expected: false},
+		{input: "failed to connect to localhost:<port>", expected: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.expected, ErrorIsGeneric(tt.input))
+		})
+	}
+}

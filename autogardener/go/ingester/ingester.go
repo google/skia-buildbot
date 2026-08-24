@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/autogardener/go/db"
 	"go.skia.org/infra/autogardener/go/gemini"
 	"go.skia.org/infra/autogardener/go/types"
+	"go.skia.org/infra/autogardener/go/utils"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
@@ -271,6 +272,17 @@ func newFailureClass(task *ts_types.Task, taskSummary *types.TaskSummary) *types
 	}
 }
 
+const genericFailureClassID = "generic-failure"
+
+func makeGenericFailureClass() *types.FailureClass {
+	return &types.FailureClass{
+		Id:           genericFailureClassID,
+		ErrorMessage: "",
+		Analysis:     "The error did not contain enough identifiable details to classify successfully.",
+		LastSeen:     time.Now(),
+	}
+}
+
 func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task, taskSummary *types.TaskSummary) error {
 	// Retrieve the TaskSummary from the DB to ensure that we haven't already
 	// classified it (since the primary and backup queuing mechanisms may
@@ -279,6 +291,17 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 		return skerr.Wrap(err)
 	} else if exist.FailureClassId != "" {
 		return nil
+	}
+
+	// If the error message is too generic, skip classification entirely and
+	// group it under a generic FailureClass.
+	if utils.ErrorIsGeneric(taskSummary.ErrorMessage) {
+		assignedFailureClass := makeGenericFailureClass()
+		if err := i.db.PutFailureClass(ctx, assignedFailureClass); err != nil {
+			return skerr.Wrapf(err, "failed to save generic failure class")
+		}
+		taskSummary.FailureClassId = assignedFailureClass.Id
+		return skerr.Wrap(i.db.PutTaskSummary(ctx, task.Id, taskSummary))
 	}
 
 	// TODO(borenet): We should probably do this per-repo and ensure

@@ -120,7 +120,7 @@ func TestClassifyTaskSummary(t *testing.T) {
 		}
 		taskSummary := &types.TaskSummary{
 			Analysis:     "analysis",
-			ErrorMessage: "error",
+			ErrorMessage: "Compilation failed due to missing semicolon in SkCanvas.cpp:123",
 		}
 		return mockDB, mockG, i, task, taskSummary
 	}
@@ -204,6 +204,29 @@ func TestClassifyTaskSummary(t *testing.T) {
 		}
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(alreadyClassified, nil).Once()
 		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		require.NoError(t, err)
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+	})
+
+	// Case 4: Generic error message shortcuts classification to generic-unidentified-failure.
+	t.Run("generic error message", func(t *testing.T) {
+		mockDB, mockG, i, task, _ := setup(t)
+
+		genericTaskSummary := &types.TaskSummary{
+			Analysis:     "analysis",
+			ErrorMessage: "exit status 1",
+		}
+
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(genericTaskSummary, nil).Once()
+		mockDB.On("PutFailureClass", mock.Anything, mock.MatchedBy(func(fc *types.FailureClass) bool {
+			return fc.Id == genericFailureClassID
+		})).Return(nil).Once()
+		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
+			return ts.FailureClassId == genericFailureClassID
+		})).Return(nil).Once()
+
+		err := i.classifyTaskSummary(ctx, task, genericTaskSummary)
 		require.NoError(t, err)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
