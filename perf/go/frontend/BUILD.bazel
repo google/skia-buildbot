@@ -76,7 +76,10 @@ go_library(
 
 go_test(
     name = "frontend_test",
-    srcs = ["frontend_test.go"],
+    srcs = [
+        "frontend_test.go",
+        "proxy_test.go",
+    ],
     data = glob(["testdata/**"]),
     embed = [":frontend"],
     deps = [

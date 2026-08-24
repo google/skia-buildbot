@@ -4,10 +4,51 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
+	"time"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 )
+
+const (
+	// maxProxiedResponseBytes limits the response size to 10MB to prevent DoS.
+	maxProxiedResponseBytes = 10 * 1024 * 1024
+
+	// proxyRequestTimeout is the timeout for outgoing proxy requests.
+	proxyRequestTimeout = 30 * time.Second
+)
+
+// isAllowedProxyURL validates whether the given URL is safe and allowed to be proxied.
+// Only HTTPS requests to googlesource.com and its subdomains (*.googlesource.com) are permitted.
+func isAllowedProxyURL(u *url.URL) bool {
+	if u == nil {
+		return false
+	}
+	if u.Scheme != "https" {
+		return false
+	}
+	// Disallow user credentials in URL (e.g., https://user:pass@host)
+	if u.User != nil {
+		return false
+	}
+	// Only allow standard HTTPS port (empty or 443)
+	if u.Port() != "" && u.Port() != "443" {
+		return false
+	}
+	hostname := strings.ToLower(u.Hostname())
+	if hostname == "" {
+		return false
+	}
+	if hostname == "googlesource.com" || strings.HasSuffix(hostname, ".googlesource.com") {
+		return true
+	}
+	return false
+}
+
+// proxyTransport allows injecting a custom RoundTripper for unit testing.
+var proxyTransport http.RoundTripper
 
 // Proxy_GetHandler proxies a GET request to the given url.
 //
@@ -16,27 +57,41 @@ import (
 // It is intended to be used to work around CORS issues, where a browser can't
 // directly contact another server, e.g. googlesource.com.
 func Proxy_GetHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	url := r.FormValue("url")
-	if url == "" {
+	urlParam := r.FormValue("url")
+	if urlParam == "" {
 		httputils.ReportError(w, errors.New("Missing 'url' query parameter."), "Missing 'url' query parameter.", http.StatusBadRequest)
 		return
 	}
 
-	// We don't use the httputils.NewTimeoutClient() because we don't want to
-	// follow redirects, we want to proxy them.
-	client := &http.Client{}
+	parsedURL, err := url.Parse(urlParam)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid 'url' query parameter.", http.StatusBadRequest)
+		return
+	}
 
-	req, err := http.NewRequest("GET", url, nil)
+	if !isAllowedProxyURL(parsedURL) {
+		httputils.ReportError(w, errors.New("URL target is not allowed."), "URL target is not allowed.", http.StatusBadRequest)
+		return
+	}
+
+	client := &http.Client{
+		Timeout:   proxyRequestTimeout,
+		Transport: proxyTransport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			// Do not follow redirects automatically to avoid redirect-based SSRF.
+			return http.ErrUseLastResponse
+		},
+	}
+
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, parsedURL.String(), nil)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to create request.", http.StatusInternalServerError)
 		return
 	}
-	// Copy headers from the original request.
-	req.Header = r.Header
-	req.Header.Del("Referer")
-	req.Header.Del("Origin")
-	req.Header.Del("Accept-Encoding") // To avoid getting gzipped content we can't easily handle.
+
+	// Do NOT copy client request headers (especially Cookie, Authorization, etc.) to prevent credential leakage.
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", "Skia-Perf-Proxy")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -45,12 +100,10 @@ func Proxy_GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	// Copy headers from the proxied response.
-	for k, v := range resp.Header {
-		w.Header()[k] = v
-	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(resp.StatusCode)
-	if _, err := io.Copy(w, resp.Body); err != nil {
+	if _, err := io.Copy(w, io.LimitReader(resp.Body, maxProxiedResponseBytes)); err != nil {
 		// We can't call ReportError here because we've already written the header.
 		sklog.Errorf("Failed to write proxied response: %s", err)
 	}
