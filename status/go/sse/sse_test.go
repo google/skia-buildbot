@@ -1,6 +1,7 @@
 package sse
 
 import (
+	"bufio"
 	"bytes"
 	"compress/gzip"
 	"context"
@@ -38,6 +39,7 @@ type testContext struct {
 	mockWindow *window_mocks.Window
 	server     *SSEServer
 	memRepo    *repograph.MemCacheRepoImpl
+	comments   []*types.RepoComments
 }
 
 func makeMemCommit(hash, author, subject string, timestamp time.Time, parents ...string) *vcsinfo.LongCommit {
@@ -74,8 +76,26 @@ func setupTestServer(t *testing.T) *testContext {
 	ch := make(chan []*types.Task)
 	mockDB.On("ModifiedTasksCh", mock.Anything).Return((<-chan []*types.Task)(ch))
 
+	tc := &testContext{
+		ctx:        ctx,
+		repo:       repo,
+		mockDB:     mockDB,
+		mockCache:  nil, // set below
+		mockWindow: nil, // set below
+		memRepo:    ri,
+		comments:   []*types.RepoComments{},
+	}
+
+	mockDB.On("GetCommentsForRepos", mock.Anything, mock.Anything, mock.Anything).Return(func(ctx context.Context, repos []string, from time.Time) ([]*types.RepoComments, error) {
+		return tc.comments, nil
+	})
+
 	mockCache := &cache_mocks.TaskCache{}
 	mockWindow := &window_mocks.Window{}
+	mockWindow.On("EarliestStart").Return(time.Time{})
+
+	tc.mockCache = mockCache
+	tc.mockWindow = mockWindow
 
 	cfg := Config{
 		Repos:    repograph.Map{"https://repo.git": repo},
@@ -96,16 +116,9 @@ func setupTestServer(t *testing.T) *testContext {
 
 	s, err := New(ctx, cfg)
 	require.NoError(t, err)
+	tc.server = s
 
-	return &testContext{
-		ctx:        ctx,
-		repo:       repo,
-		mockDB:     mockDB,
-		mockCache:  mockCache,
-		mockWindow: mockWindow,
-		server:     s,
-		memRepo:    ri,
-	}
+	return tc
 }
 
 func TestQueryCommitsAndReachability(t *testing.T) {
@@ -151,9 +164,11 @@ func TestQueryCommitsAndReachability(t *testing.T) {
 	mockDB := &db_mocks.RemoteDB{}
 	ch := make(chan []*types.Task)
 	mockDB.On("ModifiedTasksCh", mock.Anything).Return((<-chan []*types.Task)(ch))
+	mockDB.On("GetCommentsForRepos", mock.Anything, mock.Anything, mock.Anything).Return([]*types.RepoComments{}, nil)
 
 	mockCache := &cache_mocks.TaskCache{}
 	mockWindow := &window_mocks.Window{}
+	mockWindow.On("EarliestStart").Return(time.Time{})
 
 	cfg := Config{
 		Repos:                repos,
@@ -285,23 +300,24 @@ func TestBroadcastTasks_Cleanup(t *testing.T) {
 	tc := setupTestServer(t)
 
 	// Create mock client
-	w := httptest.NewRecorder()
 	clientCtx, clientCancel := context.WithCancel(tc.ctx)
 	defer clientCancel()
 
-	gzipWriter := gzip.NewWriter(w)
+	var buf bytes.Buffer
+	bufWriter := bufio.NewWriter(&buf)
 	client := &clientStream{
 		db:               tc.server.cfg.TaskDb,
 		tCache:           tc.server.cfg.TCache,
 		window:           tc.server.cfg.Window,
-		w:                gzipWriter,
-		flusher:          nil,
+		w:                bufWriter,
 		ctx:              clientCtx,
 		branchRegex:      nil,
 		repoURL:          "https://repo.git",
 		wantsNewCommits:  false,
 		limit:            10,
 		displayedCommits: []*rpc.LongCommit{{Hash: "commit1", IsAncestorOf: []string{"main"}}},
+		taskFilter:       taskFilter_All,
+		activeTaskSpecs:  map[string]bool{},
 	}
 
 	tc.server.register(client)
@@ -346,7 +362,7 @@ func TestHandler_Validation(t *testing.T) {
 	})
 
 	t.Run("invalid taskSearch", func(t *testing.T) {
-		r := httptest.NewRequest("GET", "/sse?taskFilter=Search&taskSearch=[[[[", nil)
+		r := httptest.NewRequest("GET", "/sse?taskFilter=search&taskSearch=[[[[", nil)
 		w := httptest.NewRecorder()
 		tc.server.Handler(w, r)
 		require.Equal(t, http.StatusBadRequest, w.Code)
@@ -411,25 +427,25 @@ func TestCheckForNewCommits_BroadcastsToSubscribers(t *testing.T) {
 
 	c0 := "commit0"
 
-	tc.mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil).Maybe()
-	tc.mockWindow.On("EarliestStart").Return(time.Time{}).Maybe()
-	tc.mockCache.On("GetTasksForCommits", "https://repo.git", mock.Anything).Return(map[string]map[string]*types.Task{}, nil).Maybe()
+	tc.mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
+	tc.mockCache.On("GetTasksForCommits", "https://repo.git", mock.Anything).Return(map[string]map[string]*types.Task{}, nil)
 
 	// Now register a client stream that wants new commits
-	w := httptest.NewRecorder()
-	gzipWriter := gzip.NewWriter(w)
+	var buf bytes.Buffer
+	bufWriter := bufio.NewWriter(&buf)
 	client := &clientStream{
 		db:               tc.server.cfg.TaskDb,
 		tCache:           tc.server.cfg.TCache,
 		window:           tc.server.cfg.Window,
-		w:                gzipWriter,
-		flusher:          nil,
+		w:                bufWriter,
 		ctx:              tc.ctx,
 		branchRegex:      nil,
 		repoURL:          "https://repo.git",
 		wantsNewCommits:  true,
 		limit:            10,
 		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
+		taskFilter:       taskFilter_All,
+		activeTaskSpecs:  map[string]bool{},
 	}
 	tc.server.register(client)
 
@@ -449,27 +465,16 @@ func TestCheckForNewCommits_BroadcastsToSubscribers(t *testing.T) {
 	// Run checkForNewCommits
 	tc.server.checkForNewCommits()
 
-	// Close and flush client stream to verify output
-	err = gzipWriter.Close()
-	require.NoError(t, err)
-
 	// Read and verify if c1 was broadcasted
-	gzipReader, err := gzip.NewReader(w.Body)
-	require.NoError(t, err)
-	defer gzipReader.Close()
-
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, gzipReader)
-	require.NoError(t, err)
-
-	output := buf.String()
-	// Output should contain data and hash c1.
-	require.Contains(t, output, c1)
+	resps := readSSEStream(t, &buf)
+	require.Len(t, resps, 1)
+	require.Len(t, resps[0].Update.Commits, 1)
+	require.Equal(t, c1, resps[0].Update.Commits[0].Hash)
 }
 
 func TestSendUpdate_RemovesOldCommits(t *testing.T) {
-	w := httptest.NewRecorder()
-	gzipWriter := gzip.NewWriter(w)
+	var buf bytes.Buffer
+	bufWriter := bufio.NewWriter(&buf)
 	ctx := context.Background()
 
 	mockDB := &db_mocks.RemoteDB{}
@@ -492,7 +497,7 @@ func TestSendUpdate_RemovesOldCommits(t *testing.T) {
 		db:              s.cfg.TaskDb,
 		tCache:          s.cfg.TCache,
 		window:          s.cfg.Window,
-		w:               gzipWriter,
+		w:               bufWriter,
 		ctx:             ctx,
 		repoURL:         "https://repo.git",
 		wantsNewCommits: true,
@@ -510,7 +515,7 @@ func TestSendUpdate_RemovesOldCommits(t *testing.T) {
 	err := client.SendUpdate([]*rpc.LongCommit{
 		{Hash: "c5", IsAncestorOf: []string{"main"}},
 		{Hash: "c4", IsAncestorOf: []string{"main"}},
-	}, nil, "https://repo.git", nil, newRequestCache())
+	}, nil, "https://repo.git", nil, newRequestCache(), nil)
 	require.NoError(t, err)
 
 	// Since limit is 3, c.displayedCommits should be exactly ["c5", "c4", "c3"]
@@ -576,13 +581,13 @@ func TestSendUpdate_CombinesCachedAndUncachedTasks(t *testing.T) {
 	}
 	branchHeads := []*git.Branch{{Name: "main", Head: c1}}
 
-	w := httptest.NewRecorder()
-	gzipWriter := gzip.NewWriter(w)
+	var buf bytes.Buffer
+	bufWriter := bufio.NewWriter(&buf)
 	client := &clientStream{
 		db:              tc.server.cfg.TaskDb,
 		tCache:          tc.server.cfg.TCache,
 		window:          tc.server.cfg.Window,
-		w:               gzipWriter,
+		w:               bufWriter,
 		ctx:             tc.ctx,
 		repoURL:         "https://repo.git",
 		limit:           10,
@@ -591,18 +596,7 @@ func TestSendUpdate_CombinesCachedAndUncachedTasks(t *testing.T) {
 		activeTaskSpecs: map[string]bool{},
 	}
 
-	err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil, newRequestCache())
-	require.NoError(t, err)
-
-	err = gzipWriter.Close()
-	require.NoError(t, err)
-
-	gzipReader, err := gzip.NewReader(w.Body)
-	require.NoError(t, err)
-	defer gzipReader.Close()
-
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, gzipReader)
+	err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil, newRequestCache(), nil)
 	require.NoError(t, err)
 
 	output := buf.String()
@@ -656,13 +650,13 @@ func TestSendUpdate_OnlyTasksForDisplayedCommits(t *testing.T) {
 	}, nil)
 
 	// Setup client stream
-	w := httptest.NewRecorder()
-	gzipWriter := gzip.NewWriter(w)
+	var buf bytes.Buffer
+	bufWriter := bufio.NewWriter(&buf)
 	client := &clientStream{
 		db:               mockDB,
 		tCache:           mockCache,
 		window:           mockWindow,
-		w:                gzipWriter,
+		w:                bufWriter,
 		ctx:              ctx,
 		repoURL:          "https://repo.git",
 		limit:            10,
@@ -697,26 +691,19 @@ func TestSendUpdate_OnlyTasksForDisplayedCommits(t *testing.T) {
 		},
 	}
 
-	err := client.SendUpdate(nil, nil, "https://repo.git", tasks, newRequestCache())
+	err := client.SendUpdate(nil, nil, "https://repo.git", tasks, newRequestCache(), nil)
 	require.NoError(t, err)
 
-	// Close client stream to flush everything
-	err = gzipWriter.Close()
-	require.NoError(t, err)
+	// Read output and verify it is valid JSON and contains only the matching task
+	resps := readSSEStream(t, &buf)
+	require.Len(t, resps, 1)
 
-	// Read output and verify it is valid JSON and contains the matching task
-	gzipReader, err := gzip.NewReader(w.Body)
-	require.NoError(t, err)
-	defer gzipReader.Close()
-
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, gzipReader)
-	require.NoError(t, err)
-
-	output := buf.String()
-	require.Contains(t, output, "data:")
-	require.Contains(t, output, "task-matching-commit")
-	require.NotContains(t, output, "task-not-matching-commit")
+	var taskIds []string
+	for _, task := range resps[0].Update.Tasks {
+		taskIds = append(taskIds, task.Id)
+	}
+	require.Contains(t, taskIds, "task-matching-commit")
+	require.NotContains(t, taskIds, "task-not-matching-commit")
 }
 
 func TestSendUpdate_Filtering(t *testing.T) {
@@ -777,8 +764,8 @@ func TestSendUpdate_Filtering(t *testing.T) {
 	branchHeads := []*git.Branch{{Name: "main", Head: c1}}
 
 	getTasksForFilter := func(filter taskFilter, search string) []string {
-		w := httptest.NewRecorder()
-		gzipWriter := gzip.NewWriter(w)
+		var buf bytes.Buffer
+		bufWriter := bufio.NewWriter(&buf)
 		var taskSearch *regexp.Regexp
 		if search != "" {
 			var err error
@@ -789,7 +776,7 @@ func TestSendUpdate_Filtering(t *testing.T) {
 			db:              s.cfg.TaskDb,
 			tCache:          s.cfg.TCache,
 			window:          s.cfg.Window,
-			w:               gzipWriter,
+			w:               bufWriter,
 			ctx:             tc.ctx,
 			repoURL:         "https://repo.git",
 			limit:           10,
@@ -799,18 +786,7 @@ func TestSendUpdate_Filtering(t *testing.T) {
 			activeTaskSpecs: map[string]bool{},
 		}
 
-		err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil, newRequestCache())
-		require.NoError(t, err)
-
-		err = gzipWriter.Close()
-		require.NoError(t, err)
-
-		gzipReader, err := gzip.NewReader(w.Body)
-		require.NoError(t, err)
-		defer gzipReader.Close()
-
-		var buf bytes.Buffer
-		_, err = io.Copy(&buf, gzipReader)
+		err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil, newRequestCache(), nil)
 		require.NoError(t, err)
 
 		output := buf.String()
@@ -864,14 +840,13 @@ func TestSendUpdate_SendsAllTasksForNewlyVisibleTaskSpecs(t *testing.T) {
 	mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
 	mockWindow.On("EarliestStart").Return(time.Time{})
 
-	w := httptest.NewRecorder()
-	gzipWriter := gzip.NewWriter(w)
+	var buf bytes.Buffer
+	bufWriter := bufio.NewWriter(&buf)
 	client := &clientStream{
 		db:               mockDB,
 		tCache:           mockCache,
 		window:           mockWindow,
-		w:                gzipWriter,
-		flusher:          nil,
+		w:                bufWriter,
 		ctx:              ctx,
 		branchRegex:      nil,
 		repoURL:          "https://repo.git",
@@ -907,24 +882,20 @@ func TestSendUpdate_SendsAllTasksForNewlyVisibleTaskSpecs(t *testing.T) {
 		TaskKey: types.TaskKey{Name: "task-dynamic", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
 	}
 
-	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache())
+	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache(), nil)
 	require.NoError(t, err)
 
-	err = gzipWriter.Close()
-	require.NoError(t, err)
-
-	gzipReader, err := gzip.NewReader(w.Body)
-	require.NoError(t, err)
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, gzipReader)
-	require.NoError(t, err)
-	output := buf.String()
+	resps := readSSEStream(t, &buf)
+	require.Len(t, resps, 1)
 
 	// Verify that task-dynamic now appears in client's activeTaskSpecs.
 	require.True(t, client.activeTaskSpecs["task-dynamic"])
+
 	// Verify both "t-success" and "t-failure" were sent in the response.
-	require.Contains(t, output, "t-success")
-	require.Contains(t, output, "t-failure")
+	require.Len(t, resps[0].Update.Tasks, 2)
+	taskIds := []string{resps[0].Update.Tasks[0].Id, resps[0].Update.Tasks[1].Id}
+	require.Contains(t, taskIds, "t-success")
+	require.Contains(t, taskIds, "t-failure")
 }
 
 func TestSendUpdate_HideTaskSpecs(t *testing.T) {
@@ -938,14 +909,13 @@ func TestSendUpdate_HideTaskSpecs(t *testing.T) {
 	mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
 	mockWindow.On("EarliestStart").Return(time.Time{})
 
-	w := httptest.NewRecorder()
-	gzipWriter := gzip.NewWriter(w)
+	var buf bytes.Buffer
+	bufWriter := bufio.NewWriter(&buf)
 	client := &clientStream{
 		db:               mockDB,
 		tCache:           mockCache,
 		window:           mockWindow,
-		w:                gzipWriter,
-		flusher:          nil,
+		w:                bufWriter,
 		ctx:              ctx,
 		branchRegex:      nil,
 		repoURL:          "https://repo.git",
@@ -976,24 +946,17 @@ func TestSendUpdate_HideTaskSpecs(t *testing.T) {
 		TaskKey: types.TaskKey{Name: "task-dynamic", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
 	}
 
-	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache())
+	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache(), nil)
 	require.NoError(t, err)
 
-	err = gzipWriter.Close()
-	require.NoError(t, err)
-
-	gzipReader, err := gzip.NewReader(w.Body)
-	require.NoError(t, err)
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, gzipReader)
-	require.NoError(t, err)
-	output := buf.String()
+	resps := readSSEStream(t, &buf)
+	require.Len(t, resps, 1)
 
 	// Verify task-dynamic is no longer in client's activeTaskSpecs.
 	require.False(t, client.activeTaskSpecs["task-dynamic"])
+
 	// Verify hideTaskSpecs was sent containing "task-dynamic"
-	require.Contains(t, output, "hideTaskSpecs")
-	require.Contains(t, output, "task-dynamic")
+	require.Contains(t, resps[0].Update.HideTaskSpecs, "task-dynamic")
 }
 
 func TestRequestCache(t *testing.T) {
@@ -1046,4 +1009,192 @@ func TestRequestCache_Concurrent(t *testing.T) {
 
 	wg.Wait()
 	require.Equal(t, 1, calls, "Expected generator to be called exactly once")
+}
+
+func TestCheckForNewComments_BroadcastsToSubscribers(t *testing.T) {
+	tc := setupTestServer(t)
+
+	c0 := "commit0"
+
+	tc.mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
+	tc.mockCache.On("GetTasksForCommits", "https://repo.git", mock.Anything).Return(map[string]map[string]*types.Task{}, nil)
+
+	// Now register a client stream that wants updates
+	var buf bytes.Buffer
+	bufWriter := bufio.NewWriter(&buf)
+	client := &clientStream{
+		db:               tc.server.cfg.TaskDb,
+		tCache:           tc.server.cfg.TCache,
+		window:           tc.server.cfg.Window,
+		w:                bufWriter,
+		ctx:              tc.ctx,
+		branchRegex:      nil,
+		repoURL:          "https://repo.git",
+		wantsNewCommits:  true,
+		limit:            10,
+		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
+		taskFilter:       taskFilter_All,
+		activeTaskSpecs:  map[string]bool{},
+	}
+	tc.server.register(client)
+
+	// Set the comments to be returned by the mocked GetCommentsForRepos
+	tc.comments = []*types.RepoComments{
+		{
+			Repo: "https://repo.git",
+			CommitComments: map[string][]*types.CommitComment{
+				c0: {
+					{
+						Repo:          "https://repo.git",
+						Revision:      c0,
+						Timestamp:     time.Now().UTC(),
+						User:          "test-user@google.com",
+						IgnoreFailure: true,
+						Message:       "This is a test comment",
+					},
+				},
+			},
+		},
+	}
+
+	// Run checkForNewComments
+	tc.server.checkForNewComments(tc.ctx)
+
+	// Read and verify if the comment was broadcasted
+	resps := readSSEStream(t, &buf)
+	require.Len(t, resps, 1)
+	require.Len(t, resps[0].Update.Comments, 1)
+	require.Equal(t, "This is a test comment", resps[0].Update.Comments[0].Message)
+}
+
+func TestCheckForNewComments_CreateUpdateDelete(t *testing.T) {
+	tc := setupTestServer(t)
+
+	c0 := "commit0"
+
+	tc.mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
+	tc.mockCache.On("GetTasksForCommits", "https://repo.git", mock.Anything).Return(map[string]map[string]*types.Task{}, nil)
+
+	// Register a client stream.
+	var buf bytes.Buffer
+	bufWriter := bufio.NewWriter(&buf)
+	client := &clientStream{
+		db:               tc.server.cfg.TaskDb,
+		tCache:           tc.server.cfg.TCache,
+		window:           tc.server.cfg.Window,
+		w:                bufWriter,
+		ctx:              tc.ctx,
+		branchRegex:      nil,
+		repoURL:          "https://repo.git",
+		wantsNewCommits:  true,
+		limit:            10,
+		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
+		taskFilter:       taskFilter_All,
+		activeTaskSpecs:  map[string]bool{},
+	}
+	tc.server.register(client)
+
+	// Helper to extract all broadcasted comments so far.
+	getComments := func() []*rpc.Comment {
+		resps := readSSEStream(t, &buf)
+		var comments []*rpc.Comment
+		for _, r := range resps {
+			if r.Update != nil {
+				comments = append(comments, r.Update.Comments...)
+			}
+		}
+		return comments
+	}
+
+	// Create a comment.
+	comment1 := &types.CommitComment{
+		Repo:          "https://repo.git",
+		Revision:      c0,
+		Timestamp:     time.Now().UTC().Truncate(time.Second),
+		User:          "test-user@google.com",
+		IgnoreFailure: false,
+		Message:       "First comment",
+	}
+	tc.comments = []*types.RepoComments{
+		{
+			Repo: "https://repo.git",
+			CommitComments: map[string][]*types.CommitComment{
+				c0: {comment1},
+			},
+		},
+	}
+
+	tc.server.checkForNewComments(tc.ctx)
+
+	commentsPh1 := getComments()
+	require.Len(t, commentsPh1, 1)
+	require.Equal(t, comment1.Id(), commentsPh1[0].Id)
+	require.Equal(t, "First comment", commentsPh1[0].Message)
+	require.False(t, commentsPh1[0].IgnoreFailure)
+	require.False(t, commentsPh1[0].Deleted)
+
+	// Update the comment.
+	comment1Modified := &types.CommitComment{
+		Repo:          comment1.Repo,
+		Revision:      comment1.Revision,
+		Timestamp:     comment1.Timestamp,
+		User:          comment1.User,
+		IgnoreFailure: true,
+		Message:       "First comment - modified",
+	}
+	tc.comments = []*types.RepoComments{
+		{
+			Repo: "https://repo.git",
+			CommitComments: map[string][]*types.CommitComment{
+				c0: {comment1Modified},
+			},
+		},
+	}
+
+	tc.server.checkForNewComments(tc.ctx)
+
+	commentsPh2 := getComments()
+	require.Len(t, commentsPh2, 2)
+	require.Equal(t, comment1.Id(), commentsPh2[1].Id)
+	require.Equal(t, "First comment - modified", commentsPh2[1].Message)
+	require.True(t, commentsPh2[1].IgnoreFailure)
+	require.False(t, commentsPh2[1].Deleted)
+
+	// Delete the comment.
+	tc.comments = []*types.RepoComments{
+		{
+			Repo: "https://repo.git",
+		},
+	}
+
+	tc.server.checkForNewComments(tc.ctx)
+
+	commentsPh3 := getComments()
+	require.Len(t, commentsPh3, 3)
+	require.Equal(t, comment1.Id(), commentsPh3[2].Id)
+	require.True(t, commentsPh3[2].Deleted)
+}
+
+func readSSEStream(t *testing.T, buf *bytes.Buffer) []*rpc.GetIncrementalCommitsResponse {
+	output := buf.String()
+	lines := strings.Split(output, "\n\n")
+
+	var responses []*rpc.GetIncrementalCommitsResponse
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		jsonData := strings.TrimPrefix(line, "data: ")
+
+		var resp rpc.GetIncrementalCommitsResponse
+		err := protojson.Unmarshal([]byte(jsonData), &resp)
+		require.NoError(t, err)
+
+		responses = append(responses, &resp)
+	}
+	return responses
 }

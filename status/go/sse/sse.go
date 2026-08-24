@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"slices"
@@ -25,6 +26,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/window"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -49,6 +51,8 @@ type SSEServer struct {
 	cfg              Config
 	ancestryCache    map[string]map[string][]string
 	ancestryCacheMtx sync.RWMutex
+	lastComments     map[string][]*rpc.Comment
+	lastCommentsMtx  sync.RWMutex
 }
 
 func New(ctx context.Context, cfg Config) (*SSEServer, error) {
@@ -79,15 +83,26 @@ func New(ctx context.Context, cfg Config) (*SSEServer, error) {
 		clients:         make(map[*clientStream]bool),
 		lastBranchHeads: make(map[string][]*git.Branch),
 		modifiedTasksCh: cfg.TaskDb.ModifiedTasksCh(ctx),
+		lastComments:    make(map[string][]*rpc.Comment),
 		cfg:             cfg,
 	}
-	// Warm up branch heads
+	// Initial branch heads and ancestry cache.
 	for _, repoURL := range cfg.RepoUrls {
 		repo := cfg.Repos[repoURL]
 		s.lastBranchHeads[repoURL] = repo.BranchHeads()
 		s.ancestryCache[repoURL] = make(map[string][]string, repo.Len())
 		updateAncestryCache(s.ancestryCache[repoURL], repo, nil)
 	}
+
+	// Initial comments.
+	repoComments, err := cfg.TaskDb.GetCommentsForRepos(ctx, cfg.RepoUrls, cfg.Window.EarliestStart())
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to load initial comments")
+	}
+	for _, rc := range repoComments {
+		s.lastComments[rc.Repo] = convertComments(rc)
+	}
+
 	go s.broadcastLoop(ctx)
 	return s, nil
 }
@@ -194,13 +209,15 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 		branchRegex:     branchRegex,
 		ctx:             ctx,
 		db:              s.cfg.TaskDb,
-		flusher:         flusher,
 		limit:           n,
 		repoURL:         repoURL,
 		taskFilter:      taskFilter,
 		taskSearch:      taskSearch,
 		tCache:          s.cfg.TCache,
-		w:               gzipWriter,
+		w: &doubleFlushingWriter{
+			flushWriter: gzipWriter,
+			flusher:     flusher,
+		},
 		wantsNewCommits: cursor == "",
 		window:          s.cfg.Window,
 	}
@@ -219,9 +236,14 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 	rpcCommits := convertCommits(resultCommits, s.ancestryCache[repoURL])
 	s.ancestryCacheMtx.RUnlock()
 
+	// Get initial comments.
+	s.lastCommentsMtx.RLock()
+	initialComments := s.lastComments[repoURL]
+	s.lastCommentsMtx.RUnlock()
+
 	// Build the initial response.
 	rq := newRequestCache()
-	if err := clientStream.sendUpdateLocked(rpcCommits, branchHeads, repoURL, nil, rq); err != nil {
+	if err := clientStream.sendUpdateLocked(rpcCommits, branchHeads, repoURL, nil, rq, initialComments); err != nil {
 		clientStream.mtx.Unlock()
 		httputils.ReportError(w, err, "failed to build send response", http.StatusInternalServerError)
 		return
@@ -245,8 +267,10 @@ func (s *SSEServer) unregister(client *clientStream) {
 }
 
 func (s *SSEServer) broadcastLoop(ctx context.Context) {
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
+	commitsTicker := time.NewTicker(10 * time.Second)
+	defer commitsTicker.Stop()
+	commentsTicker := time.NewTicker(10 * time.Second)
+	defer commentsTicker.Stop()
 
 	for {
 		select {
@@ -254,8 +278,10 @@ func (s *SSEServer) broadcastLoop(ctx context.Context) {
 			return
 		case tasks := <-s.modifiedTasksCh:
 			s.broadcastTasks(tasks)
-		case <-ticker.C:
+		case <-commitsTicker.C:
 			s.checkForNewCommits()
+		case <-commentsTicker.C:
+			s.checkForNewComments(ctx)
 		}
 	}
 }
@@ -268,7 +294,7 @@ func (s *SSEServer) broadcastTasks(tasks []*types.Task) {
 		}
 	}
 	for repoURL, repoTasks := range tasksByRepo {
-		s.broadcastUpdate(nil, nil, repoURL, repoTasks)
+		s.broadcastUpdate(nil, nil, repoURL, repoTasks, nil)
 	}
 }
 
@@ -293,12 +319,62 @@ func (s *SSEServer) checkForNewCommits() {
 
 			newBranchHeads := repo.BranchHeads()
 			s.lastBranchHeads[repoURL] = newBranchHeads
-			s.broadcastUpdate(rpcCommits, newBranchHeads, repoURL, nil)
+			s.broadcastUpdate(rpcCommits, newBranchHeads, repoURL, nil, nil)
 		}
 	}
 }
 
-func (s *SSEServer) broadcastUpdate(commits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, tasks []*types.Task) {
+func (s *SSEServer) checkForNewComments(ctx context.Context) {
+	s.lastCommentsMtx.Lock()
+	defer s.lastCommentsMtx.Unlock()
+
+	repoComments, err := s.cfg.TaskDb.GetCommentsForRepos(ctx, s.cfg.RepoUrls, s.cfg.Window.EarliestStart())
+	if err != nil {
+		sklog.Errorf("failed to retrieve comments: %v", err)
+		return
+	}
+
+	for _, rc := range repoComments {
+		prevComments := s.lastComments[rc.Repo]
+		newComments := convertComments(rc)
+
+		var updatedComments []*rpc.Comment
+
+		prevCommentsMap := make(map[string]*rpc.Comment, len(prevComments))
+		for _, c := range prevComments {
+			prevCommentsMap[c.Id] = c
+		}
+
+		newCommentsMap := make(map[string]*rpc.Comment, len(newComments))
+		for _, c := range newComments {
+			newCommentsMap[c.Id] = c
+		}
+
+		// Find new or updated comments
+		for _, c := range newComments {
+			if prev, ok := prevCommentsMap[c.Id]; !ok || !proto.Equal(prev, c) {
+				updatedComments = append(updatedComments, c)
+			}
+		}
+
+		// Find deleted comments
+		for _, prev := range prevComments {
+			if _, ok := newCommentsMap[prev.Id]; !ok {
+				deletedComment := proto.Clone(prev).(*rpc.Comment)
+				deletedComment.Deleted = true
+				updatedComments = append(updatedComments, deletedComment)
+			}
+		}
+
+		s.lastComments[rc.Repo] = newComments
+
+		if len(updatedComments) > 0 {
+			s.broadcastUpdate(nil, nil, rc.Repo, nil, updatedComments)
+		}
+	}
+}
+
+func (s *SSEServer) broadcastUpdate(commits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, tasks []*types.Task, comments []*rpc.Comment) {
 	s.clientsMtx.Lock()
 	var eg errgroup.Group
 	rq := newRequestCache()
@@ -310,7 +386,7 @@ func (s *SSEServer) broadcastUpdate(commits []*rpc.LongCommit, branchHeads []*gi
 				return nil
 			default:
 			}
-			if err := client.SendUpdate(commits, branchHeads, repoURL, tasks, rq); err != nil {
+			if err := client.SendUpdate(commits, branchHeads, repoURL, tasks, rq, comments); err != nil {
 				s.unregister(client)
 				return skerr.Wrapf(err, "failed to send response; unregistered the client")
 			}
@@ -396,20 +472,39 @@ func (s *SSEServer) sortCandidates(candidates []*repograph.Commit) {
 	})
 }
 
+type flushWriter interface {
+	io.Writer
+	Flush() error
+}
+
+type doubleFlushingWriter struct {
+	flushWriter
+	flusher http.Flusher
+}
+
+func (d *doubleFlushingWriter) Flush() error {
+	if err := d.flushWriter.Flush(); err != nil {
+		return err
+	}
+	if d.flusher != nil {
+		d.flusher.Flush()
+	}
+	return nil
+}
+
 type clientStream struct {
 	activeTaskSpecs  map[string]bool
 	branchRegex      *regexp.Regexp
 	ctx              context.Context
 	db               db.TaskReader
 	displayedCommits []*rpc.LongCommit
-	flusher          http.Flusher
 	limit            int
 	mtx              sync.Mutex
 	repoURL          string
 	taskFilter       taskFilter
 	taskSearch       *regexp.Regexp
 	tCache           cache.TaskCache
-	w                *gzip.Writer
+	w                flushWriter
 	wantsNewCommits  bool
 	window           window.Window
 }
@@ -422,15 +517,15 @@ func (c *clientStream) Done() <-chan struct{} {
 //
 // repoURL must always be set. Either newTasks or newCommits and branchHeads,
 // or all of the above must be set.
-func (s *clientStream) SendUpdate(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache) error {
+func (s *clientStream) SendUpdate(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache, newComments []*rpc.Comment) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	return s.sendUpdateLocked(newCommits, branchHeads, repoURL, newTasks, rq)
+	return s.sendUpdateLocked(newCommits, branchHeads, repoURL, newTasks, rq, newComments)
 }
 
 // sendUpdateLocked is a helper function for SendUpdate which assumes that the
 // caller holds clientStream.mtx.
-func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache) error {
+func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache, newComments []*rpc.Comment) error {
 	if repoURL != s.repoURL {
 		return nil
 	}
@@ -541,6 +636,11 @@ func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHead
 		return skerr.Wrap(err)
 	}
 
+	// Add comments.
+	if len(newComments) > 0 {
+		resp.Update.Comments = append(resp.Update.Comments, newComments...)
+	}
+
 	// Send the update, if non-empty.
 	if !updateIsEmpty(resp) {
 		jsonData, err := protojson.Marshal(resp)
@@ -553,9 +653,6 @@ func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHead
 		}
 		if err := s.w.Flush(); err != nil {
 			return skerr.Wrapf(err, "failed to flush SSE stream")
-		}
-		if s.flusher != nil {
-			s.flusher.Flush()
 		}
 	}
 	return nil
@@ -782,4 +879,58 @@ func specMatchesFilter(tasks []*types.Task, filter taskFilter, search *regexp.Re
 		return false
 	}
 	return false
+}
+
+func convertComments(rc *types.RepoComments) []*rpc.Comment {
+	if rc == nil {
+		return nil
+	}
+	var rv []*rpc.Comment
+	for hash, comments := range rc.CommitComments {
+		for _, c := range comments {
+			rv = append(rv, &rpc.Comment{
+				Commit:        hash,
+				Id:            c.Id(),
+				Repo:          c.Repo,
+				Timestamp:     timestamppb.New(c.Timestamp),
+				User:          c.User,
+				IgnoreFailure: c.IgnoreFailure,
+				Message:       c.Message,
+				Deleted:       c.Deleted != nil && *c.Deleted,
+			})
+		}
+	}
+	for _, comments := range rc.TaskSpecComments {
+		for _, c := range comments {
+			rv = append(rv, &rpc.Comment{
+				Id:            c.Id(),
+				Repo:          c.Repo,
+				TaskSpecName:  c.Name,
+				Timestamp:     timestamppb.New(c.Timestamp),
+				User:          c.User,
+				Flaky:         c.Flaky,
+				IgnoreFailure: c.IgnoreFailure,
+				Message:       c.Message,
+				Deleted:       c.Deleted != nil && *c.Deleted,
+			})
+		}
+	}
+	for hash, commitComments := range rc.TaskComments {
+		for _, comments := range commitComments {
+			for _, c := range comments {
+				rv = append(rv, &rpc.Comment{
+					Commit:       hash,
+					Id:           c.Id(),
+					Repo:         c.Repo,
+					TaskSpecName: c.Name,
+					Timestamp:    timestamppb.New(c.Timestamp),
+					TaskId:       c.TaskId,
+					User:         c.User,
+					Message:      c.Message,
+					Deleted:      c.Deleted != nil && *c.Deleted,
+				})
+			}
+		}
+	}
+	return rv
 }
