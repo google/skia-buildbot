@@ -34,7 +34,7 @@
  * @example
  */
 import { html, LitElement } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import '../../../elements-sk/modules/collapse-sk';
 import '../commit-detail-panel-sk';
 import '../plot-google-chart-sk';
@@ -59,7 +59,11 @@ import {
   TraceSet,
 } from '../json';
 import { dataframeToCSV, downloadCSV, removeSpecialTraces } from '../csv';
-import { PlotShowTooltipEventDetails } from '../plot-google-chart-sk/plot-google-chart-sk';
+import {
+  PlotGoogleChartSk,
+  PlotShowTooltipEventDetails,
+} from '../plot-google-chart-sk/plot-google-chart-sk';
+import { findSubDataframe, generateSubDataframe } from '../dataframe/index';
 import '../window/window';
 import { lookupCids } from '../cid/cid';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -203,6 +207,9 @@ export class ClusterSummary2Sk extends LitElement {
   private frame: FrameResponse | null = null;
 
   private fullSummary: FullSummary | null = null;
+
+  @query('plot-google-chart-sk')
+  private plotGoogleChart?: PlotGoogleChartSk;
 
   private _alert: Alert | null = null;
 
@@ -362,6 +369,14 @@ export class ClusterSummary2Sk extends LitElement {
     } else {
       df = cleanDf;
     }
+
+    if (this.plotGoogleChart?.selectedRange && df.header && df.header.length > 0) {
+      const selected = findSubDataframe(df.header, this.plotGoogleChart.selectedRange, 'offset');
+      if (selected.begin < selected.end) {
+        df = generateSubDataframe(df, selected);
+      }
+    }
+
     const csvContent = dataframeToCSV(df);
     if (!csvContent) {
       errorMessage('Failed to generate CSV from traces.');

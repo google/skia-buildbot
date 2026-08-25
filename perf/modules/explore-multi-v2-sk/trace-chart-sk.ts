@@ -2270,7 +2270,20 @@ export class TraceChartSk extends LitElement {
     if (!this.series || this.series.length === 0) {
       return;
     }
-    const cleanSeries = removeSpecialTraces(this.series);
+    let cleanSeries = removeSpecialTraces(this.series);
+    if (cleanSeries.length === 0) {
+      return;
+    }
+    if (typeof this._viewportMinX === 'number' && typeof this._viewportMaxX === 'number') {
+      cleanSeries = cleanSeries
+        .map((s) => ({
+          ...s,
+          rows: (s.rows || []).filter(
+            (r) => r.commit_number >= this._viewportMinX! && r.commit_number <= this._viewportMaxX!
+          ),
+        }))
+        .filter((s) => s.rows.length > 0);
+    }
     if (cleanSeries.length === 0) {
       return;
     }

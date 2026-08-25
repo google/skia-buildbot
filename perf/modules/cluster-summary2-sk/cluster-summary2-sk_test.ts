@@ -229,4 +229,42 @@ describe('cluster-summary2-sk', () => {
       HTMLAnchorElement.prototype.click = origClick;
     }
   });
+
+  it('exports subset of commits when plotGoogleChart has selectedRange', async () => {
+    element.full_summary = fullSummary;
+    await (element as any).updateComplete;
+
+    const plot = element.querySelector('plot-google-chart-sk') as any;
+    if (plot) {
+      plot.selectedRange = {
+        begin: 1,
+        end: 1,
+      };
+    }
+
+    let downloadedFilename = '';
+    const origCreateObjectURL = URL.createObjectURL;
+    const origRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = () => 'blob:test';
+    URL.revokeObjectURL = () => {};
+
+    const origClick = HTMLAnchorElement.prototype.click;
+    let clicked = false;
+    HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
+      clicked = true;
+      downloadedFilename = this.download;
+    };
+
+    try {
+      const btn = element.querySelector('#exportCsvBtn') as HTMLElement;
+      assert.isNotNull(btn);
+      btn.click();
+      assert.isTrue(clicked);
+      assert.equal(downloadedFilename, 'cluster-X123.csv');
+    } finally {
+      URL.createObjectURL = origCreateObjectURL;
+      URL.revokeObjectURL = origRevokeObjectURL;
+      HTMLAnchorElement.prototype.click = origClick;
+    }
+  });
 });

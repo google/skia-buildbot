@@ -868,4 +868,46 @@ describe('trace-chart-sk', () => {
       HTMLAnchorElement.prototype.click = origClick;
     }
   });
+
+  it('filters rows to active viewport when exportCsv is called', async () => {
+    element.series = [
+      {
+        id: ',arch=x86,config=8888,',
+        color: '#fff',
+        rows: [
+          { commit_number: 100, val: 10, createdat: 1000, hash: 'h100' },
+          { commit_number: 101, val: 20, createdat: 2000, hash: 'h101' },
+          { commit_number: 102, val: 30, createdat: 3000, hash: 'h102' },
+        ],
+      },
+    ];
+    (element as any)._viewportMinX = 101;
+    (element as any)._viewportMaxX = 101;
+    await element.updateComplete;
+
+    let exportedBlob: Blob | null = null;
+    const origCreateObjectURL = URL.createObjectURL;
+    const origRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = (blob: Blob | MediaSource) => {
+      exportedBlob = blob as Blob;
+      return 'blob:test';
+    };
+    URL.revokeObjectURL = () => {};
+
+    const origClick = HTMLAnchorElement.prototype.click;
+    let clicked = false;
+    HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
+      clicked = true;
+    };
+
+    try {
+      element.exportCsv();
+      expect(clicked).to.be.true;
+      expect(exportedBlob).to.not.be.null;
+    } finally {
+      URL.createObjectURL = origCreateObjectURL;
+      URL.revokeObjectURL = origRevokeObjectURL;
+      HTMLAnchorElement.prototype.click = origClick;
+    }
+  });
 });

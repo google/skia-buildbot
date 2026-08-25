@@ -929,7 +929,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   }
 
   get hasTraces(): boolean {
-    const df = this.getDataFrame();
+    const df = this.getSubDataFrame();
     if (df && df.traceset) {
       const cleanDf = removeSpecialTraces(df);
       return Object.keys(cleanDf.traceset).length > 0;
@@ -938,7 +938,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   }
 
   exportCsvHandler = () => {
-    const df = this.getDataFrame();
+    const df = this.getSubDataFrame();
     if (!df || !df.traceset || Object.keys(df.traceset).length === 0) {
       errorMessage('No traces available to export.');
       return;
@@ -3870,11 +3870,17 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     return this.query?.paramset ?? {};
   }
 
-  getDataFrame() {
+  getDataFrame(): DataFrame {
     return this.dfRepo.value?.dataframe &&
       Object.keys(this.dfRepo.value.dataframe.traceset || {}).length > 0
       ? this.dfRepo.value.dataframe
       : this._dataframe;
+  }
+
+  getSubDataFrame(): DataFrame {
+    return this._dataframe?.header && this._dataframe.header.length > 0
+      ? this._dataframe
+      : this.getDataFrame();
   }
 
   set defaults(val: QueryConfig | null) {
