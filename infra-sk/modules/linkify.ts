@@ -1,5 +1,8 @@
 /** @module infra-sk/modules/linkify */
 
+import { unsafeHTML, UnsafeHTMLDirective } from 'lit/directives/unsafe-html.js';
+import { DirectiveResult } from 'lit/directive.js';
+
 /**
  * Given a string (usually given by an untrustworthy user), this returns a new
  * one which contains the string contents with the following "improvements":
@@ -53,15 +56,11 @@ export function escapeAndLinkifyToString(s: string): string {
  *
  *   html`user input: ${escapeAndLinkify(untrustedUserInput)}`;
  */
-export function escapeAndLinkify(s: string): HTMLDivElement | string {
+export function escapeAndLinkify(s: string): DirectiveResult<typeof UnsafeHTMLDirective> {
   if (!s) {
     return '';
   }
-
-  const new_string = escapeAndLinkifyToString(s);
-  const div = document.createElement('div');
-  div.innerHTML = new_string;
-  return div;
+  return unsafeHTML(escapeAndLinkifyToString(s));
 }
 
 const supportedIssueTrackers = [

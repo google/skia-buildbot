@@ -64,9 +64,10 @@ import { $$ } from '../../../infra-sk/modules/dom';
 import { diffDate, strDuration } from '../../../infra-sk/modules/human';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
-import { abbr, linkify, displayNotes } from '../am';
+import { abbr, displayNotes } from '../am';
 import * as paramset from '../paramset';
 import { Silence, Incident, Params, RecentIncidentsResponse, Note } from '../json';
+import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 
 const MAX_MATCHING_SILENCES_TO_DISPLAY = 50;
 
@@ -216,7 +217,7 @@ export class IncidentSk extends HTMLElement {
           <tr>
             <th>${k}</th>
             <td>
-              <span class="respect-newlines">${linkify(params[k])}</span>
+              <span class="respect-newlines">${escapeAndLinkify(params[k])}</span>
               ${this.maybeDisplayCopyIcon(k)}
             </td>
           </tr>

@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { render } from 'lit/html.js';
 import { escapeAndLinkify } from './linkify';
 
 describe('formatAndLinkify', () => {
@@ -69,5 +70,9 @@ describe('formatAndLinkify', () => {
 });
 
 const test = (input: string, output: string) => {
-  expect((escapeAndLinkify(input) as HTMLDivElement).innerHTML).to.equal(output);
+  const container = document.createElement('div');
+  render(escapeAndLinkify(input), container);
+  // lit-html rendering adds comments. Strip them before comparing.
+  const cleanHTML = container.innerHTML.replace(/<!--.*-->/g, '');
+  expect(cleanHTML).to.equal(output);
 };

@@ -20,5 +20,6 @@ ts_library(
         "//:node_modules/lit",
         "//am/modules/json:index_ts_lib",
         "//infra-sk/modules:human_ts_lib",
+        "//infra-sk/modules:linkify_ts_lib",
     ],
 )

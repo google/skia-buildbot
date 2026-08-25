@@ -7,6 +7,7 @@ karma_test(
         ":linkify_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//:node_modules/lit",
     ],
 )
 
@@ -14,6 +15,7 @@ ts_library(
     name = "linkify_ts_lib",
     srcs = ["linkify.ts"],
     visibility = ["//visibility:public"],
+    deps = ["//:node_modules/lit"],
 )
 
 karma_test(

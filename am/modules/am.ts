@@ -1,11 +1,8 @@
 // Functions used by more than one element.
-import { unsafeHTML, UnsafeHTMLDirective } from 'lit/directives/unsafe-html.js';
-import { DirectiveResult } from 'lit/directive.js';
 import { TemplateResult, html } from 'lit/html.js';
 import { diffDate } from '../../infra-sk/modules/human';
 import { Note, ParamSet } from './json';
-
-const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
+import { escapeAndLinkify } from '../../infra-sk/modules/linkify';
 
 /**
  * Returns the full name of a silence.
@@ -47,14 +44,6 @@ export function abbr(paramsAbbr: string): string {
 }
 
 /**
- * Convert all URLs in a string into links in a lit-html TemplateResult.
- */
-// eslint-disable-next-line @typescript-eslint/type-annotation-spacing
-export function linkify(s: string): DirectiveResult<typeof UnsafeHTMLDirective> {
-  return unsafeHTML(s.replace(linkRe, '<a href="$&" rel=noopener target=_blank>$&</a>'));
-}
-
-/**
  * Templates notes to be displayed.
  */
 export function displayNotes(notes: Note[], stateKey: string, eventName: string): TemplateResult[] {
@@ -64,7 +53,7 @@ export function displayNotes(notes: Note[], stateKey: string, eventName: string)
   return notes.map(
     (note: Note, index: number) =>
       html`<section class="note">
-        <p class="note-text">${linkify(note.text)}</p>
+        <p class="note-text">${escapeAndLinkify(note.text)}</p>
         <div class="meta">
           <span class="author">${note.author}</span>
           <span class="date">${diffDate(note.ts * 1000)}</span>

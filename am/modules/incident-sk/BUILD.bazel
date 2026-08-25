@@ -23,6 +23,7 @@ sk_element(
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:human_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:linkify_ts_lib",
     ],
     ts_srcs = [
         "incident-sk.ts",
