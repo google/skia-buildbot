@@ -818,13 +818,13 @@ cipd.download_http(
     name = "cipd",
     cipd_package = "infra/tools/cipd/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "2dc81120f52fb118afc32b22a2b5c077df1883e620b8d830c08cf09e0ec76f7d",
-        "linux-arm64": "535ff061dd8bae86052b509668daab933462d7efb7b26c84224916f2c12cb0fd",
+        "linux-amd64": "b89286bf33f751fbfc2342c862ee49a7f23a0fe3b6ceaedc97213b73849a0fcf",
+        "linux-arm64": "917cb19e38e1eaaa471349e563dcb0b647f3d94b441dd1ac0d269da32dfbf720",
         "mac-amd64": "02d32fa834867749fe97240c6ffd20c5b48fc1da4c401e16822ed54a75beb180",
         "mac-arm64": "8a697596be599664ca38c925a7667ea2f5a6db922161d7afc289c760beff30c7",
         "windows-amd64": "ea551ba77cf8062a6498c1a9f8f499b6b387568fccfd68a8c8fb53fa0e42417b",
     },
-    tag = "git_revision:0e4cb6152e3aee32eca411edf436f6017c39068a",
+    tag = "git_revision:b13ab40e69d4f619043106ee53eb9aaf82e71055",
 )
 use_repo(cipd, "cipd_linux-amd64")
 
