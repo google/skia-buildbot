@@ -159,6 +159,8 @@ describe('cluster-summary2-sk', () => {
     element.addEventListener('open-keys', (e: any) => {
       eventCaught = true;
       assert.equal(e.detail.shortcut, 'X123');
+      assert.equal(e.detail.begin, 1234567880);
+      assert.equal(e.detail.end, 1234567890);
     });
 
     const btn = element.querySelector('#shortcut') as HTMLElement;

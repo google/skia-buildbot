@@ -508,13 +508,14 @@ export class ClusterSummary2Sk extends LitElement {
       return;
     }
     const firstHeader = header.find((h) => h !== null);
-    if (!firstHeader) {
+    const lastHeader = [...header].reverse().find((h) => h !== null);
+    if (!firstHeader || !lastHeader) {
       return;
     }
     const detail: ClusterSummary2SkOpenKeysEventDetail = {
       shortcut: this.summary.shortcut,
       begin: firstHeader.timestamp,
-      end: Math.floor(Date.now() / 1000),
+      end: lastHeader.timestamp,
       xbar: this.summary.step_point,
     };
     this.dispatchEvent(
