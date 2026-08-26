@@ -79,6 +79,7 @@ go_test(
         "//task_scheduler/go/task_execution/swarmingv2",
         "//task_scheduler/go/testutils",
         "//task_scheduler/go/types",
+        "//task_scheduler/go/types/mocks",
         "//task_scheduler/go/window",
         "//task_scheduler/go/window/mocks",
         "@com_github_stretchr_testify//assert",

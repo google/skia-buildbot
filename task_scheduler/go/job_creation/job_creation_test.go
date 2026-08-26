@@ -36,6 +36,7 @@ import (
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -364,6 +365,7 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 				Value: []string{"Ubuntu"},
 			},
 		},
+		LastSeenTs: timestamppb.New(time.Now().UTC()),
 	}
 	swarmingClient.MockBots([]*apipb.BotInfo{bot1})
 

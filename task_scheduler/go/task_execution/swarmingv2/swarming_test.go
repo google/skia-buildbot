@@ -528,6 +528,7 @@ func TestConvertMachine_Minimal(t *testing.T) {
 }
 
 func TestConvertMachine_Full(t *testing.T) {
+	lastSeen := time.Date(2026, 8, 25, 12, 0, 0, 0, time.UTC)
 	bot := &apipb.BotInfo{
 		BotId: "bot-id",
 		Dimensions: []*apipb.StringListPair{
@@ -548,6 +549,7 @@ func TestConvertMachine_Full(t *testing.T) {
 		IsDead:      true,
 		Quarantined: true,
 		TaskId:      "task-id",
+		LastSeenTs:  timestamppb.New(lastSeen),
 	}
 	machine := &types.Machine{
 		ID: "bot-id",
@@ -560,6 +562,7 @@ func TestConvertMachine_Full(t *testing.T) {
 		IsDead:        true,
 		IsQuarantined: true,
 		CurrentTaskID: "task-id",
+		LastSeen:      lastSeen,
 	}
 	require.Equal(t, machine, convertMachine(bot))
 }

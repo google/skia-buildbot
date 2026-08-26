@@ -52,6 +52,7 @@ import (
 	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
+	types_mocks "go.skia.org/infra/task_scheduler/go/types/mocks"
 	"go.skia.org/infra/task_scheduler/go/window"
 	window_mocks "go.skia.org/infra/task_scheduler/go/window/mocks"
 )
@@ -1748,6 +1749,7 @@ func makeSwarmingBot(id string, dims []string) *types.Machine {
 	return &types.Machine{
 		ID:         id,
 		Dimensions: dims,
+		LastSeen:   time.Now().UTC(),
 	}
 }
 
@@ -1937,6 +1939,7 @@ func makeBot(id string, dims map[string]string) *types.Machine {
 	return &types.Machine{
 		ID:         id,
 		Dimensions: dimensions,
+		LastSeen:   time.Now().UTC(),
 	}
 }
 
@@ -1948,6 +1951,7 @@ func mockBots(t sktest.TestingT, swarmingClient *swarming_testutils.TestClient, 
 		swarmBots = append(swarmBots, &apipb.BotInfo{
 			BotId:      bot.ID,
 			Dimensions: swarmingv2.StringMapToBotDimensions(dims),
+			LastSeenTs: timestamppb.New(time.Now().UTC()),
 		})
 	}
 	swarmingClient.MockBots(swarmBots)
@@ -4348,4 +4352,41 @@ func newMemRepo(t sktest.TestingT) (*mem_git.MemGit, *repograph.Graph) {
 	require.NoError(t, err)
 	gb.AddUpdater(repo)
 	return gb, repo
+}
+
+func TestGetFreeMachines_LastSeenFilter(t *testing.T) {
+	ctx := context.Background()
+	currentTime := time.Now().UTC()
+	ctx = context.WithValue(ctx, now.ContextKey, currentTime)
+
+	m1 := &types.Machine{
+		ID:            "bot-healthy",
+		LastSeen:      currentTime.Add(-30 * time.Second),
+		IsDead:        false,
+		IsQuarantined: false,
+	}
+	m2 := &types.Machine{
+		ID:            "bot-silent",
+		LastSeen:      currentTime.Add(-3 * time.Minute),
+		IsDead:        false,
+		IsQuarantined: false,
+	}
+	m3 := &types.Machine{
+		ID:            "bot-no-lastseen",
+		LastSeen:      time.Time{},
+		IsDead:        false,
+		IsQuarantined: false,
+	}
+
+	exec := &types_mocks.TaskExecutor{}
+	exec.On("Pools").Return([]string{"Skia"})
+	exec.On("GetFreeMachines", mock.Anything, "Skia").Return([]*types.Machine{m1, m2, m3}, nil)
+	exec.On("GetPendingTasks", mock.Anything, "Skia").Return([]*types.TaskResult{}, nil)
+
+	busy := newBusyBots(BusyBotsDebugLoggingOff)
+	free, err := getFreeMachines(ctx, exec, busy)
+	require.NoError(t, err)
+
+	require.Len(t, free, 1)
+	require.Equal(t, "bot-healthy", free[0].ID)
 }

@@ -75,6 +75,7 @@ type Machine struct {
 	IsDead        bool
 	IsQuarantined bool
 	CurrentTaskID string
+	LastSeen      time.Time
 }
 
 // TaskExecutor is a framework for executing Tasks.

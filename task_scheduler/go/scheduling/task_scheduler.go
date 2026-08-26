@@ -1624,6 +1624,9 @@ func getFreeMachines(ctx context.Context, taskExec types.TaskExecutor, busy *bus
 		if machine.CurrentTaskID != "" {
 			continue
 		}
+		if machine.LastSeen.IsZero() || now.Now(ctx).Sub(machine.LastSeen) > 2*time.Minute {
+			continue
+		}
 		rv = append(rv, machine)
 	}
 	busy.RefreshTasks(pending)

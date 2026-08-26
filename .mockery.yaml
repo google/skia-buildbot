@@ -470,6 +470,9 @@ packages:
   go.skia.org/infra/task_scheduler/go/task_cfg_cache:
     interfaces:
       TaskCfgCache:
+  go.skia.org/infra/task_scheduler/go/types:
+    interfaces:
+      TaskExecutor:
   go.skia.org/infra/task_scheduler/go/window:
     interfaces:
       Window:

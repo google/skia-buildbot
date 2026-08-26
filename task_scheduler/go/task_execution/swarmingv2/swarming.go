@@ -383,12 +383,17 @@ func convertTaskStatus(state apipb.TaskState, failure bool) (types.TaskStatus, e
 // convertMachine converts a apipb.BotInfo to a
 // types.Machine.
 func convertMachine(bot *apipb.BotInfo) *types.Machine {
+	var lastSeen time.Time
+	if bot.LastSeenTs != nil {
+		lastSeen = bot.LastSeenTs.AsTime().UTC()
+	}
 	return &types.Machine{
 		ID:            bot.BotId,
 		Dimensions:    swarmingv2.BotDimensionsToStringSlice(bot.Dimensions),
 		IsDead:        bot.IsDead,
 		IsQuarantined: bot.Quarantined,
 		CurrentTaskID: bot.TaskId,
+		LastSeen:      lastSeen,
 	}
 }
 
