@@ -620,13 +620,13 @@ cipd.download_http(
     name = "luci-auth",
     cipd_package = "infra/tools/luci-auth/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "22740bd690844ede591b63c1c43db1792973b9e9bebd82f1c35d965c4d83864a",
+        "linux-amd64": "d3c1f18a9b49488dd028b25da0164acd848ef159928ed712895a1f7817365e1d",
         "linux-arm64": "e8f32a70454ed40a8502f0a9de0ac206a2e5ecb551b68a9f11bca5583be1bf03",
-        "mac-amd64": "ddbf4b574b41f5b7473865d836309a9b3769dd48216372d02be67c2904fc5368",
-        "mac-arm64": "fe30f9a4e20a97beaa07d0a9888929e25ee07d0b9a0a67934b248425443288c2",
-        "windows-amd64": "c00c40768bedfc2e0621696d267a5b44a6fcd80357fcb6c7872a0b954f7496c1",
+        "mac-amd64": "95acb2b763647db97d6b93e3b4bc76d53a2d1555e2d1674a35993fab3b943144",
+        "mac-arm64": "32b4aebee7f3b2a45f36e6250e06a6f69b4c4751f6420307779d24827cc55a92",
+        "windows-amd64": "d9d12e96a453e9297b040d1f94fdf6de40a640469d66ba63e0162abb6a2c634d",
     },
-    tag = "git_revision:0e4cb6152e3aee32eca411edf436f6017c39068a",
+    tag = "git_revision:b13ab40e69d4f619043106ee53eb9aaf82e71055",
 )
 use_repo(cipd, "luci-auth_linux-amd64")
 
