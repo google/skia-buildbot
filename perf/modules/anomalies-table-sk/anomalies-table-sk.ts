@@ -282,9 +282,37 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     return this.sortDirection === 'up' ? 'ascending' : 'descending';
   }
 
+  private compareGroupAnomalyCounts(a: AnomalyGroup, b: AnomalyGroup): number {
+    if (!a.summaryData.calculated) {
+      this.calculateSummaryForGroup(a);
+    }
+    if (!b.summaryData.calculated) {
+      this.calculateSummaryForGroup(b);
+    }
+
+    const negA = a.summaryData.numRegressions;
+    const negB = b.summaryData.numRegressions;
+    if (negA !== negB) {
+      // Default: most negative anomalies first
+      return negB - negA;
+    }
+
+    const posA = a.summaryData.numImprovements;
+    const posB = b.summaryData.numImprovements;
+    // If negative anomalies tie, prioritize those that have less positive anomalies
+    return posA - posB;
+  }
+
   private sortGroups(groups: AnomalyGroup[]): AnomalyGroup[] {
     const up = this.sortDirection === 'up';
     return [...groups].sort((a, b) => {
+      // Because group sorting relies on sorting two keys, we cannot use the
+      // single value generic comparison further below.
+      if (this.sortKey === 'anomalyCount') {
+        const diff = this.compareGroupAnomalyCounts(a, b);
+        return up ? diff : -diff;
+      }
+
       const valA = this.getGroupSortValue(a);
       const valB = this.getGroupSortValue(b);
 
@@ -310,6 +338,8 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     }
 
     switch (this.sortKey) {
+      case 'anomalyCount':
+        return group.summaryData.numRegressions;
       case 'bugid':
         return group.summaryData.bug;
       case 'revisions':
@@ -531,7 +561,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
         class="anomalies-table"
         ?hidden=${this.anomalyList.length === 0}>
         <tr class="headers">
-          <th id="group-${this.uniqueId}"></th>
+          ${this.renderSortableHeader('anomalyCount', 'Anomaly Count')}
           <th id="checkbox-${this.uniqueId}">
             <label for="header-checkbox-${this.uniqueId}"
               ><input
@@ -854,6 +884,9 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     const anomalyForBugReportLink = this.getReportLinkForSummaryRowBugId(anomalyGroup);
     const bugIdForLink = anomalyForBugReportLink ? anomalyForBugReportLink.bug_id : 0;
 
+    const numImprovements = anomalyGroup.anomalies.filter((a) => a.is_improvement).length;
+    const numRegressions = anomalyGroup.anomalies.length - numImprovements;
+
     const summaryData: SummaryData = {
       startRevision: minStartRevision,
       endRevision: maxEndRevision,
@@ -863,6 +896,8 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       delta: deltaValue,
       isSummaryRegression: isSummaryRegression,
       bug: bugIdForLink,
+      numRegressions: numRegressions,
+      numImprovements: numImprovements,
       calculated: true,
     };
 

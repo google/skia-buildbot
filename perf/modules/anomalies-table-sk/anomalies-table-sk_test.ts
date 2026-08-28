@@ -182,6 +182,90 @@ describe('anomalies-table-sk', () => {
       assert.equal(sorted[0].anomalies[0].id, '1');
     });
 
+    it('sorts groups by anomaly count with most negative first and tie-breaking by less positive', () => {
+      // Group 1: 5 regressions, 0 improvements
+      const group1: AnomalyGroup = {
+        anomalies: [
+          dummyAnomaly('1a', 0, 100, 200, ''),
+          dummyAnomaly('1b', 0, 100, 200, ''),
+          dummyAnomaly('1c', 0, 100, 200, ''),
+          dummyAnomaly('1d', 0, 100, 200, ''),
+          dummyAnomaly('1e', 0, 100, 200, ''),
+        ],
+        expanded: false,
+        summaryData: new SummaryData(),
+      };
+      // Group 2: 5 regressions, 2 improvements
+      const group2: AnomalyGroup = {
+        anomalies: [
+          dummyAnomaly('2a', 0, 100, 200, ''),
+          dummyAnomaly('2b', 0, 100, 200, ''),
+          dummyAnomaly('2c', 0, 100, 200, ''),
+          dummyAnomaly('2d', 0, 100, 200, ''),
+          dummyAnomaly('2e', 0, 100, 200, ''),
+          { ...dummyAnomaly('2f', 0, 100, 200, ''), is_improvement: true },
+          { ...dummyAnomaly('2g', 0, 100, 200, ''), is_improvement: true },
+        ],
+        expanded: false,
+        summaryData: new SummaryData(),
+      };
+      // Group 3: 3 regressions, 1 improvement
+      const group3: AnomalyGroup = {
+        anomalies: [
+          dummyAnomaly('3a', 0, 100, 200, ''),
+          dummyAnomaly('3b', 0, 100, 200, ''),
+          dummyAnomaly('3c', 0, 100, 200, ''),
+          { ...dummyAnomaly('3d', 0, 100, 200, ''), is_improvement: true },
+        ],
+        expanded: false,
+        summaryData: new SummaryData(),
+      };
+      // Group 4: 0 regressions, 1 improvement
+      const group4: AnomalyGroup = {
+        anomalies: [{ ...dummyAnomaly('4a', 0, 100, 200, ''), is_improvement: true }],
+        expanded: false,
+        summaryData: new SummaryData(),
+      };
+      // Group 5: 0 regressions, 4 improvements
+      const group5: AnomalyGroup = {
+        anomalies: [
+          { ...dummyAnomaly('5a', 0, 100, 200, ''), is_improvement: true },
+          { ...dummyAnomaly('5b', 0, 100, 200, ''), is_improvement: true },
+          { ...dummyAnomaly('5c', 0, 100, 200, ''), is_improvement: true },
+          { ...dummyAnomaly('5d', 0, 100, 200, ''), is_improvement: true },
+        ],
+        expanded: false,
+        summaryData: new SummaryData(),
+      };
+
+      const groups = [group4, group2, group5, group1, group3];
+
+      element['sortKey'] = 'anomalyCount';
+      element['sortDirection'] = 'up';
+      let sorted: AnomalyGroup[] = element['sortGroups'](groups);
+      assert.deepEqual(
+        sorted.map((g: AnomalyGroup) => g.anomalies[0].id),
+        ['1a', '2a', '3a', '4a', '5a']
+      );
+
+      element['sortDirection'] = 'down';
+      sorted = element['sortGroups'](groups);
+      assert.deepEqual(
+        sorted.map((g: AnomalyGroup) => g.anomalies[0].id),
+        ['5a', '4a', '3a', '2a', '1a']
+      );
+    });
+
+    it('updates sortKey to anomalyCount and toggles sortDirection on anomaly count header click', async () => {
+      element['handleSort']('anomalyCount');
+      assert.equal(element['sortKey'], 'anomalyCount');
+      assert.equal(element['sortDirection'], 'up');
+
+      element['handleSort']('anomalyCount');
+      assert.equal(element['sortKey'], 'anomalyCount');
+      assert.equal(element['sortDirection'], 'down');
+    });
+
     it('handles getGroupSortValue edge cases', () => {
       const emptyGroup: AnomalyGroup = {
         anomalies: [],

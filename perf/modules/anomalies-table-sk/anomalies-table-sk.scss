@@ -12,6 +12,7 @@ anomalies-table-sk {
   }
 
   .anomalies-table {
+    th[id^='anomalyCount-'],
     th[id^='group-'],
     td:first-child {
       width: 1%;

@@ -29,6 +29,10 @@ export class SummaryData {
   // all bugs in a tooltip.
   bug: number = 0;
 
+  numRegressions: number = 0;
+
+  numImprovements: number = 0;
+
   calculated = false;
 }
 
