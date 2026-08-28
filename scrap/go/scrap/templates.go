@@ -69,7 +69,9 @@ func templateName(t Type, lang Lang) string {
 //	  `"</svg>";`,
 //	}
 func bodyAsQuotedStringSlice(body string) []string {
-	// Escape all the double quotes.
+	// Escape backslashes first, then double quotes, so that an input `\"`
+	// becomes `\\\"` rather than `\\"` (which would terminate the literal).
+	body = strings.ReplaceAll(body, `\`, `\\`)
 	body = strings.ReplaceAll(body, `"`, `\"`)
 
 	// Break into individual lines.

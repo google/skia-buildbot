@@ -23,10 +23,20 @@ func extractBodyUniforms(body ScrapBody) ([]uniformValue, error) {
 	return uniforms, nil
 }
 
+// rawStringDelim is the d-char-sequence used for the C++ raw string literal
+// that carries attacker-supplied SkSL. A non-empty delimiter ensures that a
+// bare `)"` inside the SkSL body cannot terminate the literal and inject C++.
+const rawStringDelim = "SkSLScrap"
+
 // writeShaderProgramAsCPPStringConstant writes the shader code into a C++
 // string constant.
-func writeShaderProgramAsCPPStringConstant(w io.StringWriter, node scrapNode) {
-	mustWriteStringf(w, "    constexpr char prog%s[] = R\"(\n", node.Name)
+func writeShaderProgramAsCPPStringConstant(w io.StringWriter, node scrapNode) error {
+	// Refuse any body that contains the raw-string terminator. Legitimate SkSL
+	// has no reason to contain this sequence.
+	if strings.Contains(node.Scrap.Body, ")"+rawStringDelim+"\"") {
+		return skerr.Fmt("SkSL body may not contain the raw-string delimiter sequence")
+	}
+	mustWriteStringf(w, "    constexpr char prog%s[] = R\"%s(\n", node.Name, rawStringDelim)
 
 	mustWriteStringf(w, "%s", indentMultilineString(skslDefaultInputs, 8))
 
@@ -35,7 +45,8 @@ func writeShaderProgramAsCPPStringConstant(w io.StringWriter, node scrapNode) {
 	mustWriteStringf(w, "\n")
 	mustWriteStringf(w, "%s", indentMultilineString(node.Scrap.Body, 8))
 
-	mustWriteStringf(w, "\n    )\";")
+	mustWriteStringf(w, "\n    )%s\";", rawStringDelim)
+	return nil
 }
 
 // writeCustomUniformSetup will write the Skia C++ code to the supplied
@@ -84,10 +95,11 @@ func writeShaderUniformSetup(w io.StringWriter, node scrapNode) error {
 		// This is a program error. They should be the same size and order.
 		return skerr.Fmt("Child count mismatch")
 	}
+	esc := strings.NewReplacer(`\`, `\\`, `"`, `\"`)
 	for i := 0; i < len(node.Children); i++ {
 		mustWriteStringf(w, "    builder%s.child(\"%s\") = shader%s;\n",
 			node.Name,
-			node.Scrap.SKSLMetaData.Children[i].UniformName,
+			esc.Replace(node.Scrap.SKSLMetaData.Children[i].UniformName),
 			node.Children[i].Name,
 		)
 	}
@@ -136,7 +148,9 @@ func writeCreateShadersCPP(w io.StringWriter, node scrapNode) error {
 	if node.Name != "" {
 		mustWriteStringf(w, "    // Shader %q:\n", node.Name)
 	}
-	writeShaderProgramAsCPPStringConstant(w, node)
+	if err := writeShaderProgramAsCPPStringConstant(w, node); err != nil {
+		return skerr.Wrap(err)
+	}
 	mustWriteStringf(w, "\n")
 	if err := writeShaderCreationCPP(w, node); err != nil {
 		return skerr.Wrap(err)

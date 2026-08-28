@@ -2,6 +2,7 @@ package scrap
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -63,7 +64,7 @@ func TestTemplateExpand_SkSLToCPP_ResponseMatchesExpected(t *testing.T) {
     const SkSamplingOptions shaderOptions(SkFilterMode::kLinear);
     const float playbackTime = duration != 0.0 ? frame * duration : 0.0;
 
-    constexpr char prog[] = R"(
+    constexpr char prog[] = R"SkSLScrap(
         // Inputs supplied by shaders.skia.org:
         uniform float3 iResolution;      // Viewport resolution (pixels)
         uniform float  iTime;            // Shader playback time (s)
@@ -74,7 +75,7 @@ func TestTemplateExpand_SkSLToCPP_ResponseMatchesExpected(t *testing.T) {
         half4 main(in vec2 fragCoord ) {
             return vec4( result, 1.0 );
         }
-    )";
+    )SkSLScrap";
     auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
     if (!effect) {
         SkDebugf("Cannot create effect");
@@ -123,7 +124,7 @@ func TestTemplateExpand_SkSLToCPPWithMetadata_ResponseMatchesExpected(t *testing
     const float playbackTime = duration != 0.0 ? frame * duration : 0.0;
 
     // Shader "Test":
-    constexpr char progTest[] = R"(
+    constexpr char progTest[] = R"SkSLScrap(
         // Inputs supplied by shaders.skia.org:
         uniform float3 iResolution;      // Viewport resolution (pixels)
         uniform float  iTime;            // Shader playback time (s)
@@ -137,7 +138,7 @@ func TestTemplateExpand_SkSLToCPPWithMetadata_ResponseMatchesExpected(t *testing
         half4 main(in vec2 fragCoord ) {
             return vec4( result, iSomeSlider );
         }
-    )";
+    )SkSLScrap";
     auto [effectTest, errTest] = SkRuntimeEffect::MakeForShader(SkString(progTest));
     if (!effectTest) {
         SkDebugf("Cannot create effectTest");
@@ -602,4 +603,238 @@ half4 main(float2 fragCoord) {
 }`,
 				SKSLMetaData: &SKSLMetaData{Uniforms: []float32{0.5}},
 			}})
+}
+
+func assertInRawString(t *testing.T, code string, token string) {
+	start := strings.Index(code, `R"SkSLScrap(`)
+	require.NotEqual(t, -1, start, "Could not find raw string start")
+	start += len(`R"SkSLScrap(`)
+
+	end := strings.Index(code[start:], `)SkSLScrap"`)
+	require.NotEqual(t, -1, end, "Could not find raw string end")
+	end += start
+
+	searchStart := 0
+	foundAny := false
+	for {
+		idx := strings.Index(code[searchStart:], token)
+		if idx == -1 {
+			break
+		}
+		foundAny = true
+		actualIdx := searchStart + idx
+		assert.True(t, actualIdx >= start && actualIdx+len(token) <= end,
+			"Vulnerability: %s at index %d is outside the raw string literal boundaries!", token, actualIdx)
+		searchStart = actualIdx + len(token)
+	}
+	require.True(t, foundAny, "Token %q not found in code", token)
+}
+
+func assertInDoubleQuotedString(t *testing.T, code string, token string) {
+	foundAny := false
+	for _, line := range strings.Split(code, "\n") {
+		if strings.Contains(line, "builder") && strings.Contains(line, ".child(") {
+			firstQuote := strings.Index(line, `"`)
+			lastQuote := strings.LastIndex(line, `"`)
+			require.True(t, firstQuote != -1 && lastQuote != -1 && firstQuote < lastQuote)
+
+			searchStart := 0
+			for {
+				idx := strings.Index(line[searchStart:], token)
+				if idx == -1 {
+					break
+				}
+				foundAny = true
+				actualIdx := searchStart + idx
+				assert.True(t, actualIdx > firstQuote && actualIdx+len(token) <= lastQuote,
+					"Vulnerability: %s broke out of the double-quoted string literal on line: %s", token, line)
+				searchStart = actualIdx + len(token)
+			}
+		}
+	}
+	require.True(t, foundAny, "Could not find line containing token %q", token)
+}
+
+func assertInSVGLineQuotes(t *testing.T, block string, token string) {
+	foundAny := false
+	for _, line := range strings.Split(block, "\n") {
+		if strings.Contains(line, token) {
+			firstQuote := strings.Index(line, `"`)
+			lastQuote := strings.LastIndex(line, `"`)
+			require.True(t, firstQuote != -1 && lastQuote != -1 && firstQuote < lastQuote, "Quotes not found or mismatched on line: %s", line)
+
+			searchStart := 0
+			for {
+				idx := strings.Index(line[searchStart:], token)
+				if idx == -1 {
+					break
+				}
+				foundAny = true
+				actualIdx := searchStart + idx
+				assert.True(t, actualIdx > firstQuote && actualIdx+len(token) <= lastQuote,
+					"Vulnerability: %s broke out of standard quotes in line: %s", token, line)
+				searchStart = actualIdx + len(token)
+			}
+		}
+	}
+	require.True(t, foundAny, "Could not find any line containing token %q", token)
+}
+
+func TestTemplateExpand_SkSLToCPP_RawStringBreakout_Reproduction(t *testing.T) {
+	tmplMap, err := loadTemplates()
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name          string
+		body          string
+		token         string
+		expectError   bool
+		expectedError string
+	}{
+		{
+			name:  "raw string breakout",
+			body:  `half4 main() { return half4(1); })" ; int injected_var = 123; // R"(`,
+			token: "injected_var",
+		},
+		{
+			name:  "raw string terminator without payload is allowed and trapped",
+			body:  `half4 main() { return half4(1); })" injected_var`,
+			token: "injected_var",
+		},
+		{
+			name:          "custom delimiter sequence is rejected with error",
+			body:          `half4 main() { return half4(1); })SkSLScrap" ; int injected_var = 123; //`,
+			token:         "injected_var",
+			expectError:   true,
+			expectedError: "SkSL body may not contain the raw-string delimiter sequence",
+		},
+		{
+			name:  "partial custom delimiter sequence is allowed and trapped",
+			body:  `half4 main() { return half4(1); })SkSLScrap ; int injected_var = 123;`,
+			token: "injected_var",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			body := ScrapBody{
+				Type: SKSL,
+				Body: tc.body,
+			}
+			var b bytes.Buffer
+			err = tmplMap[CPP][SKSL].Execute(&b, scrapNode{Scrap: body})
+			if tc.expectError {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.expectedError)
+			} else {
+				require.NoError(t, err)
+				assertInRawString(t, b.String(), tc.token)
+			}
+		})
+	}
+}
+
+func TestBodyAsQuotedStringSlice_BackslashQuoteBreakout_Reproduction(t *testing.T) {
+	testCases := []struct {
+		name  string
+		input string
+		token string
+	}{
+		{
+			name:  "backslash quote breakout",
+			input: `<svg attr="\\\"; int injected_svg_var = 123; //">`,
+			token: "injected_svg_var",
+		},
+		{
+			name:  "single backslash followed by quote",
+			input: `<svg attr="\"; int injected_svg_var = 123; //">`,
+			token: "injected_svg_var",
+		},
+		{
+			name:  "multiple backslashes and quotes",
+			input: `\\\\\" injected_svg_var`,
+			token: "injected_svg_var",
+		},
+		{
+			name:  "trailing backslash on last line",
+			input: `injected_svg_var \`,
+			token: "injected_svg_var",
+		},
+		{
+			name:  "trailing backslash on non-last line in multiline SVG",
+			input: "injected_svg_var \\\n<svg>",
+			token: "injected_svg_var",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			lines := bodyAsQuotedStringSlice(tc.input)
+			outputBlock := strings.Join(lines, "\n")
+			assertInSVGLineQuotes(t, outputBlock, tc.token)
+		})
+	}
+
+}
+
+func TestTemplateExpand_SkSLToCPP_ChildUniformNameBreakout_Reproduction(t *testing.T) {
+	tmplMap, err := loadTemplates()
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name        string
+		uniformName string
+		token       string
+	}{
+		{
+			name:        "child uniform name breakout",
+			uniformName: `myChild"); int injected_child_var = 123; //`,
+			token:       "injected_child_var",
+		},
+		{
+			name:        "already escaped quote breakout",
+			uniformName: `myChild\"); int injected_child_var = 123; //`,
+			token:       "injected_child_var",
+		},
+		{
+			name:        "multiple backslashes breakout",
+			uniformName: `myChild\\"); int injected_child_var = 123; //`,
+			token:       "injected_child_var",
+		},
+		{
+			name:        "trailing backslash inside child uniform",
+			uniformName: `myChild\`,
+			token:       "myChild",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			body := ScrapBody{
+				Type: SKSL,
+				Body: "half4 main() { return half4(1); }",
+				SKSLMetaData: &SKSLMetaData{
+					Children: []ChildShader{
+						{
+							UniformName:     tc.uniformName,
+							ScrapHashOrName: "@some_child",
+						},
+					},
+				},
+			}
+
+			rootNode := scrapNode{
+				Name:  "1",
+				Scrap: body,
+				Children: []scrapNode{
+					{Name: "2", Scrap: ScrapBody{Type: SKSL, Body: "half4 main() { return half4(1); }"}},
+				},
+			}
+
+			var b bytes.Buffer
+			err = tmplMap[CPP][SKSL].Execute(&b, rootNode)
+			require.NoError(t, err)
+
+			assertInDoubleQuotedString(t, b.String(), tc.token)
+		})
+	}
 }
