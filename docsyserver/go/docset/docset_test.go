@@ -228,6 +228,88 @@ func TestFileSystem_FileOutsideDocPathIsAdded_SuccessAndFileIsNotPresent(t *test
 	docsy.AssertExpectations(t)
 }
 
+func TestFileSystem_AllowedCLFileExtensions(t *testing.T) {
+	ctx, workDir, _, _, docsy, cr, docset := setupForTestWithMainRepoLoaded(t)
+
+	cr.On("GetPatchsetInfo", testutils.AnyContext, issue).Return(patchsetRef, false, nil)
+
+	// List of files that contains both allowed (including case variations) and disallowed files.
+	modifiedFiles := []codereview.ListModifiedFilesResult{
+		// Allowed extensions
+		{Filename: "site/a.md", Deleted: false},
+		{Filename: "site/b.MD", Deleted: false},
+		{Filename: "site/c.png", Deleted: false},
+		{Filename: "site/d.PNG", Deleted: false},
+		{Filename: "site/e.jpg", Deleted: false},
+		{Filename: "site/f.jpeg", Deleted: false},
+		{Filename: "site/g.gif", Deleted: false},
+		{Filename: "site/h.svg", Deleted: false},
+		{Filename: "site/i.webp", Deleted: false},
+		{Filename: "site/j.ico", Deleted: false},
+		{Filename: "site/k.txt", Deleted: false},
+		{Filename: "site/l.css", Deleted: false},
+
+		// Disallowed extensions
+		{Filename: "site/config.toml", Deleted: false},
+		{Filename: "site/index.html", Deleted: false},
+		{Filename: "site/main.go", Deleted: false},
+		{Filename: "site/build.sh", Deleted: false},
+		{Filename: "site/manifest.yaml", Deleted: false},
+		{Filename: "site/styles.scss", Deleted: false},
+		{Filename: "site/no_ext", Deleted: false},
+	}
+
+	cr.On("ListModifiedFiles", testutils.AnyContext, issue, patchsetRef).Return(modifiedFiles, nil)
+
+	// Mock GetFile ONLY for allowed files. For disallowed files, GetFile should NOT be called.
+	allowedFiles := []string{
+		"site/a.md",
+		"site/b.MD",
+		"site/c.png",
+		"site/d.PNG",
+		"site/e.jpg",
+		"site/f.jpeg",
+		"site/g.gif",
+		"site/h.svg",
+		"site/i.webp",
+		"site/j.ico",
+		"site/k.txt",
+		"site/l.css",
+	}
+	for _, fn := range allowedFiles {
+		cr.On("GetFile", testutils.AnyContext, fn, patchsetRef).Return([]byte("dummy content"), nil)
+	}
+
+	src := filepath.Join(workDir, contentSubDirectory, string(issue), docPath)
+	dst := filepath.Join(workDir, destinationSubDirectory, string(issue), docPath)
+	docsy.On("Render", testutils.AnyContext, src, dst).Return(nil)
+
+	_, err := docset.FileSystem(ctx, issue)
+	require.NoError(t, err)
+
+	// Verify that allowed files exist
+	for _, fn := range allowedFiles {
+		require.FileExists(t, filepath.Join(workDir, contentSubDirectory, string(issue), fn))
+	}
+
+	// Verify that disallowed files do not exist
+	disallowedFiles := []string{
+		"site/config.toml",
+		"site/index.html",
+		"site/main.go",
+		"site/build.sh",
+		"site/manifest.yaml",
+		"site/styles.scss",
+		"site/no_ext",
+	}
+	for _, fn := range disallowedFiles {
+		require.NoFileExists(t, filepath.Join(workDir, contentSubDirectory, string(issue), fn))
+	}
+
+	cr.AssertExpectations(t)
+	docsy.AssertExpectations(t)
+}
+
 func TestFileSystem_FileAddedButGetFileFails_ReturnsError(t *testing.T) {
 	ctx, _, _, _, _, cr, docset := setupForTestWithMainRepoLoaded(t)
 

@@ -34,6 +34,23 @@ const (
 
 var (
 	IssueClosedErr = errors.New("The requested issue has been merged or abandoned.")
+
+	// allowedCLFileExtensions is the set of file types that copyAndPatch will
+	// accept from an unreviewed code review issue. Anything else (hugo
+	// configuration, layout templates, module manifests, etc.) is ignored so
+	// that a CL author cannot influence how hugo itself executes.
+	allowedCLFileExtensions = map[string]bool{
+		".md":   true,
+		".png":  true,
+		".jpg":  true,
+		".jpeg": true,
+		".gif":  true,
+		".svg":  true,
+		".webp": true,
+		".ico":  true,
+		".txt":  true,
+		".css":  true,
+	}
 )
 
 // DocSet represents a set of hugo rendered documentation, one for the main
@@ -251,6 +268,15 @@ func (d *docSet) copyAndPatch(ctx context.Context, issue codereview.Issue, patch
 
 		// Check if file is a subdir of docPath.
 		if !strings.HasPrefix(fileinfo.Filename, docPath) {
+			continue
+		}
+
+		// Only accept rendered content (.md, images, etc.) from an unreviewed
+		// CL. Rejecting everything else prevents a CL author from overwriting
+		// config.toml, layout templates, or other files that control hugo's
+		// own behaviour when docsy.Render builds the preview.
+		if !allowedCLFileExtensions[strings.ToLower(filepath.Ext(fileinfo.Filename))] {
+			sklog.Warningf("Skipping non-content CL file: %s", fileinfo.Filename)
 			continue
 		}
 
