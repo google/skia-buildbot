@@ -196,6 +196,9 @@ export class ClusterSummary2Sk extends LitElement {
   private xbarValue: number = -1;
 
   @state()
+  private commitIndex: number = -1;
+
+  @state()
   private commitsDetails: any[] = [];
 
   @state()
@@ -311,7 +314,9 @@ export class ClusterSummary2Sk extends LitElement {
           specialevents
           .data=${this.graphData}
           .xbar=${this.xbarValue}
-          @plot-data-select=${this.traceSelected}></plot-google-chart-sk>
+          @plot-data-select=${this.traceSelected}>
+          <md-text slot="xbar">|</md-text>
+        </plot-google-chart-sk>
       </div>
       ${this.renderStatusPanel()}
       <commit-detail-panel-sk
@@ -327,7 +332,7 @@ export class ClusterSummary2Sk extends LitElement {
         <a id="permalink" class=${this.hiddenClass()} href=${this.permaLink()}> Permlink </a>
         <commit-range-sk
           .trace=${this.summary.centroid || []}
-          .commitIndex=${this.xbarValue}
+          .commitIndex=${this.commitIndex}
           .header=${this.frame?.dataframe?.header || null}></commit-range-sk>
       </div>
       <collapse-sk class="wordCloudCollapse" .closed=${this.wordCloudClosedValue}>
@@ -463,10 +468,11 @@ export class ClusterSummary2Sk extends LitElement {
     }
 
     const step = this.summary.step_point;
-    const xbar = headers.findIndex((h) => h?.offset === step.offset);
-    if (xbar !== -1) {
-      this.xbarValue = xbar;
+    const index = headers.findIndex((h) => h?.offset === step.offset);
+    if (index !== -1) {
+      this.commitIndex = index;
     }
+    this.xbarValue = step.offset;
 
     this.fetchCommitDetails(step.offset);
   }
@@ -529,6 +535,8 @@ export class ClusterSummary2Sk extends LitElement {
     if (commitNumber === undefined) {
       return;
     }
+    this.commitIndex = e.detail.tableRow;
+    this.xbarValue = commitNumber;
     ClusterSummary2Sk.lookupCids([commitNumber])
       .then((json) => {
         this.commitsDetails = json.commitSlice || [];
