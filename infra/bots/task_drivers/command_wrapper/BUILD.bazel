@@ -7,10 +7,12 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/exec",
+        "//go/gitauth",
         "//go/sklog",
         "//go/util",
         "//task_driver/go/lib/cas",
         "//task_driver/go/lib/cipd",
+        "//task_driver/go/lib/git_steps",
         "//task_driver/go/lib/os_steps",
         "//task_driver/go/td",
         "//task_scheduler/go/types",

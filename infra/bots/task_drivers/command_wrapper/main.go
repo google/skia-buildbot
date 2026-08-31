@@ -13,10 +13,12 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/cas"
 	"go.skia.org/infra/task_driver/go/lib/cipd"
+	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -41,6 +43,7 @@ var (
 
 	// Optional flags.
 	local      = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
+	gitAuth    = flag.Bool("gitauth", false, "True if gitauth should be set up for the subcommand.")
 	jsonOutput = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 )
 
@@ -99,6 +102,7 @@ func main() {
 	// Setup.
 	var ts oauth2.TokenSource
 	var workdir string
+	runCtx := ctx
 	if err := td.Do(ctx, td.Props("Setup").Infra(), func(ctx context.Context) error {
 		// Create/cleanup the working directory.
 		var err error
@@ -132,6 +136,18 @@ func main() {
 				return err
 			}
 		}
+
+		if *gitAuth {
+			var err error
+			ts, err = git_steps.Init(ctx, *local)
+			if err != nil {
+				return err
+			}
+			if _, err := gitauth.New(runCtx, ts, "/tmp/.gitcookies", true, ""); err != nil {
+				return err
+			}
+		}
+
 		return nil
 
 		// TODO(borenet): Handle TaskRequest.Caches.
