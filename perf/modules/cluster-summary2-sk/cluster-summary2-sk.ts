@@ -407,9 +407,6 @@ export class ClusterSummary2Sk extends LitElement {
 
   protected updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
-    if (changedProperties.has('fullSummary') && this.fullSummary) {
-      this.updateGraphData();
-    }
   }
 
   private updateDatasetStats(stepFit: StepFit | null) {
@@ -594,6 +591,7 @@ export class ClusterSummary2Sk extends LitElement {
     this.fullSummary = val;
     this.summary = val.summary;
     this.frame = val.frame;
+    this.updateGraphData();
     this.requestUpdate('full_summary', oldVal);
   }
 
