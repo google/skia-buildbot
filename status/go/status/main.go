@@ -192,7 +192,7 @@ func getRepoTwirp(repo string) (string, string, error) {
 	return repoUrlToName(repoURL), repoURL, nil
 }
 
-func defaultHandler(w http.ResponseWriter, _ *http.Request) {
+func legacyHandler(w http.ResponseWriter, _ *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
@@ -230,7 +230,7 @@ func defaultHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func experimentalHandler(w http.ResponseWriter, _ *http.Request) {
+func sseHandler(w http.ResponseWriter, _ *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
@@ -353,8 +353,8 @@ func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter.Handle(rpc.StatusServicePathPrefix+"*", httputils.LoggingRequestResponse(srv))
 	topLevelRouter.HandleFunc("/sse", sseServer.Handler)
 	topLevelRouter.With(httputils.LoggingGzipRequestResponse).Route("/", func(r chi.Router) {
-		r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
-		r.HandleFunc("/experimental", httputils.CorsHandler(experimentalHandler))
+		r.HandleFunc("/", httputils.CorsHandler(sseHandler))
+		r.HandleFunc("/legacy", httputils.CorsHandler(legacyHandler))
 		r.HandleFunc("/capacity", capacityHandler)
 		r.HandleFunc("/orphaned-tasks-machines", orphanedTasksMachinesHandler)
 		r.HandleFunc("/lkgr", lkgrHandler)
