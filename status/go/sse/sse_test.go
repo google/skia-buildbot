@@ -623,6 +623,50 @@ func TestSendUpdate_CombinesCachedAndUncachedTasks(t *testing.T) {
 	require.Equal(t, string(types.TASK_STATUS_FAILURE), taskMap["task-uncached"].Status)
 }
 
+func TestHandler_Cursor(t *testing.T) {
+	tc := setupTestServer(t)
+	c0 := "commit0"
+	c1 := "commit1"
+
+	tc.memRepo.Commits[c1] = makeMemCommit(c1, "me@google.com", "c1", time.Now().Add(-5*time.Minute), c0)
+	tc.memRepo.BranchList = []*git.Branch{
+		{
+			Name: "main",
+			Head: c1,
+		},
+	}
+	err := tc.repo.Update(tc.ctx)
+	require.NoError(t, err)
+
+	tc.mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
+	tc.mockWindow.On("EarliestStart").Return(time.Time{})
+	tc.mockCache.On("GetTasksForCommits", "https://repo.git", mock.Anything).Return(map[string]map[string]*types.Task{}, nil)
+
+	// Create a context that is pre-cancelled. This prevents the Handler from blocking on <-ctx.Done()
+	clientCtx, clientCancel := context.WithCancel(tc.ctx)
+	clientCancel()
+
+	// Connect to Handler with a cursor = c1. The initial commits payload must contain c0 (the older commit).
+	r := httptest.NewRequest("GET", fmt.Sprintf("/sse?cursor=%s", c1), nil).WithContext(clientCtx)
+	w := httptest.NewRecorder()
+
+	// Call the Handler synchronously
+	tc.server.Handler(w, r)
+
+	// Ensure we got the initial commits response and it contains c0 (older than c1)
+	gzipReader, err := gzip.NewReader(w.Body)
+	require.NoError(t, err)
+	defer gzipReader.Close()
+	var buf bytes.Buffer
+	_, err = io.Copy(&buf, gzipReader)
+	require.NoError(t, err)
+
+	resps := readSSEStream(t, &buf)
+	require.Len(t, resps, 1, "Expected exactly 1 response representing the initial page of commits")
+	require.Len(t, resps[0].Update.Commits, 1, "Expected exactly 1 commit in the update")
+	require.Equal(t, c0, resps[0].Update.Commits[0].Hash)
+}
+
 func TestSendUpdate_OnlyTasksForDisplayedCommits(t *testing.T) {
 	ctx := context.Background()
 

@@ -224,7 +224,7 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 			flushWriter: gzipWriter,
 			flusher:     flusher,
 		},
-		wantsNewCommits: cursor == "",
+		wantsNewCommits: true,
 		window:          s.cfg.Window,
 	}
 	clientStream.mtx.Lock()
@@ -253,6 +253,9 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 		clientStream.mtx.Unlock()
 		httputils.ReportError(w, err, "failed to build send response", http.StatusInternalServerError)
 		return
+	}
+	if cursor != "" {
+		clientStream.wantsNewCommits = false
 	}
 	clientStream.mtx.Unlock()
 
