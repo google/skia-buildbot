@@ -505,7 +505,7 @@ use_repo(oci, "kubectl")
 # Pulls the gcr.io/google.com/cloudsdktool/cloud-sdk:latest container needed by Perf backup.
 oci.pull(
     name = "cloudsdk",
-    digest = "sha256:900b74f1fb2c9f93c6d4b121a7f23981143496f36aacb72e596ccaedad640cf1",  # @latest as of Apr 27, 2022.
+    digest = "sha256:2e480d7977829f1534665da1fffd98170f5345d0a6322b369b0fe08a932ce574",  # 1 Sept 2026
     image = "gcr.io/google.com/cloudsdktool/cloud-sdk",
 )
 use_repo(oci, "cloudsdk")

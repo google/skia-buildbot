@@ -1853,7 +1853,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "URhN1sx06yx+WirfLgGVKvnMahqvyhctAIvbdC3hGKM=",
+        "usagesDigest": "tj8ZN6LXuKglVtt+q56QaBKp1fORPVQ+WEc64lsDuI0=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -2137,7 +2137,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "google.com/cloudsdktool/cloud-sdk",
-              "identifier": "sha256:900b74f1fb2c9f93c6d4b121a7f23981143496f36aacb72e596ccaedad640cf1",
+              "identifier": "sha256:2e480d7977829f1534665da1fffd98170f5345d0a6322b369b0fe08a932ce574",
               "target_name": "cloudsdk_single",
               "bazel_tags": []
             }
@@ -2150,7 +2150,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "google.com/cloudsdktool/cloud-sdk",
-              "identifier": "sha256:900b74f1fb2c9f93c6d4b121a7f23981143496f36aacb72e596ccaedad640cf1",
+              "identifier": "sha256:2e480d7977829f1534665da1fffd98170f5345d0a6322b369b0fe08a932ce574",
               "platforms": {},
               "platform": "@@rules_oci+//oci:cloudsdk_single",
               "bzlmod_repository": "cloudsdk",
