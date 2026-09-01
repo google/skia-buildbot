@@ -1304,7 +1304,7 @@ export class CommitsTableExperimentalSk extends ElementSk {
   private taskMouseInOut(task: Task) {
     task.commits!.forEach((hash) => {
       $$<HTMLDivElement>(`.${this.attributeStringFromHash(hash)}`, this)?.classList.toggle(
-        `task-emphasize-${task.status.toLowerCase()}`
+        `task-emphasize-${task.status?.toLowerCase() || 'unknown'}`
       );
     });
   }
