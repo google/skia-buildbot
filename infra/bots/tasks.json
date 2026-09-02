@@ -67,7 +67,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:3d1174859c0a5bb00d87c78506f8c031afad16aa",
         "--cipd",
-        "task_drivers:skia/tools/presubmit/${platform}@git_revision:1c38b6fcf192c224631b0bb80b25b3ae29b2bb4a",
+        "task_drivers:skia/tools/presubmit/${platform}@git_revision:fdd102ca7db36b815c88cfc22cadfcc190e2e7ff",
         "--cipd",
         "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
         "--command-is-task-driver",
