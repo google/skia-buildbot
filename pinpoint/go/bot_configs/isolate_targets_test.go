@@ -27,8 +27,18 @@ func TestGetIsolateTarget_WithPixel10CbbBot_ReturnsTarget(t *testing.T) {
 
 func TestGetIsolateTarget_WithRegexMatching_ReturnsTarget(t *testing.T) {
 	target, err := GetIsolateTarget("android-pixel4_webview-perf", "benchmark")
-	assert.Equal(t, "performance_webview_test_suite", target)
-	assert.NoError(t, err)
+	require.Equal(t, "performance_webview_test_suite", target)
+	require.NoError(t, err)
+
+	for _, bot := range []string{
+		"android-pixel10_webview-perf",
+		"android-pixel10_webview-perf-pgo",
+		"android-pixel10_webview-perf-pgo-heapdump",
+	} {
+		target, err := GetIsolateTarget(bot, "shell.embedder.crossbench")
+		require.Equal(t, "performance_webview_test_suite", target)
+		require.NoError(t, err)
+	}
 }
 
 func TestGetIsolateTarget_WithConfigUnlistedBot_ReturnsTarget(t *testing.T) {
