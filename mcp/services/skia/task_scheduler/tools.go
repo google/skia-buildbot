@@ -23,6 +23,7 @@ const (
 	argIncludeStableFailure    = "include_stable_failure"
 	argIncludeLatestSuccessful = "include_latest_successful"
 	argTaskId                  = "task_id"
+	argJobId                   = "job_id"
 
 	taskStatusPending = "PENDING"
 )
@@ -140,6 +141,19 @@ If not provided, the current time is used.`,
 				format.FormatToolArgument(),
 			},
 			Handler: format.FormatResponseWrapper(c.GetTaskHandler),
+		},
+		{
+			Name:        "get_job",
+			Description: "Retrieve the full details for a job.",
+			Arguments: []common.ToolArgument{
+				{
+					Name:        argJobId,
+					Description: "ID of the job.",
+					Required:    true,
+				},
+				format.FormatToolArgument(),
+			},
+			Handler: format.FormatResponseWrapper(c.GetJobHandler),
 		},
 	}
 }

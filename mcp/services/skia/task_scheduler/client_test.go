@@ -79,6 +79,55 @@ func TestTaskWrapper_String(t *testing.T) {
 	assert.Equal(t, expected, task.String())
 }
 
+func TestJobWrapper_String(t *testing.T) {
+	now := time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC)
+	job := &JobWrapper{
+		Job: &types.Job{
+			Id:   "123",
+			Name: "Job 1",
+			RepoState: types.RepoState{
+				Revision: "abcdef1234567890",
+			},
+			Status:             types.JOB_STATUS_SUCCESS,
+			StatusDetails:      "Job succeeded!",
+			BuildbucketBuildId: 99999,
+			Created:            now,
+			Started:            now.Add(10 * time.Second),
+			Finished:           now.Add(time.Minute),
+			Tasks: map[string][]*types.TaskSummary{
+				"task-1": {
+					{
+						Id:     "task-1-01",
+						Status: types.TASK_STATUS_MISHAP,
+					},
+					{
+						Id:     "task-1-02",
+						Status: types.TASK_STATUS_SUCCESS,
+					},
+				},
+				"task-2": {},
+			},
+		},
+	}
+
+	expected := `**ID:** 123
+**Name:** Job 1
+**Status:** SUCCESS
+**Status Details:** Job succeeded!
+**Revision:** abcdef1234567890
+**Created:** 2025-01-01T12:00:00Z
+**Started:** 2025-01-01T12:00:10Z
+**Finished:** 2025-01-01T12:01:00Z
+**Buildbucket Build ID:** 99999
+**Tasks:**
+  - task-1:
+    - ID: task-1-01; Status: MISHAP
+    - ID: task-1-02; Status: SUCCESS
+  - task-2:
+`
+	assert.Equal(t, expected, job.String())
+}
+
 func TestTaskHealthReport_String(t *testing.T) {
 	report := &TaskHealthReport{
 		Commits: []*vcsinfo.ShortCommit{

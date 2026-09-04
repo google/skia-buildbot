@@ -212,6 +212,7 @@ func filterTasks(tasks map[string]map[string]*types.Task, commits []*vcsinfo.Sho
 		}
 	}
 }
+
 func (c *TaskSchedulerClient) GetTaskHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
 	defer timer.New("GetTaskHandler").Stop()
 	taskID, err := req.RequireString(argTaskId)
@@ -226,6 +227,22 @@ func (c *TaskSchedulerClient) GetTaskHandler(ctx context.Context, req mcp.CallTo
 		return nil, skerr.Fmt("No such task with ID %q", taskID)
 	}
 	return &TaskWrapper{task}, nil
+}
+
+func (c *TaskSchedulerClient) GetJobHandler(ctx context.Context, req mcp.CallToolRequest) (fmt.Stringer, error) {
+	defer timer.New("GetJobHandler").Stop()
+	jobID, err := req.RequireString(argJobId)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	job, err := c.db.GetJobById(ctx, jobID)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if job == nil {
+		return nil, skerr.Fmt("No such job with ID %q", jobID)
+	}
+	return &JobWrapper{job}, nil
 }
 
 type TaskList []*types.Task
@@ -255,6 +272,37 @@ func (w TaskWrapper) String() string {
 	_, _ = fmt.Fprintf(&sb, "**Finished:** %s\n", w.Finished.Format(time.RFC3339))
 	_, _ = fmt.Fprintf(&sb, "**Swarming Task ID:** %s\n", w.SwarmingTaskId)
 	_, _ = fmt.Fprintf(&sb, "**Swarming Bot ID:** %s\n", w.SwarmingBotId)
+	return sb.String()
+}
+
+type JobWrapper struct {
+	*types.Job
+}
+
+func (w JobWrapper) String() string {
+	var sb strings.Builder
+	_, _ = fmt.Fprintf(&sb, "**ID:** %s\n", w.Id)
+	_, _ = fmt.Fprintf(&sb, "**Name:** %s\n", w.Name)
+	_, _ = fmt.Fprintf(&sb, "**Status:** %s\n", w.Status)
+	_, _ = fmt.Fprintf(&sb, "**Status Details:** %s\n", w.StatusDetails)
+	_, _ = fmt.Fprintf(&sb, "**Revision:** %s\n", w.Revision)
+	_, _ = fmt.Fprintf(&sb, "**Created:** %s\n", w.Created.Format(time.RFC3339))
+	_, _ = fmt.Fprintf(&sb, "**Started:** %s\n", w.Started.Format(time.RFC3339))
+	_, _ = fmt.Fprintf(&sb, "**Finished:** %s\n", w.Finished.Format(time.RFC3339))
+	_, _ = fmt.Fprintf(&sb, "**Buildbucket Build ID:** %d\n", w.BuildbucketBuildId)
+
+	_, _ = fmt.Fprintf(&sb, "**Tasks:**\n")
+	taskNames := make([]string, 0, len(w.Tasks))
+	for name := range w.Tasks {
+		taskNames = append(taskNames, name)
+	}
+	sort.Strings(taskNames)
+	for _, name := range taskNames {
+		_, _ = fmt.Fprintf(&sb, "  - %s:\n", name)
+		for _, summary := range w.Tasks[name] {
+			_, _ = fmt.Fprintf(&sb, "    - ID: %s; Status: %s\n", summary.Id, summary.Status)
+		}
+	}
 	return sb.String()
 }
 
