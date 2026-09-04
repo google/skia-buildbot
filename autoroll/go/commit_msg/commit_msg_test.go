@@ -184,8 +184,8 @@ Change-Id: If3fd7d9b2ec5aaf7f048df1029b732b28378999d
 > Change-Id: If3fd7d9b2ec5aaf7f048df1029b732b28378999d
 > 
 
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 https://fake.server.com/r/fake-autoroll
 Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.

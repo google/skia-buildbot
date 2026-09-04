@@ -22,8 +22,8 @@ Also rolling transitive DEPS:
   https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 https://fake.server.com/r/fake-autoroll
 Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
@@ -58,8 +58,8 @@ Also rolling transitive DEPS:
   https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 https://fake.server.com/r/fake-autoroll
 Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
@@ -97,8 +97,8 @@ Also rolling transitive DEPS:
   https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 https://fake.server.com/r/fake-autoroll
 Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
@@ -140,8 +140,8 @@ Also rolling transitive DEPS:
   https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 https://fake.server.com/r/fake-autoroll
 Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
@@ -178,8 +178,8 @@ func TestNamedTemplateDefault_Minimal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
 
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 https://fake.server.com/r/fake-autoroll
 Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
@@ -229,8 +229,8 @@ Also rolling transitive DEPS:
   https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 https://fake.server.com/r/fake-autoroll
 Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
@@ -274,8 +274,8 @@ Also rolling transitive DEPS:
   https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 https://fake.server.com/r/fake-autoroll
 Please CC contact@google.com,reviewer@google.com on the revert to ensure that a human
 is aware of the problem.
@@ -318,8 +318,8 @@ Also rolling transitive DEPS:
   https://fake-dep1/+log/dddddddddddddddddddddddddddddddddddddddd..eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
   parent/dep3 from aaaaaaaaaaaa to cccccccccccc
 
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 https://fake.server.com/r/fake-autoroll
 Please CC contact@google.com,reviewer@google.com on the revert to ensure
 that a human

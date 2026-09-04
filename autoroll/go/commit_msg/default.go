@@ -64,8 +64,8 @@ Also rolling transitive DEPS:
 
 	tmplNameBoilerplateDefault = "defaultBoilerplate"
 	tmplBoilerplateDefault     = template.Must(parseCommitMsgTemplate(tmplRevisionsDefault, tmplNameBoilerplateDefault,
-		`If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
+		`If this roll has caused a breakage, revert this CL and set the roller
+to dry run mode using the controls here:
 {{.ServerURL}}
 Please CC {{stringsJoin (mergeNoDuplicates .Reviewers .Contacts) ","}} on the revert to ensure that a human
 is aware of the problem.
