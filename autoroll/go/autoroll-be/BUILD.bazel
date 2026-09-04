@@ -32,6 +32,7 @@ go_library(
         "//go/gitauth",
         "//go/github",
         "//go/httputils",
+        "//go/luciauth",
         "//go/secret",
         "//go/sklog",
         "//go/util",

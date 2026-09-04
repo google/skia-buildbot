@@ -45,6 +45,7 @@ import (
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -224,9 +225,24 @@ func main() {
 	}
 
 	// Set up to run the autoroll backend.
-	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
-	if err != nil {
-		sklog.Fatal(err)
+
+	// Set up OAuth2 TokenSource. We support using LUCI_CONTEXT in addition to
+	// GOOGLE_APPLICATION_CREDENTIALS, in order to run in CI.
+	var ts oauth2.TokenSource
+	var err error
+	scopes := []string{
+		auth.ScopeUserinfoEmail,
+		auth.ScopeGerrit,
+		datastore.ScopeDatastore,
+		"https://www.googleapis.com/auth/devstorage.read_only",
+	}
+	if os.Getenv("LUCI_CONTEXT") != "" && os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" {
+		ts, err = luciauth.NewLUCIContextTokenSource(scopes...)
+	} else {
+		ts, err = google.DefaultTokenSource(ctx, scopes...)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 	client := clientConfig(ts).Client()
 
