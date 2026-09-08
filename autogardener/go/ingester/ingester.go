@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"sync"
 	"time"
 
@@ -262,16 +263,6 @@ func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingReg
 
 var errDone = errors.New("done")
 
-func newFailureClass(task *ts_types.Task, taskSummary *types.TaskSummary) *types.FailureClass {
-	return &types.FailureClass{
-		Id:           fmt.Sprintf("%x", sha256.Sum256([]byte(taskSummary.ErrorMessage))),
-		ErrorMessage: taskSummary.ErrorMessage,
-		Analysis:     taskSummary.Analysis,
-		LastSeen:     time.Now(),
-		Repo:         task.Repo,
-	}
-}
-
 const genericFailureClassID = "generic-failure"
 
 func makeGenericFailureClass() *types.FailureClass {
@@ -279,7 +270,6 @@ func makeGenericFailureClass() *types.FailureClass {
 		Id:           genericFailureClassID,
 		ErrorMessage: "",
 		Analysis:     "The error did not contain enough identifiable details to classify successfully.",
-		LastSeen:     time.Now(),
 	}
 }
 
@@ -293,84 +283,113 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 		return nil
 	}
 
-	// If the error message is too generic, skip classification entirely and
-	// group it under a generic FailureClass.
-	if utils.ErrorIsGeneric(taskSummary.ErrorMessage) {
-		assignedFailureClass := makeGenericFailureClass()
-		if err := i.db.PutFailureClass(ctx, assignedFailureClass); err != nil {
-			return skerr.Wrapf(err, "failed to save generic failure class")
-		}
-		taskSummary.FailureClassId = assignedFailureClass.Id
-		return skerr.Wrap(i.db.PutTaskSummary(ctx, task.Id, taskSummary))
-	}
-
-	// TODO(borenet): We should probably do this per-repo and ensure
-	// that we include the last N commits.
-	windowStart := time.Now().Add(-4 * 24 * time.Hour)
-	// TODO(borenet): These need to be cached, rather than hitting the DB for
-	// every single failed task.
-	failureClasses, err := i.db.GetRecentFailureClasses(ctx, task.Repo, windowStart, 0)
-	if err != nil {
-		sklog.Errorf("Failed to retrieve recent failure classes: %s", err)
-	}
-	sklog.Debugf("Found %d recent failure classes", len(failureClasses))
-
-	// Case 1: No Candidates found. Propose a new class.
+	// Case 1: The error message is too generic. Skip classification entirely.
 	var assignedFailureClass *types.FailureClass
-	isNew := false
-	if len(failureClasses) == 0 {
-		sklog.Debug("No failure classes found; will register a new one.")
-		assignedFailureClass = newFailureClass(task, taskSummary)
-		isNew = true
+	if utils.ErrorIsGeneric(taskSummary.ErrorMessage) {
+		sklog.Debugf("Error message for %s is too generic.", task.Id)
+		assignedFailureClass = makeGenericFailureClass()
+		metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "generic"}).Observe(1.0)
 	}
 
 	// Case 2: Exact match of existing candidate.
+	var failureClasses []*types.FailureClass
 	if assignedFailureClass == nil {
+		// TODO(borenet): We should probably do this per-repo and ensure
+		// that we include the last N commits.
+		windowStart := time.Now().Add(-90 * 24 * time.Hour)
+		// TODO(borenet): These need to be cached, rather than hitting the DB for
+		// every single failed task.
+		var err error
+		failureClasses, err = i.db.GetRecentFailureClasses(ctx, task.Repo, windowStart, 0)
+		if err != nil {
+			sklog.Errorf("Failed to retrieve recent failure classes: %s", err)
+		}
+		sklog.Debugf("Found %d recent failure classes", len(failureClasses))
+
 		for _, cand := range failureClasses {
 			if taskSummary.ErrorMessage == cand.ErrorMessage {
 				sklog.Debugf("Exact match of error message for %s; no need to use gemini.", task.Id)
+				metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "exact_match"}).Observe(1.0)
 				assignedFailureClass = cand
 			}
 		}
 	}
 
-	// Case 3: Use Gemini to match against recently active candidates.
+	// Case 3: N-gram similarity.
+	scores := make(map[*types.FailureClass]float64, len(failureClasses))
+	var candidates []*types.FailureClass
+	var bestScore float64
 	if assignedFailureClass == nil {
-		var classID string
-		err = util.ChunkIter(len(failureClasses), maxRecentFailureClasses, func(start, end int) error {
-			classID, err = i.gemini.ClassifyFailure(ctx, taskSummary, failureClasses[start:end], task.Repo)
+		var bestCand *types.FailureClass
+		for _, cand := range failureClasses {
+			score := util.NgramSimilarity(taskSummary.ErrorMessage, cand.ErrorMessage, 4)
+			if score < 0.10 {
+				continue
+			}
+			scores[cand] = score
+			candidates = append(candidates, cand)
+			if score > bestScore {
+				bestScore = score
+				bestCand = cand
+			}
+		}
+		if bestScore >= 0.90 {
+			sklog.Debugf("N-gram fast-path match (similarity: %.2f) for task %s; assigning to %s.", bestScore, task.Id, bestCand.Id)
+			metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "ngram_threshold_match"}).Observe(bestScore)
+			assignedFailureClass = bestCand
+		}
+	}
+
+	// Case 4: Match using Gemini.
+	if assignedFailureClass == nil && len(candidates) > 0 {
+		// Sort candidates in descending order of similarity
+		sort.Slice(candidates, func(i, j int) bool {
+			return scores[candidates[i]] > scores[candidates[j]]
+		})
+
+		err := util.ChunkIter(len(candidates), maxRecentFailureClasses, func(start, end int) error {
+			classID, err := i.gemini.ClassifyFailure(ctx, taskSummary, candidates[start:end], task.Repo)
 			if err != nil {
-				return skerr.Wrapf(err, "Failed to classify failure for task %s", task.Id)
+				return skerr.Wrap(err)
 			}
 			if classID != "" {
+				for _, fc := range candidates[start:end] {
+					if fc.Id == classID {
+						sklog.Infof("Gemini assigned task %s to failure class %s with N-gram similarity %.3f", task.Id, classID, scores[fc])
+						metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "gemini_match"}).Observe(scores[fc])
+						assignedFailureClass = fc
+					}
+				}
+				if assignedFailureClass == nil {
+					return skerr.Fmt("Failed to classify failure for task %s: unknown failure class with ID %q", task.Id, classID)
+				}
 				return errDone
 			}
 			return nil
 		})
-		if err != nil && err != errDone {
+		if err != nil && skerr.Unwrap(err) != errDone {
 			return skerr.Wrap(err)
-		}
-		if classID == "" {
-			assignedFailureClass = newFailureClass(task, taskSummary)
-			isNew = true
-		} else {
-			for _, fc := range failureClasses {
-				if fc.Id == classID {
-					fc.LastSeen = time.Now()
-					assignedFailureClass = fc
-				}
-			}
-			if assignedFailureClass == nil {
-				return skerr.Fmt("Failed to classify failure for task %s: unknown failure class with ID %q", task.Id, classID)
-			}
 		}
 	}
 
+	// Case 5: No match. Create a new FailureClass.
+	if assignedFailureClass == nil {
+		assignedFailureClass = &types.FailureClass{
+			Id:           fmt.Sprintf("%x", sha256.Sum256([]byte(taskSummary.ErrorMessage))),
+			ErrorMessage: taskSummary.ErrorMessage,
+			Analysis:     taskSummary.Analysis,
+			Repo:         task.Repo,
+		}
+		sklog.Infof("Registered new FailureClass %s for task %s. Best similarity score was %.3f", assignedFailureClass.Id, task.Id, bestScore)
+		metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "no_match"}).Observe(bestScore)
+	}
+
+	// Insert/update the FailureClass.
+	if assignedFailureClass.LastSeen.Before(task.Finished) {
+		assignedFailureClass.LastSeen = task.Finished
+	}
 	if err := i.db.PutFailureClass(ctx, assignedFailureClass); err != nil {
 		return skerr.Wrapf(err, "failed to save failure class %s", assignedFailureClass.Id)
-	}
-	if isNew {
-		sklog.Infof("Successfully registered new FailureClass %s for task %s", assignedFailureClass.Id, task.Id)
 	}
 
 	// Store the task summary with the resolved FailureClassId.

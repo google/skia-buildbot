@@ -637,3 +637,79 @@ breaks`)
 that split onto
 multiple lines.`)
 }
+
+func TestNgrams(t *testing.T) {
+	tests := []struct {
+		s        string
+		n        int
+		expected []string
+	}{
+		{
+			s:        "hello",
+			n:        3,
+			expected: []string{"hel", "ell", "llo"},
+		},
+		{
+			s:        "ab",
+			n:        3,
+			expected: nil,
+		},
+		{
+			s:        "",
+			n:        1,
+			expected: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.s, func(t *testing.T) {
+			assert.Equal(t, tt.expected, Ngrams(tt.s, tt.n))
+		})
+	}
+}
+
+func TestNgramSimilarity(t *testing.T) {
+	tests := []struct {
+		a        string
+		b        string
+		n        int
+		expected float64
+	}{
+		{
+			a:        "hello",
+			b:        "hello",
+			n:        3,
+			expected: 1.0,
+		},
+		{
+			a:        "abcd",
+			b:        "abce",
+			n:        2,
+			expected: 0.5,
+		},
+		{
+			a:        "abc",
+			b:        "xyz",
+			n:        2,
+			expected: 0.0,
+		},
+		{
+			a:        "ab",
+			b:        "ab",
+			n:        3,
+			expected: 1.0,
+		},
+		{
+			a:        "ab",
+			b:        "cd",
+			n:        3,
+			expected: 0.0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.a+"_"+tt.b, func(t *testing.T) {
+			assert.InDelta(t, tt.expected, NgramSimilarity(tt.a, tt.b, tt.n), 0.01)
+		})
+	}
+}

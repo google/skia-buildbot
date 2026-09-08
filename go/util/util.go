@@ -1005,3 +1005,34 @@ func RandomString(numBytes int) string {
 	}
 	return string(b)
 }
+
+// Ngrams returns a slice of character n-grams of size n from the string s.
+func Ngrams(s string, n int) []string {
+	if len(s) < n {
+		return nil
+	}
+	var grams []string
+	for i := 0; i <= len(s)-n; i++ {
+		grams = append(grams, s[i:i+n])
+	}
+	return grams
+}
+
+// NgramSimilarity calculates Jaccard similarity over character n-grams.
+func NgramSimilarity(a, b string, n int) float64 {
+	if len(a) < n || len(b) < n {
+		if a == b {
+			return 1.0
+		}
+		return 0.0
+	}
+
+	setA := NewStringSet(Ngrams(a, n))
+	setB := NewStringSet(Ngrams(b, n))
+	intersection := setA.Intersect(setB)
+	union := setA.Union(setB)
+	if len(union) == 0 {
+		return 0.0
+	}
+	return float64(len(intersection)) / float64(len(union))
+}
