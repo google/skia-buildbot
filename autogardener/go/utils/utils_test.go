@@ -219,7 +219,7 @@ Likely culprit:
 
 SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior ../../../../../skia/tests/graphite/StorageContextTest.cpp:103:24 in
 
-Caught signal 6 [Abort trap: 6] (2700MB RAM, peak 2700MB), was running:
+Caught signal 6 [Abort trap: 6] (<RAM_FOOTPRINT>), was running:
 	unit test  StorageContextAppendVertexTest
 Likely culprit:
 	unit test  StorageContextAppendVertexTest`,
@@ -346,6 +346,16 @@ blah`,
 			expected: `Command exited with exit status 0xc0000135: ... bazelisk build //tools:full_build --config=for_windows_x64_release --experimental_scale_timeouts=2.0
 blah
 blah`,
+		},
+		{
+			name:     "sanitize RAM metrics",
+			input:    "Caught signal 11 [Segmentation fault] (141MB RAM, peak 548MB), was running: grvk gm",
+			expected: "Caught signal 11 [Segmentation fault] (<RAM_FOOTPRINT>), was running: grvk gm",
+		},
+		{
+			name:     "sanitize out directory hash",
+			input:    "error in skia/out/1b22a8/../../skia/third_party/externals/vulkan",
+			expected: "error in skia/out/<dir>/../../skia/third_party/externals/vulkan",
 		},
 	}
 

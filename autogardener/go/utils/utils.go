@@ -115,6 +115,8 @@ var (
 	logStampRegex     = regexp.MustCompile(`(?:\b([DIWEF])(\d{4}) <TIME>\s+(\d+)\b|\[([DIWEF])<DATE>T<TIME>\s+(\d+)\s+(\d+)\s*)`)
 	failuresRegex     = regexp.MustCompile(`(?m)^(\d+[ \t]+)?[Ff]ailures(:)?[ \t]*$`)
 	stdoutStderr      = regexp.MustCompile(`; Stdout\+Stderr:\n`)
+	ramUsageRegex     = regexp.MustCompile(`\(\d+MB RAM, peak \d+MB\)`)
+	outDirRegex       = regexp.MustCompile(`\bout/[a-zA-Z0-9_-]+\b`)
 )
 
 // SanitizeErrorText normalizes dynamic noise (such as memory addresses,
@@ -147,6 +149,8 @@ func SanitizeErrorText(errText string) string {
 	errText = tmpPrefixRegex.ReplaceAllString(errText, "${1}/<workdir>/")
 	errText = portRegex.ReplaceAllString(errText, "${1}:<port>")
 	errText = ipRegex.ReplaceAllString(errText, "<IP>")
+	errText = ramUsageRegex.ReplaceAllString(errText, "(<RAM_FOOTPRINT>)")
+	errText = outDirRegex.ReplaceAllString(errText, "out/<dir>")
 	errText = failuresRegex.ReplaceAllString(errText, "")
 	errText = stdoutStderr.ReplaceAllString(errText, "\n")
 
