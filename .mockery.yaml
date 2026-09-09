@@ -453,6 +453,11 @@ packages:
       dir: "{{.InterfaceDir}}/../mocks"
     interfaces:
       IncrementalCache:
+  go.skia.org/infra/task_driver/go/db:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      DB:
   go.skia.org/infra/task_scheduler/go/cacher:
     interfaces:
       Cacher:

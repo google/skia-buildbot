@@ -19,9 +19,11 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	td_db "go.skia.org/infra/task_driver/go/db"
 	ts_db "go.skia.org/infra/task_scheduler/go/db"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/oauth2/google"
@@ -31,7 +33,12 @@ const (
 	getUnclassifiedTaskSummariesBatchSize = 100
 	maxRecentFailureClasses               = 25
 	workerPoolSize                        = 10
+	taskDriverMaxWaitDelay                = 5 * time.Minute
+	taskDriverRequeueDelay                = 5 * time.Second
 )
+
+// sleepFn allows overriding time.Sleep in tests.
+var sleepFn = time.Sleep
 
 type Ingester struct {
 	db         db.AutoGardenerDB
@@ -39,9 +46,10 @@ type Ingester struct {
 	httpClient *http.Client
 	repos      repograph.Map
 	tsDB       ts_db.TaskReader
+	tdDB       td_db.DB
 }
 
-func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos repograph.Map, tsDB ts_db.TaskReader) (*Ingester, error) {
+func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos repograph.Map, tsDB ts_db.TaskReader, tdDB td_db.DB) (*Ingester, error) {
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, datastore.ScopeDatastore)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -52,6 +60,7 @@ func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos 
 		httpClient: httputils.DefaultClientConfig().WithTokenSource(ts).Client(),
 		repos:      repos,
 		tsDB:       tsDB,
+		tdDB:       tdDB,
 	}, nil
 }
 
@@ -114,14 +123,14 @@ type taskIngestionResult struct {
 	err error
 }
 
-func (i *Ingester) ingestTasks(ctx context.Context, input <-chan *ts_types.Task, output chan<- *taskIngestionResult) {
+func (i *Ingester) ingestTasks(ctx context.Context, input chan *ts_types.Task, output chan<- *taskIngestionResult) {
 	processing := newTaskProcessingRegistry()
 	for range workerPoolSize {
 		go func() {
 			for {
 				select {
 				case task := <-input:
-					taskSummary, err := i.ingestTask(ctx, processing, task)
+					taskSummary, err := i.ingestTask(ctx, processing, task, input)
 					result := &taskIngestionResult{}
 					if err != nil {
 						result.err = err
@@ -230,7 +239,7 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 	}()
 }
 
-func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingRegistry, task *ts_types.Task) (*types.TaskSummary, error) {
+func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingRegistry, task *ts_types.Task, taskCh chan *ts_types.Task) (*types.TaskSummary, error) {
 	// If another worker is already processing this task, skip it.
 	release, ok := processing.TryClaimTask(task.Id)
 	if !ok {
@@ -246,6 +255,26 @@ func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingReg
 	if taskSummary != nil {
 		return taskSummary, nil
 	}
+
+	// Occasionally task drivers have propagation delay to the DB which causes
+	// some steps and/or their logs to be missing. If this is a task driver with
+	// any unfinished steps, re-enqueue it after a short wait.
+	isUnfinished, err := isUnfinishedTaskDriver(ctx, i.tdDB, task.Id)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if isUnfinished {
+		if now.Now(ctx).Sub(task.Finished) < taskDriverMaxWaitDelay {
+			sklog.Infof("Task driver %s has unfinished steps; re-enqueuing after %s", task.Id, taskDriverRequeueDelay)
+			go func(t *ts_types.Task) {
+				sleepFn(taskDriverRequeueDelay)
+				taskCh <- t
+			}(task)
+			return nil, nil
+		}
+		sklog.Warningf("Task driver %s still has unfinished steps after %s; proceeding anyway.", task.Id, now.Now(ctx).Sub(task.Finished))
+	}
+
 	// Use Gemini to find the error summary for this task and insert it
 	// into the DB.
 	taskSummary, err = i.gemini.GetTaskSummary(ctx, task)
@@ -255,7 +284,7 @@ func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingReg
 	if err := i.db.PutTaskSummary(ctx, task.Id, taskSummary); err != nil {
 		return nil, skerr.Wrapf(err, "failed to save task summary %s: %s", task.Id, err)
 	}
-	latency := time.Since(task.Finished).Seconds()
+	latency := now.Now(ctx).Sub(task.Finished).Seconds()
 	metrics2.GetFloat64SummaryMetric("autogardener_task_ingest_latency").Observe(latency)
 	sklog.Infof("Ingested task %s with latency of %2f seconds", task.Id, latency)
 	return taskSummary, nil
@@ -271,6 +300,27 @@ func makeGenericFailureClass() *types.FailureClass {
 		ErrorMessage: "",
 		Analysis:     "The error did not contain enough identifiable details to classify successfully.",
 	}
+}
+
+// isUnfinishedTaskDriver returns true if the given task ID is a task driver
+// and is unfinished.
+func isUnfinishedTaskDriver(ctx context.Context, tdDB td_db.DB, taskID string) (bool, error) {
+	td, err := tdDB.GetTaskDriver(ctx, taskID)
+	if err != nil {
+		return false, skerr.Wrapf(err, "failed to get task driver for %s", taskID)
+	}
+	if td == nil {
+		return false, nil
+	}
+	if len(td.Steps) == 0 {
+		return false, nil
+	}
+	for _, step := range td.Steps {
+		if step.Finished.IsZero() {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task, taskSummary *types.TaskSummary) error {

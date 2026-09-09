@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"os"
 
+	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/autogardener/go/db"
 	"go.skia.org/infra/autogardener/go/gemini"
 	"go.skia.org/infra/autogardener/go/ingester"
 	"go.skia.org/infra/autogardener/go/mcp"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
@@ -21,6 +23,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/mcp/services/skia"
+	td_bigtable "go.skia.org/infra/task_driver/go/db/bigtable"
 	ts_firestore "go.skia.org/infra/task_scheduler/go/db/firestore"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -80,7 +83,7 @@ func main() {
 
 	ctx := context.Background()
 
-	ts, err := google.DefaultTokenSource(ctx, datastore.ScopeDatastore)
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, bigtable.Scope, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -158,7 +161,12 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	ing, err := ingester.New(ctx, db, geminiClient, repos, tsDB)
+	tdDB, err := td_bigtable.NewBigTableDB(ctx, *tdBtProject, *tdBtInstance, ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	ing, err := ingester.New(ctx, db, geminiClient, repos, tsDB, tdDB)
 	if err != nil {
 		sklog.Fatal(err)
 	}

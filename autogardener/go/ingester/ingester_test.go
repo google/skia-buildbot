@@ -11,6 +11,10 @@ import (
 	db_mocks "go.skia.org/infra/autogardener/go/db/mocks"
 	gemini_mocks "go.skia.org/infra/autogardener/go/gemini/mocks"
 	"go.skia.org/infra/autogardener/go/types"
+	"go.skia.org/infra/go/now"
+	td_db "go.skia.org/infra/task_driver/go/db"
+	td_mocks "go.skia.org/infra/task_driver/go/db/mocks"
+	"go.skia.org/infra/task_driver/go/td"
 	ts_db "go.skia.org/infra/task_scheduler/go/db"
 	ts_mocks "go.skia.org/infra/task_scheduler/go/mocks"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
@@ -41,9 +45,11 @@ func TestIngestTask(t *testing.T) {
 	ctx := t.Context()
 	mockDB := db_mocks.NewAutoGardenerDB(t)
 	mockG := gemini_mocks.NewClient(t)
+	mockTDDB := td_mocks.NewDB(t)
 	i := &Ingester{
 		db:     mockDB,
 		gemini: mockG,
+		tdDB:   mockTDDB,
 	}
 
 	task := &ts_types.Task{
@@ -59,11 +65,12 @@ func TestIngestTask(t *testing.T) {
 			Analysis:     "analysis",
 		}
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(existing, nil).Once()
-		taskSummary, err := i.ingestTask(ctx, registry, task)
+		taskSummary, err := i.ingestTask(ctx, registry, task, nil)
 		require.NoError(t, err)
 		require.Equal(t, existing, taskSummary)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
+		mockTDDB.AssertExpectations(t)
 	})
 
 	// 2. Task needs to be summarized.
@@ -74,14 +81,16 @@ func TestIngestTask(t *testing.T) {
 			ErrorMessage: "error",
 		}
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+		mockTDDB.On("GetTaskDriver", ctx, task.Id).Return(nil, nil).Once()
 		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
 		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
 
-		taskSummary, err := i.ingestTask(ctx, registry, task)
+		taskSummary, err := i.ingestTask(ctx, registry, task, nil)
 		require.NoError(t, err)
 		require.Equal(t, summary, taskSummary)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
+		mockTDDB.AssertExpectations(t)
 	})
 
 	// 3. Task is already being processed, return nil, nil.
@@ -91,11 +100,12 @@ func TestIngestTask(t *testing.T) {
 		require.True(t, ok)
 		defer release()
 
-		taskSummary, err := i.ingestTask(ctx, registry, task)
+		taskSummary, err := i.ingestTask(ctx, registry, task, nil)
 		require.NoError(t, err)
 		require.Nil(t, taskSummary)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
+		mockTDDB.AssertExpectations(t)
 	})
 }
 
@@ -108,6 +118,7 @@ func TestClassifyTaskSummary(t *testing.T) {
 		i := &Ingester{
 			db:     mockDB,
 			gemini: mockG,
+			tdDB:   td_mocks.NewDB(t),
 		}
 
 		task := &ts_types.Task{
@@ -319,6 +330,7 @@ func TestPeriodicTaskPollingFallback(t *testing.T) {
 		db:     mockDB,
 		gemini: mockG,
 		tsDB:   mockTSDB,
+		tdDB:   td_mocks.NewDB(t),
 	}
 
 	task := &ts_types.Task{
@@ -348,9 +360,11 @@ func TestIngestTasks(t *testing.T) {
 
 	mockDB := db_mocks.NewAutoGardenerDB(t)
 	mockG := gemini_mocks.NewClient(t)
+	mockTDDB := td_mocks.NewDB(t)
 	i := &Ingester{
 		db:     mockDB,
 		gemini: mockG,
+		tdDB:   mockTDDB,
 	}
 
 	task1 := &ts_types.Task{
@@ -361,6 +375,7 @@ func TestIngestTasks(t *testing.T) {
 	}
 
 	mockDB.On("GetTaskSummary", mock.Anything, task1.Id).Return(nil, nil).Once()
+	mockTDDB.On("GetTaskDriver", mock.Anything, task1.Id).Return(nil, nil).Once()
 	mockG.On("GetTaskSummary", mock.Anything, task1).Return(summary, nil).Once()
 	mockDB.On("PutTaskSummary", mock.Anything, task1.Id, summary).Return(nil).Once()
 
@@ -369,6 +384,7 @@ func TestIngestTasks(t *testing.T) {
 	}
 	someError := errors.New("uh oh")
 	mockDB.On("GetTaskSummary", mock.Anything, task2.Id).Return(nil, nil).Once()
+	mockTDDB.On("GetTaskDriver", mock.Anything, task2.Id).Return(nil, nil).Once()
 	mockG.On("GetTaskSummary", mock.Anything, task2).Return(nil, someError).Once()
 
 	inputCh := make(chan *ts_types.Task)
@@ -463,10 +479,14 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 	// making its execution non-deterministic during the test run.
 	mockDB.On("GetUnclassifiedTaskSummaries", mock.Anything, getUnclassifiedTaskSummariesBatchSize).Return(map[string]*types.TaskSummary{}, nil).Maybe()
 
+	mockTDDB := td_mocks.NewDB(t)
+	mockTDDB.On("GetTaskDriver", mock.Anything, task.Id).Return(nil, nil).Once()
+
 	i := &Ingester{
 		db:     mockDB,
 		gemini: mockG,
 		tsDB:   mockTSDB,
+		tdDB:   mockTDDB,
 	}
 
 	// Step 1: Ingest task summary
@@ -497,4 +517,169 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 	mockDB.AssertExpectations(t)
 	mockG.AssertExpectations(t)
 	mockTSDB.AssertExpectations(t)
+}
+
+func TestIngestTask_TaskDriverStepsCheck(t *testing.T) {
+	mockTime := time.Date(2026, 9, 9, 12, 0, 0, 0, time.UTC)
+	ctx := context.WithValue(t.Context(), now.ContextKey, mockTime)
+
+	// Mock sleepFn to no-op.
+	oldSleep := sleepFn
+	sleepFn = func(d time.Duration) {}
+	defer func() {
+		sleepFn = oldSleep
+	}()
+
+	t.Run("all steps finished", func(t *testing.T) {
+		mockDB := db_mocks.NewAutoGardenerDB(t)
+		mockG := gemini_mocks.NewClient(t)
+		mockTDDB := td_mocks.NewDB(t)
+
+		taskID := "task-all-finished"
+		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(&td_db.TaskDriverRun{
+			TaskId: taskID,
+			Steps: map[string]*td_db.Step{
+				"step-1": {
+					Properties: &td.StepProperties{
+						Id:   "step-1",
+						Name: "Step 1",
+					},
+					Finished: mockTime.Add(-5 * time.Minute),
+				},
+			},
+		}, nil).Once()
+
+		i := &Ingester{
+			db:     mockDB,
+			gemini: mockG,
+			tdDB:   mockTDDB,
+		}
+
+		task := &ts_types.Task{
+			Id:       taskID,
+			Finished: mockTime.Add(-5 * time.Minute),
+		}
+
+		summary := &types.TaskSummary{
+			Analysis:     "analysis",
+			ErrorMessage: "error",
+		}
+
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
+		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+
+		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, nil)
+		require.NoError(t, err)
+		require.Equal(t, summary, taskSummary)
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+		mockTDDB.AssertExpectations(t)
+	})
+
+	t.Run("unfinished steps re-enqueue", func(t *testing.T) {
+		mockDB := db_mocks.NewAutoGardenerDB(t)
+		mockG := gemini_mocks.NewClient(t)
+		mockTDDB := td_mocks.NewDB(t)
+
+		taskID := "task-unfinished"
+		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(&td_db.TaskDriverRun{
+			TaskId: taskID,
+			Steps: map[string]*td_db.Step{
+				"step-1": {
+					Properties: &td.StepProperties{
+						Id:   "step-1",
+						Name: "Step 1",
+					},
+				},
+			},
+		}, nil).Once()
+
+		i := &Ingester{
+			db:     mockDB,
+			gemini: mockG,
+			tdDB:   mockTDDB,
+		}
+
+		task := &ts_types.Task{
+			Id:       taskID,
+			Finished: mockTime.Add(-1 * time.Minute), // well within the 5 min timeout
+		}
+
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+
+		taskCh := make(chan *ts_types.Task, 1)
+
+		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
+		require.NoError(t, err)
+		require.Nil(t, taskSummary)
+
+		// Verify task was re-enqueued after sleep
+		select {
+		case popped := <-taskCh:
+			require.Equal(t, task.Id, popped.Id)
+		case <-time.After(100 * time.Millisecond):
+			t.Fatal("timed out waiting for task to be re-enqueued")
+		}
+
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+		mockTDDB.AssertExpectations(t)
+	})
+
+	t.Run("unfinished steps exceeded timeout", func(t *testing.T) {
+		mockDB := db_mocks.NewAutoGardenerDB(t)
+		mockG := gemini_mocks.NewClient(t)
+		mockTDDB := td_mocks.NewDB(t)
+
+		taskID := "task-unfinished-exceeded"
+		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(&td_db.TaskDriverRun{
+			TaskId: taskID,
+			Steps: map[string]*td_db.Step{
+				"step-1": {
+					Properties: &td.StepProperties{
+						Id:   "step-1",
+						Name: "Step 1",
+					},
+				},
+			},
+		}, nil).Once()
+
+		i := &Ingester{
+			db:     mockDB,
+			gemini: mockG,
+			tdDB:   mockTDDB,
+		}
+
+		task := &ts_types.Task{
+			Id:       taskID,
+			Finished: mockTime.Add(-15 * time.Minute), // exceeded the 5 min timeout
+		}
+
+		summary := &types.TaskSummary{
+			Analysis:     "analysis",
+			ErrorMessage: "error",
+		}
+
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
+		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+
+		taskCh := make(chan *ts_types.Task, 1)
+
+		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
+		require.NoError(t, err)
+		require.Equal(t, summary, taskSummary)
+
+		// Verify no task was re-enqueued
+		select {
+		case <-taskCh:
+			t.Fatal("task was unexpectedly re-enqueued")
+		default:
+		}
+
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+		mockTDDB.AssertExpectations(t)
+	})
 }
