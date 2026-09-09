@@ -231,7 +231,17 @@ func TestRepoManagerInitFailed(t *testing.T) {
 		// Misc Git mocks.
 		sklog.Errorf("%s %v", cmd.Name, cmd.Args)
 		if cmd.Name == gitPath {
-			// This is for syncing depot tools. Just return the expected hash.
+			// This is for syncing depot tools. Create dummy ensure_bootstrap and return expected hash.
+			if cmd.Args[0] == "clone" {
+				dest := cmd.Args[len(cmd.Args)-1]
+				if err := os.MkdirAll(dest, 0755); err != nil {
+					return err
+				}
+				if err := os.WriteFile(filepath.Join(dest, "ensure_bootstrap"), []byte("#!/bin/sh\n"), 0755); err != nil {
+					return err
+				}
+				return nil
+			}
 			if cmd.Args[0] == "rev-parse" {
 				depotToolsVersion, err := depot_tools.FindVersion()
 				if err != nil {

@@ -82,7 +82,7 @@ func Sync(ctx context.Context, workdir string) (string, error) {
 	}
 	sklog.Infof("Have depot_tools at %s", hash)
 	if hash == version {
-		return co.Dir(), skerr.Wrap(err)
+		return co.Dir(), nil
 	}
 
 	// Sync the checkout into the desired state.
@@ -104,6 +104,24 @@ func Sync(ctx context.Context, workdir string) (string, error) {
 	}
 	sklog.Infof("Successfully synced depot_tools to %s", version)
 	return co.Dir(), nil
+}
+
+// EnsureBootstrap ensures that the depot_tools bootstrap packages (e.g. Python 3)
+// are downloaded and ready for execution.
+func EnsureBootstrap(ctx context.Context, depotToolsDir string) error {
+	ensureBootstrapPath := path.Join(depotToolsDir, "ensure_bootstrap")
+	if _, err := os.Stat(ensureBootstrapPath); err != nil {
+		sklog.Errorf("ensure_bootstrap not found in %s: %s", depotToolsDir, err)
+		return skerr.Wrapf(err, "ensure_bootstrap not found in %s", depotToolsDir)
+	}
+	sklog.Infof("Running ensure_bootstrap in %s", depotToolsDir)
+	cmd := exec.CommandContext(ctx, ensureBootstrapPath)
+	cmd.Dir = depotToolsDir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		sklog.Errorf("Failed to run ensure_bootstrap in %s: %s\nOutput: %s", depotToolsDir, err, string(out))
+		return skerr.Wrapf(err, "Failed to run ensure_bootstrap in %s: %s", depotToolsDir, string(out))
+	}
+	return nil
 }
 
 // GetDepotTools returns the path to depot_tools, syncing it into the given
@@ -137,5 +155,11 @@ func GetDepotTools(ctx context.Context, workdir string) (string, error) {
 	// Sync to the given workdir.
 	sklog.Infof("Syncing depot_tools.")
 	dir, err := Sync(ctx, workdir)
-	return dir, skerr.Wrap(err)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	if err := EnsureBootstrap(ctx, dir); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return dir, nil
 }
