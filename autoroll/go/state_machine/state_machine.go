@@ -185,7 +185,7 @@ type AutoRollerImpl interface {
 	GetLastNRollRevs(int) []string
 
 	// Return the current mode of the AutoRoller.
-	GetMode() string
+	GetMode() modes.Mode
 
 	// InRollWindow returns true iff the roller is inside the configured
 	// time window in which it is allowed to roll.

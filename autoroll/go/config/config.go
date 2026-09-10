@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
 	"go.skia.org/infra/go/cipd"
@@ -103,6 +104,29 @@ func (c NotifierConfig_MsgType) Validate() error {
 		return skerr.Fmt("Unknown NotifierConfig_MsgType: %v", c)
 	}
 	return nil
+}
+
+// configModeMap maps Mode to the corresponding modes.Mode.
+var configModeMap = map[Mode]modes.Mode{
+	Mode_RUNNING: modes.ModeRunning,
+	Mode_STOPPED: modes.ModeStopped,
+	Mode_DRY_RUN: modes.ModeDryRun,
+	Mode_OFFLINE: modes.ModeOffline,
+}
+
+// Mode returns the modes.Mode representation of the Mode, or an error if invalid.
+func (m Mode) Mode() (modes.Mode, error) {
+	mode, ok := configModeMap[m]
+	if !ok {
+		return "", skerr.Fmt("invalid Mode %v", m)
+	}
+	return mode, nil
+}
+
+// Validate implements util.Validator.
+func (m Mode) Validate() error {
+	_, err := m.Mode()
+	return err
 }
 
 // Validate implements util.Validator.

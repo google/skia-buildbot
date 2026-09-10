@@ -169,7 +169,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		ParentName:      a.cfg.ParentDisplayName,
 		Recent:          recent,
 		Status:          state_machine.S_NORMAL_ACTIVE,
-		ValidModes:      []string{modes.ModeRunning},
+		ValidModes:      []modes.Mode{modes.ModeRunning},
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_BATCH},
 	}
 	sklog.Infof("Updating status: %+v", newStatus)

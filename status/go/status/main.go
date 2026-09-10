@@ -534,7 +534,7 @@ func main() {
 						Name:           friendlyName,
 						CurrentRollRev: miniStatus.CurrentRollRev,
 						LastRollRev:    miniStatus.LastRollRev,
-						Mode:           miniStatus.Mode,
+						Mode:           string(miniStatus.Mode),
 						NumBehind:      int32(miniStatus.NumNotRolledCommits),
 						NumFailed:      int32(miniStatus.NumFailedRolls),
 						Url:            url})

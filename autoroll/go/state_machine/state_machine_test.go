@@ -233,7 +233,7 @@ type TestAutoRollerImpl struct {
 	getNextRollRevResult *revision.Revision
 	getNextRollRevError  error
 
-	getModeResult         string
+	getModeResult         modes.Mode
 	rolledPast            map[string]bool
 	safetyThrottle        *Throttler
 	successThrottle       *Throttler
@@ -354,12 +354,12 @@ func (r *TestAutoRollerImpl) GetLastNRollRevs(n int) []string {
 }
 
 // See documentation for AutoRollerImpl.
-func (r *TestAutoRollerImpl) GetMode() string {
+func (r *TestAutoRollerImpl) GetMode() modes.Mode {
 	return r.getModeResult
 }
 
 // Set the result of GetMode.
-func (r *TestAutoRollerImpl) SetMode(ctx context.Context, mode string) {
+func (r *TestAutoRollerImpl) SetMode(ctx context.Context, mode modes.Mode) {
 	r.getModeResult = mode
 }
 
@@ -801,7 +801,7 @@ func TestStopped(t *testing.T) {
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 }
 
-func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period time.Duration) {
+func testSafetyThrottle(t *testing.T, mode modes.Mode, attemptCount int64, period time.Duration) {
 	ctx, sm, r, gcsClient, cleanup := setup(t)
 	defer cleanup()
 

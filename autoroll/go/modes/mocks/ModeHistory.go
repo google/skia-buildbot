@@ -15,7 +15,7 @@ type ModeHistory struct {
 }
 
 // Add provides a mock function with given fields: ctx, mode, user, message
-func (_m *ModeHistory) Add(ctx context.Context, mode string, user string, message string) error {
+func (_m *ModeHistory) Add(ctx context.Context, mode modes.Mode, user string, message string) error {
 	ret := _m.Called(ctx, mode, user, message)
 
 	if len(ret) == 0 {
@@ -23,7 +23,7 @@ func (_m *ModeHistory) Add(ctx context.Context, mode string, user string, messag
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, modes.Mode, string, string) error); ok {
 		r0 = rf(ctx, mode, user, message)
 	} else {
 		r0 = ret.Error(0)

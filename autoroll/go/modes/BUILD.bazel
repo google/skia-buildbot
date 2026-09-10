@@ -9,7 +9,6 @@ go_library(
     deps = [
         "//go/ds",
         "//go/skerr",
-        "//go/util",
         "@com_google_cloud_go_datastore//:datastore",
     ],
 )

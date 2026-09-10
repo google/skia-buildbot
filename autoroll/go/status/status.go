@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/ds"
@@ -45,7 +46,7 @@ type AutoRollStatus struct {
 	Recent             []*autoroll.AutoRollIssue `json:"recent"`
 	Status             string                    `json:"status"`
 	ThrottledUntil     int64                     `json:"throttledUntil"`
-	ValidModes         []string                  `json:"validModes"`
+	ValidModes         []modes.Mode              `json:"validModes"`
 	ValidStrategies    []string                  `json:"validStrategies"`
 }
 
@@ -68,10 +69,16 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 			notRolledRevisions = append(notRolledRevisions, r.Copy())
 		}
 	}
+	var validModes []modes.Mode
+	if s.ValidModes != nil {
+		validModes = make([]modes.Mode, len(s.ValidModes))
+		copy(validModes, s.ValidModes)
+	}
 	rv := &AutoRollStatus{
 		AutoRollMiniStatus: AutoRollMiniStatus{
 			CurrentRollRev:              s.CurrentRollRev,
 			LastRollRev:                 s.LastRollRev,
+			Mode:                        s.Mode,
 			NumFailedRolls:              s.NumFailedRolls,
 			NumNotRolledCommits:         s.NumNotRolledCommits,
 			Timestamp:                   s.Timestamp,
@@ -87,7 +94,7 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 		Recent:             recent,
 		Status:             s.Status,
 		ThrottledUntil:     s.ThrottledUntil,
-		ValidModes:         util.CopyStringSlice(s.ValidModes),
+		ValidModes:         validModes,
 		ValidStrategies:    util.CopyStringSlice(s.ValidStrategies),
 	}
 	if s.CurrentRoll != nil {
@@ -114,7 +121,7 @@ type AutoRollMiniStatus struct {
 	// The current mode of the roller.
 	// Note: This duplicates what is stored in the modes DB but is more
 	// convenient for users like status.skia.org.
-	Mode string `json:"mode"`
+	Mode modes.Mode `json:"mode"`
 
 	// The number of failed rolls since the last successful roll.
 	NumFailedRolls int `json:"numFailed"`

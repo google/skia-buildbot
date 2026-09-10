@@ -200,3 +200,15 @@ func TestParseTrybotName(t *testing.T) {
 	testFailure("multiple builders without project or bucket", "multiple,builders,without,project")
 	testFailure("empty name", "")
 }
+
+func TestMode(t *testing.T) {
+	for modeEnum, expected := range configModeMap {
+		actual, err := modeEnum.Mode()
+		require.NoError(t, err)
+		require.Equal(t, expected, actual)
+		require.NoError(t, modeEnum.Validate())
+	}
+	_, err := Mode(999).Mode()
+	require.Error(t, err)
+	require.Error(t, Mode(999).Validate())
+}

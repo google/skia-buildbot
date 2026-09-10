@@ -9,7 +9,6 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -18,17 +17,19 @@ const (
 	ModeHistoryLength = 25
 )
 
+type Mode string
+
 // Valid autoroller modes.
 const (
-	ModeRunning = "running"
-	ModeStopped = "stopped"
-	ModeDryRun  = "dry run"
-	ModeOffline = "offline"
+	ModeRunning Mode = "running"
+	ModeStopped Mode = "stopped"
+	ModeDryRun  Mode = "dry run"
+	ModeOffline Mode = "offline"
 )
 
 var (
 	// ValidModes lists the valid autoroller modes.
-	ValidModes = []string{
+	ValidModes = []Mode{
 		ModeRunning,
 		ModeDryRun,
 		ModeStopped,
@@ -39,7 +40,7 @@ var (
 // ModeHistory tracks the history of mode changes for the autoroller.
 type ModeHistory interface {
 	// Add a new ModeChange.
-	Add(ctx context.Context, mode, user, message string) error
+	Add(ctx context.Context, mode Mode, user, message string) error
 	// CurrentMode retrieves the most recent ModeChange.
 	CurrentMode() *ModeChange
 	// GetHistory returns a slice of recent ModeChanges. Its length is bounded
@@ -61,7 +62,7 @@ func fakeAncestor() *datastore.Key {
 // ModeChange is a struct used for describing a change in the AutoRoll mode.
 type ModeChange struct {
 	Message string    `datastore:"message" json:"message"`
-	Mode    string    `datastore:"mode" json:"mode"`
+	Mode    Mode      `datastore:"mode" json:"mode"`
 	Roller  string    `datastore:"roller" json:"-"`
 	Time    time.Time `datastore:"time" json:"time"`
 	User    string    `datastore:"user" json:"user"`
@@ -97,8 +98,15 @@ func NewDatastoreModeHistory(ctx context.Context, roller string) (*DatastoreMode
 }
 
 // Add inserts a new ModeChange.
-func (mh *DatastoreModeHistory) Add(ctx context.Context, mode, user, message string) error {
-	if !util.In(mode, ValidModes) {
+func (mh *DatastoreModeHistory) Add(ctx context.Context, mode Mode, user, message string) error {
+	found := false
+	for _, m := range ValidModes {
+		if m == mode {
+			found = true
+			break
+		}
+	}
+	if !found {
 		return fmt.Errorf("Invalid mode: %s", mode)
 	}
 	modeChange := &ModeChange{

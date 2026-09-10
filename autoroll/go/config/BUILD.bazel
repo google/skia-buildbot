@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/config",
     visibility = ["//visibility:public"],
     deps = [
+        "//autoroll/go/modes",
         "//autoroll/go/strategy",
         "//autoroll/go/time_window",
         "//go/cipd",

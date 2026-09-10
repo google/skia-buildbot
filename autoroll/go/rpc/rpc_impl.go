@@ -337,7 +337,7 @@ func (s *AutoRollServer) SetMode(ctx context.Context, req *SetModeRequest) (*Set
 	if err != nil {
 		return nil, err
 	}
-	var mode string
+	var mode modes.Mode
 	switch req.Mode {
 	case Mode_RUNNING:
 		mode = modes.ModeRunning
@@ -565,7 +565,7 @@ type AutoRoller struct {
 	Strategy strategy.StrategyHistory
 }
 
-func convertMiniStatus(inp *status.AutoRollMiniStatus, roller, mode, childName, parentName string) (*AutoRollMiniStatus, error) {
+func convertMiniStatus(inp *status.AutoRollMiniStatus, roller string, mode modes.Mode, childName, parentName string) (*AutoRollMiniStatus, error) {
 	m, err := convertMode(mode)
 	if err != nil {
 		return nil, err
@@ -694,7 +694,7 @@ func convertTryJob(inp *autoroll.TryResult) (*TryJob, error) {
 	}, nil
 }
 
-func convertMode(m string) (Mode, error) {
+func convertMode(m modes.Mode) (Mode, error) {
 	switch m {
 	case modes.ModeRunning:
 		return Mode_RUNNING, nil

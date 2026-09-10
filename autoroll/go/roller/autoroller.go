@@ -226,7 +226,15 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer email.Client, 
 	}
 	if mh.CurrentMode() == nil {
 		sklog.Info("Setting initial mode.")
-		if err := mh.Add(ctx, modes.ModeRunning, "AutoRoll Bot", "Setting initial mode."); err != nil {
+		defaultMode := modes.ModeRunning
+		if len(c.ValidModes) > 0 {
+			var err error
+			defaultMode, err = c.ValidModes[0].Mode()
+			if err != nil {
+				return nil, skerr.Wrapf(err, "Failed to set initial mode")
+			}
+		}
+		if err := mh.Add(ctx, defaultMode, "AutoRoll Bot", "Setting initial mode."); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to set initial mode")
 		}
 	}
@@ -512,7 +520,7 @@ func (r *AutoRoller) GetEmails() []string {
 }
 
 // GetMode implements state_machine.AutoRollerImpl.
-func (r *AutoRoller) GetMode() string {
+func (r *AutoRoller) GetMode() modes.Mode {
 	return r.modeHistory.CurrentMode().Mode
 }
 
