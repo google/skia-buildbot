@@ -61,6 +61,7 @@ go_test(
         "//perf/go/stepfit",
         "//perf/go/types",
         "//perf/go/ui/frame",
+        "@com_github_prometheus_client_golang//prometheus",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -627,4 +628,63 @@ func TestProcessAlertConfigForTraces_GroupTracesFlag(t *testing.T) {
 	allMocks.dataFrameBuilder.On("NewNFromQuery", testutils.AnyContext, mock.Anything, mock.Anything, int32(10), mock.Anything).Return(dataframe.NewEmpty(), nil).Maybe()
 
 	_ = c.ProcessAlertConfigForTraces(context.Background(), alertConfig, traceIds, nil, nil, false, false)
+}
+
+func TestProcessAlertConfig_LatencyTimerTags(t *testing.T) {
+	originalConfig := config.Config
+	config.Config = &config.InstanceConfig{}
+	defer func() { config.Config = originalConfig }()
+
+	c, _, _, _, allMocks := createArgsForReportRegressions(t)
+	c.flags.NumContinuous = 100
+	c.flags.Radius = 10
+
+	alertConfig := alerts.Alert{
+		DisplayName: "stepfit-large-n",
+		IDAsString:  "456",
+		Algo:        types.StepFitGrouping,
+		Step:        types.OriginalStep,
+		Radius:      15,
+		K:           0,
+	}
+
+	domain := &types.Domain{
+		N:   250,
+		End: time.Time{},
+	}
+
+	allMocks.dataFrameBuilder.On("NumMatches", testutils.AnyContext, mock.Anything).Return(int64(0), nil).Maybe()
+	allMocks.dataFrameBuilder.On("NewNFromQuery", testutils.AnyContext, mock.Anything, mock.Anything, int32(250), mock.Anything).Return(dataframe.NewEmpty(), nil).Maybe()
+
+	err := c.ProcessAlertConfig(context.Background(), &alertConfig, "", nil, domain, false)
+	require.NoError(t, err)
+
+	// Verify that the Prometheus summary metric was properly emitted with all expected algorithmic labels.
+	mfs, err := prometheus.DefaultGatherer.Gather()
+	require.NoError(t, err)
+
+	var found bool
+	for _, mf := range mfs {
+		if mf.GetName() == "timer_perf_alertconfig_clustering_latency_ns" {
+			for _, m := range mf.GetMetric() {
+				labels := map[string]string{}
+				for _, lp := range m.GetLabel() {
+					labels[lp.GetName()] = lp.GetValue()
+				}
+				if labels["configName"] == "stepfit-large-n" {
+					found = true
+					assert.Equal(t, "stepfit", labels["algo"])
+					assert.Equal(t, "original", labels["step"])
+					assert.Equal(t, "15", labels["radius"])
+					assert.Equal(t, "0", labels["kClusterCount"])
+					assert.Equal(t, "250", labels["commitCount"])
+					summary := m.GetSummary()
+					require.NotNil(t, summary)
+					assert.GreaterOrEqual(t, summary.GetSampleCount(), uint64(1))
+					assert.Greater(t, summary.GetSampleSum(), float64(0))
+				}
+			}
+		}
+	}
+	assert.True(t, found, "Expected timer_perf_alertconfig_clustering_latency_ns to be recorded with configName=stepfit-large-n")
 }

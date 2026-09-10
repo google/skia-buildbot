@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -723,10 +724,43 @@ func (c *Continuous) processAlertConfigInternal(ctx context.Context, cfg *alerts
 	defer span.End()
 
 	c.setCurrentConfig(cfg)
+
+	if cfg.Radius == 0 && c.flags != nil {
+		cfg.Radius = c.flags.Radius
+	}
+	if domain == nil {
+		numContinuous := 0
+		if c.flags != nil {
+			numContinuous = c.flags.NumContinuous
+		}
+		domain = &types.Domain{
+			N:   int32(numContinuous),
+			End: time.Time{},
+		}
+	}
+
+	algo := string(cfg.Algo)
+	if algo == "" {
+		algo = string(types.KMeansGrouping)
+	}
+	step := string(cfg.Step)
+	if step == "" {
+		if cfg.DetectionRule != nil {
+			step = "custom_rule"
+		} else {
+			step = "original"
+		}
+	}
+
 	alertConfigLatencyTimer := metrics2.NewTimer(
 		"perf_alertconfig_clustering_latency",
 		map[string]string{
-			"configName": cfg.DisplayName,
+			"configName":    cfg.DisplayName,
+			"algo":          algo,
+			"step":          step,
+			"radius":        strconv.Itoa(cfg.Radius),
+			"kClusterCount": strconv.Itoa(cfg.K),
+			"commitCount":   strconv.Itoa(int(domain.N)),
 		})
 
 	alertConfigLatencyTimer.Start()
@@ -756,15 +790,6 @@ func (c *Continuous) processAlertConfigInternal(ctx context.Context, cfg *alerts
 
 	confirmedRegressionHandler := func(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.ConfirmedRegression, message string) error {
 		return c.reportRegressions(ctx, req, resps, cfg, skipNotifications)
-	}
-	if cfg.Radius == 0 {
-		cfg.Radius = c.flags.Radius
-	}
-	if domain == nil {
-		domain = &types.Domain{
-			N:   int32(c.flags.NumContinuous),
-			End: time.Time{},
-		}
 	}
 	req := regression.NewRegressionDetectionRequest()
 	req.Alert = cfg
