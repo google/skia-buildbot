@@ -4,6 +4,8 @@ import { createRef, ref } from 'lit/directives/ref.js';
 import { define } from '../../../elements-sk/modules/define';
 import { HResizableBoxSk } from '../plot-summary-sk/h_resizable_box_sk';
 import { TraceSeries, TraceRow } from './trace-types';
+import { telemetry } from '../telemetry/telemetry';
+import { SummaryMetric } from '../telemetry/types';
 import '@material/web/iconbutton/outlined-icon-button.js';
 import '@material/web/icon/icon.js';
 
@@ -412,6 +414,7 @@ export class PlotSummaryV2Sk extends LitElement {
 
   public drawSummary() {
     if (!this.series || this.series.length === 0) return;
+    const start = performance.now();
     const prep = this.prepareCanvas();
     if (!prep) return;
 
@@ -435,6 +438,10 @@ export class PlotSummaryV2Sk extends LitElement {
     prep.ctx.lineWidth = 1.5;
     this.renderSeriesToCanvas(prep.ctx, xToIndex, mapX, mapY);
     prep.ctx.globalAlpha = 1.0;
+
+    telemetry.recordSummary(SummaryMetric.V2GraphPlotTime, (performance.now() - start) / 1000, {
+      type: 'summary',
+    });
   }
 
   protected render() {

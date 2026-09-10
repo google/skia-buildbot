@@ -39,5 +39,6 @@ export enum SummaryMetric {
   ReportGraphChunkLoadTime = 'fe_report_graph_chunk_load_time_s',
   ReportPageLoadTime = 'fe_report_page_load_time_s',
   SingleGraphLoadTime = 'fe_single_graph_load_time_s',
+  V2GraphPlotTime = 'fe_v2_graph_plot_time_s',
   // go/keep-sorted end
 }

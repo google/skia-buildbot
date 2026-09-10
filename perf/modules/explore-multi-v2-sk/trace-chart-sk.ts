@@ -11,6 +11,8 @@ import { smoothPoints } from './smoothing';
 import { Regression } from '../json';
 import { TrimHash } from '../common/commit';
 import { traceSeriesToCSV, downloadCSV, removeSpecialTraces } from '../csv';
+import { telemetry } from '../telemetry/telemetry';
+import { SummaryMetric } from '../telemetry/types';
 import './trace-chart-tooltip-sk';
 
 export interface TraceRow {
@@ -478,6 +480,21 @@ export class TraceChartSk extends LitElement {
       changedProperties.has('smoothingRadius') ||
       changedProperties.has('edgeDetectionFactor') ||
       changedProperties.has('edgeLookahead');
+    const dateModeChanged = changedProperties.has('dateMode');
+    const subrepoChanged = changedProperties.has('selectedSubrepo');
+
+    if (seriesChanged || normPropsChanged || dateModeChanged || subrepoChanged) {
+      this._updateDataView(seriesChanged, normPropsChanged, dateModeChanged, subrepoChanged);
+    }
+  }
+
+  private _updateDataView(
+    seriesChanged: boolean,
+    normPropsChanged: boolean,
+    dateModeChanged: boolean,
+    subrepoChanged: boolean
+  ) {
+    const start = performance.now();
 
     if (seriesChanged || normPropsChanged) {
       this._processedSeries = (this.series || [])
@@ -485,7 +502,7 @@ export class TraceChartSk extends LitElement {
         .map((s) => this._processSingleSeries(s));
     }
 
-    if (seriesChanged || normPropsChanged || changedProperties.has('dateMode')) {
+    if (seriesChanged || normPropsChanged || dateModeChanged) {
       const uniqueXValues = new Set<number>();
       this._processedSeries.forEach((s) => {
         s.rows.forEach((r) => {
@@ -497,8 +514,14 @@ export class TraceChartSk extends LitElement {
       this._sortedXValues.forEach((val, idx) => this._xValueToIndex.set(val, idx));
     }
 
-    if (seriesChanged || normPropsChanged || changedProperties.has('selectedSubrepo')) {
+    if (seriesChanged || normPropsChanged || subrepoChanged) {
       this._subrepoRolls = this._computeSubrepoRolls();
+    }
+
+    if (this.series && this.series.length > 0) {
+      telemetry.recordSummary(SummaryMetric.V2GraphPlotTime, (performance.now() - start) / 1000, {
+        type: 'update-data-view',
+      });
     }
   }
 
@@ -695,6 +718,8 @@ export class TraceChartSk extends LitElement {
       ctx.fillText('No data available', width / 2, height / 2);
       return;
     }
+
+    const start = performance.now();
 
     const {
       padding,
@@ -1258,6 +1283,10 @@ export class TraceChartSk extends LitElement {
     });
 
     ctx.restore();
+
+    telemetry.recordSummary(SummaryMetric.V2GraphPlotTime, (performance.now() - start) / 1000, {
+      type: 'main-chart',
+    });
   }
 
   private _drawForeground() {

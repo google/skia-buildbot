@@ -1,7 +1,10 @@
 import './plot-summary-v2-sk';
 import { PlotSummaryV2Sk } from './plot-summary-v2-sk';
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { TraceSeries } from './trace-types';
+import { telemetry } from '../telemetry/telemetry';
+import { SummaryMetric } from '../telemetry/types';
 
 describe('plot-summary-v2-sk', () => {
   let element: PlotSummaryV2Sk;
@@ -208,5 +211,38 @@ describe('plot-summary-v2-sk', () => {
     expect(coords).to.not.be.null;
     expect(coords!.begin).to.equal(-100);
     expect(coords!.end).to.equal(200);
+  });
+
+  it('records telemetry for summary plot time when drawSummary is called', async () => {
+    const recordSummarySpy = sinon.spy(telemetry, 'recordSummary');
+    try {
+      const canvas = element.shadowRoot!.querySelector('canvas') as HTMLCanvasElement;
+      canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 45 }) as DOMRect;
+
+      element.series = [
+        {
+          id: 'trace1',
+          color: '#ff0000',
+          rows: [
+            { commit_number: 10, val: 50, createdat: 1000 },
+            { commit_number: 20, val: 150, createdat: 2000 },
+          ],
+        },
+      ];
+      element.drawSummary();
+
+      expect(recordSummarySpy.called).to.be.true;
+      const matchingCall = recordSummarySpy
+        .getCalls()
+        .find(
+          (call) =>
+            call.args[0] === SummaryMetric.V2GraphPlotTime &&
+            (call.args[2] as Record<string, string>)?.type === 'summary'
+        );
+      expect(matchingCall).to.not.be.undefined;
+      expect(matchingCall!.args[1]).to.be.a('number');
+    } finally {
+      recordSummarySpy.restore();
+    }
   });
 });

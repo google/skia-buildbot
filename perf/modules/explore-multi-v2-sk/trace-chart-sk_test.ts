@@ -1,6 +1,9 @@
 import './trace-chart-sk';
 import { TraceChartSk } from './trace-chart-sk';
 import { expect } from 'chai';
+import sinon from 'sinon';
+import { telemetry } from '../telemetry/telemetry';
+import { SummaryMetric } from '../telemetry/types';
 
 describe('trace-chart-sk', () => {
   let element: TraceChartSk;
@@ -908,6 +911,65 @@ describe('trace-chart-sk', () => {
       URL.createObjectURL = origCreateObjectURL;
       URL.revokeObjectURL = origRevokeObjectURL;
       HTMLAnchorElement.prototype.click = origClick;
+    }
+  });
+
+  it('records telemetry for update-data-view when series is updated', async () => {
+    const recordSummarySpy = sinon.spy(telemetry, 'recordSummary');
+    try {
+      element.series = [
+        {
+          id: 'test',
+          color: '#fff',
+          rows: [
+            { commit_number: 1, val: 10.0, createdat: 1000 },
+            { commit_number: 2, val: 20.0, createdat: 2000 },
+          ],
+        },
+      ];
+      await element.updateComplete;
+
+      expect(recordSummarySpy.called).to.be.true;
+      const updateDataViewCall = recordSummarySpy
+        .getCalls()
+        .find(
+          (call) =>
+            call.args[0] === SummaryMetric.V2GraphPlotTime &&
+            (call.args[2] as Record<string, string>)?.type === 'update-data-view'
+        );
+      expect(updateDataViewCall).to.not.be.undefined;
+      expect(updateDataViewCall!.args[1]).to.be.a('number');
+    } finally {
+      recordSummarySpy.restore();
+    }
+  });
+
+  it('records telemetry for main-chart when chart background is drawn', async () => {
+    const recordSummarySpy = sinon.spy(telemetry, 'recordSummary');
+    try {
+      element.series = [
+        {
+          id: 'test',
+          color: '#fff',
+          rows: [
+            { commit_number: 1, val: 10.0, createdat: 1000 },
+            { commit_number: 2, val: 20.0, createdat: 2000 },
+          ],
+        },
+      ];
+      await element.updateComplete;
+
+      const mainChartCall = recordSummarySpy
+        .getCalls()
+        .find(
+          (call) =>
+            call.args[0] === SummaryMetric.V2GraphPlotTime &&
+            (call.args[2] as Record<string, string>)?.type === 'main-chart'
+        );
+      expect(mainChartCall).to.not.be.undefined;
+      expect(mainChartCall!.args[1]).to.be.a('number');
+    } finally {
+      recordSummarySpy.restore();
     }
   });
 });
