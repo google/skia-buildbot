@@ -1,6 +1,7 @@
 package perfresults
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -64,4 +65,47 @@ func Test_PerfResult_MergeDiffHistogram(t *testing.T) {
 
 	// GetSampleValues get all the samples from different stories
 	assert.EqualValues(t, []float64{1, 2}, merged.GetSampleValues("memory:chrome:gpu_process:process_count"))
+}
+
+func Test_LoadJSONWithInlineDiagnostics_ReturnsTraceKey(t *testing.T) {
+	jsonBlob := `[
+		{
+			"type": "GenericSet",
+			"guid": "shared-arch-guid",
+			"values": ["x86_64"]
+		},
+		{
+			"name": "Speedometer3",
+			"unit": "unitless_biggerIsBetter",
+			"sampleValues": [100.5],
+			"diagnostics": {
+				"architectures": "shared-arch-guid",
+				"stories": {
+					"type": "GenericSet",
+					"values": ["TodoMVC-JavaScript-ES5"]
+				},
+				"breakdown": {
+					"type": "GenericSet",
+					"values": ["React", "Vue"]
+				}
+			}
+		}
+	]`
+	pr, err := NewResults(strings.NewReader(jsonBlob))
+	assert.NoError(t, err)
+
+	expectedKey := TraceKey{
+		ChartName:    "Speedometer3",
+		Unit:         "unitless_biggerIsBetter",
+		Architecture: "x86_64",
+		Story:        "TodoMVC-JavaScript-ES5",
+	}
+	assert.Contains(t, pr.Histograms, expectedKey)
+	assert.EqualValues(t, []float64{100.5}, pr.Histograms[expectedKey].SampleValues)
+
+	// Also test UnmarshalJSON
+	var pr2 PerfResults
+	err = pr2.UnmarshalJSON([]byte(jsonBlob))
+	assert.NoError(t, err)
+	assert.Contains(t, pr2.Histograms, expectedKey)
 }

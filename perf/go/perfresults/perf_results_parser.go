@@ -2,6 +2,7 @@ package perfresults
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"math"
 	"slices"
@@ -90,8 +91,8 @@ type histogramRaw struct {
 	// optional fields
 	Description  string    `json:"description"`
 	SampleValues []float64 `json:"sampleValues"`
-	// Diagnostics maps a diagnostic key to a guid, which points to e.g. a genericSet.
-	Diagnostics map[string]string `json:"diagnostics"`
+	// Diagnostics maps a diagnostic key to a guid (string) or an inline diagnostic object (e.g. GenericSet).
+	Diagnostics map[string]any `json:"diagnostics"`
 }
 
 // genericSet is a normalized value that other parts of the json file can reference by guid.
@@ -120,6 +121,37 @@ type singleEntry struct {
 	relatedNameMap
 }
 
+// getDiagnosticString extracts the first string value from a diagnostic entry,
+// which can be either a string GUID referencing an entry in metadata (shared diagnostics)
+// or an inline GenericSet object (unshared diagnostics).
+func (hr *histogramRaw) getDiagnosticString(key string, metadata map[string]any) string {
+	diag, ok := hr.Diagnostics[key]
+	if !ok || diag == nil {
+		return ""
+	}
+	switch v := diag.(type) {
+	case string:
+		if val, ok := metadata[v]; ok {
+			if gs, ok := val.(genericSet); ok && len(gs.Values) > 0 {
+				if s, ok := gs.Values[0].(string); ok {
+					return s
+				}
+				return fmt.Sprintf("%v", gs.Values[0])
+			}
+		} else {
+			sklog.Warningf("Unable to find the metadata value for %s (%v).", key, v)
+		}
+	case map[string]any:
+		if vals, ok := v["values"].([]any); ok && len(vals) > 0 {
+			if s, ok := vals[0].(string); ok {
+				return s
+			}
+			return fmt.Sprintf("%v", vals[0])
+		}
+	}
+	return ""
+}
+
 // asTraceKeyAndHistogram converts raw data into a unique trace key and histogram samples.
 func (hr *histogramRaw) asTraceKeyAndHistogram(metadata map[string]any) (TraceKey, Histogram) {
 	tk := TraceKey{
@@ -128,28 +160,16 @@ func (hr *histogramRaw) asTraceKeyAndHistogram(metadata map[string]any) (TraceKe
 	}
 
 	// The original key is plural but they are actually singular.
-	if arch, ok := hr.Diagnostics["architectures"]; ok {
-		if v, ok := metadata[arch]; ok {
-			tk.Architecture = v.(genericSet).Values[0].(string)
-		} else {
-			sklog.Warningf("Unable to find the value for architectures (%v).", arch)
-		}
+	if arch := hr.getDiagnosticString("architectures", metadata); arch != "" {
+		tk.Architecture = arch
 	}
 
-	if osNames, ok := hr.Diagnostics["osNames"]; ok {
-		if v, ok := metadata[osNames]; ok {
-			tk.OSName = v.(genericSet).Values[0].(string)
-		} else {
-			sklog.Warningf("Unable to find the value for osNames (%v).", osNames)
-		}
+	if osNames := hr.getDiagnosticString("osNames", metadata); osNames != "" {
+		tk.OSName = osNames
 	}
 
-	if stories, ok := hr.Diagnostics["stories"]; ok {
-		if v, ok := metadata[stories]; ok {
-			tk.Story = v.(genericSet).Values[0].(string)
-		} else {
-			sklog.Warningf("Unable to find the value for stories (%v).", stories)
-		}
+	if stories := hr.getDiagnosticString("stories", metadata); stories != "" {
+		tk.Story = stories
 	}
 	return tk, Histogram{SampleValues: hr.SampleValues}
 }
