@@ -648,13 +648,13 @@ cipd.download_http(
     name = "git-credential-luci",
     cipd_package = "infra/tools/luci/git-credential-luci/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "a92a9e0de1142467b9cb278363802ab4a8f84eff65ebb07d05b44416867d12a6",
-        "linux-arm64": "9c3a9a9823a93e9eff622a918b0c86ca084fbbdf9d2bae576f6f57a64408982c",
-        "mac-amd64": "1e478c415a8b7b841b9abeef97d949cda555464cba580e3b9d90436daf799b67",
-        "mac-arm64": "751dd8b00cc2bed15254943e26fb46b95a7319af4fab54cc42125940d57eaa41",
-        "windows-amd64": "704044e3513a7b020866213a12c1a855f06be57fbcc8231b8bd163296effcf0c",
+        "linux-amd64": "a710bd9dd268bcce8eec84008d1763159713d1719c8702642e5efc933add3614",
+        "linux-arm64": "1ba79bad0e0710fc5f42f80d7aad70c6eab46e8dd1fd4a8f6bfd5009daa112b1",
+        "mac-amd64": "8052f2250dea88c79dc1c6c55394b5443026bf0daae62a85615b34fa03986c7c",
+        "mac-arm64": "c76a2e72dffb4e60b336ea2fcad8d2ba087916aed0d6598279d84f1ff7187ff5",
+        "windows-amd64": "c44663692e4121ceddf0e66b9aaab2cdde55cc160eff7f962d9b39c39faf70ab",
     },
-    tag = "git_revision:3d1174859c0a5bb00d87c78506f8c031afad16aa",
+    tag = "git_revision:e8ff1a9251fd84ffa2645964347cf41281903c09",
 )
 use_repo(cipd, "git-credential-luci_linux-amd64")
 
