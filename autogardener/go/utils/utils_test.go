@@ -125,15 +125,13 @@ main.main()
 			expected: "[D<DATE>T<TIME> <PID> <TID> system_windows.go:117] os.Interrrupt recieved, restoring signal handler.",
 		},
 		{
-			name: "failed vulkan call, no change",
+			name: "failed vulkan call, strip shell trace",
 			input: `Failed vulkan call. Error: -4, QueueSubmit(queue, 1, &submitInfo, fence)
 Segmentation fault
 + >/data/local/tmp/rc
 + echo 139`,
 			expected: `Failed vulkan call. Error: -4, QueueSubmit(queue, 1, &submitInfo, fence)
-Segmentation fault
-+ >/data/local/tmp/rc
-+ echo 139`,
+Segmentation fault`,
 		},
 		{
 			name: "GrSurfaceTest failure with stacktrace",
@@ -357,6 +355,36 @@ blah`,
 			input:    "error in skia/out/1b22a8/../../skia/third_party/externals/vulkan",
 			expected: "error in skia/out/<dir>/../../skia/third_party/externals/vulkan",
 		},
+		{
+			name:     "sanitize Windows swarming path",
+			input:    `[skia] ** ERROR ** C:\b\s\w\ir\skia\src\gpu\graphite\Buffer.cpp(17): fatal error`,
+			expected: `[skia] ** ERROR ** /<workdir>/skia\src\gpu\graphite\Buffer.cpp(17): fatal error`,
+		},
+		{
+			name:     "sanitize macOS swarming path",
+			input:    `clang++ -isysroot /Volumes/Work/s/w/ir/cache/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform`,
+			expected: `clang++ -isysroot /<workdir>/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform`,
+		},
+		{
+			name:     "sanitize Skylab bot path",
+			input:    `File "/home/chromeos-test/skylab_bots/c-c-c8-r14-r12-h1.245497306/w/ir/skia/infra/bots/run_recipe.py", line 40`,
+			expected: `File "/<workdir>/skia/infra/bots/run_recipe.py", line 40`,
+		},
+		{
+			name:     "sanitize Bazel cache path",
+			input:    `ERROR: C:/users/chrome-bot/_bazel_chrome-bot/r6zvqpx7/external/libjxl/BUILD:1:1: error`,
+			expected: `ERROR: /<bazel_cache>/external/libjxl/BUILD:1:1: error`,
+		},
+		{
+			name:     "sanitize hardware UDID",
+			input:    `{ id:00008030-000D48A13C31802E }`,
+			expected: `{ id:<DEVICE_ID> }`,
+		},
+		{
+			name:     "sanitize test runner progress counter",
+			input:    `[72386/73301] vk1010102 svg  shapes-polygon-02-t.svg`,
+			expected: `vk1010102 svg  shapes-polygon-02-t.svg`,
+		},
 	}
 
 	for _, tt := range tests {
@@ -472,6 +500,14 @@ func TestErrorIsGeneric(t *testing.T) {
 		{input: "Segmentation fault\n  #0 0x103d3dd5c in DM.cpp:407", expected: false},
 		{input: "expected color 0xff0000ff", expected: false},
 		{input: "failed to connect to localhost:<port>", expected: false},
+		{input: "TIMED_OUT", expected: true},
+		{input: "timed_out", expected: true},
+		{input: "NO_RESOURCE", expected: true},
+		{input: "(no log output)", expected: true},
+		{input: "lost connection", expected: false},
+		{input: "Command exited with exit status 0xc0000135", expected: true},
+		{input: "Task timed out while running: gm verylargebitmap", expected: false},
+		{input: "lost connection to device during push /data/local/tmp/skimage", expected: false},
 	}
 
 	for _, tt := range tests {

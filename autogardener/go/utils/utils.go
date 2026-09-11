@@ -102,21 +102,27 @@ func (l *RateLimiter) RecordResponseTokens(ctx context.Context, tokens int32) er
 }
 
 var (
-	hexRegex          = regexp.MustCompile(`\b0x[0-9a-fA-F]{9,}\b`)
-	stackPointerRegex = regexp.MustCompile(`([{(,]\s*)0x[0-9a-fA-F]+(\??\b)`)
-	funcOffsetRegex   = regexp.MustCompile(`\+0x[0-9a-fA-F]+\b`)
-	pidTidRegex       = regexp.MustCompile(`\b(pid|PID|process|tid|TID|thread|Thread|LWP|goroutine)(\s*[=:]\s*|\s+)(\[[0-9]+\]|[0-9]+\b)`)
-	swarmingRegex     = regexp.MustCompile(`/b/s/w/ir(?:/(?:cache|work|git|build|out|task_driver|recipe_bootstrap|kitchen-workdir))*/?`)
-	tmpPrefixRegex    = regexp.MustCompile(`(\s|^|")(/tmp/[a-zA-Z0-9_\-\.]+/?)`)
-	portRegex         = regexp.MustCompile(`(localhost|\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):([1-9][0-9]{3,4})\b`)
-	dateRegex         = regexp.MustCompile(`\d{4}-\d{2}-\d{2}`)
-	timeRegex         = regexp.MustCompile(`\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[-+]\d{2}:\d{2})?`)
-	ipRegex           = regexp.MustCompile(`\b(?:127\.0\.0\.1|0\.0\.0\.0|169\.254\.169\.254|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})\b`)
-	logStampRegex     = regexp.MustCompile(`(?:\b([DIWEF])(\d{4}) <TIME>\s+(\d+)\b|\[([DIWEF])<DATE>T<TIME>\s+(\d+)\s+(\d+)\s*)`)
-	failuresRegex     = regexp.MustCompile(`(?m)^(\d+[ \t]+)?[Ff]ailures(:)?[ \t]*$`)
-	stdoutStderr      = regexp.MustCompile(`; Stdout\+Stderr:\n`)
-	ramUsageRegex     = regexp.MustCompile(`\(\d+MB RAM, peak \d+MB\)`)
-	outDirRegex       = regexp.MustCompile(`\bout/[a-zA-Z0-9_-]+\b`)
+	hexRegex            = regexp.MustCompile(`\b0x[0-9a-fA-F]{9,}\b`)
+	stackPointerRegex   = regexp.MustCompile(`([{(,]\s*)0x[0-9a-fA-F]+(\??\b)`)
+	funcOffsetRegex     = regexp.MustCompile(`\+0x[0-9a-fA-F]+\b`)
+	pidTidRegex         = regexp.MustCompile(`\b(pid|PID|process|tid|TID|thread|Thread|LWP|goroutine)(\s*[=:]\s*|\s+)(\[[0-9]+\]|[0-9]+\b)`)
+	swarmingRegex       = regexp.MustCompile(`(?i)(?:[a-zA-Z]:[/\\]|/)?b[/\\]s[/\\]w[/\\]ir(?:[/\\](?:cache|work|git|build|out|task_driver|recipe_bootstrap|kitchen-workdir|recipe_bundle|win_toolchain|clang_win|android_ndk_linux))*[/\\]?`)
+	macSwarmingRegex    = regexp.MustCompile(`/Volumes/Work/s/w/ir(?:/(?:cache|work|git|build|out|task_driver|recipe_bootstrap|kitchen-workdir|recipe_bundle))*[/\\]?`)
+	skylabSwarmingRegex = regexp.MustCompile(`/home/chromeos-test/skylab_bots/[^/\s]+/w/ir(?:/(?:cache|work|git|build|out|task_driver|recipe_bootstrap|kitchen-workdir|recipe_bundle|cipd_bin_packages/cpython3))*[/\\]?`)
+	bazelCacheRegex     = regexp.MustCompile(`(?i)(?:[a-zA-Z]:)?(?:/[^/\s]+)*/(?:_bazel_[^/\s]+|bazel_cache)/[0-9a-zA-Z]{8,}/`)
+	udidRegex           = regexp.MustCompile(`\b[0-9a-fA-F]{8}-[0-9a-fA-F]{16}\b`)
+	testProgressRegex   = regexp.MustCompile(`(?m)^\s*\[\d+/\d+\]\s*`)
+	shellTraceRegex     = regexp.MustCompile(`(?m)^\+\s+(?:>[^\s]+|echo\s+-?\d+)\s*\n?`)
+	tmpPrefixRegex      = regexp.MustCompile(`(\s|^|")(/tmp/[a-zA-Z0-9_\-\.]+/?)`)
+	portRegex           = regexp.MustCompile(`(localhost|\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):([1-9][0-9]{3,4})\b`)
+	dateRegex           = regexp.MustCompile(`\d{4}-\d{2}-\d{2}`)
+	timeRegex           = regexp.MustCompile(`\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[-+]\d{2}:\d{2})?`)
+	ipRegex             = regexp.MustCompile(`\b(?:127\.0\.0\.1|0\.0\.0\.0|169\.254\.169\.254|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})\b`)
+	logStampRegex       = regexp.MustCompile(`(?:\b([DIWEF])(\d{4}) <TIME>\s+(\d+)\b|\[([DIWEF])<DATE>T<TIME>\s+(\d+)\s+(\d+)\s*)`)
+	failuresRegex       = regexp.MustCompile(`(?m)^(\d+[ \t]+)?[Ff]ailures(:)?[ \t]*$`)
+	stdoutStderr        = regexp.MustCompile(`; Stdout\+Stderr:\n`)
+	ramUsageRegex       = regexp.MustCompile(`\(\d+MB RAM, peak \d+MB\)`)
+	outDirRegex         = regexp.MustCompile(`\bout/[a-zA-Z0-9_-]+\b`)
 )
 
 // SanitizeErrorText normalizes dynamic noise (such as memory addresses,
@@ -146,7 +152,13 @@ func SanitizeErrorText(errText string) string {
 	errText = stackPointerRegex.ReplaceAllString(errText, "${1}0x...${2}")
 	errText = funcOffsetRegex.ReplaceAllString(errText, "+0x...")
 	errText = swarmingRegex.ReplaceAllString(errText, "/<workdir>/")
+	errText = macSwarmingRegex.ReplaceAllString(errText, "/<workdir>/")
+	errText = skylabSwarmingRegex.ReplaceAllString(errText, "/<workdir>/")
+	errText = bazelCacheRegex.ReplaceAllString(errText, "/<bazel_cache>/")
 	errText = tmpPrefixRegex.ReplaceAllString(errText, "${1}/<workdir>/")
+	errText = udidRegex.ReplaceAllString(errText, "<DEVICE_ID>")
+	errText = testProgressRegex.ReplaceAllString(errText, "")
+	errText = shellTraceRegex.ReplaceAllString(errText, "")
 	errText = portRegex.ReplaceAllString(errText, "${1}:<port>")
 	errText = ipRegex.ReplaceAllString(errText, "<IP>")
 	errText = ramUsageRegex.ReplaceAllString(errText, "(<RAM_FOOTPRINT>)")
@@ -156,6 +168,9 @@ func SanitizeErrorText(errText string) string {
 
 	// Clean up any double-slashes or orphaned slashes resulting from replacement
 	errText = strings.ReplaceAll(errText, "/<workdir>//", "/<workdir>/")
+	errText = strings.ReplaceAll(errText, "\\<workdir>\\", "/<workdir>/")
+	errText = strings.ReplaceAll(errText, "\\<workdir>/", "/<workdir>/")
+	errText = strings.ReplaceAll(errText, "/<workdir>\\", "/<workdir>/")
 
 	// Clear leading newlines and trailing whitespace.
 	errText = strings.TrimLeft(errText, "\r\n")
@@ -213,9 +228,12 @@ func longestCommonPrefix(a, b string) string {
 }
 
 var genericErrorPatterns = []*regexp.Regexp{
-	regexp.MustCompile(`^(?i)(?:command\s+)?(?:exited|failed)?\s*(?:with\s+)?(?:exit\s+|status\s+|code\s+)*-?[0-9]*(?::\s*.*)?$`),
+	regexp.MustCompile(`^(?i)(?:command\s+)?(?:exited|failed)?\s*(?:with\s+)?(?:exit\s+|status\s+|code\s+)*(?:-?[0-9]+|0x[0-9a-fA-F]+)*(?::\s*.*)?$`),
 	regexp.MustCompile(`^(?i)failed to run command$`),
 	regexp.MustCompile(`^(?i)task timed out$`),
+	regexp.MustCompile(`^(?i)timed[ _-]?out$`),
+	regexp.MustCompile(`^(?i)no[ _-]?resource$`),
+	regexp.MustCompile(`^(?i)\(no log output\)$`),
 	regexp.MustCompile(`^(?i)context deadline exceeded$`),
 	regexp.MustCompile(`^(?i)recipe failed$`),
 	regexp.MustCompile(`^(?i)step failed$`),

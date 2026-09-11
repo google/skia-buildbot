@@ -309,17 +309,36 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
    - If the error is not extremely obvious, continue requesting log lines until
      you've either found an obvious error or you've seen all of the logs.
 3. Analyze the error(s) and present a report to the user.
-   - Be sure to include the entire error message or stack trace, unless it is
-     excessively long (>100 lines). You can deduplicate lines as appropriate.
-   - Be concise. Only include relevant information and avoid repeating or
-     restating your conclusion. The error message will be included in the
-     "ErrorMessage" section of the response, so do not include it in your
-     analysis.
-   - Do NOT summarize or describe the error in the "ErrorMessage" section. You
-     may truncate, remove irrelevant lines, and trim unnecessary whitespace, but
-	 the actual error MUST be presented exactly as it appears in the logs. If
-	 there is no error message, leave that section empty. Save your summary for
-	 the "Analysis" section.
+   - In the "ErrorMessage" section, extract the concise, exact failure message
+     or stack trace that identifies the failure.
+   - For build and compilation failures (e.g., Ninja, Clang, MSVC, Bazel),
+     extract the specific compiler error diagnostic(s) (file path, line number,
+     error message, and code snippet). Do NOT include the compiler command-line
+     flags, invocation commands, or "FAILED: <target>" header lines.
+   - When multiple tests, GMs, or assertions fail from the same underlying issue,
+     include the primary or initial failure, or common root cause fatal assertion
+     (up to the first 2-3 representative failures). Do NOT dump dozens of
+     repetitive test failures or every failing GM.
+   - For tasks that timed out or encountered a mishap, determine what test,
+     benchmark, or step was actively running when the failure occurred. If a
+     specific test or operation hung or was executing at the timeout, identify it
+     (omitting volatile progress counters like "[72386/73301]"). If the task
+     simply ran out of time without hanging on a specific test, or if there is no
+     test failure or crash in the logs, leave "ErrorMessage" empty. Do NOT use
+     normal test progress lines or shutdown signals (e.g., "SIGINT / interrupt signal
+     received") as an error message.
+   - Do NOT put high-level task or Swarming states (e.g., NO_RESOURCE, TIMED_OUT,
+     MISHAP, FAILURE) or placeholder phrases (e.g., "(no log output)", "none",
+     "N/A") in the "ErrorMessage" field. If there is no specific error, crash, or
+     hung test identified in the logs, leave "ErrorMessage" completely empty ("").
+     High-level task states and explanations belong strictly in the "Analysis"
+     section.
+   - Do NOT summarize or describe the error in the "ErrorMessage" section.
+     Subject to the omissions above (compiler flags, progress counters, shell
+     tracing), the error MUST be presented as it appears in the logs. Save your
+     explanation and summary for the "Analysis" section.
+   - Be concise in your analysis. Only include relevant information and avoid
+     repeating the error message text verbatim.
    - If you suspect a problem with the machine which ran the task, include the
      bot ID in your analysis.
 `
@@ -331,7 +350,8 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
 	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, "GetTaskSummary", fmt.Sprintf("GetTaskSummary/%s", task.Id), &res); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	res.ErrorMessage = utils.SanitizeErrorText(res.ErrorMessage)
+	res.ErrorMessage = strings.TrimSpace(res.ErrorMessage)
+	res.FailureClassId = ""
 	return &res, nil
 }
 
@@ -886,9 +906,9 @@ failure classes.
 
 Choose the existing class only if it represents the same root cause or the same
 exact error (even if variables like hex addresses or absolute file paths differ
-slightly). If it matches one of the classes, return its ID in the "id" field of
-the JSON. If it does not match any of the candidates (it is a new type of
-failure), return an empty string "" in the "id" field.
+slightly). If it matches one of the classes, return its EXACT, full ID in the "id" field of
+the JSON without modifying or truncating it. If it does not match any of the candidates
+(it is a new type of failure), return an empty string "" in the "id" field.
 
 CRITICAL: Do NOT conflate similar errors or group them into general umbrella
 classes. Only choose an existing failure class if you are 100 percent certain
