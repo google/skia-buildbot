@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 )
@@ -67,6 +68,43 @@ func TestBranchesValidate(t *testing.T) {
 	test(func(b *Branches) {
 		b.Chromium.Beta = nil
 	}, "Beta branch is missing")
+
+	// Missing CrOS4WeekBeta.
+	test(func(b *Branches) {
+		b.CrOS4WeekBeta = nil
+	}, "CrOS4WeekBeta branch is missing")
+
+	// Odd CrOS4WeekBeta.
+	test(func(b *Branches) {
+		b.CrOS4WeekBeta.Milestone = 81
+	}, "CrOS4WeekBeta milestone must be even")
+
+	// Missing CrOS4WeekStable.
+	test(func(b *Branches) {
+		b.CrOS4WeekStable = nil
+	}, "CrOS4WeekStable branch is missing")
+
+	// Odd CrOS4WeekStable.
+	test(func(b *Branches) {
+		b.CrOS4WeekStable.Milestone = 79
+	}, "CrOS4WeekStable milestone must be even")
+}
+
+func TestComputeCrOS4WeekBranches(t *testing.T) {
+	active := []*chrome_branch.Branch{
+		{Milestone: 155, Number: 8060, Ref: "refs/branch-heads/8060", V8Branch: "15.5"},
+		{Milestone: 154, Number: 8037, Ref: "refs/branch-heads/8037", V8Branch: "15.4"},
+		{Milestone: 153, Number: 8010, Ref: "refs/branch-heads/8010", V8Branch: "15.3"},
+		{Milestone: 152, Number: 7977, Ref: "refs/branch-heads/7977", V8Branch: "15.2"},
+		{Milestone: 151, Number: 7922, Ref: "refs/branch-heads/7922", V8Branch: "15.1"},
+	}
+	beta, stable := computeCrOS4WeekBranches(active)
+	require.NotNil(t, beta)
+	require.Equal(t, 154, beta.Milestone)
+	require.Equal(t, 8037, beta.Number)
+	require.NotNil(t, stable)
+	require.Equal(t, 152, stable.Milestone)
+	require.Equal(t, 7977, stable.Number)
 }
 
 func TestTemplate(t *testing.T) {

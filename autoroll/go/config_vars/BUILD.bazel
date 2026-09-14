@@ -17,6 +17,7 @@ go_test(
     srcs = ["config_vars_test.go"],
     embed = [":config_vars"],
     deps = [
+        "//go/chrome_branch",
         "//go/chrome_branch/mocks",
         "//go/deepequal/assertdeep",
         "@com_github_stretchr_testify//require",

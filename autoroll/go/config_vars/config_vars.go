@@ -72,6 +72,7 @@ func FakeVars() *Vars {
 			V8Branch:  "8.0",
 		},
 	}
+	crosBeta, crosStable := computeCrOS4WeekBranches(activeMilestones)
 	return &Vars{
 		Branches: &Branches{
 			ActiveMilestones: activeMilestones,
@@ -80,8 +81,27 @@ func FakeVars() *Vars {
 				Beta:   activeMilestones[1],
 				Stable: activeMilestones[2],
 			},
+			CrOS4WeekBeta:   crosBeta,
+			CrOS4WeekStable: crosStable,
 		},
 	}
+}
+
+func computeCrOS4WeekBranches(activeMilestones []*chrome_branch.Branch) (*chrome_branch.Branch, *chrome_branch.Branch) {
+	activeMilestoneStack := activeMilestones
+	findNextEvenMilestone := func() *chrome_branch.Branch {
+		for len(activeMilestoneStack) > 0 {
+			m := activeMilestoneStack[0]
+			activeMilestoneStack = activeMilestoneStack[1:]
+			if m.Milestone%2 == 0 {
+				return m
+			}
+		}
+		return nil
+	}
+	beta := findNextEvenMilestone()
+	stable := findNextEvenMilestone()
+	return beta, stable
 }
 
 // Branches represents named branches in git repositories.
@@ -90,6 +110,9 @@ type Branches struct {
 	ActiveMilestones []*chrome_branch.Branch `json:"active_milestones"`
 	// Chromium release branches.
 	Chromium *chrome_branch.Branches `json:"chromium"`
+	// ChromeOS 4-week cadence release branches (even-numbered milestones only).
+	CrOS4WeekBeta   *chrome_branch.Branch `json:"cros_4_week_beta,omitempty"`
+	CrOS4WeekStable *chrome_branch.Branch `json:"cros_4_week_stable,omitempty"`
 }
 
 // Validate returns an error if Branches is not valid.
@@ -107,6 +130,24 @@ func (b *Branches) Validate() error {
 	}
 	if err := b.Chromium.Validate(); err != nil {
 		return skerr.Wrap(err)
+	}
+	if b.CrOS4WeekBeta == nil {
+		return skerr.Fmt("CrOS4WeekBeta branch is missing.")
+	}
+	if err := b.CrOS4WeekBeta.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if b.CrOS4WeekBeta.Milestone%2 != 0 {
+		return skerr.Fmt("CrOS4WeekBeta milestone must be even.")
+	}
+	if b.CrOS4WeekStable == nil {
+		return skerr.Fmt("CrOS4WeekStable branch is missing.")
+	}
+	if err := b.CrOS4WeekStable.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if b.CrOS4WeekStable.Milestone%2 != 0 {
+		return skerr.Fmt("CrOS4WeekStable milestone must be even.")
 	}
 	return nil
 }
@@ -127,6 +168,8 @@ func (b *Branches) Copy() *Branches {
 	return &Branches{
 		ActiveMilestones: activeMilestones,
 		Chromium:         chromium,
+		CrOS4WeekBeta:    b.CrOS4WeekBeta.Copy(),
+		CrOS4WeekStable:  b.CrOS4WeekStable.Copy(),
 	}
 }
 
@@ -305,10 +348,13 @@ func (r *Registry) Update(ctx context.Context) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	crosBeta, crosStable := computeCrOS4WeekBranches(activeMilestones)
 	vars := &Vars{
 		Branches: &Branches{
 			ActiveMilestones: activeMilestones,
 			Chromium:         chromeBranches,
+			CrOS4WeekBeta:    crosBeta,
+			CrOS4WeekStable:  crosStable,
 		},
 	}
 	return skerr.Wrap(r.updateFrom(vars))
