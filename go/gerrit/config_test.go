@@ -348,10 +348,88 @@ func testPartialCqSuccess(t *testing.T, cfg *Config) {
 	require.False(t, cfg.CqSuccess(ci))
 }
 
+// On Android, the Presubmit-Ready+1 label is removed as soon as presubmit
+// starts processing.
+func testPresubmitReadyRemovedOnStart(t *testing.T, cfg *Config) {
+	// 1. CQ lifecycle: in progress -> success (not merged) -> merged.
+	ci := makeChangeInfo()
+	SetLabels(ci, cfg.SetCqLabels)
+	// Presubmit starts processing and removes Presubmit-Ready+1.
+	UnsetLabels(ci, map[string]int{LabelPresubmitReady: LabelPresubmitReadyEnable})
+	require.True(t, cfg.CqRunning(ci))
+	require.False(t, cfg.CqSuccess(ci))
+	require.False(t, cfg.DryRunRunning(ci))
+	require.False(t, cfg.DryRunSuccess(ci, true))
+
+	// Presubmit finishes with success, waiting for merge.
+	SetLabels(ci, cfg.CqSuccessLabels)
+	require.True(t, cfg.CqRunning(ci))
+	require.False(t, cfg.CqSuccess(ci))
+	require.False(t, cfg.DryRunRunning(ci))
+	require.True(t, cfg.DryRunSuccess(ci, false))
+
+	// Change is merged.
+	ci.Status = ChangeStatusMerged
+	require.False(t, cfg.CqRunning(ci))
+	require.True(t, cfg.CqSuccess(ci))
+
+	// 2. CQ failure after Presubmit-Ready+1 was removed at start.
+	ci = makeChangeInfo()
+	SetLabels(ci, cfg.SetCqLabels)
+	UnsetLabels(ci, map[string]int{LabelPresubmitReady: LabelPresubmitReadyEnable})
+	SetLabels(ci, cfg.CqFailureLabels)
+	require.False(t, cfg.CqRunning(ci))
+	require.False(t, cfg.CqSuccess(ci))
+	require.False(t, cfg.DryRunRunning(ci))
+	require.False(t, cfg.DryRunSuccess(ci, false))
+
+	// 3. Dry run lifecycle: in progress -> success.
+	ci = makeChangeInfo()
+	SetLabels(ci, cfg.SetDryRunLabels)
+	// Presubmit starts processing and removes Presubmit-Ready+1.
+	UnsetLabels(ci, map[string]int{LabelPresubmitReady: LabelPresubmitReadyEnable})
+	require.False(t, cfg.CqRunning(ci))
+	require.False(t, cfg.CqSuccess(ci))
+	require.True(t, cfg.DryRunRunning(ci))
+	require.False(t, cfg.DryRunSuccess(ci, true))
+
+	// Dry run finishes with success (Autosubmit: 0 remains set).
+	SetLabels(ci, cfg.DryRunSuccessLabels)
+	require.False(t, cfg.CqRunning(ci))
+	require.False(t, cfg.CqSuccess(ci))
+	require.False(t, cfg.DryRunRunning(ci))
+	require.True(t, cfg.DryRunSuccess(ci, true))
+
+	// 4. Dry run failure after Presubmit-Ready+1 was removed at start.
+	ci = makeChangeInfo()
+	SetLabels(ci, cfg.SetDryRunLabels)
+	UnsetLabels(ci, map[string]int{LabelPresubmitReady: LabelPresubmitReadyEnable})
+	SetLabels(ci, cfg.DryRunFailureLabels)
+	require.False(t, cfg.CqRunning(ci))
+	require.False(t, cfg.CqSuccess(ci))
+	require.False(t, cfg.DryRunRunning(ci))
+	require.False(t, cfg.DryRunSuccess(ci, false))
+}
+
 func TestConfigAndroid(t *testing.T) {
 	cfg := ConfigAndroid
 	testConfig(t, cfg)
 	testPartialCqSuccess(t, cfg)
+	testPresubmitReadyRemovedOnStart(t, cfg)
+}
+
+func TestConfigAndroidNoCR(t *testing.T) {
+	cfg := ConfigAndroidNoCR
+	testConfig(t, cfg)
+	testPartialCqSuccess(t, cfg)
+	testPresubmitReadyRemovedOnStart(t, cfg)
+}
+
+func TestConfigAndroidNoCRNoPR(t *testing.T) {
+	cfg := ConfigAndroidNoCRNoPR
+	testConfig(t, cfg)
+	testPartialCqSuccess(t, cfg)
+	testPresubmitReadyRemovedOnStart(t, cfg)
 }
 
 func TestConfigANGLE(t *testing.T) {

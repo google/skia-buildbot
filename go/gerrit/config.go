@@ -24,7 +24,6 @@ var (
 		},
 		CqActiveLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
-			LabelPresubmitReady:    LabelPresubmitReadyEnable,
 		},
 		CqSuccessLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
@@ -34,10 +33,9 @@ var (
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
 			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
 		},
-		CqLabelsUnsetOnCompletion: true,
+		CqLabelsUnsetOnCompletion: false,
 		DryRunActiveLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitNone,
-			LabelPresubmitReady:    LabelPresubmitReadyEnable,
 		},
 		DryRunSuccessLabels: map[string]int{
 			LabelPresubmitVerified: LabelPresubmitVerifiedAcceptedWithWarnings,
@@ -72,23 +70,21 @@ var (
 		},
 		CqActiveLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
-			LabelPresubmitReady:    LabelPresubmitReadyEnable,
 		},
 		CqSuccessLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
-			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAcceptedWithWarnings,
 		},
 		CqFailureLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
 			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
 		},
-		CqLabelsUnsetOnCompletion: true,
+		CqLabelsUnsetOnCompletion: false,
 		DryRunActiveLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitNone,
-			LabelPresubmitReady:    LabelPresubmitReadyEnable,
 		},
 		DryRunSuccessLabels: map[string]int{
-			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAcceptedWithWarnings,
 		},
 		DryRunFailureLabels: map[string]int{
 			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
@@ -120,20 +116,21 @@ var (
 		},
 		CqActiveLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
-			LabelPresubmitReady:    LabelPresubmitReadyEnable,
 		},
 		CqSuccessLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
-			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAcceptedWithWarnings,
 		},
 		CqFailureLabels: map[string]int{
 			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitSubmit,
 			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
 		},
-		CqLabelsUnsetOnCompletion: true,
-		DryRunActiveLabels:        map[string]int{},
+		CqLabelsUnsetOnCompletion: false,
+		DryRunActiveLabels: map[string]int{
+			LabelAndroidAutoSubmit: LabelAndroidAutoSubmitNone,
+		},
 		DryRunSuccessLabels: map[string]int{
-			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAcceptedWithWarnings,
 		},
 		DryRunFailureLabels: map[string]int{
 			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
