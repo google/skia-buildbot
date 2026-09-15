@@ -38,6 +38,11 @@ $TTL 3600     ; default TTL 1 hour
 
 _validate_domain      3600    IN CNAME nonce.domainvalidation.dvs.goog.
 
+;;; ACME dns-persist-01 validation record for Google Trust Services (GTS).
+;;; Authorizes Skia's automated ACME account to issue certificates for luci.app
+;;; and its subdomains (*.luci.app).
+_validation-persist   3600    IN TXT "pki.goog; accounturi=https://dv-allowlist.acme-v02.api.pki.goog/account/ojKjjp_A2vBkQO-gKbmZ8A; policy=wildcard"
+
 ;;; Master A record. Hosted in the GCP project skia-infra-public.
 @                     300     IN A 34.110.212.89
 

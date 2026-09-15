@@ -60,6 +60,11 @@ _validation-persist 3600 IN TXT "pki.goog; accounturi=https://dv-allowlist-core.
 _validation-persist 3600 IN TXT "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/AgqaatevDcGzoTR4waGTew; policy=wildcard"
 _validation-persist 3600 IN TXT "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/LJzVN6WH3SdkuNYN_A7s4g; policy=wildcard"
 
+;;; ACME dns-persist-01 validation record for Google Trust Services (GTS).
+;;; Authorizes Skia's automated ACME account to issue certificates for skia.org
+;;; and its subdomains (*.skia.org).
+_validation-persist 3600 IN TXT "pki.goog; accounturi=https://dv-allowlist.acme-v02.api.pki.goog/account/P7MdecKq0sMSdk5oqPoHOQ; policy=wildcard"
+
 ;;; These apps have been migrated to the skia-infra-public project.
 androidx2-perf           300      IN A 34.110.212.89
 androidx-perf            300      IN A 34.110.212.89
