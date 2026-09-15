@@ -51,7 +51,7 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/luci/lucicfg/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/luci/lucicfg/${platform}",
-		Version: "git_revision:e8ff1a9251fd84ffa2645964347cf41281903c09",
+		Version: "git_revision:815b56e87b2c67ebe796fdf9d3169962f9724286",
 	},
 	"infra/tools/luci/swarming/${platform}": {
 		Path:    ".",
