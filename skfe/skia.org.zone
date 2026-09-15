@@ -41,6 +41,25 @@ $TTL 3600     ; default TTL 1 hour
 
 _validate_domain 3600 IN CNAME nonce.domainvalidation.dvs.goog.
 
+;;; ACME dns-persist-01 validation records for Google Trust Services (GTS).
+;;;
+;;; Each TXT record below authorizes an automated ACME account to issue
+;;; certificates for skia.org and its subdomains. GTS treats each record as
+;;; an independent authorization and matches the account making the request.
+;;;
+;;; These accounts correspond to Google's certificate automation bundles
+;;; that manage SSL certificates for Skia frontend services:
+;;;   - gfe-ssl:       skia.org, *.skia.org, issues.skia.org, *.issues.skia.org
+;;;   - uberproxy:     g-issues.skia.org, *.g-issues.skia.org
+;;;   - uberproxy-hap: g-issues.skia.org, *.g-issues.skia.org
+;;;
+;;; Do not remove these records without confirming that the corresponding
+;;; bundle no longer serves a skia.org domain.
+
+_validation-persist 3600 IN TXT "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/-hp_UqbNXIyKURH60i1QDw; policy=wildcard"
+_validation-persist 3600 IN TXT "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/AgqaatevDcGzoTR4waGTew; policy=wildcard"
+_validation-persist 3600 IN TXT "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/LJzVN6WH3SdkuNYN_A7s4g; policy=wildcard"
+
 ;;; These apps have been migrated to the skia-infra-public project.
 androidx2-perf           300      IN A 34.110.212.89
 androidx-perf            300      IN A 34.110.212.89
