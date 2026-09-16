@@ -713,3 +713,55 @@ func TestNgramSimilarity(t *testing.T) {
 		})
 	}
 }
+
+func TestNgramOverlap(t *testing.T) {
+	tests := []struct {
+		a        string
+		b        string
+		n        int
+		expected float64
+	}{
+		{
+			a:        "hello",
+			b:        "hello",
+			n:        3,
+			expected: 1.0,
+		},
+		{
+			a:        "foo bar",
+			b:        "longer prefix foo bar and longer suffix",
+			n:        3,
+			expected: 1.0,
+		},
+		{
+			a:        "longer prefix foo bar and longer suffix",
+			b:        "foo bar",
+			n:        3,
+			expected: 1.0,
+		},
+		{
+			a:        "abc",
+			b:        "xyz",
+			n:        2,
+			expected: 0.0,
+		},
+		{
+			a:        "ab",
+			b:        "ab",
+			n:        3,
+			expected: 1.0,
+		},
+		{
+			a:        "ab",
+			b:        "cd",
+			n:        3,
+			expected: 0.0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.a+"_"+tt.b, func(t *testing.T) {
+			assert.InDelta(t, tt.expected, NgramOverlap(tt.a, tt.b, tt.n), 0.01)
+		})
+	}
+}

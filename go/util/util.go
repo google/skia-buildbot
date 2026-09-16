@@ -1036,3 +1036,24 @@ func NgramSimilarity(a, b string, n int) float64 {
 	}
 	return float64(len(intersection)) / float64(len(union))
 }
+
+// NgramOverlap calculates the Szymkiewicz-Simpson overlap coefficient over
+// character n-grams: |A ∩ B| / min(|A|, |B|). If one string's n-grams are a
+// strict subset of the other, this returns 1.0.
+func NgramOverlap(a, b string, n int) float64 {
+	if len(a) < n || len(b) < n {
+		if a == b {
+			return 1.0
+		}
+		return 0.0
+	}
+
+	setA := NewStringSet(Ngrams(a, n))
+	setB := NewStringSet(Ngrams(b, n))
+	minLen := min(len(setA), len(setB))
+	if minLen == 0 {
+		return 0.0
+	}
+	intersection := setA.Intersect(setB)
+	return float64(len(intersection)) / float64(minLen)
+}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -32,6 +33,13 @@ import (
 const (
 	getUnclassifiedTaskSummariesBatchSize = 100
 	maxRecentFailureClasses               = 25
+	ngramSize                             = 4
+	ngramSimilarityCandidateThreshold     = 0.10
+	ngramFastPathThreshold                = 0.90
+	ngramOverlapCandidateThreshold        = 0.50
+	minNgramOverlapLength                 = 25
+	minStringContainsLength               = 30
+	minClassIDPrefixLength                = 16
 	workerPoolSize                        = 10
 	taskDriverMaxWaitDelay                = 5 * time.Minute
 	taskDriverRequeueDelay                = 5 * time.Second
@@ -333,9 +341,11 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 		return nil
 	}
 
+	taskErrSanitized := utils.SanitizeErrorText(taskSummary.ErrorMessage)
+
 	// Case 1: The error message is too generic. Skip classification entirely.
 	var assignedFailureClass *types.FailureClass
-	if utils.ErrorIsGeneric(taskSummary.ErrorMessage) {
+	if utils.ErrorIsGeneric(taskSummary.ErrorMessage) || utils.ErrorIsGeneric(taskErrSanitized) {
 		sklog.Debugf("Error message for %s is too generic.", task.Id)
 		assignedFailureClass = makeGenericFailureClass()
 		metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "generic"}).Observe(1.0)
@@ -357,33 +367,50 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 		sklog.Debugf("Found %d recent failure classes", len(failureClasses))
 
 		for _, cand := range failureClasses {
-			if taskSummary.ErrorMessage == cand.ErrorMessage {
+			candErrSanitized := utils.SanitizeErrorText(cand.ErrorMessage)
+			if taskSummary.ErrorMessage == cand.ErrorMessage || (taskErrSanitized != "" && taskErrSanitized == candErrSanitized) {
 				sklog.Debugf("Exact match of error message for %s; no need to use gemini.", task.Id)
 				metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "exact_match"}).Observe(1.0)
 				assignedFailureClass = cand
+				break
 			}
 		}
 	}
 
-	// Case 3: N-gram similarity.
+	// Case 3: N-gram similarity and overlap.
 	scores := make(map[*types.FailureClass]float64, len(failureClasses))
 	var candidates []*types.FailureClass
 	var bestScore float64
 	if assignedFailureClass == nil {
 		var bestCand *types.FailureClass
 		for _, cand := range failureClasses {
-			score := util.NgramSimilarity(taskSummary.ErrorMessage, cand.ErrorMessage, 4)
-			if score < 0.10 {
+			candErrSanitized := utils.SanitizeErrorText(cand.ErrorMessage)
+			similarity := util.NgramSimilarity(taskErrSanitized, candErrSanitized, ngramSize)
+			overlap := util.NgramOverlap(taskErrSanitized, candErrSanitized, ngramSize)
+
+			minLen := len(taskErrSanitized)
+			if len(candErrSanitized) < minLen {
+				minLen = len(candErrSanitized)
+			}
+
+			// Include candidate if n-gram similarity or overlap is greater than the
+			// thresholds, or one string exactly contains the other.
+			isCandidate := (similarity >= ngramSimilarityCandidateThreshold) ||
+				(minLen >= minNgramOverlapLength && overlap >= ngramOverlapCandidateThreshold) ||
+				(minLen >= minStringContainsLength && (strings.Contains(candErrSanitized, taskErrSanitized) || strings.Contains(taskErrSanitized, candErrSanitized)))
+			if !isCandidate {
 				continue
 			}
-			scores[cand] = score
+
+			candScore := max(similarity, overlap)
+			scores[cand] = candScore
 			candidates = append(candidates, cand)
-			if score > bestScore {
-				bestScore = score
+			if similarity > bestScore {
+				bestScore = similarity
 				bestCand = cand
 			}
 		}
-		if bestScore >= 0.90 {
+		if bestScore >= ngramFastPathThreshold {
 			sklog.Debugf("N-gram fast-path match (similarity: %.2f) for task %s; assigning to %s.", bestScore, task.Id, bestCand.Id)
 			metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "ngram_threshold_match"}).Observe(bestScore)
 			assignedFailureClass = bestCand
@@ -404,10 +431,11 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 			}
 			if classID != "" {
 				for _, fc := range candidates[start:end] {
-					if fc.Id == classID {
-						sklog.Infof("Gemini assigned task %s to failure class %s with N-gram similarity %.3f", task.Id, classID, scores[fc])
+					if fc.Id == classID || (len(classID) >= minClassIDPrefixLength && strings.HasPrefix(fc.Id, classID)) {
+						sklog.Infof("Gemini assigned task %s to failure class %s with N-gram similarity %.3f", task.Id, fc.Id, scores[fc])
 						metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "gemini_match"}).Observe(scores[fc])
 						assignedFailureClass = fc
+						break
 					}
 				}
 				if assignedFailureClass == nil {

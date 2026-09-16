@@ -11,7 +11,9 @@ import (
 	db_mocks "go.skia.org/infra/autogardener/go/db/mocks"
 	gemini_mocks "go.skia.org/infra/autogardener/go/gemini/mocks"
 	"go.skia.org/infra/autogardener/go/types"
+	"go.skia.org/infra/autogardener/go/utils"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/util"
 	td_db "go.skia.org/infra/task_driver/go/db"
 	td_mocks "go.skia.org/infra/task_driver/go/db/mocks"
 	"go.skia.org/infra/task_driver/go/td"
@@ -204,7 +206,141 @@ func TestClassifyTaskSummary(t *testing.T) {
 		mockG.AssertExpectations(t)
 	})
 
-	// Case 4: Shortcut if we already classified the TaskSummary.
+	// Case 4: One error contains the other, with a massive amount of extra
+	// context. Jaccard similarity is low, but overlap is high, so we still
+	// consider the candidate.
+	t.Run("overlap candidate assigned by gemini", func(t *testing.T) {
+		mockDB, mockG, i, task, _ := setup(t)
+
+		shortErr := "../../../../../skia/tests/MultiPictureDocumentTest.cpp:426	 [SkMultiPictureDocument_AHardwarebuffer, Vulkan]: ToolUtils::equal_pixels(img.get(), expectedImages[0].get())"
+		longErr := `
+[560/635] unit test  SkSLMetalTest_Ganesh done
+[561/635] unit test  GrSurfaceProxyTest done
+[562/635] unit test  PathOpsOpTest_Threaded done
+[563/635] unit test  ParagraphTest_FontCollection done
+[564/635] unit test  SkRuntimeEffectTest_Blender done
+[565/635] unit test  UnicodeTest_GraphemeCluster done
+[566/635] unit test  MeshTest_VertexSpecification done
+[567/635] unit test  CodecTest_AnimatedWebP done
+[568/635] unit test  ShadowUtilsTest_AmbientSpot done
+[569/635] unit test  ColorSpaceTest_TransferFn done
+[570/635] unit test  WritePixelsTest_AlphaType done
+[571/635] unit test  ReadPixelsTest_Dimensions done
+[572/635] unit test  SurfaceTest_SnapRRect done
+[573/635] unit test  ImageFilterTest_MatrixConvolution done
+[574/635] unit test  FontMgrTest_MatchFamilyStyle done
+[575/635] unit test  ClipStackTest_IsRRect done
+[576/635] unit test  PictureShaderTest_LocalMatrix done
+[577/635] unit test  VerticesTest_AttributeCount done
+[578/635] unit test  AnnotationTest_PdfLink done
+[579/635] unit test  BigMatrixTest_Perspective done
+[580/635] unit test  CanvasTest_SaveLayerRec done
+[581/635] unit test  RegionTest_OpDifference done
+[582/635] unit test  ShaderTest_LinearGradient done
+[583/635] unit test  MatrixTest_ConcatRotateScale done
+[584/635] unit test  PaintTest_StrokeMiterLimit done
+[585/635] unit test  PathTest_AddRoundRect done
+[586/635] unit test  RecordDrawTest_CullRect done
+[587/635] unit test  SVGDeviceTest_ClipPath done
+[588/635] unit test  TextBlobTest_Intercepts done
+[589/635] unit test  TypefaceTest_GetKerningPairAdjustments done
+[590/635] unit test  MatrixProcsTest_Perspective done
+[591/635] unit test  GeometryTest_QuadChopAt done
+[592/635] unit test  DataRefTest_FromFile done
+[593/635] unit test  StreamTest_MemoryStream done
+[594/635] unit test  FlattenableTest_FactorySerialization done
+[595/635] unit test  FilterResult_ganesh_MakeFromImage done
+[596/635] unit test  FilterResult_ganesh_RescaleWithColorFilter done
+[597/635] unit test  FilterResult_ganesh_RescaleWithTransform done
+[598/635] unit test  FilterResult_ganesh_RescaleWithTileMode done
+[599/635] unit test  FilterResult_ganesh_BackdropFilterRotated done
+[600/635] unit test  FilterResult_ganesh_CroppedTransformedTransparencyAffectingColorFilter done
+[601/635] unit test  FilterResult_ganesh_CroppedTransformedColorFilter done
+[602/635] unit test  FilterResult_ganesh_ColorFilterBetweenCrops done
+[603/635] unit test  FilterResult_ganesh_CropBetweenColorFilters done
+[604/635] unit test  FilterResult_ganesh_CroppedColorFilter done
+[605/635] unit test  FilterResult_ganesh_ColorFilterBetweenTransforms done
+[606/635] unit test  FilterResult_ganesh_TransformBetweenColorFilters done
+[607/635] unit test  FilterResult_ganesh_TransformedColorFilter done
+[608/635] unit test  FilterResult_ganesh_ColorFilter done
+[609/635] unit test  FilterResult_ganesh_TransformAndTile done
+[610/635] unit test  FilterResult_ganesh_TransformAndCrop done
+[611/635] unit test  FilterResult_ganesh_TransformBecomesEmpty done
+[612/635] unit test  FilterResult_ganesh_IntegerOffsetIgnoresNearestSampling done
+[613/635] unit test  FilterResult_ganesh_IncompatibleSamplingResolvesImages done
+[614/635] unit test  FilterResult_ganesh_CompatibleSamplingConcatsTransforms done
+[615/635] unit test  FilterResult_ganesh_Transform done
+[616/635] unit test  FilterResult_ganesh_DecalThenClamp done
+[617/635] unit test  FilterResult_ganesh_PeriodicTileCrops done
+[618/635] unit test  FilterResult_ganesh_IntersectingCrops done
+[619/635] unit test  FilterResult_ganesh_DisjointCrops done
+[620/635] unit test  FilterResult_ganesh_EmptyCrop done
+[621/635] unit test  FilterResult_ganesh_CropDisjointFromSourceAndOutput done
+[622/635] unit test  FilterResult_ganesh_Crop done
+[623/635] unit test  FilterResult_ganesh_EmptyDesiredOutput done
+[624/635] unit test  FilterResult_ganesh_EmptySource done
+[625/635] unit test  F16DrawTest_Ganesh done
+[626/635] unit test  ExtendedSkColorTypeTests_gpu done
+	start unit test  DirectMaskLimitTest_Ganesh
+[627/635] unit test  DirectMaskLimitTest_Ganesh done
+	start unit test  SpecialImage_GPUDevice
+[628/635] unit test  SpecialImage_GPUDevice done
+	start unit test  ComposeFailureWithInputElision
+[629/635] unit test  ComposeFailureWithInputElision done
+	start unit test  TestManyDrawsGanesh
+[630/635] unit test  TestManyDrawsGanesh done
+	start unit test  BlurDegenerateAffineFuzzer
+[631/635] unit test  BlurDegenerateAffineFuzzer done
+[632/635] unit test  BlurMaskBiggerThanDest done
+	start unit test  SmallBoxBlurBug
+[633/635] unit test  SmallBoxBlurBug done
+[634/635] unit test  TiledDrawCacheTest_Ganesh done
+[635/635] unit test  BigImageTest_Ganesh done
+
+[635/635] 150MB RAM, 460MB peak, 0 queued, 1 threads:
+	unit test  BigImageTest_Ganesh  done
+
+[635/635] 150MB RAM, 460MB peak, 0 queued, 1 threads:
+	unit test  BigImageTest_Ganesh  done
+Failures:
+	../../../../../skia/tests/MultiPictureDocumentTest.cpp:426	 [SkMultiPictureDocument_AHardwarebuffer, Vulkan]: ToolUtils::equal_pixels(img.get(), expectedImages[0].get())
+1 failures
++ >/data/local/tmp/rc
++ echo 1
+`
+		// Self-test: ensure that the ngram similarity and overlap are under and
+		// over their respective thresholds.
+		shortErrSanitized := utils.SanitizeErrorText(shortErr)
+		longErrSanitized := utils.SanitizeErrorText(longErr)
+		require.Less(t, util.NgramSimilarity(shortErrSanitized, longErrSanitized, ngramSize), ngramSimilarityCandidateThreshold)
+		require.Greater(t, util.NgramOverlap(shortErrSanitized, longErrSanitized, ngramSize), ngramOverlapCandidateThreshold)
+
+		taskSummary := &types.TaskSummary{
+			Analysis:     "analysis",
+			ErrorMessage: longErr,
+		}
+
+		fc := &types.FailureClass{
+			Id:           "overlap-failure-class",
+			Repo:         task.Repo,
+			ErrorMessage: shortErr,
+		}
+		failureClasses := []*types.FailureClass{fc}
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
+		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return(failureClasses, nil).Once()
+		mockG.On("ClassifyFailure", mock.Anything, taskSummary, failureClasses, task.Repo).Return(fc.Id, nil).Once()
+		mockDB.On("PutFailureClass", mock.Anything, fc).Return(nil).Once()
+		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
+			return ts.FailureClassId == fc.Id
+		})).Return(nil).Once()
+
+		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		require.NoError(t, err)
+		mockDB.AssertExpectations(t)
+		mockG.AssertExpectations(t)
+	})
+
+	// Case 5: Shortcut if we already classified the TaskSummary.
 	t.Run("already classified", func(t *testing.T) {
 		mockDB, mockG, i, task, taskSummary := setup(t)
 
@@ -220,7 +356,7 @@ func TestClassifyTaskSummary(t *testing.T) {
 		mockG.AssertExpectations(t)
 	})
 
-	// Case 4: Generic error message shortcuts classification to generic-unidentified-failure.
+	// Case 6: Generic error message shortcuts classification to generic-unidentified-failure.
 	t.Run("generic error message", func(t *testing.T) {
 		mockDB, mockG, i, task, _ := setup(t)
 
