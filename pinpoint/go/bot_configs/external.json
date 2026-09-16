@@ -3,7 +3,7 @@
     "alias": "win-10-perf"
   },
   "android-go-wembley-perf": {
-    "browser": "android-trichrome-chrome-google-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android Compile Perf",
     "dimensions": [
@@ -53,7 +53,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel-fold-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -74,7 +74,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel-tangor-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -95,7 +95,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel10-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -179,7 +179,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel4-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 Compile Perf",
     "dimensions": [
@@ -200,7 +200,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel4-perf-pgo": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 Compile Perf PGO",
     "dimensions": [
@@ -262,29 +262,8 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "android-pixel4_webview-perf-trichrome": {
-    "browser": "android-webview-trichrome-google-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "flame"
-      },
-      {
-        "key": "device_os",
-        "value": "R"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
   "android-pixel6-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -305,7 +284,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel6-perf-pgo": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf PGO",
     "dimensions": [
@@ -326,7 +305,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel6-pro-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -347,7 +326,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel6-pro-perf-pgo": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf PGO",
     "dimensions": [
@@ -368,7 +347,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel9-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -389,7 +368,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel9-pro-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -410,7 +389,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel9-pro-xl-perf": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [

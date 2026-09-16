@@ -9,19 +9,19 @@ import (
 
 func TestGetIsolateTarget_WithConfigDefinedBot_ReturnsTarget(t *testing.T) {
 	target, err := GetIsolateTarget("android-pixel4-perf", "benchmark")
-	assert.Equal(t, "performance_test_suite_android_trichrome_chrome_google_64_32_bundle", target)
+	assert.Equal(t, "performance_test_suite_android_chrome_google_bundle", target)
 	assert.NoError(t, err)
 }
 
 func TestGetIsolateTarget_WithPixel10Perf_ReturnsTarget(t *testing.T) {
 	target, err := GetIsolateTarget("android-pixel10-perf", "benchmark")
-	assert.Equal(t, "performance_test_suite_android_trichrome_chrome_google_64_32_bundle", target)
+	assert.Equal(t, "performance_test_suite_android_chrome_google_bundle", target)
 	assert.NoError(t, err)
 }
 
 func TestGetIsolateTarget_WithPixel10CbbBot_ReturnsTarget(t *testing.T) {
 	target, err := GetIsolateTarget("android-pixel10-perf-cbb", "benchmark")
-	assert.Equal(t, "performance_test_suite_android_trichrome_chrome_google_64_32_bundle", target)
+	assert.Equal(t, "performance_test_suite_android_chrome_google_bundle", target)
 	assert.NoError(t, err)
 }
 

@@ -1,6 +1,6 @@
 {
   "android-pixel-tangor-perf-cbb": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -21,7 +21,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel10-perf-cbb": {
-    "browser": "android-trichrome-chrome-google-64-32-bundle",
+    "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
