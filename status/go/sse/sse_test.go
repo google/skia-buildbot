@@ -392,18 +392,18 @@ func TestHandler_ClientLifecycle(t *testing.T) {
 	// Wait briefly for Handler to write headers, register client, and block
 	time.Sleep(100 * time.Millisecond)
 
-	tc.server.clientsMtx.Lock()
+	tc.server.mtx.Lock()
 	numClients := len(tc.server.clients)
-	tc.server.clientsMtx.Unlock()
+	tc.server.mtx.Unlock()
 	require.Equal(t, 1, numClients)
 
 	// Cancel client context to simulate client disconnecting
 	clientCancel()
 	wg.Wait()
 
-	tc.server.clientsMtx.Lock()
+	tc.server.mtx.Lock()
 	numClients = len(tc.server.clients)
-	tc.server.clientsMtx.Unlock()
+	tc.server.mtx.Unlock()
 	require.Equal(t, 0, numClients)
 
 	// Check response headers
@@ -446,8 +446,10 @@ func TestCheckForNewCommits_BroadcastsToSubscribers(t *testing.T) {
 		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
 		taskFilter:       taskFilter_All,
 		activeTaskSpecs:  map[string]bool{},
+		ch:               make(chan clientEvent),
 	}
 	tc.server.register(client)
+	go client.run()
 
 	// Let's make a new commit in the in-memory repository
 	c1 := "commit1"
@@ -1079,8 +1081,10 @@ func TestCheckForNewComments_BroadcastsToSubscribers(t *testing.T) {
 		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
 		taskFilter:       taskFilter_All,
 		activeTaskSpecs:  map[string]bool{},
+		ch:               make(chan clientEvent),
 	}
 	tc.server.register(client)
+	go client.run()
 
 	// Set the comments to be returned by the mocked GetCommentsForRepos
 	tc.comments = []*types.RepoComments{
@@ -1135,8 +1139,10 @@ func TestCheckForNewComments_CreateUpdateDelete(t *testing.T) {
 		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
 		taskFilter:       taskFilter_All,
 		activeTaskSpecs:  map[string]bool{},
+		ch:               make(chan clientEvent),
 	}
 	tc.server.register(client)
+	go client.run()
 
 	// Helper to extract all broadcasted comments so far.
 	getComments := func() []*rpc.Comment {
@@ -1241,4 +1247,116 @@ func readSSEStream(t *testing.T, buf *bytes.Buffer) []*rpc.GetIncrementalCommits
 		responses = append(responses, &resp)
 	}
 	return responses
+}
+
+func TestConcurrentHandlerAndBroadcasts_NoDeadlock(t *testing.T) {
+	// This test verifies concurrent broadcasting of updates and new client
+	// connections does not deadlock.
+	//   1. Client 1 connects via Handler, registers itself, and pauses inside
+	//      its initial SendUpdate (at the first TestCommitHash call), before
+	//      starting clientStream.run().
+	//   2. checkForNewComments runs, fetches a new comment via
+	//      GetCommentsForRepos, and broadcasts the update to registered
+	//      clients. Because Client 1 is still in its initial SendUpdate, the
+	//      broadcast blocks waiting for Client 1 to enter run().
+	//   3. Client 2 connects via Handler while checkForNewComments is blocked
+	//      waiting on Client 1. Because checkForNewComments releases s.mtx
+	//      before broadcasting, Client 2 is not blocked from acquiring s.mtx,
+	//      reaches its own initial SendUpdate (the second TestCommitHash call),
+	//      and unblocks Client 1.
+	// If checkForNewComments held a lock across broadcasting, Client 2 would
+	// block on that lock before reaching TestCommitHash, and Client 1 and
+	// checkForNewComments would never unblock.
+	tc := setupTestServer(t)
+	c0 := "commit0"
+
+	client1Sending := make(chan struct{})
+	releaseClient1 := make(chan struct{})
+	waitForGetComments := make(chan struct{})
+
+	var callMtx sync.Mutex
+	var callCount int
+	tc.mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Run(func(args mock.Arguments) {
+		callMtx.Lock()
+		callCount++
+		n := callCount
+		callMtx.Unlock()
+		switch n {
+		case 1:
+			// Client 1 is registered and inside its initial SendUpdate.
+			close(client1Sending)
+			<-releaseClient1
+		case 2:
+			// Client 2 reached its initial SendUpdate, proving it was not
+			// blocked by checkForNewComments.
+			close(releaseClient1)
+		}
+	}).Return(true, nil)
+	tc.mockCache.On("GetTasksForCommits", "https://repo.git", mock.Anything).Return(map[string]map[string]*types.Task{}, nil)
+
+	ctx, cancel := context.WithCancel(tc.ctx)
+	defer cancel()
+
+	tc.mockDB.ExpectedCalls = nil
+	tc.mockDB.On("GetCommentsForRepos", mock.Anything, mock.Anything, mock.Anything).Return(func(_ context.Context, repos []string, from time.Time) ([]*types.RepoComments, error) {
+		close(waitForGetComments)
+		return []*types.RepoComments{
+			{
+				Repo: "https://repo.git",
+				CommitComments: map[string][]*types.CommitComment{
+					c0: {
+						{
+							Repo:      "https://repo.git",
+							Revision:  c0,
+							Timestamp: time.Now().UTC(),
+							User:      "test@google.com",
+							Message:   "new-comment",
+						},
+					},
+				},
+			},
+		}, nil
+	})
+
+	var wg sync.WaitGroup
+
+	// 1. Start Client 1 and wait until it is inside its initial SendUpdate.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		r := httptest.NewRequest("GET", "/sse", nil).WithContext(ctx)
+		w := httptest.NewRecorder()
+		tc.server.Handler(w, r)
+	}()
+	<-client1Sending
+
+	// 2. Start checkForNewComments, which will try to broadcast to Client 1.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tc.server.checkForNewComments(tc.ctx)
+		cancel()
+	}()
+	<-waitForGetComments
+
+	// 3. Start Client 2 while checkForNewComments is running/broadcasting.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		r := httptest.NewRequest("GET", "/sse", nil).WithContext(ctx)
+		w := httptest.NewRecorder()
+		tc.server.Handler(w, r)
+	}()
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("deadlock detected between Handler and checkForNewComments")
+	}
 }

@@ -34,6 +34,7 @@ const (
 	commitPollInterval  = 10 * time.Second
 	commentPollInterval = 10 * time.Second
 	keepaliveInterval   = 30 * time.Second
+	sendTimeout         = 30 * time.Second
 )
 
 type Config struct {
@@ -50,15 +51,13 @@ type Config struct {
 }
 
 type SSEServer struct {
-	clients          map[*clientStream]bool
-	clientsMtx       sync.Mutex
-	lastBranchHeads  map[string][]*git.Branch
-	modifiedTasksCh  <-chan []*types.Task
-	cfg              Config
-	ancestryCache    map[string]map[string][]string
-	ancestryCacheMtx sync.RWMutex
-	lastComments     map[string][]*rpc.Comment
-	lastCommentsMtx  sync.RWMutex
+	mtx             sync.Mutex
+	clients         map[*clientStream]bool
+	lastBranchHeads map[string][]*git.Branch
+	modifiedTasksCh <-chan []*types.Task
+	cfg             Config
+	ancestryCache   map[string]map[string][]string
+	lastComments    map[string][]*rpc.Comment
 }
 
 func New(ctx context.Context, cfg Config) (*SSEServer, error) {
@@ -114,7 +113,8 @@ func New(ctx context.Context, cfg Config) (*SSEServer, error) {
 }
 
 func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, cancel := context.WithCancel(r.Context())
+	defer cancel()
 
 	// Parse query parameters
 	repoName := r.URL.Query().Get("repo")
@@ -207,12 +207,13 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 	// (eg. new tasks or commits) after our initial queries run but before the
 	// client is registered, causing the client to never receive the update and
 	// thus miss tasks or commits. To circumvent this, we register the client
-	// with the lock already held, so that the server is aware of this client
-	// but cannot send updates until after the initial load.
-	// Set up the client stream.
+	// before running the initial queries; any updates broadcast before the
+	// initial load completes will block until clientStream.run() starts.
 	clientStream := &clientStream{
 		activeTaskSpecs: map[string]bool{},
 		branchRegex:     branchRegex,
+		cancel:          cancel,
+		ch:              make(chan clientEvent),
 		ctx:             ctx,
 		db:              s.cfg.TaskDb,
 		limit:           n,
@@ -227,52 +228,55 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 		wantsNewCommits: true,
 		window:          s.cfg.Window,
 	}
-	clientStream.mtx.Lock()
 	s.register(clientStream)
 	defer s.unregister(clientStream)
 
 	// Get the initial full page of commits.
 	resultCommits, branchHeads, err := s.queryCommits(repo, branchRegex, cursor, n)
 	if err != nil {
-		clientStream.mtx.Unlock()
 		httputils.ReportError(w, err, "failed to retrieve commits", http.StatusInternalServerError)
 		return
 	}
-	s.ancestryCacheMtx.RLock()
+
+	s.mtx.Lock()
 	rpcCommits := convertCommits(resultCommits, s.ancestryCache[repoURL])
-	s.ancestryCacheMtx.RUnlock()
+	initialComments := slices.Clone(s.lastComments[repoURL])
+	s.mtx.Unlock()
 
-	// Get initial comments.
-	s.lastCommentsMtx.RLock()
-	initialComments := s.lastComments[repoURL]
-	s.lastCommentsMtx.RUnlock()
-
-	// Build the initial response.
+	// Build and send the initial response before processing queued events.
 	rq := newRequestCache()
-	if err := clientStream.sendUpdateLocked(rpcCommits, branchHeads, repoURL, nil, rq, initialComments); err != nil {
-		clientStream.mtx.Unlock()
+	if err := clientStream.SendUpdate(rpcCommits, branchHeads, repoURL, nil, rq, initialComments); err != nil {
 		httputils.ReportError(w, err, "failed to build send response", http.StatusInternalServerError)
 		return
 	}
 	if cursor != "" {
 		clientStream.wantsNewCommits = false
 	}
-	clientStream.mtx.Unlock()
 
-	// Keep socket open
-	<-ctx.Done()
+	// Process queued and incoming events until the client disconnects.
+	clientStream.run()
 }
 
 func (s *SSEServer) register(client *clientStream) {
-	s.clientsMtx.Lock()
-	defer s.clientsMtx.Unlock()
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 	s.clients[client] = true
 }
 
 func (s *SSEServer) unregister(client *clientStream) {
-	s.clientsMtx.Lock()
-	defer s.clientsMtx.Unlock()
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 	delete(s.clients, client)
+}
+
+func (s *SSEServer) unregisterIfDone(client *clientStream) bool {
+	select {
+	case <-client.Done():
+		s.unregister(client)
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *SSEServer) broadcastLoop(ctx context.Context) {
@@ -294,7 +298,9 @@ func (s *SSEServer) broadcastLoop(ctx context.Context) {
 		case <-commentsTicker.C:
 			s.checkForNewComments(ctx)
 		case <-keepaliveTicker.C:
-			s.broadcastKeepalives()
+			s.broadcastEvent(clientEvent{
+				isKeepalive: true,
+			})
 		}
 	}
 }
@@ -307,38 +313,16 @@ func (s *SSEServer) broadcastTasks(tasks []*types.Task) {
 		}
 	}
 	for repoURL, repoTasks := range tasksByRepo {
-		s.broadcastUpdate(nil, nil, repoURL, repoTasks, nil)
-	}
-}
-
-func (s *SSEServer) broadcastKeepalives() {
-	s.clientsMtx.Lock()
-	var eg errgroup.Group
-	for client := range s.clients {
-		client := client // https://golang.org/doc/faq#closures_and_goroutines
-		eg.Go(func() error {
-			select {
-			case <-client.Done():
-				s.unregister(client)
-				return nil
-			default:
-			}
-			if err := client.SendKeepalive(); err != nil {
-				s.unregister(client)
-				return skerr.Wrapf(err, "failed to send keepalive; unregistered the client")
-			}
-			return nil
+		s.broadcastEvent(clientEvent{
+			repoURL: repoURL,
+			tasks:   repoTasks,
 		})
-	}
-	s.clientsMtx.Unlock()
-	if err := eg.Wait(); err != nil {
-		sklog.Error(err)
 	}
 }
 
 func (s *SSEServer) checkForNewCommits() {
-	s.ancestryCacheMtx.Lock()
-	defer s.ancestryCacheMtx.Unlock()
+	var updates []clientEvent
+	s.mtx.Lock()
 	for repoURL, repo := range s.cfg.Repos {
 		var newCommits []*repograph.Commit
 
@@ -357,21 +341,29 @@ func (s *SSEServer) checkForNewCommits() {
 
 			newBranchHeads := repo.BranchHeads()
 			s.lastBranchHeads[repoURL] = newBranchHeads
-			s.broadcastUpdate(rpcCommits, newBranchHeads, repoURL, nil, nil)
+			updates = append(updates, clientEvent{
+				repoURL:     repoURL,
+				commits:     rpcCommits,
+				branchHeads: newBranchHeads,
+			})
 		}
+	}
+	s.mtx.Unlock()
+
+	for _, u := range updates {
+		s.broadcastEvent(u)
 	}
 }
 
 func (s *SSEServer) checkForNewComments(ctx context.Context) {
-	s.lastCommentsMtx.Lock()
-	defer s.lastCommentsMtx.Unlock()
-
 	repoComments, err := s.cfg.TaskDb.GetCommentsForRepos(ctx, s.cfg.RepoUrls, s.cfg.Window.EarliestStart())
 	if err != nil {
 		sklog.Errorf("failed to retrieve comments: %v", err)
 		return
 	}
 
+	var updates []clientEvent
+	s.mtx.Lock()
 	for _, rc := range repoComments {
 		prevComments := s.lastComments[rc.Repo]
 		newComments := convertComments(rc)
@@ -407,31 +399,49 @@ func (s *SSEServer) checkForNewComments(ctx context.Context) {
 		s.lastComments[rc.Repo] = newComments
 
 		if len(updatedComments) > 0 {
-			s.broadcastUpdate(nil, nil, rc.Repo, nil, updatedComments)
+			updates = append(updates, clientEvent{
+				repoURL:  rc.Repo,
+				comments: updatedComments,
+			})
 		}
+	}
+	s.mtx.Unlock()
+
+	for _, u := range updates {
+		s.broadcastEvent(u)
 	}
 }
 
-func (s *SSEServer) broadcastUpdate(commits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, tasks []*types.Task, comments []*rpc.Comment) {
-	s.clientsMtx.Lock()
-	var eg errgroup.Group
-	rq := newRequestCache()
+func (s *SSEServer) broadcastEvent(ev clientEvent) {
+	if !ev.isKeepalive && ev.rq == nil {
+		ev.rq = newRequestCache()
+	}
+
+	s.mtx.Lock()
+	clients := make([]*clientStream, 0, len(s.clients))
 	for client := range s.clients {
+		clients = append(clients, client)
+	}
+	s.mtx.Unlock()
+
+	var eg errgroup.Group
+	for _, client := range clients {
+		client := client
 		eg.Go(func() error {
-			select {
-			case <-client.Done():
-				s.unregister(client)
+			if s.unregisterIfDone(client) {
 				return nil
-			default:
 			}
-			if err := client.SendUpdate(commits, branchHeads, repoURL, tasks, rq, comments); err != nil {
+			if err := client.SendEvent(ev); err != nil {
+				if client.cancel != nil {
+					client.cancel()
+				}
 				s.unregister(client)
 				return skerr.Wrapf(err, "failed to send response; unregistered the client")
 			}
+			s.unregisterIfDone(client)
 			return nil
 		})
 	}
-	s.clientsMtx.Unlock()
 	if err := eg.Wait(); err != nil {
 		sklog.Error(err)
 	}
@@ -530,14 +540,26 @@ func (d *doubleFlushingWriter) Flush() error {
 	return nil
 }
 
+type clientEvent struct {
+	isKeepalive bool
+	commits     []*rpc.LongCommit
+	branchHeads []*git.Branch
+	repoURL     string
+	tasks       []*types.Task
+	rq          *requestCache
+	comments    []*rpc.Comment
+	done        chan error
+}
+
 type clientStream struct {
 	activeTaskSpecs  map[string]bool
 	branchRegex      *regexp.Regexp
+	cancel           context.CancelFunc
+	ch               chan clientEvent
 	ctx              context.Context
 	db               db.TaskReader
 	displayedCommits []*rpc.LongCommit
 	limit            int
-	mtx              sync.Mutex
 	repoURL          string
 	taskFilter       taskFilter
 	taskSearch       *regexp.Regexp
@@ -551,19 +573,57 @@ func (c *clientStream) Done() <-chan struct{} {
 	return c.ctx.Done()
 }
 
+func (s *clientStream) run() {
+	for {
+		select {
+		case <-s.ctx.Done():
+			return
+		case ev := <-s.ch:
+			var err error
+			if ev.isKeepalive {
+				err = s.SendKeepalive()
+			} else {
+				err = s.SendUpdate(ev.commits, ev.branchHeads, ev.repoURL, ev.tasks, ev.rq, ev.comments)
+			}
+			if ev.done != nil {
+				ev.done <- err
+			}
+			if err != nil {
+				return
+			}
+		}
+	}
+}
+
+func (s *clientStream) SendEvent(ev clientEvent) error {
+	ev.done = make(chan error, 1)
+
+	timer := time.NewTimer(sendTimeout)
+	defer timer.Stop()
+
+	select {
+	case <-s.Done():
+		return nil
+	case s.ch <- ev:
+	case <-timer.C:
+		return skerr.Fmt("timed out queuing SSE event to client")
+	}
+
+	select {
+	case <-s.Done():
+		return nil
+	case err := <-ev.done:
+		return skerr.Wrap(err)
+	case <-timer.C:
+		return skerr.Fmt("timed out waiting for client to send SSE event")
+	}
+}
+
 // SendUpdate builds and sends an update to the clientStream.
 //
 // repoURL must always be set. Either newTasks or newCommits and branchHeads,
 // or all of the above must be set.
 func (s *clientStream) SendUpdate(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache, newComments []*rpc.Comment) error {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-	return s.sendUpdateLocked(newCommits, branchHeads, repoURL, newTasks, rq, newComments)
-}
-
-// sendUpdateLocked is a helper function for SendUpdate which assumes that the
-// caller holds clientStream.mtx.
-func (s *clientStream) sendUpdateLocked(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache, newComments []*rpc.Comment) error {
 	if repoURL != s.repoURL {
 		return nil
 	}
@@ -702,8 +762,6 @@ func (c *clientStream) matchBranch(branchName string) bool {
 
 // SendKeepalive sends a named "keepalive" event keeping the connection alive.
 func (s *clientStream) SendKeepalive() error {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
 	_, err := fmt.Fprint(s.w, "event: keepalive\ndata: {}\n\n")
 	if err != nil {
 		return skerr.Wrapf(err, "failed to send SSE keepalive")
@@ -760,11 +818,11 @@ func updateAncestryCache(cache map[string][]string, repo *repograph.Graph, oldBr
 }
 
 // convertCommits converts the repograph.Commits to rpc.LongCommits. The caller
-// MUST hold a read lock on ancestryCache.
+// MUST hold s.mtx.
 func convertCommits(commits []*repograph.Commit, ancestryCache map[string][]string) []*rpc.LongCommit {
 	rv := make([]*rpc.LongCommit, 0, len(commits))
 	for _, c := range commits {
-		isAncestorOf := ancestryCache[c.Hash]
+		isAncestorOf := slices.Clone(ancestryCache[c.Hash])
 		rv = append(rv, &rpc.LongCommit{
 			Hash:         c.Hash,
 			Author:       c.Author,
