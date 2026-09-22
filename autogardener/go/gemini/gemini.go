@@ -153,8 +153,8 @@ definitive report to developers.
   but it's more likely that this is related to the machine(s) running the task.
 - TSAN tasks are inherently inconsistent; the task will fail if a real problem
   is found, but problems are not found on every execution. Treat these as actual
-  failures that need investigation, and include the thread safety findings in
-  your report.
+  failures that need investigation, and you MUST include the full text of the
+  thread safety findings in your report.
 - If a task times out, try to determine what it was doing. For example, was it
   running a particular test?
 
@@ -171,14 +171,12 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 	}
 
 	// Reduce down to only the failed steps. Extract log snippets.
-	var allowedTools []string
 	var taskStepsStr string
 	var logSnippets []string
 	var failedStepNames []string
 	anyFailedStepHasLogs := false
 	logsByStep := map[string][]string{}
 	if taskSteps.Recipe != nil {
-		allowedTools = append(allowedTools, "get_recipe_step_logs")
 		prunedRecipeSteps, failedSteps := pruneSuccessfulRecipeSteps(taskSteps.Recipe)
 		taskSteps.Recipe = prunedRecipeSteps
 		for _, s := range failedSteps {
@@ -209,7 +207,6 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 		}
 		taskStepsStr = taskSteps.String()
 	} else if taskSteps.TaskDriver != nil {
-		allowedTools = append(allowedTools, "get_task_driver_step_logs")
 		prunedTaskDriver, failedSteps := pruneSuccessfulTaskDriverSteps(taskSteps.TaskDriver.StepDisplay)
 		taskSteps.TaskDriver.StepDisplay = prunedTaskDriver
 		for _, s := range failedSteps {
@@ -306,11 +303,21 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
    - To find the _actual_ cause of failure, always check the **end** of the logs
      first. Specifically, look for a "Failures:" section or explicit test
      failure messages right before the step exits.
+   - If the task is a TSAN or other sanitizer task (or if the end of the logs
+     mentions "ThreadSanitizer: reported N warnings"), look for the actual
+     sanitizer report ("WARNING: ThreadSanitizer: ...", stack traces, and
+     "SUMMARY: ThreadSanitizer: ...") earlier in the logs. If it is not included
+     in the snippets above, you MUST use the "get_step_logs" tool to locate and
+     retrieve the full TSAN report.
    - If the error is not extremely obvious, continue requesting log lines until
      you've either found an obvious error or you've seen all of the logs.
 3. Analyze the error(s) and present a report to the user.
    - In the "ErrorMessage" section, extract the concise, exact failure message
      or stack trace that identifies the failure.
+   - If ThreadSanitizer (TSAN) or other sanitizer findings are present in the
+     logs, you MUST include the actual TSAN warning, stack trace(s), and
+     "SUMMARY: ThreadSanitizer: ..." line in "ErrorMessage". Do NOT include only
+     the final "ThreadSanitizer: reported N warnings" line or abort signal.
    - For build and compilation failures (e.g., Ninja, Clang, MSVC, Bazel),
      extract the specific compiler error diagnostic(s) (file path, line number,
      error message, and code snippet). Do NOT include the compiler command-line
@@ -345,7 +352,7 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
 	prompt := fmt.Sprintf(promptTmpl, task.Id, task_scheduler.TaskWrapper{Task: task}, taskStepsStr, snippetsStr)
 	mcpWrapper := mcp.MCPClientWithPseudoTools(c.mcpClient, []*mcp.PseudoTool{
 		mcp.GetLogLinesTool(logsByStep),
-	}, allowedTools)
+	}, nil)
 	var res types.TaskSummary
 	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, "GetTaskSummary", fmt.Sprintf("GetTaskSummary/%s", task.Id), &res); err != nil {
 		return nil, skerr.Wrap(err)

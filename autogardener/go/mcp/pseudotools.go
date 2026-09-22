@@ -115,11 +115,19 @@ func GetInt(key string, args map[string]interface{}, required bool) (int, error)
 		}
 		return 0, nil
 	}
-	asInt, ok := val.(int)
-	if !ok {
+	switch v := val.(type) {
+	case int:
+		return v, nil
+	case int64:
+		return int(v), nil
+	case float64:
+		if v != float64(int(v)) {
+			return 0, skerr.Fmt("incorrect type for parameter %q; must be an integer", key)
+		}
+		return int(v), nil
+	default:
 		return 0, skerr.Fmt("incorrect type for parameter %q; must be an integer", key)
 	}
-	return asInt, nil
 }
 
 type mcpClientWithPseudoTools struct {
@@ -147,7 +155,7 @@ func MCPClientWithPseudoTools(wrapped MCPClient, pseudoTools []*PseudoTool, allo
 		toolFilter[t] = true
 	}
 	builtIn := wrapped.Tools()
-	filteredMap := make(map[string]*genai.Tool, len(allowedTools))
+	filteredMap := make(map[string]*genai.Tool, len(allowedTools)+len(pseudoTools))
 	for _, t := range builtIn {
 		name := t.FunctionDeclarations[0].Name
 		if toolFilter[name] {
@@ -157,10 +165,8 @@ func MCPClientWithPseudoTools(wrapped MCPClient, pseudoTools []*PseudoTool, allo
 	pseudoToolMap := make(map[string]*PseudoTool, len(pseudoTools))
 	for _, t := range pseudoTools {
 		name := t.Tool().FunctionDeclarations[0].Name
-		if toolFilter[name] {
-			pseudoToolMap[name] = t
-			filteredMap[name] = t.Tool()
-		}
+		pseudoToolMap[name] = t
+		filteredMap[name] = t.Tool()
 	}
 	filtered := make([]*genai.Tool, 0, len(filteredMap))
 	for _, t := range filteredMap {

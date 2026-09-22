@@ -227,9 +227,15 @@ func TestIsLogLineInteresting(t *testing.T) {
 		{"FATAL error", true},
 		{"a fatal exception", true},
 
+		// Match cases for sanitizers
+		{"WARNING: ThreadSanitizer: data race (pid=18462)", true},
+		{"SUMMARY: ThreadSanitizer: data race (dm:arm64+0x101979954) in dawn::native::ObjectBase::GetDevice() const+0x1c", true},
+		{"ERROR: AddressSanitizer: heap-use-after-free", true},
+
 		// Non-matching cases
 		{"terror in the city", false},
 		{"start unit test TestErrorCases", false},
+		{"start unit test Fix ThreadSanitizer bug2345", false},
 	}
 
 	for _, tc := range tests {
@@ -238,4 +244,50 @@ func TestIsLogLineInteresting(t *testing.T) {
 			require.Equal(t, tc.want, got, "Line: %q", tc.line)
 		})
 	}
+}
+
+func TestExtractLogSnippet_TSAN(t *testing.T) {
+	lines := []string{
+		"uninteresting log 1",
+		"start unit test Compute_ClearOrderingScratchBuffers",
+		"==================",
+		"WARNING: ThreadSanitizer: data race (pid=18462)",
+		"  Read of size 8 at 0x00010df71010 by thread T1282:",
+		"    #0 dawn::native::ObjectBase::GetDevice() const",
+		"  Previous write of size 8 at 0x00010df71010 by main thread:",
+		"    #0 dawn::native::ApiObjectBase::ApiObjectBase()",
+		"    #1 main",
+		"  Location is heap block of size 936 at 0x00010df71000 allocated by main thread:",
+		"    #0 operator new(unsigned long)",
+		"    #1 main",
+		"  Thread T1282 (tid=220181, running) is a GCD worker thread",
+		"",
+		"SUMMARY: ThreadSanitizer: data race in dawn::native::ObjectBase::GetDevice() const",
+		"==================",
+		"[1283/1570] unit test Compute_ClearOrderingScratchBuffers done",
+		"uninteresting log 18",
+		"uninteresting log 19",
+		"uninteresting log 20",
+	}
+
+	// Even with contextLines=1, the entire block from WARNING: ThreadSanitizer
+	// through SUMMARY: ThreadSanitizer (plus 1 context line on each side) should
+	// be extracted in a single contiguous range.
+	snippet := RenderLineRanges(lines, ExtractSnippets(lines, 1, 0, 100, 0))
+	require.Equal(t, `==== Lines 3-16 of 20 ====
+ 3 | ==================
+ 4 | WARNING: ThreadSanitizer: data race (pid=18462)
+ 5 |   Read of size 8 at 0x00010df71010 by thread T1282:
+ 6 |     #0 dawn::native::ObjectBase::GetDevice() const
+ 7 |   Previous write of size 8 at 0x00010df71010 by main thread:
+ 8 |     #0 dawn::native::ApiObjectBase::ApiObjectBase()
+ 9 |     #1 main
+10 |   Location is heap block of size 936 at 0x00010df71000 allocated by main thread:
+11 |     #0 operator new(unsigned long)
+12 |     #1 main
+13 |   Thread T1282 (tid=220181, running) is a GCD worker thread
+14 |
+15 | SUMMARY: ThreadSanitizer: data race in dawn::native::ObjectBase::GetDevice() const
+16 | ==================
+`, snippet)
 }

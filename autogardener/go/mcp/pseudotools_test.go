@@ -38,14 +38,21 @@ func TestGetString(t *testing.T) {
 
 func TestGetInt(t *testing.T) {
 	args := map[string]interface{}{
-		"key_int": 123,
-		"key_str": "value",
+		"key_int":   123,
+		"key_float": float64(456),
+		"key_frac":  float64(456.5),
+		"key_str":   "value",
 	}
 
 	// Success
 	val, err := GetInt("key_int", args, true)
 	require.NoError(t, err)
 	require.Equal(t, 123, val)
+
+	// Success (float64 from JSON unmarshaling)
+	val, err = GetInt("key_float", args, true)
+	require.NoError(t, err)
+	require.Equal(t, 456, val)
 
 	// Missing, optional
 	val, err = GetInt("missing", args, false)
@@ -56,6 +63,11 @@ func TestGetInt(t *testing.T) {
 	val, err = GetInt("missing", args, true)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), `parameter "missing" is required`)
+
+	// Wrong type (non-integer float64)
+	val, err = GetInt("key_frac", args, true)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), `incorrect type for parameter "key_frac"; must be an integer`)
 
 	// Wrong type
 	val, err = GetInt("key_str", args, true)

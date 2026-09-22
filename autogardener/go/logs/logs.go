@@ -27,6 +27,9 @@ func RenderLine(line string, lineNum, totalLines int) string {
 	padLength := len(strconv.Itoa(totalLines))
 	padFmt := fmt.Sprintf("%%%dd", padLength)
 	lineNumStr := fmt.Sprintf(padFmt, lineNum)
+	if line == "" {
+		return fmt.Sprintf("%s |", lineNumStr)
+	}
 	return fmt.Sprintf("%s | %s", lineNumStr, line)
 }
 
@@ -82,17 +85,20 @@ func ExtractSnippets(lines []string, contextLines, includeLastN, maxSnippetLines
 	// lines to create LineRanges.
 	snippets := make([]*LineRange, 0, len(interestingLines)+1)
 	for _, index := range interestingLines {
-		start := index - contextLines
-		if start < 0 {
-			start = 0
-		}
+		start := max(0, index-contextLines)
 		end := index + contextLines + 1
-		if end >= totalLines {
-			end = totalLines
+		if sanitizerHeaderRegex.MatchString(lines[index]) {
+			limit := min(index+maxSnippetLines, totalLines)
+			for j := index + 1; j < limit; j++ {
+				if sanitizerSummaryRegex.MatchString(lines[j]) {
+					end = j + contextLines + 1
+					break
+				}
+			}
 		}
 		snippets = append(snippets, &LineRange{
 			Start: start,
-			End:   end,
+			End:   min(totalLines, end),
 		})
 	}
 
@@ -109,7 +115,7 @@ func ExtractSnippets(lines []string, contextLines, includeLastN, maxSnippetLines
 	merged := make([]*LineRange, 0, len(snippets))
 	for _, s := range snippets {
 		if len(merged) > 0 && merged[len(merged)-1].End >= s.Start {
-			merged[len(merged)-1].End = s.End
+			merged[len(merged)-1].End = max(merged[len(merged)-1].End, s.End)
 		} else {
 			merged = append(merged, s)
 		}
@@ -129,8 +135,14 @@ func ExtractSnippets(lines []string, contextLines, includeLastN, maxSnippetLines
 	return merged
 }
 
-var interestingLogLineRegex = regexp.MustCompile(`(?i)\b(error|fail|fatal)`)
+var (
+	interestingLogLineRegex = regexp.MustCompile(`(?i)\b(error|fail|fatal)`)
+	sanitizerHeaderRegex    = regexp.MustCompile(`(?i)\b(warning|error):\s+(thread|address|memory|leak|undefinedbehavior)sanitizer:`)
+	sanitizerSummaryRegex   = regexp.MustCompile(`(?i)\bsummary:\s+(thread|address|memory|leak|undefinedbehavior)sanitizer:`)
+)
 
 func IsLogLineInteresting(line string) bool {
-	return interestingLogLineRegex.MatchString(line)
+	return interestingLogLineRegex.MatchString(line) ||
+		sanitizerHeaderRegex.MatchString(line) ||
+		sanitizerSummaryRegex.MatchString(line)
 }
