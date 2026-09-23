@@ -195,7 +195,11 @@ func releaseBranch(ctx context.Context, newBranch string, reviewers []string, al
 	// Update release notes.
 	if currentChromeMilestone != -1 {
 		fmt.Printf("Merging release notes into %s\n", releaseNotesFile)
-		ci, err := mergeReleaseNotes(ctx, g, repo, updateTryjobCI.ChangeId, currentChromeMilestone, newBranch, reviewers)
+		baseChangeID := ""
+		if updateTryjobCI != nil {
+			baseChangeID = updateTryjobCI.ChangeId
+		}
+		ci, err := mergeReleaseNotes(ctx, g, repo, baseChangeID, currentChromeMilestone, newBranch, reviewers)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
@@ -203,6 +207,11 @@ func releaseBranch(ctx context.Context, newBranch string, reviewers []string, al
 			fmt.Printf("Creating CL to cherry-pick %s change in %s back to %s\n", releaseNotesFile, newBranch, git_common.MainBranch)
 			if err := cherryPickChangeToBranch(ctx, g, ci, git_common.MainBranch, reviewers); err != nil {
 				return skerr.Wrapf(err, "Error cherry-picking back to main")
+			}
+		} else {
+			fmt.Printf("Checking whether %s on %s needs release notes merged...\n", releaseNotesFile, git_common.MainBranch)
+			if _, err := mergeReleaseNotes(ctx, g, repo, "", currentChromeMilestone, git_common.MainBranch, reviewers); err != nil {
+				return skerr.Wrapf(err, "Error merging release notes to %s", git_common.MainBranch)
 			}
 		}
 	}
@@ -239,8 +248,8 @@ func updateMilestone(ctx context.Context, g gerrit.GerritInterface, repo *gitile
 		return skerr.Wrap(err)
 	}
 
-	if haveMilestone == newMilestone {
-		fmt.Printf("Milestone is up to date at %d; not updating.\n", newMilestone)
+	if haveMilestone >= newMilestone {
+		fmt.Printf("Milestone is at %d (target %d); not updating.\n", haveMilestone, newMilestone)
 		return nil
 	}
 
@@ -310,18 +319,26 @@ func mergeReleaseNotes(ctx context.Context, g gerrit.GerritInterface, repo gitil
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	oldReleaseNotes, err := vfs.ReadFile(ctx, fs, releaseNotesFile)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	newRef := git.FullyQualifiedBranchName(newBranch)
 	aggregator := relnotes.NewAggregator()
 	newReleaseNotes, err := aggregator.Aggregate(ctx, fs, currentMilestone, releaseNotesFile, releaseNotesDir)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	changes := map[string]string{
-		releaseNotesFile: string(newReleaseNotes),
-	}
 	noteFiles, err := aggregator.ListNoteFiles(ctx, fs, releaseNotesDir)
 	if err != nil {
 		return nil, skerr.Wrap(err)
+	}
+	if bytes.Equal(oldReleaseNotes, newReleaseNotes) && len(noteFiles) == 0 {
+		fmt.Printf("%s on %s is already up to date; not updating.\n", releaseNotesFile, newBranch)
+		return nil, nil
+	}
+	changes := map[string]string{
+		releaseNotesFile: string(newReleaseNotes),
 	}
 	for _, noteFile := range noteFiles {
 		p := path.Join(releaseNotesDir, noteFile)
@@ -333,7 +350,11 @@ func mergeReleaseNotes(ctx context.Context, g gerrit.GerritInterface, repo gitil
 		pluralSfx = ""
 	}
 	commitMsg := fmt.Sprintf("Merge %d release note%s into %s", len(noteFiles), pluralSfx, releaseNotesFile)
-	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, newRef, commitMsg, "", baseChangeID, changes, reviewers)
+	commitForCL := baseCommit
+	if baseChangeID != "" {
+		commitForCL = ""
+	}
+	ci, err := gerrit.CreateCLWithChanges(ctx, g, gerritProject, newRef, commitMsg, commitForCL, baseChangeID, changes, reviewers)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -444,7 +465,7 @@ func updateSupportedBranches(ctx context.Context, g gerrit.GerritInterface, repo
 }
 
 // updateTryjobs creates a CL update the tryjob in newBranch. The new Gerrit ChangeInfo is returned.
-func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, newBranch string, reviewers []string, allowEmptyCLs bool) (*gerrit.ChangeInfo, error) {
+func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo gitiles.GitilesRepo, newBranch string, reviewers []string, allowEmptyCLs bool) (*gerrit.ChangeInfo, error) {
 	// Setup.
 	newRef := git.FullyQualifiedBranchName(newBranch)
 	baseCommitInfo, err := repo.Details(ctx, newRef)
@@ -452,6 +473,21 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 		return nil, skerr.Wrap(err)
 	}
 	baseCommit := baseCommitInfo.Hash
+
+	// Download and modify the jobs.json file.
+	oldJobsContents, err := repo.ReadFileAtRef(ctx, jobsJSONFile, baseCommit)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	newJobsContents, err := updateJobsJSON(oldJobsContents)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if bytes.Equal(oldJobsContents, newJobsContents) && !allowEmptyCLs {
+		fmt.Printf("Try jobs on %s are already up to date; not updating.\n", newBranch)
+		return nil, nil
+	}
+
 	tmp, err := os.MkdirTemp("", "")
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -465,15 +501,6 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 		return nil, skerr.Wrap(err)
 	}
 
-	// Download and modify the jobs.json file.
-	oldJobsContents, err := repo.ReadFileAtRef(ctx, jobsJSONFile, baseCommit)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	newJobsContents, err := updateJobsJSON(oldJobsContents)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 	jobsJSONFilePath := filepath.Join(co.Dir(), jobsJSONFile)
 	if err := os.WriteFile(jobsJSONFilePath, newJobsContents, os.ModePerm); err != nil {
 		return nil, skerr.Wrapf(err, "failed to write %s", jobsJSONFilePath)
@@ -489,8 +516,13 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 	repoSplit := strings.Split(repo.URL(), "/")
 	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
 	ci, err := gerrit.CreateCLFromLocalDiffs(ctx, g, project, newBranch, commitMsg, reviewers, co)
-	if err == gerrit.ErrEmptyChange && allowEmptyCLs {
-		ci, err = g.CreateChange(ctx, project, newBranch, commitMsg, "", "")
+	if err == gerrit.ErrEmptyChange {
+		if allowEmptyCLs {
+			ci, err = g.CreateChange(ctx, project, newBranch, commitMsg, "", "")
+		} else {
+			fmt.Printf("Try jobs on %s are already up to date; not updating.\n", newBranch)
+			return nil, nil
+		}
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)

@@ -41,6 +41,7 @@ go_test(
         "//go/gitiles",
         "//go/gitiles/mocks",
         "//go/testutils",
+        "//go/vcsinfo",
         "//go/vfs",
         "//go/vfs/mocks",
         "@com_github_stretchr_testify//mock",
