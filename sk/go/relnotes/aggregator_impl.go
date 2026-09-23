@@ -144,14 +144,21 @@ func (a *AggregatorImpl) writeAllNotes(ctx context.Context, fs vfs.FS, w io.Writ
 	return nil
 }
 
-// writeNewMilestoneSection will read all release notes contained in the
-// |relnotesDir| directory, aggregate them under a new milestone heading, and
-// write that new heading using the |w| writer.
-func (a *AggregatorImpl) writeNewMilestoneSection(ctx context.Context, fs vfs.FS, w io.Writer, milestone int, relnotesDir string) error {
+func writeMilestoneHeader(w io.Writer, milestone int) error {
 	if _, err := fmt.Fprintf(w, "Milestone %d\n", milestone); err != nil {
 		return skerr.Wrap(err)
 	}
 	if _, err := fmt.Fprintln(w, "-------------"); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// writeNewMilestoneSection will read all release notes contained in the
+// |relnotesDir| directory, aggregate them under a new milestone heading, and
+// write that new heading using the |w| writer.
+func (a *AggregatorImpl) writeNewMilestoneSection(ctx context.Context, fs vfs.FS, w io.Writer, milestone int, relnotesDir string) error {
+	if err := writeMilestoneHeader(w, milestone); err != nil {
 		return skerr.Wrap(err)
 	}
 	if err := a.writeAllNotes(ctx, fs, w, relnotesDir); err != nil {
@@ -180,7 +187,6 @@ func (a *AggregatorImpl) Aggregate(ctx context.Context, fs vfs.FS, newMilestone 
 	var newContents bytes.Buffer
 	scanner := bufio.NewScanner(r)
 	gotFirstMilestoneHeading := false
-	prevMilestone := newMilestone - 1
 	insertNotesAfterNextHeadingUnderlines := false
 	for scanner.Scan() {
 		t := scanner.Text()
@@ -194,12 +200,19 @@ func (a *AggregatorImpl) Aggregate(ctx context.Context, fs vfs.FS, newMilestone 
 					// Insert all new notes just after the milestone heading, but don't
 					// create a new one.
 					insertNotesAfterNextHeadingUnderlines = true
-				} else if m == prevMilestone {
-					if err = a.writeNewMilestoneSection(ctx, fs, &newContents,
-						newMilestone, relnotesDir); err != nil {
+				} else if m < newMilestone {
+					if err = a.writeNewMilestoneSection(ctx, fs, &newContents, newMilestone, relnotesDir); err != nil {
 						return nil, skerr.Wrap(err)
 					}
 					fmt.Fprintf(&newContents, "\n* * *\n\n")
+
+					// Write empty sections for any skipped milestones.
+					for i := newMilestone - 1; i > m; i-- {
+						if err = writeMilestoneHeader(&newContents, i); err != nil {
+							return nil, skerr.Wrap(err)
+						}
+						fmt.Fprintf(&newContents, "\n* * *\n\n")
+					}
 				} else {
 					return nil, skerr.Fmt("Cannot jump from milestone %d to %d", m, newMilestone)
 				}

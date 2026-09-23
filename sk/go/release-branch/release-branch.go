@@ -323,10 +323,6 @@ func mergeReleaseNotes(ctx context.Context, g gerrit.GerritInterface, repo gitil
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if len(noteFiles) == 0 {
-		fmt.Println("No individual release note files found; nothing to merge.")
-		return nil, nil
-	}
 	for _, noteFile := range noteFiles {
 		p := path.Join(releaseNotesDir, noteFile)
 		changes[p] = ""

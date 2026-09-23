@@ -497,7 +497,40 @@ Milestone 112
 	require.Equal(t, expectedReleaseNotes, string(newNotes))
 }
 
-func TestAggregate_NewMilestoneGreaterByTwo_ReturnsError(t *testing.T) {
+func TestAggregate_SkippedMilestone_InsertsEmptyMilestoneSection(t *testing.T) {
+	firstNote := []byte("First note")
+	relnotesDirContents := []os.FileInfo{
+		vfs.FileInfo{
+			Name:    "README.md",
+			Size:    128,
+			Mode:    os.ModePerm,
+			ModTime: time.Now(),
+			IsDir:   false,
+			Sys:     nil,
+		}.Get(),
+		vfs.FileInfo{
+			Name:    "first.md",
+			Size:    int64(len(firstNote)),
+			Mode:    os.ModePerm,
+			ModTime: time.Now(),
+			IsDir:   false,
+			Sys:     nil,
+		}.Get(),
+	}
+	fs := vfs_mocks.NewFS(t)
+	dir := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "relnotes").Return(dir, nil)
+	dir.On("ReadDir", testutils.AnyContext, -1).Return(relnotesDirContents, nil)
+	dir.On("Close", testutils.AnyContext).Return(nil)
+
+	fNote := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "relnotes/first.md").Once().Return(fNote, nil)
+	fNote.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
+		arg := args.Get(1).([]uint8)
+		copy(arg, firstNote)
+	}).Return(len(firstNote), io.EOF)
+	fNote.On("Close", testutils.AnyContext).Return(nil)
+
 	const currentReleaseNotes = `Skia Graphics Release Notes
 
 This file includes a list of high level updates for each milestone release.
@@ -516,6 +549,284 @@ Milestone 109
   * Two
   * Three
 `
+	f1 := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f1, nil)
+	f1.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
+		arg := args.Get(1).([]uint8)
+		copy(arg, currentReleaseNotes)
+	}).Return(len(currentReleaseNotes), io.EOF)
+	f1.On("Close", testutils.AnyContext).Return(nil)
+
+	aggregator := NewAggregator()
+	newNotes, err := aggregator.Aggregate(context.Background(), fs, 112, "RELEASE_NOTES.md", "relnotes")
+	require.NoError(t, err)
+
+	const expectedReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 112
+-------------
+  * First note
+
+* * *
+
+Milestone 111
+-------------
+
+* * *
+
+Milestone 110
+-------------
+  * First item
+  * Second item
+  * Third item
+
+* * *
+
+Milestone 109
+-------------
+  * One
+  * Two
+  * Three
+`
+	require.Equal(t, expectedReleaseNotes, string(newNotes))
+}
+
+func TestAggregate_SkippedMultipleMilestones_InsertsEmptyMilestoneSections(t *testing.T) {
+	firstNote := []byte("First note")
+	relnotesDirContents := []os.FileInfo{
+		vfs.FileInfo{
+			Name:    "README.md",
+			Size:    128,
+			Mode:    os.ModePerm,
+			ModTime: time.Now(),
+			IsDir:   false,
+			Sys:     nil,
+		}.Get(),
+		vfs.FileInfo{
+			Name:    "first.md",
+			Size:    int64(len(firstNote)),
+			Mode:    os.ModePerm,
+			ModTime: time.Now(),
+			IsDir:   false,
+			Sys:     nil,
+		}.Get(),
+	}
+	fs := vfs_mocks.NewFS(t)
+	dir := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "relnotes").Return(dir, nil)
+	dir.On("ReadDir", testutils.AnyContext, -1).Return(relnotesDirContents, nil)
+	dir.On("Close", testutils.AnyContext).Return(nil)
+
+	fNote := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "relnotes/first.md").Once().Return(fNote, nil)
+	fNote.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
+		arg := args.Get(1).([]uint8)
+		copy(arg, firstNote)
+	}).Return(len(firstNote), io.EOF)
+	fNote.On("Close", testutils.AnyContext).Return(nil)
+
+	const currentReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 110
+-------------
+  * First item
+  * Second item
+  * Third item
+
+* * *
+
+Milestone 109
+-------------
+  * One
+  * Two
+  * Three
+`
+	f1 := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f1, nil)
+	f1.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
+		arg := args.Get(1).([]uint8)
+		copy(arg, currentReleaseNotes)
+	}).Return(len(currentReleaseNotes), io.EOF)
+	f1.On("Close", testutils.AnyContext).Return(nil)
+
+	aggregator := NewAggregator()
+	newNotes, err := aggregator.Aggregate(context.Background(), fs, 113, "RELEASE_NOTES.md", "relnotes")
+	require.NoError(t, err)
+
+	const expectedReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 113
+-------------
+  * First note
+
+* * *
+
+Milestone 112
+-------------
+
+* * *
+
+Milestone 111
+-------------
+
+* * *
+
+Milestone 110
+-------------
+  * First item
+  * Second item
+  * Third item
+
+* * *
+
+Milestone 109
+-------------
+  * One
+  * Two
+  * Three
+`
+	require.Equal(t, expectedReleaseNotes, string(newNotes))
+}
+
+func TestAggregate_WithZeroNotes_WritesEmptyMilestoneSection(t *testing.T) {
+	relnotesDirContents := []os.FileInfo{
+		vfs.FileInfo{
+			Name:    "README.md",
+			Size:    128,
+			Mode:    os.ModePerm,
+			ModTime: time.Now(),
+			IsDir:   false,
+			Sys:     nil,
+		}.Get(),
+	}
+	fs := vfs_mocks.NewFS(t)
+	dir := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "relnotes").Return(dir, nil)
+	dir.On("ReadDir", testutils.AnyContext, -1).Return(relnotesDirContents, nil)
+	dir.On("Close", testutils.AnyContext).Return(nil)
+
+	const currentReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 113
+-------------
+  * First item
+  * Second item
+  * Third item
+`
+	f1 := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f1, nil)
+	f1.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
+		arg := args.Get(1).([]uint8)
+		copy(arg, currentReleaseNotes)
+	}).Return(len(currentReleaseNotes), io.EOF)
+	f1.On("Close", testutils.AnyContext).Return(nil)
+
+	aggregator := NewAggregator()
+	newNotes, err := aggregator.Aggregate(context.Background(), fs, 114, "RELEASE_NOTES.md", "relnotes")
+	require.NoError(t, err)
+
+	const expectedReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 114
+-------------
+
+* * *
+
+Milestone 113
+-------------
+  * First item
+  * Second item
+  * Third item
+`
+	require.Equal(t, expectedReleaseNotes, string(newNotes))
+}
+
+func TestAggregate_SkippedMultipleMilestonesWithZeroNotes_InsertsEmptyMilestoneSections(t *testing.T) {
+	relnotesDirContents := []os.FileInfo{
+		vfs.FileInfo{
+			Name:    "README.md",
+			Size:    128,
+			Mode:    os.ModePerm,
+			ModTime: time.Now(),
+			IsDir:   false,
+			Sys:     nil,
+		}.Get(),
+	}
+	fs := vfs_mocks.NewFS(t)
+	dir := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "relnotes").Return(dir, nil)
+	dir.On("ReadDir", testutils.AnyContext, -1).Return(relnotesDirContents, nil)
+	dir.On("Close", testutils.AnyContext).Return(nil)
+
+	const currentReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 110
+-------------
+  * First item
+  * Second item
+  * Third item
+`
+	f1 := vfs_mocks.NewFile(t)
+	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f1, nil)
+	f1.On("Read", testutils.AnyContext, mock.AnythingOfType("[]uint8")).Run(func(args mock.Arguments) {
+		arg := args.Get(1).([]uint8)
+		copy(arg, currentReleaseNotes)
+	}).Return(len(currentReleaseNotes), io.EOF)
+	f1.On("Close", testutils.AnyContext).Return(nil)
+
+	aggregator := NewAggregator()
+	newNotes, err := aggregator.Aggregate(context.Background(), fs, 113, "RELEASE_NOTES.md", "relnotes")
+	require.NoError(t, err)
+
+	const expectedReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 113
+-------------
+
+* * *
+
+Milestone 112
+-------------
+
+* * *
+
+Milestone 111
+-------------
+
+* * *
+
+Milestone 110
+-------------
+  * First item
+  * Second item
+  * Third item
+`
+	require.Equal(t, expectedReleaseNotes, string(newNotes))
+}
+
+func TestAggregate_NewMilestoneLessThanCurrent_ReturnsError(t *testing.T) {
+	const currentReleaseNotes = `Skia Graphics Release Notes
+
+This file includes a list of high level updates for each milestone release.
+
+Milestone 110
+-------------
+  * First item
+`
 	fs := vfs_mocks.NewFS(t)
 	f1 := vfs_mocks.NewFile(t)
 	fs.On("Open", testutils.AnyContext, "RELEASE_NOTES.md").Once().Return(f1, nil)
@@ -526,9 +837,7 @@ Milestone 109
 	f1.On("Close", testutils.AnyContext).Return(nil)
 
 	aggregator := NewAggregator()
-	// Aggregate can handle existing milestones 111 or 112, but no others and
-	// should fail
-	_, err := aggregator.Aggregate(context.Background(), fs, 112, "RELEASE_NOTES.md", "relnotes")
+	_, err := aggregator.Aggregate(context.Background(), fs, 109, "RELEASE_NOTES.md", "relnotes")
 	assert.Error(t, err)
 }
 
