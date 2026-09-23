@@ -690,13 +690,13 @@ cipd.download_http(
     name = "swarming",
     cipd_package = "infra/tools/luci/swarming/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "45950c43212ff0e5e335e616cdc5a6c2d806c16bd3afaa8933223dc1534581ad",
-        "linux-arm64": "07081ba0d26d74ce271e3ecd58fc5f5dc02d3bd6316c143e34a9f1d4ac97846b",
-        "mac-amd64": "1d745af9733e5de32f2e6a55875282f08668981581653571c4f21bfcc30df770",
-        "mac-arm64": "88780193bdb3d10d1960c88245a3c1aeb9bb8603b2056f50294daa30b938a1c3",
-        "windows-amd64": "16354eaed69072b6347579dd40b61191d6484ab4d6cbee39dfafc37a1489e6ab",
+        "linux-amd64": "fb1b9a6b942d2b45b1b13c8d2a9d6b7592357fc20637b375df8b6532f4bccda9",
+        "linux-arm64": "e98715fa157d5096774473f004428cc18d1bc5e74e9b414c78fb95f0def3ae11",
+        "mac-amd64": "b2421b624ee0a4e4bb848d641359164867ed92a4431d35d313769b2e94c058e9",
+        "mac-arm64": "a215ddb53c7ada434d99fa499605387f1eeafebdb6c4f04751d7391f65f9cd21",
+        "windows-amd64": "c45986702c7c4f3a34a0e0bc27ffb228e4155f847377bdff278dadf9acca1dff",
     },
-    tag = "git_revision:54ed0bd3e4d32804e63447a506f7ae5c71de16ca",
+    tag = "git_revision:ed2f1af28c621f1d15a461cb8aa3c9ea8c8ce2a5",
 )
 use_repo(cipd, "swarming_linux-amd64")
 
