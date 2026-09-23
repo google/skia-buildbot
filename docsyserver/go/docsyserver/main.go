@@ -5,6 +5,8 @@ import (
 	"flag"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strings"
 
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/go-chi/chi/v5"
@@ -73,6 +75,10 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if issue == "" {
 		issue = string(codereview.MainIssue)
 	}
+	if !isValidIssue(issue) {
+		http.Error(w, "Invalid cl parameter.", http.StatusBadRequest)
+		return
+	}
 	fs, err := s.docset.FileSystem(r.Context(), codereview.Issue(issue))
 	if err != nil {
 		if err == docset.IssueClosedErr {
@@ -85,6 +91,18 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.FileServer(fs).ServeHTTP(w, r)
+}
+
+var validIssueRegex = regexp.MustCompile(`^([0-9]+|I[0-9a-fA-F]+|[a-zA-Z0-9_.%+-]+~[0-9]+|[a-zA-Z0-9_.%+-]+~[a-zA-Z0-9_.%+-]+~I[0-9a-fA-F]+)$`)
+
+func isValidIssue(issue string) bool {
+	if issue == string(codereview.MainIssue) {
+		return true
+	}
+	if strings.Contains(issue, "..") || strings.Contains(strings.ToLower(issue), "%2e") {
+		return false
+	}
+	return validIssueRegex.MatchString(issue)
 }
 
 func main() {

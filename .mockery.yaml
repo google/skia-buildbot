@@ -50,6 +50,9 @@ packages:
   go.skia.org/infra/docsyserver/go/codereview:
     interfaces:
       CodeReview:
+  go.skia.org/infra/docsyserver/go/docset:
+    interfaces:
+      DocSet:
   go.skia.org/infra/docsyserver/go/docsy:
     interfaces:
       Docsy:
