@@ -64,7 +64,23 @@ func TestVFS_ReadOnly(t *testing.T) {
 		changes:         map[string][]byte{},
 	}
 	shared_tests.TestVFS_ReadOnly(t, fs)
+	require.Empty(t, fs.Changes())
 }
+
+func TestVFS_MultiRead(t *testing.T) {
+	repo := &mocks.GitilesRepo{}
+	repo.On("ReadObject", testutils.AnyContext, shared_tests.FakeFileName, fakeHash).Return(shared_tests.FakeFileInfo, shared_tests.FakeContents, nil)
+	fs := &FS{
+		repo:            repo,
+		hash:            fakeHash,
+		cachedFileInfos: map[string]os.FileInfo{},
+		cachedContents:  map[string][]byte{},
+		changes:         map[string][]byte{},
+	}
+	shared_tests.TestVFS_DoubleRead(t, fs)
+	require.Empty(t, fs.Changes())
+}
+
 func TestVFS_ReadWrite(t *testing.T) {
 	repo := &mocks.GitilesRepo{}
 	repo.On("ReadObject", testutils.AnyContext, shared_tests.FakeFileName, fakeHash).Return(shared_tests.FakeFileInfo, shared_tests.FakeContents, nil)
@@ -76,6 +92,9 @@ func TestVFS_ReadWrite(t *testing.T) {
 		changes:         map[string][]byte{},
 	}
 	shared_tests.TestVFS_ReadWrite(t, fs)
+	require.Equal(t, map[string][]byte{
+		shared_tests.FakeFileName: []byte("new contents"),
+	}, fs.Changes())
 }
 
 func TestVFS_MultiWrite_ChangedToOriginal(t *testing.T) {
@@ -89,4 +108,5 @@ func TestVFS_MultiWrite_ChangedToOriginal(t *testing.T) {
 		changes:         map[string][]byte{},
 	}
 	shared_tests.TestVFS_MultiWrite_ChangedToOriginal(t, fs)
+	require.Empty(t, fs.Changes())
 }

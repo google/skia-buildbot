@@ -121,6 +121,16 @@ func TestVFS_ReadOnly(t sktest.TestingT, fs vfs.FS) {
 	require.Equal(t, FakeContents, contents)
 }
 
+func TestVFS_DoubleRead(t sktest.TestingT, fs vfs.FS) {
+	ctx := context.Background()
+	contents, err := vfs.ReadFile(ctx, fs, FakeFileName)
+	require.NoError(t, err)
+	require.Equal(t, FakeContents, contents)
+	contents, err = vfs.ReadFile(ctx, fs, FakeFileName)
+	require.NoError(t, err)
+	require.Equal(t, FakeContents, contents)
+}
+
 func TestVFS_ReadWrite(t sktest.TestingT, fs vfs.FS) {
 	ctx := context.Background()
 	contents, err := vfs.ReadFile(ctx, fs, FakeFileName)

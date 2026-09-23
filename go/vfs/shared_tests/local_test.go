@@ -20,6 +20,12 @@ func TestLocal_ReadOnly(t *testing.T) {
 	TestVFS_ReadOnly(t, fs)
 }
 
+func TestLocal_DoubleRead(t *testing.T) {
+	tmp := MakeTestFiles(t)
+	fs := vfs.Local(tmp)
+	TestVFS_DoubleRead(t, fs)
+}
+
 func TestLocal_ReadWrite(t *testing.T) {
 	tmp := MakeTestFiles(t)
 	fs := vfs.Local(tmp)

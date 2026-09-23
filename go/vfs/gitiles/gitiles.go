@@ -74,7 +74,9 @@ func (fs *FS) Create(ctx context.Context, name string) (vfs.File, error) {
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	f.(*File).buf.Truncate(0)
+	file := f.(*File)
+	file.buf.Truncate(0)
+	file.written = true
 	return f, nil
 }
 
@@ -114,11 +116,12 @@ type File struct {
 	cachedFileInfo os.FileInfo
 	cachedContents []byte
 	buf            *bytes.Buffer
+	written        bool
 }
 
 // Close implements vfs.File.
 func (f *File) Close(_ context.Context) error {
-	if f.cachedContents != nil && f.buf != nil {
+	if f.written && f.cachedContents != nil && f.buf != nil {
 		updatedContents := f.buf.Bytes()
 		if !bytes.Equal(f.cachedContents, updatedContents) {
 			f.fs.changes[f.name] = updatedContents
@@ -151,6 +154,7 @@ func (f *File) ReadDir(ctx context.Context, n int) ([]os.FileInfo, error) {
 
 // Write implements vfs.File.
 func (f *File) Write(ctx context.Context, b []byte) (int, error) {
+	f.written = true
 	return f.buf.Write(b)
 }
 
