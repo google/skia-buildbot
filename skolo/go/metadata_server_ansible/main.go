@@ -1,11 +1,5 @@
 package main
 
-// This program emulates the meta data server in GCE and is intended to be used
-// in the Skolo just for serving tokens to swarming clients. Note that the
-// serving path is hard-coded to
-// /computeMetadata/v1/instance/service-accounts/default/token.
-//
-// Note that the token is linked into the final executable via -ldflags.
 import (
 	"context"
 	"encoding/json"
