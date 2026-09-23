@@ -582,10 +582,10 @@ cipd.download_http(
     name = "git",
     cipd_package = "infra/3pp/tools/git/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "dbff49efa1cd4263129ce7497fa0e7be4c3cd1cec7d6113951ad6a8c6649bf25",
-        "linux-arm64": "19cf6b7533f23257cfd91ae7fd657dba1211f3dfc061b32d189299a0ca5a4d26",
-        "mac-amd64": "cf369c449345d405f03d3eb5bbd7bf7df3684f9d67eb5fcc3f433b34d6e990da",
-        "mac-arm64": "28ea70bf7288d45d99cd3fd948a2d791e4f7eedc95d510c93d1967c3c8f822cf",
+        "linux-amd64": "d5a20a23ab261d3997b0bbfd8ff2202f40b880468ff8a2ab2f87b3b6475f8cf6",
+        "linux-arm64": "50a0f26180cbde2ef47e62b9920eb547c3725e593cd36fa6d865022b0dc37069",
+        "mac-amd64": "154b137f4be2ba42a6c79a0d9430db146fcbf57873baf028ef7badc5b6f62900",
+        "mac-arm64": "0155e93e3c4c1dd2d3684cd27a3d9f2fcec70173977a1c52fefb34ed06cc783c",
         "windows-amd64": "66f63edaa34a43bd9cbe8a3054b15f98e468b903f6d4962700b503f5ddd947d4",
     },
     postinstall_cmds_posix = [
@@ -598,7 +598,7 @@ cipd.download_http(
         "bin/git.exe config --system user.name \"Bazel Test User\"",
         "bin/git.exe config --system user.email \"bazel-test-user@example.com\"",
     ],
-    tag = "version:3@2.56.0-rc1.chromium.11",
+    tag = "version:3@2.56.0-rc2.chromium.11",
 )
 use_repo(cipd, "git_linux-amd64", "git_windows-amd64")
 
