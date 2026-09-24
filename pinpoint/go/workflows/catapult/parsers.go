@@ -135,7 +135,7 @@ func createTestQuestDetail(task *apipb.TaskResultResponse, benchmarkRun *workflo
 	iso_details := &pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
 		Key: "isolate",
 	}
-	if benchmarkRun.Status == skia_swarming.TASK_STATE_COMPLETED {
+	if benchmarkRun.HasCAS() {
 		iso_details.Value = fmt.Sprintf(casIsolateHashTemplate, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes)
 		iso_details.Url = fmt.Sprintf(casUrlTemplate, benchmarkRun.CAS.CasInstance, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes)
 	}

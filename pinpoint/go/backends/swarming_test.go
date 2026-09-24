@@ -119,6 +119,39 @@ func TestGasCASOutput_IncompleteTask_Error(t *testing.T) {
 	assert.ErrorContains(t, err, "cannot get result of task")
 }
 
+func TestGetCASOutput_NonCompletedWithCAS_ReturnsCAS(t *testing.T) {
+	ctx := context.Background()
+	mockClient := &mocks.SwarmingV2Client{}
+	sc := &SwarmingClientImpl{
+		SwarmingV2Client: mockClient,
+	}
+
+	mockClient.On("GetResult", ctx, mock.Anything, mock.Anything).
+		Return(&apipb.TaskResultResponse{
+			State: apipb.TaskState_TIMED_OUT,
+			CasOutputRoot: &apipb.CASReference{
+				CasInstance: "instance",
+				Digest: &apipb.Digest{
+					Hash:      "hash",
+					SizeBytes: 123,
+				},
+			},
+		}, nil).Once()
+
+	rbe, err := sc.GetCASOutput(ctx, "taskId")
+	require.NoError(t, err)
+	assert.Equal(t, "instance", rbe.CasInstance)
+	assert.Equal(t, "hash", rbe.Digest.Hash)
+	assert.Equal(t, int64(123), rbe.Digest.SizeBytes)
+}
+
+func TestHasCAS(t *testing.T) {
+	assert.False(t, HasCAS(nil))
+	assert.False(t, HasCAS(&apipb.CASReference{}))
+	assert.False(t, HasCAS(&apipb.CASReference{Digest: &apipb.Digest{}}))
+	assert.True(t, HasCAS(&apipb.CASReference{Digest: &apipb.Digest{Hash: "abc123hash"}}))
+}
+
 func TestFetchFreeBots_NoBuildConfig_ReturnsError(t *testing.T) {
 	const fakeBuilder = "fake_builder"
 

@@ -121,3 +121,21 @@ func TestIsTaskTerminalFailure_GivenNonTerminalState_ReturnsFalse(t *testing.T) 
 		assert.False(t, out)
 	}
 }
+
+func TestCanHaveCASOutput(t *testing.T) {
+	for _, s := range []State{
+		swarming.TASK_STATE_COMPLETED,
+		backends.RunBenchmarkFailure,
+		swarming.TASK_STATE_TIMED_OUT,
+	} {
+		assert.True(t, s.CanHaveCASOutput())
+	}
+	for _, s := range []State{
+		swarming.TASK_STATE_BOT_DIED,
+		swarming.TASK_STATE_CANCELED,
+		swarming.TASK_STATE_PENDING,
+		swarming.TASK_STATE_RUNNING,
+	} {
+		assert.False(t, s.CanHaveCASOutput())
+	}
+}

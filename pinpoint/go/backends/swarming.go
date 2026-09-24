@@ -79,6 +79,11 @@ func (s *SwarmingClientImpl) CancelTasks(ctx context.Context, taskIDs []string) 
 	return nil
 }
 
+// HasCAS checks whether the CAS reference has a valid digest hash.
+func HasCAS(cas *apipb.CASReference) bool {
+	return cas != nil && cas.Digest != nil && cas.Digest.Hash != ""
+}
+
 // GetCASOutput returns the CAS output of a swarming task in the form of a RBE CAS hash.
 // This function assumes the task is finished, or it throws an error.
 func (s *SwarmingClientImpl) GetCASOutput(ctx context.Context, taskID string) (*apipb.CASReference, error) {
@@ -89,8 +94,11 @@ func (s *SwarmingClientImpl) GetCASOutput(ctx context.Context, taskID string) (*
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not retrieve CAS of task %s", taskID)
 	}
-	if task.State != apipb.TaskState_COMPLETED {
-		return nil, skerr.Fmt("cannot get result of task %s because it is %s and not COMPLETED", taskID, task.State)
+	if task.State == apipb.TaskState_PENDING || task.State == apipb.TaskState_RUNNING {
+		return nil, skerr.Fmt("cannot get result of task %s because it is %s", taskID, task.State)
+	}
+	if !HasCAS(task.CasOutputRoot) {
+		return nil, nil
 	}
 	return task.CasOutputRoot, nil
 }

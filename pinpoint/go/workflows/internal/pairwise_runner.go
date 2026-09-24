@@ -366,7 +366,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc *PairwiseCommitsRunn
 	// so for a given pair, if one returns more data than the other, truncate data points until both
 	// commits have the same number of data points for a given iteration
 	for i := 0; i < int(pc.Iterations); i++ {
-		if leftRuns[i].CAS == nil || rightRuns[i].CAS == nil {
+		if !leftRuns[i].SucceededWithCAS() || !rightRuns[i].SucceededWithCAS() {
 			continue
 		}
 		var lr *workflows.TestResults

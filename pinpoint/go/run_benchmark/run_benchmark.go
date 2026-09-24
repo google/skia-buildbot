@@ -86,6 +86,12 @@ func (s State) IsTaskSuccessful() bool {
 	return string(s) == swarming.TASK_STATE_COMPLETED
 }
 
+// CanHaveCASOutput returns true if the swarming task state is one where a CAS output
+// root can be produced (completed tasks, benchmark failures, and timeouts).
+func (s State) CanHaveCASOutput() bool {
+	return s.IsTaskSuccessful() || s.IsTaskBenchmarkFailure() || s.IsTaskTimedOut()
+}
+
 // ConvertToProto
 func (s State) ConvertToProto() pinpoint_proto.SwarmingStatus {
 	switch {

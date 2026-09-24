@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 
 	"go.skia.org/infra/pinpoint/go/compare"
 	pinpointpb "go.skia.org/infra/pinpoint/proto/v1"
@@ -96,4 +97,15 @@ func TestPairwiseGetImprovementDirection(t *testing.T) {
 	test("down", compare.Down)
 	test("UNKNOWN", compare.UnknownDir)
 	test("fake-dir", compare.UnknownDir)
+}
+
+func TestTestRun_HasCASAndSucceededWithCAS(t *testing.T) {
+	var nilRun *TestRun
+	assert.False(t, nilRun.HasCAS())
+	assert.False(t, nilRun.SucceededWithCAS())
+
+	cas := &apipb.CASReference{Digest: &apipb.Digest{Hash: "hash123"}}
+	assert.False(t, (&TestRun{Status: "COMPLETED"}).SucceededWithCAS())
+	assert.False(t, (&TestRun{Status: "BENCHMARK_FAILURE", CAS: cas}).SucceededWithCAS())
+	assert.True(t, (&TestRun{Status: "COMPLETED", CAS: cas}).SucceededWithCAS())
 }

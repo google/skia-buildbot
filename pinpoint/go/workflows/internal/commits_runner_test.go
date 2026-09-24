@@ -26,19 +26,23 @@ func generateTestRuns(chart string, c int, chartExpectedValues *workflows.TestRe
 	trs = make([]*workflows.TestRun, c)
 	trs[0] = &workflows.TestRun{
 		Status: run_benchmark.State(backends.RunBenchmarkFailure),
+		CAS:    mockCas,
 	}
 	rc <- &workflows.TestRun{
 		Status: run_benchmark.State(backends.RunBenchmarkFailure),
+		CAS:    mockCas,
 	}
 	for i := 1; i < c; i++ {
 		trs[i] = &workflows.TestRun{
 			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
+			CAS:    mockCas,
 			Values: map[string][]float64{
 				chart: chartExpectedValues.Values[chart],
 			},
 		}
 		rc <- &workflows.TestRun{
 			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
+			CAS:    mockCas,
 		}
 	}
 
@@ -237,4 +241,40 @@ func TestGetSwarmingStatus_GivenNilRuns_ReturnsEmpty(t *testing.T) {
 		Runs: []*workflows.TestRun{},
 	}
 	test("CommitRun.Runs is empty", cr)
+}
+
+func TestSingleCommitRunner_MissingCAS_SkipsValueCollection(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	b := &workflows.Build{
+		ID:     int64(1234),
+		Status: buildbucketpb.Status_SUCCESS,
+	}
+	expectedRun := &workflows.TestRun{
+		TaskID: "task-completed-no-cas",
+		Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
+		CAS:    nil,
+	}
+
+	env.RegisterWorkflowWithOptions(BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})
+	env.RegisterWorkflowWithOptions(RunBenchmarkWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmark})
+
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, mock.Anything).Return(b, nil).Once()
+	env.OnWorkflow(workflows.RunBenchmark, mock.Anything, mock.Anything).Return(expectedRun, nil).Once()
+
+	env.ExecuteWorkflow(SingleCommitRunner, &SingleCommitRunnerParams{
+		BotConfig:      "linux-perf",
+		Iterations:     1,
+		Chart:          "fake-chart",
+		CombinedCommit: &common.CombinedCommit{},
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+
+	var cr *CommitRun
+	require.NoError(t, env.GetWorkflowResult(&cr))
+	require.NotNil(t, cr)
+	require.EqualValues(t, []*workflows.TestRun{expectedRun}, cr.Runs)
+	env.AssertExpectations(t)
 }

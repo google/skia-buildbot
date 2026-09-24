@@ -103,6 +103,10 @@ func GetAllSampleValuesActivity(ctx context.Context, benchmark string, task *Tes
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to fetch CAS ref")
 	}
+	if casRef == nil {
+		task.TaskFailed = true
+		return []*TestResult{task}, nil
+	}
 
 	casClient, err := read_values.DialRBECAS(ctx, casRef.CasInstance)
 	if err != nil {

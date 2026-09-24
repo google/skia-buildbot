@@ -102,6 +102,17 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 						TaskID: swarmingTaskID,
 						Status: backends.RunBenchmarkFailure,
 					},
+					{
+						TaskID: swarmingTaskID,
+						Status: backends.RunBenchmarkFailure,
+						CAS: &apipb.CASReference{
+							CasInstance: "projects/chrome-swarming/instances/default_instance",
+							Digest: &apipb.Digest{
+								Hash:      "failed_hash",
+								SizeBytes: int64(456),
+							},
+						},
+					},
 				},
 			},
 		},
@@ -135,6 +146,11 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 
 	questDetail2 := actual.State[0].Attempts[1].Executions[1].Details
 	assert.Empty(t, questDetail2[2].Value)
+
+	questDetail3 := actual.State[0].Attempts[2].Executions[1].Details
+	assert.Equal(t, fmt.Sprintf(casIsolateHashTemplate, "failed_hash", int64(456)), questDetail3[2].Value)
+	assert.Equal(t, fmt.Sprintf(casUrlTemplate, "projects/chrome-swarming/instances/default_instance", "failed_hash", int64(456)), questDetail3[2].Url)
+	assert.False(t, actual.State[0].Attempts[2].Executions[1].Completed)
 }
 
 // createCombinedResults a helper function to generate combinedresults

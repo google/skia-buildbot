@@ -185,7 +185,7 @@ func runBenchmark(ctx workflow.Context, cc *common.CombinedCommit, cas *apipb.CA
 		return nil, skerr.Wrap(err)
 	}
 
-	if !tr.Status.IsTaskSuccessful() {
+	if !tr.SucceededWithCAS() {
 		// TODO(b/327224992): Handle retry logic for non-terminal benchmark failures
 		// For now, assume all retryable errors are terminal
 		// We hide the error from caller until proper error-handling is implemented in high-level workflows.

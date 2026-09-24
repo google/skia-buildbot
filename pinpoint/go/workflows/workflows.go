@@ -8,6 +8,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
@@ -126,6 +127,16 @@ func (tr *TestRun) RemoveDataFromChart(chart string) {
 	if tr.Values != nil {
 		tr.Values[chart] = nil
 	}
+}
+
+// HasCAS returns true if the test run has a valid CAS output reference with a digest.
+func (tr *TestRun) HasCAS() bool {
+	return tr != nil && backends.HasCAS(tr.CAS)
+}
+
+// SucceededWithCAS returns true if the test run completed successfully and has a valid CAS output.
+func (tr *TestRun) SucceededWithCAS() bool {
+	return tr.HasCAS() && tr.Status.IsTaskSuccessful()
 }
 
 // PairwiseOrder indicates in a pairwise run, which commit ran first

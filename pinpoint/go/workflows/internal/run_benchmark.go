@@ -111,6 +111,7 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 		return &workflows.TestRun{
 			TaskID: taskID,
 			Status: state,
+			CAS:    retrieveCASOutput(ctx, taskID, state),
 		}, nil
 	}
 
@@ -125,6 +126,20 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 		Status: state,
 		CAS:    cas,
 	}, nil
+}
+
+// retrieveCASOutput retrieves the CAS reference if the task state can produce CAS output.
+func retrieveCASOutput(ctx workflow.Context, taskID string, state run_benchmark.State) *apipb.CASReference {
+	if !state.CanHaveCASOutput() {
+		return nil
+	}
+	var rba *RunBenchmarkActivity
+	var cas *apipb.CASReference
+	if err := workflow.ExecuteActivity(ctx, rba.RetrieveTestCASActivity, taskID).Get(ctx, &cas); err != nil {
+		workflow.GetLogger(ctx).Warn(fmt.Sprintf("Failed to retrieve CAS reference for task (%s):", taskID), err)
+		return nil
+	}
+	return cas
 }
 
 func canRetry(state run_benchmark.State, attempt int) bool {
@@ -255,10 +270,12 @@ func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP, secondRBP *Run
 			FirstTestRun: &workflows.TestRun{
 				TaskID: firstTaskID,
 				Status: firstState,
+				CAS:    retrieveCASOutput(ctx, firstTaskID, firstState),
 			},
 			SecondTestRun: &workflows.TestRun{
 				TaskID: secondTaskID,
 				Status: secondState,
+				CAS:    retrieveCASOutput(ctx, secondTaskID, secondState),
 			},
 			Permutation: workflows.PairwiseOrder(first),
 		}, nil

@@ -8,6 +8,7 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 
@@ -18,6 +19,10 @@ import (
 
 var mockCas = &apipb.CASReference{
 	CasInstance: "fake-instance",
+	Digest: &apipb.Digest{
+		Hash:      "fake-hash",
+		SizeBytes: 123,
+	},
 }
 
 func TestRunBenchmark_GivenSuccessfulRun_ShouldReturnCas(t *testing.T) {
@@ -196,5 +201,75 @@ func TestRunBenchmarkPairwise_NoResources_ReturnsError(t *testing.T) {
 	var result *workflows.PairwiseTestRun
 	require.Error(t, env.GetWorkflowResult(&result))
 	assert.Nil(t, result)
+	env.AssertExpectations(t)
+}
+
+func TestRunBenchmark_GivenBenchmarkFailure_ShouldReturnCas(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	var rba *RunBenchmarkActivity
+	const fakeTaskID = "fake-task"
+	const state = run_benchmark.State(backends.RunBenchmarkFailure)
+
+	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(fakeTaskID, nil).Once()
+	env.OnActivity(rba.WaitTaskPendingActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
+	env.OnActivity(rba.WaitTaskFinishedActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
+	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, fakeTaskID).Return(mockCas, nil).Once()
+
+	env.ExecuteWorkflow(RunBenchmarkWorkflow, &RunBenchmarkParams{})
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	var result *workflows.TestRun
+	require.NoError(t, env.GetWorkflowResult(&result))
+	require.EqualExportedValues(t, workflows.TestRun{
+		TaskID: fakeTaskID,
+		Status: state,
+		CAS:    mockCas,
+	}, *result)
+	env.AssertExpectations(t)
+}
+
+func TestRunBenchmarkPairwise_Failure_ReturnsCAS(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	var rba *RunBenchmarkActivity
+	p1 := &RunBenchmarkParams{Dimensions: map[string]string{"value": "bot-123"}}
+	p2 := &RunBenchmarkParams{Dimensions: map[string]string{"value": "bot-123"}}
+	mockTaskID1, mockTaskID2 := "fake-task1", "fake-task2"
+	stateCompleted := run_benchmark.State(swarming.TASK_STATE_COMPLETED)
+	stateFailure := run_benchmark.State(backends.RunBenchmarkFailure)
+
+	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(mockTaskID1, nil).Once()
+	env.OnActivity(rba.WaitTaskAcceptedActivity, mock.Anything, mockTaskID1).Return(stateCompleted, nil).Once()
+	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(mockTaskID2, nil).Once()
+	env.OnActivity(rba.WaitTaskPendingActivity, mock.Anything, mockTaskID1).Return(stateCompleted, nil).Once()
+	env.OnActivity(rba.WaitTaskPendingActivity, mock.Anything, mockTaskID2).Return(stateFailure, nil).Once()
+	env.OnActivity(rba.WaitTaskFinishedActivity, mock.Anything, mockTaskID1).Return(stateCompleted, nil).Once()
+	env.OnActivity(rba.WaitTaskFinishedActivity, mock.Anything, mockTaskID2).Return(stateFailure, nil).Once()
+	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, mockTaskID1).Return(mockCas, nil).Once()
+	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, mockTaskID2).Return(mockCas, nil).Once()
+
+	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, p1, p2, workflows.LeftThenRight)
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	var result *workflows.PairwiseTestRun
+	require.NoError(t, env.GetWorkflowResult(&result))
+	assert.EqualExportedValues(t, workflows.PairwiseTestRun{
+		FirstTestRun: &workflows.TestRun{
+			TaskID: mockTaskID1,
+			Status: stateCompleted,
+			CAS:    mockCas,
+		},
+		SecondTestRun: &workflows.TestRun{
+			TaskID: mockTaskID2,
+			Status: stateFailure,
+			CAS:    mockCas,
+		},
+		Permutation: workflows.LeftThenRight,
+	}, *result)
 	env.AssertExpectations(t)
 }

@@ -39,18 +39,22 @@ func generatePairwiseTestRuns(chartExpectedValues *workflows.TestResults, pairOr
 	ptrs[0] = &workflows.PairwiseTestRun{
 		FirstTestRun: &workflows.TestRun{
 			Status: run_benchmark.State(backends.RunBenchmarkFailure),
+			CAS:    mockCas,
 		},
 		SecondTestRun: &workflows.TestRun{
 			Status: run_benchmark.State(backends.RunBenchmarkFailure),
+			CAS:    mockCas,
 		},
 		Permutation: pairOrder[0],
 	}
 	rc <- &workflows.PairwiseTestRun{
 		FirstTestRun: &workflows.TestRun{
 			Status: run_benchmark.State(backends.RunBenchmarkFailure),
+			CAS:    mockCas,
 		},
 		SecondTestRun: &workflows.TestRun{
 			Status: run_benchmark.State(backends.RunBenchmarkFailure),
+			CAS:    mockCas,
 		},
 		Permutation: pairOrder[0],
 	}
@@ -691,7 +695,7 @@ func TestPairwiseCommitRunner_GivenMismatchedValueLengths_ShouldTruncateArrays(t
 	require.NotNil(t, pr)
 
 	for i := 0; i < int(p.Iterations); i++ {
-		if pr.Left.Runs[i].CAS == nil || pr.Right.Runs[i].CAS == nil {
+		if !pr.Left.Runs[i].SucceededWithCAS() || !pr.Right.Runs[i].SucceededWithCAS() {
 			continue
 		}
 		assert.Len(t, pr.Left.Runs[i].Values[p.SingleCommitRunnerParams.Chart], 3)
@@ -780,7 +784,7 @@ func TestPairwiseCommitRunner_GivenEdgeCaseValues_ShouldHandleGracefully(t *test
 	require.NotNil(t, pr)
 
 	for i := 0; i < int(p.Iterations); i++ {
-		if pr.Left.Runs[i].CAS == nil || pr.Right.Runs[i].CAS == nil {
+		if !pr.Left.Runs[i].SucceededWithCAS() || !pr.Right.Runs[i].SucceededWithCAS() {
 			continue
 		}
 		// Verify that we handled the edge cases gracefully and did not crash
