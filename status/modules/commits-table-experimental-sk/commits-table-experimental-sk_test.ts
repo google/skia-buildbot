@@ -430,6 +430,23 @@ describe('commits-table-experimental-sk', () => {
     ).to.contain('bg-success');
   });
 
+  it('removes task specs and tasks when hideTaskSpecs is received in an incremental update', async () => {
+    const table = await setupWithResponse(incrementalResponse0);
+    expect($('.task-spec[title="Test-Some-Stuff"]', table)).to.have.length(1);
+    expect($('.task[title="Test-Some-Stuff @ parentofabc123"]', table)).to.have.length(1);
+
+    const activeES = (window.EventSource as any).activeInstance;
+    activeES.triggerMessage({
+      metadata: { pod: 'podd' },
+      update: {
+        hideTaskSpecs: ['Test-Some-Stuff'],
+      },
+    });
+
+    expect($('.task-spec[title="Test-Some-Stuff"]', table)).to.have.length(0);
+    expect($('.task[title="Test-Some-Stuff @ parentofabc123"]', table)).to.have.length(0);
+  });
+
   it('initial request uses repo from query string', async () => {
     setQueryString('?repo=infra');
     await setupWithResponse(responseMultiCommitTask, (req: GetIncrementalCommitsRequest) => {

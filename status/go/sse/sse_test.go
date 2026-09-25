@@ -517,7 +517,7 @@ func TestSendUpdate_RemovesOldCommits(t *testing.T) {
 	err := client.SendUpdate([]*rpc.LongCommit{
 		{Hash: "c5", IsAncestorOf: []string{"main"}},
 		{Hash: "c4", IsAncestorOf: []string{"main"}},
-	}, nil, "https://repo.git", nil, newRequestCache(), nil)
+	}, nil, "https://repo.git", nil, newRequestCache(), nil, nil, nil)
 	require.NoError(t, err)
 
 	// Since limit is 3, c.displayedCommits should be exactly ["c5", "c4", "c3"]
@@ -598,7 +598,7 @@ func TestSendUpdate_CombinesCachedAndUncachedTasks(t *testing.T) {
 		activeTaskSpecs: map[string]bool{},
 	}
 
-	err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil, newRequestCache(), nil)
+	err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil, newRequestCache(), nil, nil, nil)
 	require.NoError(t, err)
 
 	output := buf.String()
@@ -737,7 +737,7 @@ func TestSendUpdate_OnlyTasksForDisplayedCommits(t *testing.T) {
 		},
 	}
 
-	err := client.SendUpdate(nil, nil, "https://repo.git", tasks, newRequestCache(), nil)
+	err := client.SendUpdate(nil, nil, "https://repo.git", tasks, newRequestCache(), nil, nil, nil)
 	require.NoError(t, err)
 
 	// Read output and verify it is valid JSON and contains only the matching task
@@ -755,11 +755,10 @@ func TestSendUpdate_OnlyTasksForDisplayedCommits(t *testing.T) {
 func TestSendUpdate_Filtering(t *testing.T) {
 	tc := setupTestServer(t)
 
-	c0 := "commit0"
-	c1 := "c1"
+	c0 := "abcdef0"
+	c1 := "abcdef1"
 
-	tc.mockWindow.On("TestCommitHash", "https://repo.git", c1).Return(true, nil)
-	tc.mockWindow.On("TestCommitHash", "https://repo.git", c0).Return(true, nil)
+	tc.mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
 	tc.mockWindow.On("EarliestStart").Return(time.Time{})
 
 	// Setup tasks for c1 and c0
@@ -787,7 +786,7 @@ func TestSendUpdate_Filtering(t *testing.T) {
 			},
 		},
 	}
-	tc.mockCache.On("GetTasksForCommits", "https://repo.git", []string{c1, c0}).Return(tasks, nil)
+	tc.mockCache.On("GetTasksForCommits", "https://repo.git", mock.Anything).Return(tasks, nil)
 
 	cfg := Config{
 		Repos:                repograph.Map{"https://repo.git": tc.repo},
@@ -809,7 +808,7 @@ func TestSendUpdate_Filtering(t *testing.T) {
 	}
 	branchHeads := []*git.Branch{{Name: "main", Head: c1}}
 
-	getTasksForFilter := func(filter taskFilter, search string) []string {
+	getTasksForFilter := func(filter taskFilter, search string, commits []*rpc.LongCommit, ignoredCommits, ignoredTaskSpecs map[string]bool) []string {
 		var buf bytes.Buffer
 		bufWriter := bufio.NewWriter(&buf)
 		var taskSearch *regexp.Regexp
@@ -832,7 +831,7 @@ func TestSendUpdate_Filtering(t *testing.T) {
 			activeTaskSpecs: map[string]bool{},
 		}
 
-		err := client.SendUpdate(rpcCommits, branchHeads, "https://repo.git", nil, newRequestCache(), nil)
+		err := client.SendUpdate(commits, branchHeads, "https://repo.git", nil, newRequestCache(), nil, ignoredCommits, ignoredTaskSpecs)
 		require.NoError(t, err)
 
 		output := buf.String()
@@ -853,22 +852,44 @@ func TestSendUpdate_Filtering(t *testing.T) {
 	}
 
 	t.Run("Interesting", func(t *testing.T) {
-		taskNames := getTasksForFilter(taskFilter_Interesting, "")
+		taskNames := getTasksForFilter(taskFilter_Interesting, "", rpcCommits, nil, nil)
 		// Only "task-interesting" should be kept (it has success on c1 and failure on c0)
 		// "task-success-only" has only success.
 		require.Contains(t, taskNames, "task-interesting")
 		require.NotContains(t, taskNames, "task-success-only")
 	})
 
+	t.Run("Interesting_IgnoredCommit", func(t *testing.T) {
+		taskNames := getTasksForFilter(taskFilter_Interesting, "", rpcCommits, map[string]bool{c0: true}, nil)
+		require.Empty(t, taskNames)
+	})
+
+	t.Run("Interesting_IgnoredTaskSpec", func(t *testing.T) {
+		taskNames := getTasksForFilter(taskFilter_Interesting, "", rpcCommits, nil, map[string]bool{"task-interesting": true})
+		require.Empty(t, taskNames)
+	})
+
+	t.Run("Interesting_RevertedCommit", func(t *testing.T) {
+		revertCommit := &rpc.LongCommit{
+			Hash:         "abcdef2",
+			Body:         "This reverts commit " + c0 + ".\n",
+			Timestamp:    timestamppb.New(time.Now().Add(-5 * time.Minute)),
+			IsAncestorOf: []string{"main"},
+		}
+		commitsWithRevert := append([]*rpc.LongCommit{revertCommit}, rpcCommits...)
+		taskNames := getTasksForFilter(taskFilter_Interesting, "", commitsWithRevert, nil, nil)
+		require.Empty(t, taskNames)
+	})
+
 	t.Run("Failures", func(t *testing.T) {
-		taskNames := getTasksForFilter(taskFilter_Failures, "")
+		taskNames := getTasksForFilter(taskFilter_Failures, "", rpcCommits, nil, nil)
 		// Only "task-interesting" (with failure on c0) should be kept.
 		require.Contains(t, taskNames, "task-interesting")
 		require.NotContains(t, taskNames, "task-success-only")
 	})
 
 	t.Run("Search", func(t *testing.T) {
-		taskNames := getTasksForFilter(taskFilter_Search, "success")
+		taskNames := getTasksForFilter(taskFilter_Search, "success", rpcCommits, nil, nil)
 		// Only "task-success-only" should be kept.
 		require.Contains(t, taskNames, "task-success-only")
 		require.NotContains(t, taskNames, "task-interesting")
@@ -928,7 +949,7 @@ func TestSendUpdate_SendsAllTasksForNewlyVisibleTaskSpecs(t *testing.T) {
 		TaskKey: types.TaskKey{Name: "task-dynamic", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
 	}
 
-	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache(), nil)
+	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache(), nil, nil, nil)
 	require.NoError(t, err)
 
 	resps := readSSEStream(t, &buf)
@@ -992,7 +1013,7 @@ func TestSendUpdate_HideTaskSpecs(t *testing.T) {
 		TaskKey: types.TaskKey{Name: "task-dynamic", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
 	}
 
-	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache(), nil)
+	err := client.SendUpdate(nil, nil, "https://repo.git", []*types.Task{taskUpdate}, newRequestCache(), nil, nil, nil)
 	require.NoError(t, err)
 
 	resps := readSSEStream(t, &buf)
@@ -1119,44 +1140,53 @@ func TestCheckForNewComments_CreateUpdateDelete(t *testing.T) {
 	tc := setupTestServer(t)
 
 	c0 := "commit0"
+	c1 := "commit1"
 
 	tc.mockWindow.On("TestCommitHash", "https://repo.git", mock.Anything).Return(true, nil)
-	tc.mockCache.On("GetTasksForCommits", "https://repo.git", mock.Anything).Return(map[string]map[string]*types.Task{}, nil)
+	tc.mockCache.On("GetTasksForCommits", "https://repo.git", mock.Anything).Return(map[string]map[string]*types.Task{
+		c1: {
+			"task-interesting": {
+				Id:      "t-success",
+				Commits: []string{c1},
+				Status:  types.TASK_STATUS_SUCCESS,
+				TaskKey: types.TaskKey{Name: "task-interesting", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c1}},
+			},
+		},
+		c0: {
+			"task-interesting": {
+				Id:      "t-failure",
+				Commits: []string{c0},
+				Status:  types.TASK_STATUS_FAILURE,
+				TaskKey: types.TaskKey{Name: "task-interesting", RepoState: types.RepoState{Repo: "https://repo.git", Revision: c0}},
+			},
+		},
+	}, nil)
 
 	// Register a client stream.
 	var buf bytes.Buffer
 	bufWriter := bufio.NewWriter(&buf)
 	client := &clientStream{
-		db:               tc.server.cfg.TaskDb,
-		tCache:           tc.server.cfg.TCache,
-		window:           tc.server.cfg.Window,
-		w:                bufWriter,
-		ctx:              tc.ctx,
-		branchRegex:      nil,
-		repoURL:          "https://repo.git",
-		wantsNewCommits:  true,
-		limit:            10,
-		displayedCommits: []*rpc.LongCommit{{Hash: c0, IsAncestorOf: []string{"main"}}},
-		taskFilter:       taskFilter_All,
-		activeTaskSpecs:  map[string]bool{},
-		ch:               make(chan clientEvent),
+		db:              tc.server.cfg.TaskDb,
+		tCache:          tc.server.cfg.TCache,
+		window:          tc.server.cfg.Window,
+		w:               bufWriter,
+		ctx:             tc.ctx,
+		branchRegex:     nil,
+		repoURL:         "https://repo.git",
+		wantsNewCommits: true,
+		limit:           10,
+		displayedCommits: []*rpc.LongCommit{
+			{Hash: c1, IsAncestorOf: []string{"main"}},
+			{Hash: c0, IsAncestorOf: []string{"main"}},
+		},
+		taskFilter:      taskFilter_Interesting,
+		activeTaskSpecs: map[string]bool{"task-interesting": true},
+		ch:              make(chan clientEvent),
 	}
 	tc.server.register(client)
 	go client.run()
 
-	// Helper to extract all broadcasted comments so far.
-	getComments := func() []*rpc.Comment {
-		resps := readSSEStream(t, &buf)
-		var comments []*rpc.Comment
-		for _, r := range resps {
-			if r.Update != nil {
-				comments = append(comments, r.Update.Comments...)
-			}
-		}
-		return comments
-	}
-
-	// Create a comment.
+	// Create a comment with IgnoreFailure: false.
 	comment1 := &types.CommitComment{
 		Repo:          "https://repo.git",
 		Revision:      c0,
@@ -1176,14 +1206,18 @@ func TestCheckForNewComments_CreateUpdateDelete(t *testing.T) {
 
 	tc.server.checkForNewComments(tc.ctx)
 
-	commentsPh1 := getComments()
-	require.Len(t, commentsPh1, 1)
-	require.Equal(t, comment1.Id(), commentsPh1[0].Id)
-	require.Equal(t, "First comment", commentsPh1[0].Message)
-	require.False(t, commentsPh1[0].IgnoreFailure)
-	require.False(t, commentsPh1[0].Deleted)
+	resps := readSSEStream(t, &buf)
+	require.Len(t, resps, 1)
+	require.Len(t, resps[0].Update.Comments, 1)
+	require.Equal(t, comment1.Id(), resps[0].Update.Comments[0].Id)
+	require.Equal(t, "First comment", resps[0].Update.Comments[0].Message)
+	require.False(t, resps[0].Update.Comments[0].IgnoreFailure)
+	require.False(t, resps[0].Update.Comments[0].Deleted)
+	require.Empty(t, resps[0].Update.HideTaskSpecs)
+	require.True(t, client.activeTaskSpecs["task-interesting"])
+	buf.Reset()
 
-	// Update the comment.
+	// Update the comment to IgnoreFailure: true, hiding "task-interesting".
 	comment1Modified := &types.CommitComment{
 		Repo:          comment1.Repo,
 		Revision:      comment1.Revision,
@@ -1203,14 +1237,18 @@ func TestCheckForNewComments_CreateUpdateDelete(t *testing.T) {
 
 	tc.server.checkForNewComments(tc.ctx)
 
-	commentsPh2 := getComments()
-	require.Len(t, commentsPh2, 2)
-	require.Equal(t, comment1.Id(), commentsPh2[1].Id)
-	require.Equal(t, "First comment - modified", commentsPh2[1].Message)
-	require.True(t, commentsPh2[1].IgnoreFailure)
-	require.False(t, commentsPh2[1].Deleted)
+	resps = readSSEStream(t, &buf)
+	require.Len(t, resps, 1)
+	require.Len(t, resps[0].Update.Comments, 1)
+	require.Equal(t, comment1.Id(), resps[0].Update.Comments[0].Id)
+	require.Equal(t, "First comment - modified", resps[0].Update.Comments[0].Message)
+	require.True(t, resps[0].Update.Comments[0].IgnoreFailure)
+	require.False(t, resps[0].Update.Comments[0].Deleted)
+	require.Contains(t, resps[0].Update.HideTaskSpecs, "task-interesting")
+	require.False(t, client.activeTaskSpecs["task-interesting"])
+	buf.Reset()
 
-	// Delete the comment.
+	// Delete the comment, making "task-interesting" visible again.
 	tc.comments = []*types.RepoComments{
 		{
 			Repo: "https://repo.git",
@@ -1219,10 +1257,13 @@ func TestCheckForNewComments_CreateUpdateDelete(t *testing.T) {
 
 	tc.server.checkForNewComments(tc.ctx)
 
-	commentsPh3 := getComments()
-	require.Len(t, commentsPh3, 3)
-	require.Equal(t, comment1.Id(), commentsPh3[2].Id)
-	require.True(t, commentsPh3[2].Deleted)
+	resps = readSSEStream(t, &buf)
+	require.Len(t, resps, 1)
+	require.Len(t, resps[0].Update.Comments, 1)
+	require.Equal(t, comment1.Id(), resps[0].Update.Comments[0].Id)
+	require.True(t, resps[0].Update.Comments[0].Deleted)
+	require.Len(t, resps[0].Update.Tasks, 2)
+	require.True(t, client.activeTaskSpecs["task-interesting"])
 }
 
 func readSSEStream(t *testing.T, buf *bytes.Buffer) []*rpc.GetIncrementalCommitsResponse {

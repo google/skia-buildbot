@@ -462,6 +462,11 @@ class Data {
       for (const spec of hideSpecs) {
         this.taskSpecs.delete(spec);
       }
+      for (const [, tasksForCommit] of this.tasksByCommit) {
+        for (const spec of hideSpecs) {
+          tasksForCommit.delete(spec);
+        }
+      }
     }
 
     // Map commits to tasks
@@ -478,13 +483,6 @@ class Data {
       }
     }
 
-    // TODO(westont): Remove deleted comments. This is broken at the backend already delete
-    // comments are only deleted in incremental updates if there is another comment in the
-    // same category(e.g. A commit comment won't be recognized as deleted unless another
-    // commit comment exists somewhere, to populate the commit_comments update field.)
-    // For now this just means deleted comments aren't conveyed to clients until they or the
-    // backend forces a full update.
-
     // Map comments.
     for (const comment of update.comments || []) {
       comment.taskSpecName = comment.taskSpecName || '';
@@ -499,9 +497,20 @@ class Data {
         comment.taskSpecName,
         Array
       );
-      comments.push(comment);
-      // Keep comments sorted by timestamp, if there are multiple.
-      comments.sort((a: Comment, b: Comment) => Number(a.timestamp) - Number(b.timestamp));
+      const existingIdx = comment.id ? comments.findIndex((c: Comment) => c.id === comment.id) : -1;
+      if (comment.deleted) {
+        if (existingIdx !== -1) {
+          comments.splice(existingIdx, 1);
+        }
+      } else {
+        if (existingIdx !== -1) {
+          comments[existingIdx] = comment;
+        } else {
+          comments.push(comment);
+        }
+        // Keep comments sorted by timestamp, if there are multiple.
+        comments.sort((a: Comment, b: Comment) => Number(a.timestamp) - Number(b.timestamp));
+      }
     }
   }
 
@@ -537,6 +546,8 @@ class Data {
    * taskspecs references by commits.
    */
   private processCommits() {
+    this.revertedMap = new Map();
+    this.relandedMap = new Map();
     for (const commit of this.commits) {
       // Metadata for display/links.
       commit.shortAuthor = shortAuthor(commit.author);
@@ -546,15 +557,13 @@ class Data {
 
       this.mapRevertsAndRelands(commit);
 
-      // Check for commit-specific comments with ignoreFailure.
+      // Check for commit-specific comments with ignoreFailure or if this commit was reverted.
       const commitComments = this.comments.get(commit.hash)?.get('');
-      if (
-        commitComments &&
-        commitComments.length &&
-        commitComments[commitComments.length - 1].ignoreFailure
-      ) {
-        commit.ignoreFailure = true;
-      }
+      commit.ignoreFailure =
+        this.revertedMap.has(commit.hash) ||
+        (commitComments !== undefined &&
+          commitComments.length > 0 &&
+          commitComments[commitComments.length - 1].ignoreFailure);
 
       const commitTasks = this.tasksByCommit.get(commit.hash) || [];
       this.processCommitTasks(commitTasks, commit);

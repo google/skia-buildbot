@@ -51,13 +51,15 @@ type Config struct {
 }
 
 type SSEServer struct {
-	mtx             sync.Mutex
-	clients         map[*clientStream]bool
-	lastBranchHeads map[string][]*git.Branch
-	modifiedTasksCh <-chan []*types.Task
-	cfg             Config
-	ancestryCache   map[string]map[string][]string
-	lastComments    map[string][]*rpc.Comment
+	mtx              sync.Mutex
+	clients          map[*clientStream]bool
+	lastBranchHeads  map[string][]*git.Branch
+	modifiedTasksCh  <-chan []*types.Task
+	cfg              Config
+	ancestryCache    map[string]map[string][]string
+	lastComments     map[string][]*rpc.Comment
+	ignoredCommits   map[string]map[string]bool
+	ignoredTaskSpecs map[string]map[string]bool
 }
 
 func New(ctx context.Context, cfg Config) (*SSEServer, error) {
@@ -84,12 +86,14 @@ func New(ctx context.Context, cfg Config) (*SSEServer, error) {
 	}
 
 	s := &SSEServer{
-		ancestryCache:   make(map[string]map[string][]string, len(cfg.Repos)),
-		clients:         make(map[*clientStream]bool),
-		lastBranchHeads: make(map[string][]*git.Branch),
-		modifiedTasksCh: cfg.TaskDb.ModifiedTasksCh(ctx),
-		lastComments:    make(map[string][]*rpc.Comment),
-		cfg:             cfg,
+		ancestryCache:    make(map[string]map[string][]string, len(cfg.Repos)),
+		clients:          make(map[*clientStream]bool),
+		lastBranchHeads:  make(map[string][]*git.Branch),
+		modifiedTasksCh:  cfg.TaskDb.ModifiedTasksCh(ctx),
+		lastComments:     make(map[string][]*rpc.Comment),
+		ignoredCommits:   make(map[string]map[string]bool),
+		ignoredTaskSpecs: make(map[string]map[string]bool),
+		cfg:              cfg,
 	}
 	// Initial branch heads and ancestry cache.
 	for _, repoURL := range cfg.RepoUrls {
@@ -105,7 +109,7 @@ func New(ctx context.Context, cfg Config) (*SSEServer, error) {
 		return nil, skerr.Wrapf(err, "failed to load initial comments")
 	}
 	for _, rc := range repoComments {
-		s.lastComments[rc.Repo] = convertComments(rc)
+		s.lastComments[rc.Repo], s.ignoredCommits[rc.Repo], s.ignoredTaskSpecs[rc.Repo] = convertComments(rc)
 	}
 
 	go s.broadcastLoop(ctx)
@@ -241,11 +245,13 @@ func (s *SSEServer) Handler(w http.ResponseWriter, r *http.Request) {
 	s.mtx.Lock()
 	rpcCommits := convertCommits(resultCommits, s.ancestryCache[repoURL])
 	initialComments := slices.Clone(s.lastComments[repoURL])
+	ignoredCommits := s.ignoredCommits[repoURL]
+	ignoredTaskSpecs := s.ignoredTaskSpecs[repoURL]
 	s.mtx.Unlock()
 
 	// Build and send the initial response before processing queued events.
 	rq := newRequestCache()
-	if err := clientStream.SendUpdate(rpcCommits, branchHeads, repoURL, nil, rq, initialComments); err != nil {
+	if err := clientStream.SendUpdate(rpcCommits, branchHeads, repoURL, nil, rq, initialComments, ignoredCommits, ignoredTaskSpecs); err != nil {
 		httputils.ReportError(w, err, "failed to build send response", http.StatusInternalServerError)
 		return
 	}
@@ -366,7 +372,7 @@ func (s *SSEServer) checkForNewComments(ctx context.Context) {
 	s.mtx.Lock()
 	for _, rc := range repoComments {
 		prevComments := s.lastComments[rc.Repo]
-		newComments := convertComments(rc)
+		newComments, ignoredCommits, ignoredTaskSpecs := convertComments(rc)
 
 		var updatedComments []*rpc.Comment
 
@@ -397,6 +403,8 @@ func (s *SSEServer) checkForNewComments(ctx context.Context) {
 		}
 
 		s.lastComments[rc.Repo] = newComments
+		s.ignoredCommits[rc.Repo] = ignoredCommits
+		s.ignoredTaskSpecs[rc.Repo] = ignoredTaskSpecs
 
 		if len(updatedComments) > 0 {
 			updates = append(updates, clientEvent{
@@ -418,6 +426,8 @@ func (s *SSEServer) broadcastEvent(ev clientEvent) {
 	}
 
 	s.mtx.Lock()
+	ev.ignoredCommits = s.ignoredCommits[ev.repoURL]
+	ev.ignoredTaskSpecs = s.ignoredTaskSpecs[ev.repoURL]
 	clients := make([]*clientStream, 0, len(s.clients))
 	for client := range s.clients {
 		clients = append(clients, client)
@@ -541,14 +551,16 @@ func (d *doubleFlushingWriter) Flush() error {
 }
 
 type clientEvent struct {
-	isKeepalive bool
-	commits     []*rpc.LongCommit
-	branchHeads []*git.Branch
-	repoURL     string
-	tasks       []*types.Task
-	rq          *requestCache
-	comments    []*rpc.Comment
-	done        chan error
+	isKeepalive      bool
+	commits          []*rpc.LongCommit
+	branchHeads      []*git.Branch
+	repoURL          string
+	tasks            []*types.Task
+	rq               *requestCache
+	comments         []*rpc.Comment
+	ignoredCommits   map[string]bool
+	ignoredTaskSpecs map[string]bool
+	done             chan error
 }
 
 type clientStream struct {
@@ -583,7 +595,7 @@ func (s *clientStream) run() {
 			if ev.isKeepalive {
 				err = s.SendKeepalive()
 			} else {
-				err = s.SendUpdate(ev.commits, ev.branchHeads, ev.repoURL, ev.tasks, ev.rq, ev.comments)
+				err = s.SendUpdate(ev.commits, ev.branchHeads, ev.repoURL, ev.tasks, ev.rq, ev.comments, ev.ignoredCommits, ev.ignoredTaskSpecs)
 			}
 			if ev.done != nil {
 				ev.done <- err
@@ -623,7 +635,7 @@ func (s *clientStream) SendEvent(ev clientEvent) error {
 //
 // repoURL must always be set. Either newTasks or newCommits and branchHeads,
 // or all of the above must be set.
-func (s *clientStream) SendUpdate(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache, newComments []*rpc.Comment) error {
+func (s *clientStream) SendUpdate(newCommits []*rpc.LongCommit, branchHeads []*git.Branch, repoURL string, newTasks []*types.Task, rq *requestCache, newComments []*rpc.Comment, ignoredCommits, ignoredTaskSpecs map[string]bool) error {
 	if repoURL != s.repoURL {
 		return nil
 	}
@@ -676,13 +688,14 @@ func (s *clientStream) SendUpdate(newCommits []*rpc.LongCommit, branchHeads []*g
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
+		revertedCommits := getRevertedCommits(s.displayedCommits)
 		tasksByName := map[string][]*types.Task{}
 		for _, t := range allTasks {
 			tasksByName[t.Name] = append(tasksByName[t.Name], t)
 		}
 		wantTaskSpecs := map[string]bool{}
 		for spec, tasks := range tasksByName {
-			if specMatchesFilter(tasks, s.taskFilter, s.taskSearch) {
+			if specMatchesFilter(tasks, s.taskFilter, s.taskSearch, ignoredCommits, revertedCommits, ignoredTaskSpecs[spec]) {
 				wantTaskSpecs[spec] = true
 			}
 		}
@@ -732,6 +745,12 @@ func (s *clientStream) SendUpdate(newCommits []*rpc.LongCommit, branchHeads []*g
 	})
 	if err != nil {
 		return skerr.Wrap(err)
+	}
+	for _, t := range resp.Update.Tasks {
+		s.activeTaskSpecs[t.Name] = true
+	}
+	for _, spec := range resp.Update.HideTaskSpecs {
+		delete(s.activeTaskSpecs, spec)
 	}
 
 	// Add comments.
@@ -949,7 +968,35 @@ func updateIsEmpty(resp *rpc.GetIncrementalCommitsResponse) bool {
 	return true
 }
 
-func specMatchesFilter(tasks []*types.Task, filter taskFilter, search *regexp.Regexp) bool {
+var revertCommitRegex = regexp.MustCompile(`^This reverts commit ([a-f0-9]+)`)
+
+func getRevertedCommits(commits []*rpc.LongCommit) map[string]bool {
+	displayedHashes := make(map[string]bool, len(commits))
+	for _, c := range commits {
+		displayedHashes[c.Hash] = true
+	}
+	reverted := map[string]bool{}
+	for _, c := range commits {
+		if matches := revertCommitRegex.FindStringSubmatch(c.Body); len(matches) > 1 && displayedHashes[matches[1]] {
+			reverted[matches[1]] = true
+		}
+	}
+	return reverted
+}
+
+func isTaskFailureIgnored(task *types.Task, ignoredCommits, revertedCommits map[string]bool) bool {
+	if ignoredCommits[task.Revision] || revertedCommits[task.Revision] {
+		return true
+	}
+	for _, c := range task.Commits {
+		if ignoredCommits[c] || revertedCommits[c] {
+			return true
+		}
+	}
+	return false
+}
+
+func specMatchesFilter(tasks []*types.Task, filter taskFilter, search *regexp.Regexp, ignoredCommits, revertedCommits map[string]bool, ignoreTaskSpecFailure bool) bool {
 	if len(tasks) == 0 {
 		return false
 	}
@@ -969,20 +1016,24 @@ func specMatchesFilter(tasks []*types.Task, filter taskFilter, search *regexp.Re
 		}
 		return false
 	case taskFilter_Interesting:
-		// A task spec is considered interesting if it has both successes and
-		// failures within the set of commits.
+		if ignoreTaskSpecFailure {
+			return false
+		}
+		// A task spec is considered interesting if it is not marked
+		// ignoreFailure and has both successes and non-ignored failures within
+		// the set of commits.
 		hasSuccess := false
-		hasFailure := false
+		hasNonIgnoredFailure := false
 		for _, task := range tasks {
 			if !task.Done() {
 				continue
 			}
 			if task.Success() {
 				hasSuccess = true
-			} else {
-				hasFailure = true
+			} else if !isTaskFailureIgnored(task, ignoredCommits, revertedCommits) {
+				hasNonIgnoredFailure = true
 			}
-			if hasSuccess && hasFailure {
+			if hasSuccess && hasNonIgnoredFailure {
 				return true
 			}
 		}
@@ -991,12 +1042,16 @@ func specMatchesFilter(tasks []*types.Task, filter taskFilter, search *regexp.Re
 	return false
 }
 
-func convertComments(rc *types.RepoComments) []*rpc.Comment {
+func convertComments(rc *types.RepoComments) ([]*rpc.Comment, map[string]bool, map[string]bool) {
 	if rc == nil {
-		return nil
+		return nil, nil, nil
 	}
 	var rv []*rpc.Comment
+	ignoredCommits := map[string]bool{}
 	for hash, comments := range rc.CommitComments {
+		if len(comments) > 0 && comments[len(comments)-1].IgnoreFailure {
+			ignoredCommits[hash] = true
+		}
 		for _, c := range comments {
 			rv = append(rv, &rpc.Comment{
 				Commit:        hash,
@@ -1010,7 +1065,11 @@ func convertComments(rc *types.RepoComments) []*rpc.Comment {
 			})
 		}
 	}
-	for _, comments := range rc.TaskSpecComments {
+	ignoredTaskSpecs := map[string]bool{}
+	for spec, comments := range rc.TaskSpecComments {
+		if len(comments) > 0 && comments[len(comments)-1].IgnoreFailure {
+			ignoredTaskSpecs[spec] = true
+		}
 		for _, c := range comments {
 			rv = append(rv, &rpc.Comment{
 				Id:            c.Id(),
@@ -1042,5 +1101,5 @@ func convertComments(rc *types.RepoComments) []*rpc.Comment {
 			}
 		}
 	}
-	return rv
+	return rv, ignoredCommits, ignoredTaskSpecs
 }
