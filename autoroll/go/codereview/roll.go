@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/travisci"
@@ -28,9 +30,21 @@ const (
 	// GitHubPRDurationForChecks is the duration after a PR is created that
 	// checks should be looked at.
 	GitHubPRDurationForChecks = time.Minute * 15
+
+	// gerritWaitForLabelsTimeout is the maximum amount of time to wait for
+	// Gerrit labels to match what we set after uploading or modifying a CL.
+	gerritWaitForLabelsTimeout = 5 * time.Minute
+
+	// gerritWaitForLabelsPollInterval is the polling interval when waiting for
+	// Gerrit labels to match expectation.
+	gerritWaitForLabelsPollInterval = 10 * time.Second
 )
 
 var (
+	// sleep is used for waiting between Gerrit label polls and may be
+	// overridden in tests.
+	sleep = time.Sleep
+
 	// Create exponential backoff config to use for Github calls.
 	//
 	// The below example demonstrates what a series of
@@ -143,6 +157,7 @@ func updateIssueFromGerritChangeInfo(i *autoroll.AutoRollIssue, ci *gerrit.Chang
 // gerritRoll is an implementation of RollImpl.
 type gerritRoll struct {
 	ci               *gerrit.ChangeInfo
+	expectedLabels   map[string]int
 	issue            *autoroll.AutoRollIssue
 	issueUrl         string
 	finishedCallback func(context.Context, RollImpl) error
@@ -155,31 +170,61 @@ type gerritRoll struct {
 	rollingTo        *revision.Revision
 }
 
+// getLabels extracts the currently-set label values from the given ChangeInfo.
+func getLabels(ci *gerrit.ChangeInfo) map[string][]int {
+	rv := make(map[string][]int, len(ci.Labels))
+	for k, entry := range ci.Labels {
+		vals := make([]int, 0, len(entry.All))
+		for _, detail := range entry.All {
+			vals = append(vals, detail.Value)
+		}
+		rv[k] = vals
+	}
+	return rv
+}
+
+// checkLabels checks whether the labels on the ChangeInfo match expectation,
+// logging a warning if they do not.
+func checkLabels(ci *gerrit.ChangeInfo, expected map[string]int) bool {
+	actual := getLabels(ci)
+	for k, wantVal := range expected {
+		if !slices.Contains(actual[k], wantVal) {
+			sklog.Warningf("Labels on CL %d do not match expectation; wanted %v, have %v", ci.Issue, expected, actual)
+			return false
+		}
+	}
+	return true
+}
+
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
 func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, client *http.Client, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingFrom, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	ci, err := updateIssueFromGerrit(ctx, cfg, issue, g)
-	if err != nil {
-		return nil, err
+	expectedLabels := gerrit.MergeLabels(g.Config().SelfApproveLabels, g.Config().SetCqLabels)
+	if issue.IsDryRun {
+		expectedLabels = g.Config().SetDryRunLabels
 	}
-	gitilesRepo, err := gitiles.NewRepoWithClient(g.GetRepoUrl()+"/"+ci.Project, client)
-	if err != nil {
-		return nil, err
-	}
-	return &gerritRoll{
-		ci:               ci,
+	r := &gerritRoll{
+		expectedLabels:   expectedLabels,
 		issue:            issue,
 		issueUrl:         fmt.Sprintf("%s%d", issueUrlBase, issue.Issue),
 		finishedCallback: cb,
 		g:                g,
-		gitiles:          gitilesRepo,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context) (*gerrit.ChangeInfo, error) {
 			return updateIssueFromGerrit(ctx, cfg, issue, g)
 		},
 		rollingFrom: rollingFrom,
 		rollingTo:   rollingTo,
-	}, nil
+	}
+	if err := r.retrieve(ctx, true); err != nil {
+		return nil, err
+	}
+	gitilesRepo, err := gitiles.NewRepoWithClient(g.GetRepoUrl()+"/"+r.ci.Project, client)
+	if err != nil {
+		return nil, err
+	}
+	r.gitiles = gitilesRepo
+	return r, nil
 }
 
 // See documentation for RollImpl interface.
@@ -209,14 +254,16 @@ func (r *gerritRoll) withModify(ctx context.Context, action string, fn func() er
 		}
 		return err
 	}
-	return r.Update(ctx)
+	return r.update(ctx, true)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Close(ctx context.Context, result, msg string) error {
 	sklog.Infof("Closing issue %d (result %q) with message: %s", r.ci.Issue, result, msg)
+	checkLabels(r.ci, r.expectedLabels)
 	r.result = result
 	return r.withModify(ctx, "close the CL", func() error {
+		r.expectedLabels = nil
 		return r.g.Abandon(ctx, r.ci, msg)
 	})
 }
@@ -287,6 +334,7 @@ func (r *gerritRoll) SwitchToDryRun(ctx context.Context) error {
 		if err := r.g.SendToDryRun(ctx, r.ci, "Mode was changed to dry run"); err != nil {
 			return skerr.Wrap(err)
 		}
+		r.expectedLabels = r.g.Config().SetDryRunLabels
 		r.issue.IsDryRun = true
 		return nil
 	})
@@ -301,6 +349,7 @@ func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
 		if err := r.g.SendToCQ(ctx, r.ci, "Mode was changed to normal"); err != nil {
 			return err
 		}
+		r.expectedLabels = r.g.Config().SetCqLabels
 		r.issue.IsDryRun = false
 		return nil
 	})
@@ -309,7 +358,11 @@ func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RemoveFromCQ(ctx context.Context) error {
 	return r.withModify(ctx, "remove CQ labels", func() error {
-		return r.g.RemoveFromCQ(ctx, r.ci, "Removing CL from commit queue")
+		if err := r.g.RemoveFromCQ(ctx, r.ci, "Removing CL from commit queue"); err != nil {
+			return err
+		}
+		r.expectedLabels = r.g.Config().NoCqLabels
+		return nil
 	})
 }
 
@@ -358,6 +411,7 @@ func (r *gerritRoll) RetryCQ(ctx context.Context) error {
 		if err := r.g.SendToCQ(ctx, r.ci, "CQ failed but there are no new commits. Retrying..."); err != nil {
 			return skerr.Wrap(err)
 		}
+		r.expectedLabels = r.g.Config().SetCqLabels
 		r.issue.IsDryRun = false
 		r.issue.Attempt++
 		r.issue.AttemptStart = time.Now()
@@ -377,6 +431,7 @@ func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 		if err := r.g.SendToDryRun(ctx, r.ci, "Dry run failed but there are no new commits. Retrying..."); err != nil {
 			return skerr.Wrap(err)
 		}
+		r.expectedLabels = r.g.Config().SetDryRunLabels
 		r.issue.IsDryRun = true
 		r.issue.Attempt++
 		r.issue.AttemptStart = time.Now()
@@ -386,12 +441,14 @@ func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Update(ctx context.Context) error {
+	return r.update(ctx, false)
+}
+
+func (r *gerritRoll) update(ctx context.Context, waitForLabels bool) error {
 	alreadyClosed := r.IsClosed()
-	ci, err := r.retrieveRoll(ctx)
-	if err != nil {
+	if err := r.retrieve(ctx, waitForLabels); err != nil {
 		return err
 	}
-	r.ci = ci
 	if r.result != "" {
 		r.issue.Result = r.result
 	}
@@ -402,6 +459,25 @@ func (r *gerritRoll) Update(ctx context.Context) error {
 		return r.finishedCallback(ctx, r)
 	}
 	return nil
+}
+
+func (r *gerritRoll) retrieve(ctx context.Context, waitForLabels bool) error {
+	start := now.Now(ctx)
+	for {
+		ci, err := r.retrieveRoll(ctx)
+		if err != nil {
+			return err
+		}
+		r.ci = ci
+		if r.IsClosed() || checkLabels(r.ci, r.expectedLabels) || !waitForLabels {
+			return nil
+		}
+		if now.Now(ctx).Sub(start) >= gerritWaitForLabelsTimeout {
+			sklog.Warningf("Labels on CL %d still do not match expectation after %s; moving on...", r.ci.Issue, gerritWaitForLabelsTimeout)
+			return nil
+		}
+		sleep(gerritWaitForLabelsPollInterval)
+	}
 }
 
 // See documentation for state_machine.RollClImpl interface.

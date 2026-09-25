@@ -369,7 +369,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		return s.a.UpdateRepos(ctx)
 	})
 	f(F_CLOSE_FAILED, func(ctx context.Context, roll RollCLImpl) error {
-		if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Commit queue failed; closing this roll.")); err != nil {
+		if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "Commit queue failed; closing this roll."); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue failed and there are new commits to try.")
@@ -377,7 +377,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		return s.a.UpdateRepos(ctx)
 	})
 	f(F_CLOSE_STOPPED, func(ctx context.Context, roll RollCLImpl) error {
-		if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("AutoRoller is stopped; closing the active roll.")); err != nil {
+		if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "AutoRoller is stopped; closing the active roll."); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the AutoRoller was stopped.")
@@ -385,7 +385,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		return s.a.UpdateRepos(ctx)
 	})
 	f(F_CLOSE_DRY_RUN_FAILED, func(ctx context.Context, roll RollCLImpl) error {
-		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_FAILURE, fmt.Sprintf("Dry run failed; closing this roll.")); err != nil {
+		if err := roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_FAILURE, "Dry run failed; closing this roll."); err != nil {
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), "This CL was abandoned because the commit queue dry run failed and there are new commits to try.")
@@ -1038,8 +1038,8 @@ func (s *AutoRollStateMachine) NextTransitionSequence(ctx context.Context) error
 	// not a no-op or we find a self-cycle, or until we've performed a maximum
 	// number of transitions, to keep us from accidentally looping extremely
 	// quickly.
-	currentState := s.Current()
 	for i := 0; i < MAX_NOOP_TRANSITIONS; i++ {
+		currentState := s.Current()
 		next, err := s.GetNext(ctx)
 		if err != nil {
 			return err

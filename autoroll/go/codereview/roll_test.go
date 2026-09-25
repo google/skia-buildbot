@@ -14,15 +14,18 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
+	rolls_mocks "go.skia.org/infra/autoroll/go/recent_rolls/mocks"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/gerrit"
+	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
 	gerrit_testutils "go.skia.org/infra/go/gerrit/testutils"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -39,6 +42,9 @@ Tbr: some-reviewer
 		Number:        1,
 		CreatedString: now.Format(gerrit.TimeFormat),
 		Created:       now,
+		Uploader: gerrit.Person{
+			Email: "fake-deps-roller@chromium.org",
+		},
 	}
 	roll := &gerrit.ChangeInfo{
 		Created:       now,
@@ -810,4 +816,169 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	})
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
 	assertdeep.Equal(t, expect, a)
+}
+
+func TestGetAndCheckLabels(t *testing.T) {
+	ci := &gerrit.ChangeInfo{
+		Issue: 123,
+		Labels: map[string]*gerrit.LabelEntry{
+			gerrit.LabelCodeReview: {
+				All: []*gerrit.LabelDetail{
+					{Value: 0},
+					{Value: 1},
+				},
+			},
+			gerrit.LabelCommitQueue: {
+				All: []*gerrit.LabelDetail{
+					{Value: 2},
+				},
+			},
+		},
+	}
+	assertdeep.Equal(t, map[string][]int{
+		gerrit.LabelCodeReview:  {0, 1},
+		gerrit.LabelCommitQueue: {2},
+	}, getLabels(ci))
+
+	require.True(t, checkLabels(ci, nil))
+	require.True(t, checkLabels(ci, map[string]int{
+		gerrit.LabelCodeReview:  1,
+		gerrit.LabelCommitQueue: 2,
+	}))
+	require.False(t, checkLabels(ci, map[string]int{
+		gerrit.LabelCodeReview:  1,
+		gerrit.LabelCommitQueue: 1,
+	}))
+	require.False(t, checkLabels(ci, map[string]int{
+		"Bot-Commit": 1,
+	}))
+}
+
+func TestGerritRollWaitForLabels(t *testing.T) {
+	ts := time.Unix(1700000000, 0).UTC()
+	ctx := now.TimeTravelingContext(context.Background(), ts)
+	origSleep := sleep
+	t.Cleanup(func() {
+		sleep = origSleep
+	})
+	sleep = func(d time.Duration) {
+		ts = ts.Add(d)
+		ctx.SetTime(ts)
+	}
+
+	cfg := &config.GerritConfig{
+		Url:     "https://fake-skia-review.googlesource.com",
+		Project: "skia",
+		Config:  config.GerritConfig_CHROMIUM,
+	}
+	gc := GerritConfigs[cfg.Config]
+	g := gerrit_mocks.NewGerritInterface(t)
+	g.On("Config").Return(gc)
+	g.On("GetRepoUrl").Return(cfg.Url)
+
+	db := rolls_mocks.NewDB(t)
+	db.On("GetRolls", testutils.AnyContext, "test-roller", "").Return(nil, "", nil).Once()
+	recent, err := recent_rolls.NewRecentRolls(ctx, db, "test-roller")
+	require.NoError(t, err)
+
+	mockDBPut := func(issue *autoroll.AutoRollIssue) {
+		db.On("Put", testutils.AnyContext, "test-roller", issue).Return(nil).Once()
+		db.On("GetRolls", testutils.AnyContext, "test-roller", "").Return([]*autoroll.AutoRollIssue{issue}, "", nil).Once()
+	}
+
+	from := "abcde12345abcde12345abcde12345abcde12345"
+	fromRev := &revision.Revision{Id: from}
+	to := "fghij67890fghij67890fghij67890fghij67890"
+	toRev := &revision.Revision{Id: to}
+	urlMock := mockhttpclient.NewURLMock()
+	client := urlMock.Client()
+
+	// 1. newGerritRoll waits when labels do not match on the first poll, and
+	// succeeds immediately once they match on the second poll.
+	ci, issue := makeFakeRoll(t, cfg, 123, from, to, false)
+	ciMissingCQ, _ := makeFakeRoll(t, cfg, 123, from, to, false)
+	gerrit.UnsetLabels(ciMissingCQ, gc.SetCqLabels)
+
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ciMissingCQ, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ci, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+
+	gr, err := newGerritRoll(ctx, cfg, issue, g, client, recent, "http://issue/", fromRev, toRev, nil)
+	require.NoError(t, err)
+	require.False(t, gr.IsFinished())
+	mockDBPut(issue)
+	require.NoError(t, gr.InsertIntoDB(ctx))
+	g.AssertExpectations(t)
+
+	// 2. SwitchToDryRun waits until dry run labels are present.
+	g.On("SendToDryRun", testutils.AnyContext, ci, "Mode was changed to dry run").Return(nil).Once()
+	// First poll still has normal CQ labels (replication lag).
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ci, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+	// Second poll has dry run labels.
+	ciDryRun, _ := makeFakeRoll(t, cfg, 123, from, to, true)
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ciDryRun, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+	mockDBPut(issue)
+
+	require.NoError(t, gr.SwitchToDryRun(ctx))
+	require.True(t, issue.IsDryRun)
+	require.False(t, gr.IsDryRunFinished())
+	g.AssertExpectations(t)
+
+	// 3. SwitchToNormal waits until normal CQ labels are present.
+	g.On("SendToCQ", testutils.AnyContext, ciDryRun, "Mode was changed to normal").Return(nil).Once()
+	// First poll still has dry run labels (replication lag).
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ciDryRun, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+	// Second poll has normal CQ labels.
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ci, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+	mockDBPut(issue)
+
+	require.NoError(t, gr.SwitchToNormal(ctx))
+	require.False(t, issue.IsDryRun)
+	require.False(t, gr.IsFinished())
+	g.AssertExpectations(t)
+
+	// 4. RemoveFromCQ waits until NoCqLabels are present.
+	g.On("RemoveFromCQ", testutils.AnyContext, ci, "Removing CL from commit queue").Return(nil).Once()
+	// First poll still has Commit-Queue+2.
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ci, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+	// Second poll has Commit-Queue: 0.
+	ciNoCQ, _ := makeFakeRoll(t, cfg, 123, from, to, false)
+	gerrit.SetLabels(ciNoCQ, gc.NoCqLabels)
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ciNoCQ, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+	mockDBPut(issue)
+
+	require.NoError(t, gr.RemoveFromCQ(ctx))
+	g.AssertExpectations(t)
+
+	// 5. Close clears expectedLabels and does not wait.
+	g.On("Abandon", testutils.AnyContext, ciNoCQ, "close it!").Return(nil).Once()
+	ciAbandoned, _ := makeFakeRoll(t, cfg, 123, from, to, false)
+	gerrit.UnsetLabels(ciAbandoned, gc.SetCqLabels)
+	ciAbandoned.Status = gerrit.ChangeStatusAbandoned
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ciAbandoned, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+	mockDBPut(issue)
+
+	require.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "close it!"))
+	require.True(t, gr.IsClosed())
+	g.AssertExpectations(t)
+
+	// 6. Timeout when labels never match expectation moves on without error.
+	ciNeverMatch, issueNeverMatch := makeFakeRoll(t, cfg, 124, from, to, false)
+	gerrit.UnsetLabels(ciNeverMatch, gc.SetCqLabels)
+	expectedPolls := int(gerritWaitForLabelsTimeout/gerritWaitForLabelsPollInterval) + 1
+	g.On("GetIssueProperties", testutils.AnyContext, int64(124)).Return(ciNeverMatch, nil).Times(expectedPolls)
+	g.On("GetTrybotResults", testutils.AnyContext, int64(124), int64(1)).Return(nil, nil).Times(expectedPolls)
+
+	grTimeout, err := newGerritRoll(ctx, cfg, issueNeverMatch, g, client, recent, "http://issue/", fromRev, toRev, nil)
+	require.NoError(t, err)
+	require.True(t, grTimeout.IsFinished())
+	g.AssertExpectations(t)
 }
