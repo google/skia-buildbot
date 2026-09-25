@@ -10,6 +10,7 @@ import (
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/issuetracker"
@@ -111,9 +112,8 @@ func (ui *userIssueApi) saveUserIssueHandler(w http.ResponseWriter, r *http.Requ
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
-	loggedInEmail := ui.loginProvider.LoggedInAs(r)
-	if loggedInEmail == "" {
-		httputils.ReportError(w, skerr.Fmt("Login Required"), "", http.StatusUnauthorized)
+	if !ui.loginProvider.HasRole(r, roles.Editor) {
+		httputils.ReportError(w, skerr.Fmt("Unauthorized"), "You must be logged in with editor role to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -133,6 +133,7 @@ func (ui *userIssueApi) saveUserIssueHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	loggedInEmail := ui.loginProvider.LoggedInAs(r)
 	userIssueObj := userissue.UserIssue{
 		UserId:         loggedInEmail.String(),
 		TraceKey:       saveReq.TraceKey,
@@ -161,9 +162,8 @@ func (ui *userIssueApi) deleteUserIssueHandler(w http.ResponseWriter, r *http.Re
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
-	loggedInEmail := ui.loginProvider.LoggedInAs(r)
-	if loggedInEmail == "" {
-		httputils.ReportError(w, skerr.Fmt("Login Required"), "", http.StatusUnauthorized)
+	if !ui.loginProvider.HasRole(r, roles.Editor) {
+		httputils.ReportError(w, skerr.Fmt("Unauthorized"), "You must be logged in with editor role to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -198,9 +198,8 @@ func (ui *userIssueApi) createUserIssueHandler(w http.ResponseWriter, r *http.Re
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
-	loggedInEmail := ui.loginProvider.LoggedInAs(r)
-	if loggedInEmail == "" {
-		httputils.ReportError(w, skerr.Fmt("Login Required"), "", http.StatusUnauthorized)
+	if !ui.loginProvider.HasRole(r, roles.Editor) {
+		httputils.ReportError(w, skerr.Fmt("Unauthorized"), "You must be logged in with editor role to complete this action.", http.StatusUnauthorized)
 		return
 	}
 
@@ -226,6 +225,7 @@ func (ui *userIssueApi) createUserIssueHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	loggedInEmail := ui.loginProvider.LoggedInAs(r)
 	createReq.Assignee = loggedInEmail.String()
 
 	issueId, err := ui.issueTracker.FileUserIssue(ctx, &createReq)
