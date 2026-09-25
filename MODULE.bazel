@@ -589,14 +589,17 @@ cipd.download_http(
         "windows-amd64": "66f63edaa34a43bd9cbe8a3054b15f98e468b903f6d4962700b503f5ddd947d4",
     },
     postinstall_cmds_posix = [
-        "mkdir etc",
-        "bin/git config --system user.name \"Bazel Test User\"",
-        "bin/git config --system user.email \"bazel-test-user@example.com\"",
+        "mkdir -p etc",
+        "chmod -R u+w etc",
+        "echo \"[user]\" >> etc/gitconfig",
+        "echo \"\tname = Bazel Test User\" >> etc/gitconfig",
+        "echo \"\temail = bazel-test-user@example.com\" >> etc/gitconfig",
     ],
     postinstall_cmds_win = [
-        "mkdir etc",
-        "bin/git.exe config --system user.name \"Bazel Test User\"",
-        "bin/git.exe config --system user.email \"bazel-test-user@example.com\"",
+        "mkdir -p etc",
+        "echo \"[user]\" >> etc/gitconfig",
+        "echo \"\tname = Bazel Test User\" >> etc/gitconfig",
+        "echo \"\temail = bazel-test-user@example.com\" >> etc/gitconfig",
     ],
     tag = "version:3@2.55.0.chromium.11",
 )
