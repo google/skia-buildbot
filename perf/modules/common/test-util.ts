@@ -429,7 +429,6 @@ export function setUpExploreDemoEnv() {
   fetchMock.post('/_/user_issues/', {
     UserIssues: [
       {
-        UserId: 'user@google.com',
         TraceKey: MOCK_TRACE_KEY_1,
         CommitPosition: 67130,
         IssueId: 2345,

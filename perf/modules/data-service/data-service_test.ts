@@ -133,7 +133,6 @@ describe('DataService', () => {
       const response = {
         UserIssues: [
           {
-            UserId: 'user@example.com',
             TraceKey: 'k1',
             CommitPosition: 150,
             IssueId: 12345,

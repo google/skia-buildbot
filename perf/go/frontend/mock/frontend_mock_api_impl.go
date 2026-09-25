@@ -263,7 +263,7 @@ func (m *MockFrontend) triageListIssuesHandler(w http.ResponseWriter, r *http.Re
 	sendJSON(w, map[string]interface{}{"issues": []map[string]interface{}{{"issue_id": 54321, "issue_state": map[string]string{"title": "Mock Issue Title"}}}})
 }
 func (m *MockFrontend) userIssuesHandler(w http.ResponseWriter, r *http.Request) {
-	sendJSON(w, map[string]interface{}{"UserIssues": []map[string]interface{}{{"user_id": "demo@example.com", "trace_key": ",arch=arm,os=Android,", "issue_id": 999}}})
+	sendJSON(w, map[string]interface{}{"UserIssues": []map[string]interface{}{{"trace_key": ",arch=arm,os=Android,", "issue_id": 999}}})
 }
 func (m *MockFrontend) userIssueSaveHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)

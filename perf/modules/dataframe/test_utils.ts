@@ -140,9 +140,9 @@ export const mockUserIssues = (isError: boolean) => {
     () => {
       return {
         UserIssues: [
-          { UserId: 'a@b.com', TraceKey: ',a=1,', CommitPosition: 1, IssueId: 2345 },
-          { UserId: 'a@b.com', TraceKey: ',b=1,', CommitPosition: 3, IssueId: 3456 },
-          { UserId: 'a@b.com', TraceKey: ',c=1,', CommitPosition: 8, IssueId: 4567 },
+          { TraceKey: ',a=1,', CommitPosition: 1, IssueId: 2345 },
+          { TraceKey: ',b=1,', CommitPosition: 3, IssueId: 3456 },
+          { TraceKey: ',c=1,', CommitPosition: 8, IssueId: 4567 },
         ],
       };
     }

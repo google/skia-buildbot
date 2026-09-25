@@ -266,8 +266,8 @@ describe('dataframe-repository', () => {
     fetchMock.post('glob:/_/user_issues/', {
       body: JSON.stringify({
         UserIssues: [
-          { UserId: 'test', TraceKey: ',a=1,', CommitPosition: 1, IssueId: 2345 },
-          { UserId: 'test', TraceKey: ',b=1,', CommitPosition: 3, IssueId: 3456 },
+          { TraceKey: ',a=1,', CommitPosition: 1, IssueId: 2345 },
+          { TraceKey: ',b=1,', CommitPosition: 3, IssueId: 3456 },
         ],
       }),
       status: 200,

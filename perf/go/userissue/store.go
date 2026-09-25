@@ -7,7 +7,7 @@ import (
 // UserIssue is a struct that represents a user reported buganizer
 // issue on a data point.
 type UserIssue struct {
-	UserId         string
+	UserId         string `json:"-"`
 	TraceKey       string
 	CommitPosition int64
 	IssueId        int64

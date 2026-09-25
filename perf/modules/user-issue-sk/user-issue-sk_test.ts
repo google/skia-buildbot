@@ -124,7 +124,6 @@ describe('user-issue-sk', () => {
         {
           UserIssues: [
             {
-              UserId: 'test@example.com',
               TraceKey: 'test-trace',
               CommitPosition: 100,
               IssueId: 12345,

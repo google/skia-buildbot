@@ -394,7 +394,6 @@ export interface GetUserIssuesForTraceKeysRequest {
 }
 
 export interface UserIssue {
-	UserId: string;
 	TraceKey: string;
 	CommitPosition: number;
 	IssueId: number;
