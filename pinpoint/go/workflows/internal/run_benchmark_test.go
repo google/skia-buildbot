@@ -273,3 +273,30 @@ func TestRunBenchmarkPairwise_Failure_ReturnsCAS(t *testing.T) {
 	}, *result)
 	env.AssertExpectations(t)
 }
+
+func TestRunBenchmark_GivenBenchmarkFailureAndCasError_ShouldReturnNilCas(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	var rba *RunBenchmarkActivity
+	const fakeTaskID = "fake-task"
+	const state = run_benchmark.State(backends.RunBenchmarkFailure)
+
+	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(fakeTaskID, nil).Once()
+	env.OnActivity(rba.WaitTaskPendingActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
+	env.OnActivity(rba.WaitTaskFinishedActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
+	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, fakeTaskID).Return(nil, skerr.Fmt("retrieve cas failed"))
+
+	env.ExecuteWorkflow(RunBenchmarkWorkflow, &RunBenchmarkParams{})
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	var result *workflows.TestRun
+	require.NoError(t, env.GetWorkflowResult(&result))
+	require.EqualExportedValues(t, workflows.TestRun{
+		TaskID: fakeTaskID,
+		Status: state,
+		CAS:    nil,
+	}, *result)
+	env.AssertExpectations(t)
+}

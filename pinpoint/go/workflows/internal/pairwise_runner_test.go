@@ -862,3 +862,67 @@ func TestPairwiseCommitRunner_BuildFails_ReturnsError(t *testing.T) {
 
 	env.AssertExpectations(t)
 }
+
+func TestPairwiseCommitsRunner_PartialFailuresAndMissingCAS_SkipsCollectValues(t *testing.T) {
+	p := PairwiseCommitsRunnerParams{
+		SingleCommitRunnerParams: SingleCommitRunnerParams{
+			PinpointJobID:     "179a34b2be0000",
+			BotConfig:         "linux-perf",
+			Benchmark:         "blink-perf.css",
+			Chart:             "gc-mini-tree",
+			AggregationMethod: "mean",
+			Iterations:        3,
+		},
+		Seed:     54321,
+		LeftCAS:  mockCas,
+		RightCAS: mockCas,
+	}
+	fakeChartValues := &workflows.TestResults{
+		Values: map[string][]float64{p.Chart: {1, 2, 3}},
+	}
+	pairwiseOrder := generatePairOrderIndices(p.Seed, int(p.Iterations))
+	rc := make(chan *workflows.PairwiseTestRun, 3)
+	// Iteration 0: one side failed with CAS -> skipped
+	rc <- &workflows.PairwiseTestRun{
+		FirstTestRun:  &workflows.TestRun{Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED), CAS: mockCas},
+		SecondTestRun: &workflows.TestRun{Status: run_benchmark.State(backends.RunBenchmarkFailure), CAS: mockCas},
+		Permutation:   pairwiseOrder[0],
+	}
+	// Iteration 1: one side completed without CAS -> skipped
+	rc <- &workflows.PairwiseTestRun{
+		FirstTestRun:  &workflows.TestRun{Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED), CAS: mockCas},
+		SecondTestRun: &workflows.TestRun{Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED), CAS: nil},
+		Permutation:   pairwiseOrder[1],
+	}
+	// Iteration 2: both completed with CAS -> values collected
+	rc <- &workflows.PairwiseTestRun{
+		FirstTestRun:  &workflows.TestRun{Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED), CAS: mockCas},
+		SecondTestRun: &workflows.TestRun{Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED), CAS: mockCas},
+		Permutation:   pairwiseOrder[2],
+	}
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	env.RegisterWorkflowWithOptions(RunBenchmarkPairwiseWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmarkPairwise})
+
+	env.OnActivity(FindAvailableBotsActivity, mock.Anything, p.BotConfig, p.Seed).Return([]string{"lin-1-h516--device1"}, nil).Once()
+	env.OnWorkflow(workflows.RunBenchmarkPairwise, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(func(ctx workflow.Context, firstP, secondP *RunBenchmarkParams, first workflows.PairwiseOrder) (*workflows.PairwiseTestRun, error) {
+		return <-rc, nil
+	}).Times(3)
+	env.OnActivity(CollectAllValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.AggregationMethod).Return(fakeChartValues, nil).Times(2)
+
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, &p)
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+
+	var pr *PairwiseRun
+	require.NoError(t, env.GetWorkflowResult(&pr))
+	require.NotNil(t, pr)
+	assert.Nil(t, pr.Left.Runs[0].Values)
+	assert.Nil(t, pr.Right.Runs[0].Values)
+	assert.Nil(t, pr.Left.Runs[1].Values)
+	assert.Nil(t, pr.Right.Runs[1].Values)
+	assert.NotNil(t, pr.Left.Runs[2].Values)
+	assert.NotNil(t, pr.Right.Runs[2].Values)
+	env.AssertExpectations(t)
+}

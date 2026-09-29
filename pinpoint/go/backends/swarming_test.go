@@ -104,19 +104,20 @@ func TestGetCASOutput_ValidInput_SwarmingRBECasRef(t *testing.T) {
 
 func TestGasCASOutput_IncompleteTask_Error(t *testing.T) {
 	ctx := context.Background()
-	mockClient := &mocks.SwarmingV2Client{}
-	sc := &SwarmingClientImpl{
-		SwarmingV2Client: mockClient,
+	for _, state := range []apipb.TaskState{apipb.TaskState_RUNNING, apipb.TaskState_PENDING} {
+		mockClient := &mocks.SwarmingV2Client{}
+		sc := &SwarmingClientImpl{
+			SwarmingV2Client: mockClient,
+		}
+		mockClient.On("GetResult", ctx, mock.Anything, mock.Anything).
+			Return(&apipb.TaskResultResponse{
+				State: state,
+			}, nil).Once()
+
+		rbe, err := sc.GetCASOutput(ctx, "taskId")
+		assert.Nil(t, rbe)
+		assert.ErrorContains(t, err, "cannot get result of task")
 	}
-
-	mockClient.On("GetResult", ctx, mock.Anything, mock.Anything).
-		Return(&apipb.TaskResultResponse{
-			State: apipb.TaskState_RUNNING,
-		}, nil).Once()
-
-	rbe, err := sc.GetCASOutput(ctx, "taskId")
-	assert.Nil(t, rbe)
-	assert.ErrorContains(t, err, "cannot get result of task")
 }
 
 func TestGetCASOutput_NonCompletedWithCAS_ReturnsCAS(t *testing.T) {
@@ -143,6 +144,23 @@ func TestGetCASOutput_NonCompletedWithCAS_ReturnsCAS(t *testing.T) {
 	assert.Equal(t, "instance", rbe.CasInstance)
 	assert.Equal(t, "hash", rbe.Digest.Hash)
 	assert.Equal(t, int64(123), rbe.Digest.SizeBytes)
+}
+
+func TestGetCASOutput_MissingCAS_ReturnsNil(t *testing.T) {
+	ctx := context.Background()
+	mockClient := &mocks.SwarmingV2Client{}
+	sc := &SwarmingClientImpl{
+		SwarmingV2Client: mockClient,
+	}
+
+	mockClient.On("GetResult", ctx, mock.Anything, mock.Anything).
+		Return(&apipb.TaskResultResponse{
+			State: apipb.TaskState_BOT_DIED,
+		}, nil).Once()
+
+	rbe, err := sc.GetCASOutput(ctx, "taskId")
+	require.NoError(t, err)
+	assert.Nil(t, rbe)
 }
 
 func TestHasCAS(t *testing.T) {

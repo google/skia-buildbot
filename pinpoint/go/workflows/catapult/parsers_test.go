@@ -113,6 +113,10 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 							},
 						},
 					},
+					{
+						TaskID: swarmingTaskID,
+						Status: swarming.TASK_STATE_COMPLETED,
+					},
 				},
 			},
 		},
@@ -151,6 +155,10 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf(casIsolateHashTemplate, "failed_hash", int64(456)), questDetail3[2].Value)
 	assert.Equal(t, fmt.Sprintf(casUrlTemplate, "projects/chrome-swarming/instances/default_instance", "failed_hash", int64(456)), questDetail3[2].Url)
 	assert.False(t, actual.State[0].Attempts[2].Executions[1].Completed)
+
+	questDetail4 := actual.State[0].Attempts[3].Executions[1].Details
+	assert.Empty(t, questDetail4[2].Value)
+	assert.True(t, actual.State[0].Attempts[3].Executions[1].Completed)
 }
 
 // createCombinedResults a helper function to generate combinedresults
