@@ -1,6 +1,7 @@
 # Topic 3: Completing Chrome Migration and Supporting V8's Custom Workflow
 
 ## Executive Summary
+
 This brief analyzes the remaining dependencies, technical blockers, and architectural milestones required to complete the migration of Chrome and V8 performance infrastructure from legacy App Engine (`chromeperf.appspot.com` and Catapult Pinpoint) to Skia Perf and Temporal-based Pinpoint. It provides deep technical insight into V8's reliance on custom backend APIs, multi-repository roll bisections involving Profile Guided Optimization (PGO), and the critical path to decommission legacy Appspot services.
 
 ---
@@ -10,6 +11,7 @@ This brief analyzes the remaining dependencies, technical blockers, and architec
 The V8 performance monitoring workflow possesses specific requirements that distinguish it from standard Chromium waterfall benchmarks:
 
 ### 1.1 Custom Alert Routing & The `/a/` Page
+
 - In standard Skia Perf instances, alert triage and regression views route to `/r2/` or the new triage UI.
 - In V8 instances (both corp and public, defined in [`v8-internal.json`](../../configs/spanner/v8-internal.json) and [`v8-public.json`](../../configs/spanner/v8-public.json)), the instance configuration sets:
   ```json
@@ -20,6 +22,7 @@ The V8 performance monitoring workflow possesses specific requirements that dist
 - The backend serves these alerts through `SheriffConfigService` ([`perf/go/sheriffconfig/service/service.go`](../../go/sheriffconfig/service/service.go)), mapping subscriptions to individual alerts and anomaly groups.
 
 ### 1.2 Multi-Commit Range Resolution in UI
+
 - Unlike single-repository instances that monitor only Chromium or Skia, V8 benchmark traces reflect multiple interrelated codebases:
   ```json
   "keys_for_commit_range": ["V8", "WebRTC", "V8 Git Hash", "WebRTC Git Hash"]
@@ -39,6 +42,7 @@ The V8 performance monitoring workflow possesses specific requirements that dist
 The legacy Chromeperf pipeline relied on Catapult's Telemetry framework and its JSON-based histogram format.
 
 ### 2.1 Ingestion Format Parity
+
 - Ingestion parsers in [`perf/go/ingest/parser/parser.go`](../../go/ingest/parser/parser.go) and [`perf/go/perfresults/perf_results_parser.go`](../../go/perfresults/perf_results_parser.go) process both modern Skia formats and Catapult Histogram-Set JSONs.
 - Each trace key is encoded as an inverted parameter map:
   `,benchmark=v8.browsing_mobile,master=ChromiumPerf,test=memory:chrome:all_processes:reported_by_chrome:v8:heap:code_space:effective_size,`
@@ -51,13 +55,15 @@ The legacy Chromeperf pipeline relied on Catapult's Telemetry framework and its 
 A major blocker preventing full transition of V8 bisections to modern Pinpoint stems from the complexity of Chromium DEPS rolls and Profile Guided Optimization (PGO) builds.
 
 ### 3.1 The Multi-Repo DEPS Roll Problem
+
 - V8 performance tests in Chrome frequently run inside a Chromium browser shell rather than standalone `d8` binaries.
 - When an anomaly is detected on Chromium waterfall traces that originate from a V8 DEPS roll:
   1. The Chromium commit range might span a single commit: `Roll V8 from a1b2c3 to d4e5f6 (15 commits)`.
-  2. Pinpoint must bisect the 15 commits *inside* the V8 repository ([`pinpoint/go/midpoint/midpoint.go:245-265`](../../../../pinpoint/go/midpoint/midpoint.go#L245-L265)).
+  2. Pinpoint must bisect the 15 commits _inside_ the V8 repository ([`pinpoint/go/midpoint/midpoint.go:245-265`](../../../../pinpoint/go/midpoint/midpoint.go#L245-L265)).
   3. To build a testable Chromium binary for intermediate V8 commit $V_{\text{mid}}$, Pinpoint must compile Chromium with a modified `DEPS` file pointing `src/v8` to $V_{\text{mid}}$.
 
 ### 3.2 The PGO Profile Mismatch
+
 - Modern Chrome release and performance builds are compiled with Profile Guided Optimization (PGO) profiles to optimize hot code paths.
 - Problem: Intermediate commits synthesized during a bisection (e.g., Chromium $C_1$ combined with an unreleased V8 commit $V_{\text{mid}}$) do not have pre-computed PGO profiles.
 - If a benchmark bot configuration uses a PGO builder target (e.g. `mac-m1_mini_2020-perf-pgo`, `linux-perf-pgo`), compilation with an incompatible or missing profile can either:
@@ -96,13 +102,16 @@ Perf/Pinpoint (Go/Temporal) ──► Spanner Database (Autobisections, Culprits
 ```
 
 ### 4.1 Step 1: Replace UI Writeback with Spanner Storage
+
 - In the transition architecture, when `CatapultBisectWorkflow` finishes, it converts its results and makes an HTTP POST request to `catapultBisectPostUrl = "https://pinpoint-dot-chromeperf.appspot.com/api/job"` ([`pinpoint/go/workflows/catapult/write.go:19`](../../../../pinpoint/go/workflows/catapult/write.go#L19), [`58-75`](../../../../pinpoint/go/workflows/catapult/write.go#L58-L75)) so legacy Catapult can render the job.
 - **Action**: Fully enable `databaseWriteback` flag in Pinpoint worker ([`pinpoint/go/workflows/worker/main.go:36`](../../../../pinpoint/go/workflows/worker/main.go#L36)), writing bisection state directly to Cloud Spanner `Autobisections` and `Culprits` tables.
 
 ### 4.2 Step 2: Cut Over the Frontend UI
+
 - Complete the new Pinpoint WebUI located in [`pinpoint/webui/`](../../../../pinpoint/webui/) (built on modern Angular with zoneless change detection, [`pinpoint/webui/app/app.config.ts:1`](../../../../pinpoint/webui/app/app.config.ts#L1)).
 - Serve the UI via [`pinpoint/go/webui/main.go`](../../../../pinpoint/go/webui/main.go), pointing Chrome and V8 sheriffs to the new dashboard.
 
 ### 4.3 Step 3: Decommission `skia-bridge` and Appspot Instances
+
 - Remove `chromePerfClientImpl` calls to `skia-bridge-dot-chromeperf.appspot.com` ([`perf/go/chromeperf/chromeperfClient.go:26`](../../go/chromeperf/chromeperfClient.go#L26)).
 - Shut down App Engine services and redirect legacy URLs to Skia Perf.

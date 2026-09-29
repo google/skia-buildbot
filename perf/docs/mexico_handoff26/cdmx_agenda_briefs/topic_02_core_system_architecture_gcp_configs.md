@@ -1,6 +1,7 @@
 # Topic 2: Core System Architecture, GCP Hosting, and Configuration Sprawl
 
 ## Executive Summary
+
 This brief outlines the infrastructure architecture of Skia Perf and Pinpoint, tracing the complete lifecycle of performance data from Swarming bot execution in Chrome/Android lab fleets to Google Cloud Platform (GCP) ingestion pipelines, Cloud Spanner storage, and interactive web visualization. It details the containerized microservices hosted on Google Kubernetes Engine (GKE), evaluates multi-tenant instance isolation, and provides an architectural reference for configuration management.
 
 ---
@@ -46,10 +47,12 @@ The data ingestion path transforms raw benchmark test output into indexed, query
 ```
 
 ### 1.1 Test Execution & File Storage
+
 - Swarming bots in device labs run Telemetry benchmarks, generating JSON result files adhering to the histogram or legacy format ([`perf/go/ingest/format/format.go`](../../go/ingest/format/format.go)).
 - Test runners upload artifacts to GCS buckets specified in instance configurations (e.g., `gs://v8-perf-prod/ingest`, `gs://chrome-perf-non-public/ingest`).
 
 ### 1.2 Pub/Sub Event Ingestion
+
 - GCS triggers an event on a configured Google Cloud Pub/Sub topic upon upload.
 - Ingestion workers subscribe to the topic via `IngestionConfig.Subscription` ([`perf/go/config/config.go:406`](../../go/config/config.go#L406)).
 - Worker routines in [`perf/go/ingest/process/process.go:118-281`](../../go/ingest/process/process.go#L118-L281) download and process files:
@@ -59,6 +62,7 @@ The data ingestion path transforms raw benchmark test output into indexed, query
   4. If successful, `f.PubSubMsg.Ack()` commits the message; if a transient database failure occurs, dead-letter collection or nack retries handle redelivery ([`process.go:256-260`](../../go/ingest/process/process.go#L256-L260)).
 
 ### 1.3 Downstream Triggering via `FileIngestionTopicName`
+
 - Once data is committed to Spanner, `sendPubSubEvent` publishes an `ingestevents.IngestEvent` ([`process.go:40-60`](../../go/ingest/process/process.go#L40-L60), [`267`](../../go/ingest/process/process.go#L267)) containing the ingested trace IDs and parameter set to `FileIngestionTopicName`.
 - Backend workers running continuous regression detectors subscribe to this event to immediately run step detection on the newly modified traces.
 
@@ -69,6 +73,7 @@ The data ingestion path transforms raw benchmark test output into indexed, query
 The system is deployed on Google Kubernetes Engine (GKE) under Google-managed projects (`skia-public`, `skia-infra-corp`):
 
 ### 2.1 Component Microservices
+
 - **Frontend Pods (`perf-frontend`)**:
   - Expose HTTP/HTTPS interfaces for user interaction, plotting, and anomaly triaging.
   - Implements API endpoints in [`perf/go/frontend/api/`](../../go/frontend/api/) for graph generation, trace slicing, and Pinpoint bisection creation.
@@ -96,13 +101,14 @@ The system is deployed on Google Kubernetes Engine (GKE) under Google-managed pr
 
 Rather than running a monolithic multi-tenant database, Perf enforces tenant isolation by separating instances into discrete Spanner databases, Pub/Sub topics, and GKE deployments:
 
-| Instance Tier | Target Environments | Hosting Project | Network / Auth Boundary | Key Configurations |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tier 1 (Internal Production)** | `chrome-internal`<br>`v8-internal`<br>`fuchsia-internal` | `skia-infra-corp` | Google Corp Network (IAP), strict Googler OAuth, internal Buganizer integration | [`chrome-internal.json`](../../configs/spanner/chrome-internal.json)<br>[`v8-internal.json`](../../configs/spanner/v8-internal.json)<br>[`fuchsia-internal.json`](../../configs/spanner/fuchsia-internal.json) |
-| **Tier 2 (Public Production)** | `chrome-public`<br>`v8-public`<br>`android` (AndroidX)<br>`fuchsia-public` | `skia-public` | Public Internet (`*.luci.app`, `*.skia.org`), public issue trackers | [`chrome-public.json`](../../configs/spanner/chrome-public.json)<br>[`v8-public.json`](../../configs/spanner/v8-public.json)<br>[`android.json`](../../configs/spanner/android.json) |
-| **Tier 3 (Autopush / Staging)** | `chrome-internal-autopush`<br>`v8-internal-autopush`<br>`android2-autopush` | `skia-infra-corp` / `skia-public` | Continuous deployment target; automated integration tests and early schema migrations | [`chrome-internal-autopush.json`](../../configs/spanner/chrome-internal-autopush.json)<br>[`v8-internal-autopush.json`](../../configs/spanner/v8-internal-autopush.json) |
+| Instance Tier                    | Target Environments                                                         | Hosting Project                   | Network / Auth Boundary                                                               | Key Configurations                                                                                                                                                                                             |
+| :------------------------------- | :-------------------------------------------------------------------------- | :-------------------------------- | :------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tier 1 (Internal Production)** | `chrome-internal`<br>`v8-internal`<br>`fuchsia-internal`                    | `skia-infra-corp`                 | Google Corp Network (IAP), strict Googler OAuth, internal Buganizer integration       | [`chrome-internal.json`](../../configs/spanner/chrome-internal.json)<br>[`v8-internal.json`](../../configs/spanner/v8-internal.json)<br>[`fuchsia-internal.json`](../../configs/spanner/fuchsia-internal.json) |
+| **Tier 2 (Public Production)**   | `chrome-public`<br>`v8-public`<br>`android` (AndroidX)<br>`fuchsia-public`  | `skia-public`                     | Public Internet (`*.luci.app`, `*.skia.org`), public issue trackers                   | [`chrome-public.json`](../../configs/spanner/chrome-public.json)<br>[`v8-public.json`](../../configs/spanner/v8-public.json)<br>[`android.json`](../../configs/spanner/android.json)                           |
+| **Tier 3 (Autopush / Staging)**  | `chrome-internal-autopush`<br>`v8-internal-autopush`<br>`android2-autopush` | `skia-infra-corp` / `skia-public` | Continuous deployment target; automated integration tests and early schema migrations | [`chrome-internal-autopush.json`](../../configs/spanner/chrome-internal-autopush.json)<br>[`v8-internal-autopush.json`](../../configs/spanner/v8-internal-autopush.json)                                       |
 
 ### 3.1 Isolation Guarantees
+
 1. **Resource Decoupling**: Large ingestion workloads from Chrome Waterfall bots cannot exhaust Spanner read/write throughput for AndroidX or Fuchsia.
 2. **Access Control**: Confidential benchmarks (e.g. unreleased hardware chips, pre-launch device targets) are restricted to corp instances backed by private GCS buckets and separate Spanner instances.
 3. **Failover & Rollout Safety**: Autopush instances receive new binary deployments and schema migrations first, protecting production triage operations.
@@ -114,6 +120,7 @@ Rather than running a monolithic multi-tenant database, Perf enforces tenant iso
 Instance behaviors are declared in JSON configuration files located in [`perf/configs/spanner/`](../../configs/spanner/). These map to the Go struct [`config.InstanceConfig`](../../go/config/config.go).
 
 ### 4.1 Key Configuration Functional Blocks
+
 - **Data Store (`DataStoreConfig`)**: Spanner database connection string, tile size (default 256 or 512 points), query timeout.
 - **Ingestion (`IngestionConfig`)**:
   - GCS source bucket URLs and prefixes.
@@ -132,7 +139,9 @@ Instance behaviors are declared in JSON configuration files located in [`perf/co
   - `ShowTriageLink`, `ShowBisectBtn`, `ShowPinpointLink`: Feature flags governing UI components per instance.
 
 ### 4.2 Maintenance and Convergence Strategy
+
 The variety of optional flags in [`perf/configs/spanner/*.json`](../../configs/spanner/) reflects legacy compatibility constraints accumulated across migrations. As part of CDMX onsite objectives, configurations will converge toward:
+
 1. Standardized Spanner schemas using unified migrations in [`perf/go/sql/expectedschema/migrations/`](../../go/sql/expectedschema/migrations/).
 2. Uniform alerts and triage pages, deprecating legacy URL branches (`/a/` vs `/r2/`).
 3. Single notification provider framework, standardizing commit metadata resolution across all partner instances.

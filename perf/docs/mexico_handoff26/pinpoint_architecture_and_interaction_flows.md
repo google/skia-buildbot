@@ -127,114 +127,128 @@ Skia Pinpoint is a distributed performance bisection, A/B try-job, and regressio
 
 The table below catalogs every primary Go struct, interface, and data abstraction across `pinpoint/go/...` and `pinpoint/proto/v1`.
 
-| Package | Symbol Name | Type | Source File | Core Responsibility |
-| :--- | :--- | :--- | :--- | :--- |
-| `pinpointpb` | [`PinpointServer`](../../../pinpoint/proto/v1/service_grpc.pb.go#L28) | `interface` | `pinpoint/proto/v1/service.proto` | Core gRPC server interface (`ScheduleBisection`, `QueryBisection`, `SchedulePairwise`, `QueryPairwise`, `ScheduleCulpritFinder`, `CancelJob`, `LegacyJobQuery`). |
-| `pinpointpb` | [`PinpointGatewayServer`](../../../pinpoint/proto/v1/gateway_grpc.pb.go#L29) | `interface` | `pinpoint/proto/v1/gateway.proto` | WebUI gateway gRPC server interface (`QueryJobList`, `GetUserInfo`, `CreateTryJob`, `CancelJob`, `ListBotConfigurations`, `ListBenchmarks`, `GetBenchmark`, `ListRecentBuilds`, `GetCommit`, `GetPatch`). |
-| `pinpointpb` | [`ScheduleBisectRequest`](../../../pinpoint/proto/v1/service.pb.go#L34) | `struct` | `pinpoint/proto/v1/service.proto` | Protobuf payload defining bisection input parameters (git hashes, bot configuration, benchmark, story, chart, magnitude, pin, aggregation). |
-| `pinpointpb` | [`SchedulePairwiseRequest`](../../../pinpoint/proto/v1/service.pb.go#L370) | `struct` | `pinpoint/proto/v1/service.proto` | Protobuf payload defining pairwise try-job parameters (start/end `CombinedCommit` or CAS builds, bot name, benchmark, story, initial attempts). |
-| `pinpointpb` | [`ScheduleCulpritFinderRequest`](../../../pinpoint/proto/v1/service.pb.go#L644) | `struct` | `pinpoint/proto/v1/service.proto` | Protobuf payload initiating sandwich verification workflow across a commit range. |
-| `pinpointpb` | [`CombinedCommit`](../../../pinpoint/proto/v1/service.pb.go#L231) | `struct` | `pinpoint/proto/v1/service.proto` | Represents a composite commit: base Chromium commit, optional list of modified DEPS revisions, and optional Gerrit patch. |
-| `pinpointpb` | [`Commit`](../../../pinpoint/proto/v1/service.pb.go#L115) | `struct` | `pinpoint/proto/v1/service.proto` | Metadata model for a single Git commit (git hash, repo URL, author, timestamp, subject, commit position, review URL, change ID). |
-| `pinpointpb` | [`GerritChange`](../../../pinpoint/proto/v1/service.pb.go#L198) | `struct` | `pinpoint/proto/v1/service.proto` | Encapsulates a Gerrit patchset reference (host, project, change number, patchset number, patchset git hash). |
-| `pinpointpb` | [`Culprit`](../../../pinpoint/proto/v1/service.pb.go#L265) | `struct` | `pinpoint/proto/v1/service.proto` | Pair of commits representing the identified culprit (`Culprit`) and its immediate predecessor (`Prior`) for verification. |
-| `pinpointpb` | [`CASReference`](../../../pinpoint/proto/v1/service.pb.go#L292) | `struct` | `pinpoint/proto/v1/service.proto` | RBE-CAS content locator containing CAS instance string and `Digest` (hash and byte size). |
-| `pinpointpb` | [`PairwiseExecution`](../../../pinpoint/proto/v1/service.pb.go#L532) | `struct` | `pinpoint/proto/v1/service.proto` | Output model of pairwise run containing Wilcoxon results map per chart and left/right swarming task statuses. |
-| `pinpointpb` | [`BisectExecution`](../../../pinpoint/proto/v1/service.pb.go#L341) | `struct` | `pinpoint/proto/v1/service.proto` | Output model of bisection workflow containing job ID, identified culprits, and detailed prior/culprit pairs. |
-| `pinpointpb` | [`CulpritProcessingCallbackParams`](../../../pinpoint/proto/v1/service.pb.go#L705) | `struct` | `pinpoint/proto/v1/service.proto` | Parameters allowing Pinpoint to dispatch callback workflows (`perf.process_culprit`) to Perf's Temporal task queue. |
-| `pinpointpb` | [`LegacyJobResponse`](../../../pinpoint/proto/v1/service.pb.go#L756) | `struct` | `pinpoint/proto/v1/service.proto` | Catapult-compatible schema mirroring `/api/job` response format for backward compatibility with the legacy Catapult dashboard. |
-| `service` | [`server`](../../../pinpoint/go/service/service_impl.go#L25) | `struct` | `pinpoint/go/service/service_impl.go` | Core implementation of `pb.PinpointServer` managing rate limiting, Temporal client dispatch, and workflow lifecycle. |
-| `pinpoint` | [`Client`](../../../pinpoint/go/pinpoint/pinpoint.go#L21) | `struct` | `pinpoint/go/pinpoint/pinpoint.go` | High-level client wrapping `LegacyClient` and authenticated Gerrit HTTP client. |
-| `pinpoint` | [`pinpointClient`](../../../pinpoint/go/pinpoint/gateway.go#L15) | `interface` | `pinpoint/go/pinpoint/gateway.go` | Internal contract defining data operations needed by the WebUI gateway server. |
-| `pinpoint` | [`gatewayServer`](../../../pinpoint/go/pinpoint/gateway.go#L27) | `struct` | `pinpoint/go/pinpoint/gateway.go` | Implementation of `pb.PinpointGatewayServer` handling user authentication headers and proxying to `pinpointClient`. |
-| `internal` | [`LegacyClient`](../../../pinpoint/go/pinpoint/internal/legacy_client.go#L68) | `struct` | `pinpoint/go/pinpoint/internal/legacy_client.go` | HTTP client communicating with `pinpoint-dot-chromeperf.appspot.com` and `chromeperf.appspot.com`. |
-| `jobsservice` | [`Service`](../../../pinpoint/go/frontend/service/jobs.go#L41) | `struct` | `pinpoint/go/frontend/service/jobs.go` | HTTP controller serving HTML templates, benchmark/bot metadata, and Spanner job queries. |
-| `jobstore` | [`JobStore`](../../../pinpoint/go/sql/jobs_store/jobs_store.go#L29) | `interface` | `pinpoint/go/sql/jobs_store/jobs_store.go` | Database persistence abstraction for Pinpoint jobs (`AddInitialJob`, `UpdateJobStatus`, `GetJob`, `AddResults`, `SetErrors`, `AddCommitRuns`, `ListJobs`). |
-| `jobstore` | [`jobStoreImpl`](../../../pinpoint/go/sql/jobs_store/jobs_store.go#L53) | `struct` | `pinpoint/go/sql/jobs_store/jobs_store.go` | Implementation of `JobStore` persisting records into Spanner SQL tables. |
-| `schema` | [`JobSchema`](../../../pinpoint/go/sql/schema/schema.go#L11) | `struct` | `pinpoint/go/sql/schema/schema.go` | Database row mapping for the `Jobs` table in Spanner. |
-| `schema` | [`CommitRunData`](../../../pinpoint/go/sql/schema/schema.go#L36) | `struct` | `pinpoint/go/sql/schema/schema.go` | Storage model for build parameters, commit info, CAS references, and test runs. |
-| `backends` | [`BuildbucketClient`](../../../pinpoint/go/backends/buildbucket.go#L69) | `interface` | `pinpoint/go/backends/buildbucket.go` | Contract for managing LUCI Buildbucket builds (`StartChromeBuild`, `GetSingleBuild`, `GetBuildStatus`, `GetCASReference`, `CancelBuild`). |
-| `backends` | [`buildbucketClient`](../../../pinpoint/go/backends/buildbucket.go#L112) | `struct` | `pinpoint/go/backends/buildbucket.go` | Production implementation of `BuildbucketClient` utilizing gRPC `bgrpcpb.BuildsClient`. |
-| `backends` | [`SwarmingClient`](../../../pinpoint/go/backends/swarming.go#L25) | `interface` | `pinpoint/go/backends/swarming.go` | Contract for managing LUCI Swarming benchmark tasks (`TriggerTask`, `FetchFreeBots`, `GetStatus`, `GetCASOutput`, `CancelTasks`, `GetBotTasksBetweenTwoTasks`). |
-| `backends` | [`SwarmingClientImpl`](../../../pinpoint/go/backends/swarming.go#L52) | `struct` | `pinpoint/go/backends/swarming.go` | Implementation of `SwarmingClient` wrapping `swarmingv2.SwarmingV2Client`. |
-| `backends` | [`IssueTracker`](../../../pinpoint/go/backends/issuetracker.go#L31) | `interface` | `pinpoint/go/backends/issuetracker.go` | Interface for filing culprit detection reports to Google IssueTracker. |
-| `backends` | [`issueTrackerTransport`](../../../pinpoint/go/backends/issuetracker.go#L36) | `struct` | `pinpoint/go/backends/issuetracker.go` | Production IssueTracker client using Google API secret key and text templates. |
-| `bot_configs` | [`BotConfig`](../../../pinpoint/go/bot_configs/bot_configs.go#L72) | `struct` | `pinpoint/go/bot_configs/bot_configs.go` | Model defining bot parameters: browser, builder, bucket, repo, swarming server, dimensions, and alias. |
-| `bot_configs` | [`TargetMaps`](../../../pinpoint/go/bot_configs/isolate_targets.go#L17) | `struct` | `pinpoint/go/bot_configs/isolate_targets.go` | YAML configuration mapping benchmarks, bot exact names, and regex patterns to build isolate target binaries. |
-| `common` | [`CombinedCommit`](../../../pinpoint/go/common/combined_commit.go#L11) | `struct` | `pinpoint/go/common/combined_commit.go` | Go native representation of composite commits with hashing, cloning, and DEPS modification helpers. |
-| `compare` | [`CompareResults`](../../../pinpoint/go/compare/compare.go#L220) | `struct` | `pinpoint/go/compare/compare.go` | Results model of statistical bisection comparison (`Verdict`, `PValue`, `PValueKS`, `PValueMWU`, `LowThreshold`, `HighThreshold`, `MeanDiff`). |
-| `compare` | [`ComparePairwiseResult`](../../../pinpoint/go/compare/compare.go#L131) | `struct` | `pinpoint/go/compare/compare.go` | Results model of pairwise try-job comparison embedding `PairwiseWilcoxonSignedRankedTestResult`. |
-| `stats` | [`PairwiseWilcoxonSignedRankedTestResult`](../../../pinpoint/go/compare/stats/wilcoxon_signed_rank.go#L29) | `struct` | `pinpoint/go/compare/stats/wilcoxon_signed_rank.go` | Mathematical output: Hodges-Lehmann estimate, confidence intervals (`LowerCi`, `UpperCi`), p-value, control/treatment medians. |
-| `midpoint` | [`MidpointHandler`](../../../pinpoint/go/midpoint/midpoint.go#L31) | `struct` | `pinpoint/go/midpoint/midpoint.go` | Evaluates Gitiles commit logs and DEPS files to calculate binary search midpoints and resolve DEPS rolls. |
-| `midpoint` | [`CommitRange`](../../../pinpoint/go/midpoint/midpoint.go#L25) | `struct` | `pinpoint/go/midpoint/midpoint.go` | Tuple holding left and right `CombinedCommit`s being bisected. |
-| `read_values` | [`Client`](../../../pinpoint/go/read_values/read_values.go#L23) | `struct` | `pinpoint/go/read_values/read_values.go` | Client fetching benchmark histogram outputs from RBE-CAS digests and parsing measurements. |
-| `run_benchmark` | [`RunBenchmark`](../../../pinpoint/go/run_benchmark/run_benchmark.go#L33) | `struct` | `pinpoint/go/run_benchmark/run_benchmark.go` | Coordinates task creation parameters and builds swarming `NewTaskRequest` payloads. |
-| `workflows` | [`BisectParams`](../../../pinpoint/go/workflows/workflows.go#L152) | `struct` | `pinpoint/go/workflows/workflows.go` | Input parameter envelope for `BisectWorkflow` and `CatapultBisectWorkflow`. |
-| `workflows` | [`PairwiseParams`](../../../pinpoint/go/workflows/workflows.go#L213) | `struct` | `pinpoint/go/workflows/workflows.go` | Input parameter envelope for `PairwiseWorkflow`. |
-| `workflows` | [`CulpritFinderParams`](../../../pinpoint/go/workflows/workflows.go#L256) | `struct` | `pinpoint/go/workflows/workflows.go` | Input parameter envelope for `CulpritFinderWorkflow` including callback URLs and task queue. |
-| `workflows` | [`BuildParams`](../../../pinpoint/go/workflows/workflows.go#L48) | `struct` | `pinpoint/go/workflows/workflows.go` | Parameters required to compile a binary on Buildbucket (commit, device, target, project, patch). |
-| `workflows` | [`Build`](../../../pinpoint/go/workflows/workflows.go#L70) | `struct` | `pinpoint/go/workflows/workflows.go` | Represents a completed build: CAS isolate digest, build ID, and Buildbucket status. |
-| `workflows` | [`TestRun`](../../../pinpoint/go/workflows/workflows.go#L94) | `struct` | `pinpoint/go/workflows/workflows.go` | Represents an executed benchmark swarming task: CAS results digest, values map, units, task ID, status. |
-| `workflows` | [`PairwiseTestRun`](../../../pinpoint/go/workflows/workflows.go#L142) | `struct` | `pinpoint/go/workflows/workflows.go` | Pair of test runs (`FirstTestRun`, `SecondTestRun`) executed in randomized order (`Permutation`). |
-| `internal` | [`BisectExecution`](../../../pinpoint/go/workflows/internal/bisect.go#L101) | `struct` | `pinpoint/go/workflows/internal/bisect.go` | Internal execution state tracking comparisons and run data across the bisection tree. |
-| `internal` | [`BisectRun`](../../../pinpoint/go/workflows/internal/bisect_run.go#L21) | `struct` | `pinpoint/go/workflows/internal/bisect_run.go` | Manages scheduled and completed benchmark runs for a specific commit during bisection. |
-| `internal` | [`CommitRun`](../../../pinpoint/go/workflows/internal/commits_runner.go#L69) | `struct` | `pinpoint/go/workflows/internal/commits_runner.go` | Encapsulates the Build and slice of `TestRun`s for a single revision. |
-| `internal` | [`PairwiseRun`](../../../pinpoint/go/workflows/internal/pairwise_runner.go#L50) | `struct` | `pinpoint/go/workflows/internal/pairwise_runner.go` | Encapsulates Left and Right `CommitRun`s along with their execution `Order` permutation slice. |
-| `internal` | [`CbbRunnerParams`](../../../pinpoint/go/workflows/internal/cbb_runner.go#L29) | `struct` | `pinpoint/go/workflows/internal/cbb_runner.go` | Parameter model for Chrome Browser Benchmarking runs (browser, channel, bot config, benchmarks). |
-| `internal` | [`JobStoreActivities`](../../../pinpoint/go/workflows/internal/database_activities.go#L23) | `struct` | `pinpoint/go/workflows/internal/database_activities.go` | Temporal activity struct executing database mutations against Spanner `JobStore`. |
-| `catapult` | [`DatastoreResponse`](../../../pinpoint/go/workflows/catapult/write.go#L18) | `struct` | `pinpoint/go/workflows/catapult/write.go` | Response model returned from writing bisection results back to Catapult Datastore. |
+| Package              | Symbol Name                                                                                                | Type        | Source File                                             | Core Responsibility                                                                                                                                                                                       |
+| :------------------- | :--------------------------------------------------------------------------------------------------------- | :---------- | :------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pinpointpb`         | [`PinpointServer`](../../../pinpoint/proto/v1/service_grpc.pb.go#L28)                                      | `interface` | `pinpoint/proto/v1/service.proto`                       | Core gRPC server interface (`ScheduleBisection`, `QueryBisection`, `SchedulePairwise`, `QueryPairwise`, `ScheduleCulpritFinder`, `CancelJob`, `LegacyJobQuery`).                                          |
+| `pinpointpb`         | [`PinpointGatewayServer`](../../../pinpoint/proto/v1/gateway_grpc.pb.go#L29)                               | `interface` | `pinpoint/proto/v1/gateway.proto`                       | WebUI gateway gRPC server interface (`QueryJobList`, `GetUserInfo`, `CreateTryJob`, `CancelJob`, `ListBotConfigurations`, `ListBenchmarks`, `GetBenchmark`, `ListRecentBuilds`, `GetCommit`, `GetPatch`). |
+| `pinpointpb`         | [`ScheduleBisectRequest`](../../../pinpoint/proto/v1/service.pb.go#L34)                                    | `struct`    | `pinpoint/proto/v1/service.proto`                       | Protobuf payload defining bisection input parameters (git hashes, bot configuration, benchmark, story, chart, magnitude, pin, aggregation).                                                               |
+| `pinpointpb`         | [`SchedulePairwiseRequest`](../../../pinpoint/proto/v1/service.pb.go#L370)                                 | `struct`    | `pinpoint/proto/v1/service.proto`                       | Protobuf payload defining pairwise try-job parameters (start/end `CombinedCommit` or CAS builds, bot name, benchmark, story, initial attempts).                                                           |
+| `pinpointpb`         | [`ScheduleCulpritFinderRequest`](../../../pinpoint/proto/v1/service.pb.go#L644)                            | `struct`    | `pinpoint/proto/v1/service.proto`                       | Protobuf payload initiating sandwich verification workflow across a commit range.                                                                                                                         |
+| `pinpointpb`         | [`CombinedCommit`](../../../pinpoint/proto/v1/service.pb.go#L231)                                          | `struct`    | `pinpoint/proto/v1/service.proto`                       | Represents a composite commit: base Chromium commit, optional list of modified DEPS revisions, and optional Gerrit patch.                                                                                 |
+| `pinpointpb`         | [`Commit`](../../../pinpoint/proto/v1/service.pb.go#L115)                                                  | `struct`    | `pinpoint/proto/v1/service.proto`                       | Metadata model for a single Git commit (git hash, repo URL, author, timestamp, subject, commit position, review URL, change ID).                                                                          |
+| `pinpointpb`         | [`GerritChange`](../../../pinpoint/proto/v1/service.pb.go#L198)                                            | `struct`    | `pinpoint/proto/v1/service.proto`                       | Encapsulates a Gerrit patchset reference (host, project, change number, patchset number, patchset git hash).                                                                                              |
+| `pinpointpb`         | [`Culprit`](../../../pinpoint/proto/v1/service.pb.go#L265)                                                 | `struct`    | `pinpoint/proto/v1/service.proto`                       | Pair of commits representing the identified culprit (`Culprit`) and its immediate predecessor (`Prior`) for verification.                                                                                 |
+| `pinpointpb`         | [`CASReference`](../../../pinpoint/proto/v1/service.pb.go#L292)                                            | `struct`    | `pinpoint/proto/v1/service.proto`                       | RBE-CAS content locator containing CAS instance string and `Digest` (hash and byte size).                                                                                                                 |
+| `pinpointpb`         | [`PairwiseExecution`](../../../pinpoint/proto/v1/service.pb.go#L532)                                       | `struct`    | `pinpoint/proto/v1/service.proto`                       | Output model of pairwise run containing Wilcoxon results map per chart and left/right swarming task statuses.                                                                                             |
+| `pinpointpb`         | [`BisectExecution`](../../../pinpoint/proto/v1/service.pb.go#L341)                                         | `struct`    | `pinpoint/proto/v1/service.proto`                       | Output model of bisection workflow containing job ID, identified culprits, and detailed prior/culprit pairs.                                                                                              |
+| `pinpointpb`         | [`CulpritProcessingCallbackParams`](../../../pinpoint/proto/v1/service.pb.go#L705)                         | `struct`    | `pinpoint/proto/v1/service.proto`                       | Parameters allowing Pinpoint to dispatch callback workflows (`perf.process_culprit`) to Perf's Temporal task queue.                                                                                       |
+| `pinpointpb`         | [`LegacyJobResponse`](../../../pinpoint/proto/v1/service.pb.go#L756)                                       | `struct`    | `pinpoint/proto/v1/service.proto`                       | Catapult-compatible schema mirroring `/api/job` response format for backward compatibility with the legacy Catapult dashboard.                                                                            |
+| `service`            | [`server`](../../../pinpoint/go/service/service_impl.go#L25)                                               | `struct`    | `pinpoint/go/service/service_impl.go`                   | Core implementation of `pb.PinpointServer` managing rate limiting, Temporal client dispatch, and workflow lifecycle.                                                                                      |
+| `pinpoint`           | [`Client`](../../../pinpoint/go/pinpoint/pinpoint.go#L21)                                                  | `struct`    | `pinpoint/go/pinpoint/pinpoint.go`                      | High-level client wrapping `LegacyClient` and authenticated Gerrit HTTP client.                                                                                                                           |
+| `pinpoint`           | [`pinpointClient`](../../../pinpoint/go/pinpoint/gateway.go#L15)                                           | `interface` | `pinpoint/go/pinpoint/gateway.go`                       | Internal contract defining data operations needed by the WebUI gateway server.                                                                                                                            |
+| `pinpoint`           | [`gatewayServer`](../../../pinpoint/go/pinpoint/gateway.go#L27)                                            | `struct`    | `pinpoint/go/pinpoint/gateway.go`                       | Implementation of `pb.PinpointGatewayServer` handling user authentication headers and proxying to `pinpointClient`.                                                                                       |
+| `internal`           | [`LegacyClient`](../../../pinpoint/go/pinpoint/internal/legacy_client.go#L68)                              | `struct`    | `pinpoint/go/pinpoint/internal/legacy_client.go`        | HTTP client communicating with `pinpoint-dot-chromeperf.appspot.com` and `chromeperf.appspot.com`.                                                                                                        |
+| `jobsservice`        | [`Service`](../../../pinpoint/go/frontend/service/jobs.go#L41)                                             | `struct`    | `pinpoint/go/frontend/service/jobs.go`                  | HTTP controller serving HTML templates, benchmark/bot metadata, and Spanner job queries.                                                                                                                  |
+| `jobstore`           | [`JobStore`](../../../pinpoint/go/sql/jobs_store/jobs_store.go#L29)                                        | `interface` | `pinpoint/go/sql/jobs_store/jobs_store.go`              | Database persistence abstraction for Pinpoint jobs (`AddInitialJob`, `UpdateJobStatus`, `GetJob`, `AddResults`, `SetErrors`, `AddCommitRuns`, `ListJobs`).                                                |
+| `jobstore`           | [`jobStoreImpl`](../../../pinpoint/go/sql/jobs_store/jobs_store.go#L53)                                    | `struct`    | `pinpoint/go/sql/jobs_store/jobs_store.go`              | Implementation of `JobStore` persisting records into Spanner SQL tables.                                                                                                                                  |
+| `schema`             | [`JobSchema`](../../../pinpoint/go/sql/schema/schema.go#L11)                                               | `struct`    | `pinpoint/go/sql/schema/schema.go`                      | Database row mapping for the `Jobs` table in Spanner.                                                                                                                                                     |
+| `schema`             | [`CommitRunData`](../../../pinpoint/go/sql/schema/schema.go#L36)                                           | `struct`    | `pinpoint/go/sql/schema/schema.go`                      | Storage model for build parameters, commit info, CAS references, and test runs.                                                                                                                           |
+| `backends`           | [`BuildbucketClient`](../../../pinpoint/go/backends/buildbucket.go#L69)                                    | `interface` | `pinpoint/go/backends/buildbucket.go`                   | Contract for managing LUCI Buildbucket builds (`StartChromeBuild`, `GetSingleBuild`, `GetBuildStatus`, `GetCASReference`, `CancelBuild`).                                                                 |
+| `backends`           | [`buildbucketClient`](../../../pinpoint/go/backends/buildbucket.go#L112)                                   | `struct`    | `pinpoint/go/backends/buildbucket.go`                   | Production implementation of `BuildbucketClient` utilizing gRPC `bgrpcpb.BuildsClient`.                                                                                                                   |
+| `backends`           | [`SwarmingClient`](../../../pinpoint/go/backends/swarming.go#L25)                                          | `interface` | `pinpoint/go/backends/swarming.go`                      | Contract for managing LUCI Swarming benchmark tasks (`TriggerTask`, `FetchFreeBots`, `GetStatus`, `GetCASOutput`, `CancelTasks`, `GetBotTasksBetweenTwoTasks`).                                           |
+| `backends`           | [`SwarmingClientImpl`](../../../pinpoint/go/backends/swarming.go#L52)                                      | `struct`    | `pinpoint/go/backends/swarming.go`                      | Implementation of `SwarmingClient` wrapping `swarmingv2.SwarmingV2Client`.                                                                                                                                |
+| `backends`           | [`IssueTracker`](../../../pinpoint/go/backends/issuetracker.go#L31)                                        | `interface` | `pinpoint/go/backends/issuetracker.go`                  | Interface for filing culprit detection reports to Google IssueTracker.                                                                                                                                    |
+| `backends`           | [`issueTrackerTransport`](../../../pinpoint/go/backends/issuetracker.go#L36)                               | `struct`    | `pinpoint/go/backends/issuetracker.go`                  | Production IssueTracker client using Google API secret key and text templates.                                                                                                                            |
+| `backends`           | [`BigQueryClient`](../../../pinpoint/go/backends/bigquery.go#L13)                                          | `interface` | `pinpoint/go/backends/bigquery.go`                      | Client abstraction for querying historical benchmark performance records from Google BigQuery.                                                                                                            |
+| `backends`           | [`CrrevClient`](../../../pinpoint/go/backends/crrev.go#L24)                                                | `interface` | `pinpoint/go/backends/crrev.go`                         | Interface querying `crrev.com` to resolve commit positions to Git hashes and vice versa.                                                                                                                  |
+| `backends`           | [`CrrevClientImpl`](../../../pinpoint/go/backends/crrev.go#L28)                                            | `struct`    | `pinpoint/go/backends/crrev.go`                         | HTTP implementation of `CrrevClient`.                                                                                                                                                                     |
+| `clients/build`      | [`BuildClient`](../../../pinpoint/go/clients/build/build_client.go#L21)                                    | `interface` | `pinpoint/go/clients/build/build_client.go`             | Abstraction for Buildbucket compilation clients.                                                                                                                                                          |
+| `clients/upload`     | [`UploadClient`](../../../pinpoint/go/clients/upload/upload_client.go#L15)                                 | `interface` | `pinpoint/go/clients/upload/upload_client.go`           | Client abstraction uploading bisection artifacts to Google Cloud Storage.                                                                                                                                 |
+| `bot_configs`        | [`BotConfig`](../../../pinpoint/go/bot_configs/bot_configs.go#L72)                                         | `struct`    | `pinpoint/go/bot_configs/bot_configs.go`                | Model defining bot parameters: browser, builder, bucket, repo, swarming server, dimensions, and alias.                                                                                                    |
+| `bot_configs`        | [`TargetMaps`](../../../pinpoint/go/bot_configs/isolate_targets.go#L17)                                    | `struct`    | `pinpoint/go/bot_configs/isolate_targets.go`            | YAML configuration mapping benchmarks, bot exact names, and regex patterns to build isolate target binaries.                                                                                              |
+| `common`             | [`CombinedCommit`](../../../pinpoint/go/common/combined_commit.go#L11)                                     | `struct`    | `pinpoint/go/common/combined_commit.go`                 | Go native representation of composite commits with hashing, cloning, and DEPS modification helpers.                                                                                                       |
+| `compare`            | [`CompareResults`](../../../pinpoint/go/compare/compare.go#L220)                                           | `struct`    | `pinpoint/go/compare/compare.go`                        | Results model of statistical bisection comparison (`Verdict`, `PValue`, `PValueKS`, `PValueMWU`, `LowThreshold`, `HighThreshold`, `MeanDiff`).                                                            |
+| `compare`            | [`ComparePairwiseResult`](../../../pinpoint/go/compare/compare.go#L131)                                    | `struct`    | `pinpoint/go/compare/compare.go`                        | Results model of pairwise try-job comparison embedding `PairwiseWilcoxonSignedRankedTestResult`.                                                                                                          |
+| `stats`              | [`PairwiseWilcoxonSignedRankedTestResult`](../../../pinpoint/go/compare/stats/wilcoxon_signed_rank.go#L29) | `struct`    | `pinpoint/go/compare/stats/wilcoxon_signed_rank.go`     | Mathematical output: Hodges-Lehmann estimate, confidence intervals (`LowerCi`, `UpperCi`), p-value, control/treatment medians.                                                                            |
+| `midpoint`           | [`MidpointHandler`](../../../pinpoint/go/midpoint/midpoint.go#L31)                                         | `struct`    | `pinpoint/go/midpoint/midpoint.go`                      | Evaluates Gitiles commit logs and DEPS files to calculate binary search midpoints and resolve DEPS rolls.                                                                                                 |
+| `midpoint`           | [`CommitRange`](../../../pinpoint/go/midpoint/midpoint.go#L25)                                             | `struct`    | `pinpoint/go/midpoint/midpoint.go`                      | Tuple holding left and right `CombinedCommit`s being bisected.                                                                                                                                            |
+| `read_values`        | [`Client`](../../../pinpoint/go/read_values/read_values.go#L23)                                            | `struct`    | `pinpoint/go/read_values/read_values.go`                | Client fetching benchmark histogram outputs from RBE-CAS digests and parsing measurements.                                                                                                                |
+| `read_values`        | [`CASProvider`](../../../pinpoint/go/read_values/read_values.go#L18)                                       | `interface` | `pinpoint/go/read_values/read_values.go`                | Provider interface downloading isolate outputs from RBE-CAS digests.                                                                                                                                      |
+| `run_benchmark`      | [`BenchmarkTest`](../../../pinpoint/go/run_benchmark/benchmark_test_factory.go#L15)                        | `interface` | `pinpoint/go/run_benchmark/benchmark_test_factory.go`   | Polymorphic factory interface generating Swarming benchmark test arguments.                                                                                                                               |
+| `run_benchmark`      | [`RunBenchmark`](../../../pinpoint/go/run_benchmark/run_benchmark.go#L33)                                  | `struct`    | `pinpoint/go/run_benchmark/run_benchmark.go`            | Coordinates task creation parameters and builds swarming `NewTaskRequest` payloads.                                                                                                                       |
+| `workflows`          | [`BisectParams`](../../../pinpoint/go/workflows/workflows.go#L152)                                         | `struct`    | `pinpoint/go/workflows/workflows.go`                    | Input parameter envelope for `BisectWorkflow` and `CatapultBisectWorkflow`.                                                                                                                               |
+| `workflows`          | [`PairwiseParams`](../../../pinpoint/go/workflows/workflows.go#L213)                                       | `struct`    | `pinpoint/go/workflows/workflows.go`                    | Input parameter envelope for `PairwiseWorkflow`.                                                                                                                                                          |
+| `workflows`          | [`CulpritFinderParams`](../../../pinpoint/go/workflows/workflows.go#L256)                                  | `struct`    | `pinpoint/go/workflows/workflows.go`                    | Input parameter envelope for `CulpritFinderWorkflow` including callback URLs and task queue.                                                                                                              |
+| `workflows`          | [`BuildParams`](../../../pinpoint/go/workflows/workflows.go#L48)                                           | `struct`    | `pinpoint/go/workflows/workflows.go`                    | Parameters required to compile a binary on Buildbucket (commit, device, target, project, patch).                                                                                                          |
+| `workflows`          | [`Build`](../../../pinpoint/go/workflows/workflows.go#L70)                                                 | `struct`    | `pinpoint/go/workflows/workflows.go`                    | Represents a completed build: CAS isolate digest, build ID, and Buildbucket status.                                                                                                                       |
+| `workflows`          | [`TestRun`](../../../pinpoint/go/workflows/workflows.go#L94)                                               | `struct`    | `pinpoint/go/workflows/workflows.go`                    | Represents an executed benchmark swarming task: CAS results digest, values map, units, task ID, status.                                                                                                   |
+| `workflows`          | [`PairwiseTestRun`](../../../pinpoint/go/workflows/workflows.go#L142)                                      | `struct`    | `pinpoint/go/workflows/workflows.go`                    | Pair of test runs (`FirstTestRun`, `SecondTestRun`) executed in randomized order (`Permutation`).                                                                                                         |
+| `internal`           | [`BisectExecution`](../../../pinpoint/go/workflows/internal/bisect.go#L101)                                | `struct`    | `pinpoint/go/workflows/internal/bisect.go`              | Internal execution state tracking comparisons and run data across the bisection tree.                                                                                                                     |
+| `internal`           | [`BisectRun`](../../../pinpoint/go/workflows/internal/bisect_run.go#L21)                                   | `struct`    | `pinpoint/go/workflows/internal/bisect_run.go`          | Manages scheduled and completed benchmark runs for a specific commit during bisection.                                                                                                                    |
+| `internal`           | [`CommitRun`](../../../pinpoint/go/workflows/internal/commits_runner.go#L69)                               | `struct`    | `pinpoint/go/workflows/internal/commits_runner.go`      | Encapsulates the Build and slice of `TestRun`s for a single revision.                                                                                                                                     |
+| `internal`           | [`PairwiseRun`](../../../pinpoint/go/workflows/internal/pairwise_runner.go#L50)                            | `struct`    | `pinpoint/go/workflows/internal/pairwise_runner.go`     | Encapsulates Left and Right `CommitRun`s along with their execution `Order` permutation slice.                                                                                                            |
+| `internal`           | [`CbbRunnerParams`](../../../pinpoint/go/workflows/internal/cbb_runner.go#L29)                             | `struct`    | `pinpoint/go/workflows/internal/cbb_runner.go`          | Parameter model for Chrome Browser Benchmarking runs (browser, channel, bot config, benchmarks).                                                                                                          |
+| `internal`           | [`BuildActivity`](../../../pinpoint/go/workflows/internal/build_workflow.go#L105)                          | `struct`    | `pinpoint/go/workflows/internal/build_workflow.go`      | Temporal activity struct managing Buildbucket build dispatch and status polling.                                                                                                                          |
+| `internal`           | [`RunBenchmarkActivity`](../../../pinpoint/go/workflows/internal/run_benchmark.go#L55)                     | `struct`    | `pinpoint/go/workflows/internal/run_benchmark.go`       | Temporal activity struct managing Swarming task scheduling, bot locking, and CAS fetch.                                                                                                                   |
+| `internal`           | [`JobStoreActivities`](../../../pinpoint/go/workflows/internal/database_activities.go#L23)                 | `struct`    | `pinpoint/go/workflows/internal/database_activities.go` | Temporal activity struct executing database mutations against Spanner `JobStore`.                                                                                                                         |
+| `workflows/catapult` | [`CatapultClient`](../../../pinpoint/go/workflows/catapult/write.go#L33)                                   | `struct`    | `pinpoint/go/workflows/catapult/write.go`               | HTTP client posting bisection results back to legacy Catapult Datastore.                                                                                                                                  |
+| `catapult`           | [`DatastoreResponse`](../../../pinpoint/go/workflows/catapult/write.go#L18)                                | `struct`    | `pinpoint/go/workflows/catapult/write.go`               | Response model returned from writing bisection results back to Catapult Datastore.                                                                                                                        |
 
 ---
 
 ## 3. Comprehensive TypeScript / Angular Component & Service Inventory
 
 Pinpoint has two frontend implementations:
+
 1. **Modern Angular 17+ SPA** in `pinpoint/webui/app/...` (the active, forward-looking Pinpoint Web UI adhering to strict Angular Material design guidelines).
 2. **Lit-based Custom Web Components** in `pinpoint/ui/modules/...` (the intermediate micro-frontend UI used for embeds and legacy views).
 
 ### 3.1 Modern Angular WebUI (`pinpoint/webui/app/...`)
 
-| Directory / File | Component / Service Class | Type | Primary Role & Interaction |
-| :--- | :--- | :--- | :--- |
-| `app/app.component.ts` | [`AppComponent`](../../../pinpoint/webui/app/app.component.ts#L10) | Component | Root application shell rendering `<app-header>` and `<router-outlet>`. |
-| `app/app.config.ts` | `appConfig` | Config | Application-wide DI providers: `provideRouter`, `provideAnimationsAsync`, `provideHttpClient`. |
-| `app/header/header.component.ts` | [`HeaderComponent`](../../../pinpoint/webui/app/header/header.component.ts#L22) | Component | Top navigation toolbar displaying Pinpoint branding, current user email (`GetUserInfo`), theme toggle (dark/light), and settings dialog trigger. |
-| `app/job-list/job-list.component.ts` | [`JobListComponent`](../../../pinpoint/webui/app/job-list/job-list.component.ts#L20) | Component | Top-level job explorer container hosting search filters, user filter, bot configuration selector, job table, and column customizer. |
-| `app/job-list/job-table/job-table.component.ts` | [`JobTableComponent`](../../../pinpoint/webui/app/job-list/job-table/job-table.component.ts#L29) | Component | High-density data table (`mat-table`) rendering job ID, user, bot, benchmark, created time, status badges, and action buttons (Cancel, View). |
-| `app/job-list/column-selector/column-selector.component.ts` | [`ColumnSelectorComponent`](../../../pinpoint/webui/app/job-list/column-selector/column-selector.component.ts#L19) | Component | Interactive column configuration dropdown allowing users to show, hide, and reorder table columns. |
-| `app/new-job/new-job.component.ts` | [`NewJobComponent`](../../../pinpoint/webui/app/new-job/new-job.component.ts#L71) | Component | Comprehensive form dialog for creating try-jobs: selects bot, benchmark, story, base commit/patch, experiment commit/patch, and extra browser args. |
-| `app/new-job/patch-parser.ts` | [`PatchParser`](../../../pinpoint/webui/app/new-job/patch-parser.ts#L22) | Utility | Parses Gerrit code-review URLs (`chromium-review.googlesource.com/c/project/+/12345/2`) into structured host, project, change ID, and patchset number. |
-| `app/cancel-job-dialog/cancel-job-dialog.component.ts` | [`CancelJobDialogComponent`](../../../pinpoint/webui/app/cancel-job-dialog/cancel-job-dialog.component.ts#L20) | Component | Confirmation modal capturing user cancellation reason and dispatching `CancelJob` API call. |
-| `app/gateway/gateway.service.ts` | [`GatewayService`](../../../pinpoint/webui/app/gateway/gateway.service.ts#L33) | Service | Angular HTTP client wrapper implementing `PinpointGateway` interface via REST endpoints (`/pinpoint/v1/...`). |
-| `app/job-list/jobs.service.ts` | [`JobsService`](../../../pinpoint/webui/app/job-list/jobs.service.ts#L26) | Service | Reactive state store for job listings, active search queries, cursor pagination (`nextCursor`, `prevCursor`), and real-time polling. |
-| `app/job-list/job-table-columns.service.ts` | [`JobTableColumnsService`](../../../pinpoint/webui/app/job-list/job-table-columns.service.ts#L21) | Service | Manages column visibility state and persists user preferences into `localStorage`. |
-| `app/settings/settings.service.ts` | [`SettingsService`](../../../pinpoint/webui/app/settings/settings.service.ts#L18) | Service | Manages user application preferences (default bot pool, auto-refresh intervals). |
-| `app/theme/theme.service.ts` | [`ThemeService`](../../../pinpoint/webui/app/theme/theme.service.ts#L15) | Service | Controls light/dark theme toggles and synchronizes theme classes with document root. |
+| Directory / File                                            | Component / Service Class                                                                                          | Type      | Primary Role & Interaction                                                                                                                             |
+| :---------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- | :-------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/app.component.ts`                                      | [`AppComponent`](../../../pinpoint/webui/app/app.component.ts#L10)                                                 | Component | Root application shell rendering `<app-header>` and `<router-outlet>`.                                                                                 |
+| `app/app.config.ts`                                         | `appConfig`                                                                                                        | Config    | Application-wide DI providers: `provideRouter`, `provideAnimationsAsync`, `provideHttpClient`.                                                         |
+| `app/header/header.component.ts`                            | [`HeaderComponent`](../../../pinpoint/webui/app/header/header.component.ts#L22)                                    | Component | Top navigation toolbar displaying Pinpoint branding, current user email (`GetUserInfo`), theme toggle (dark/light), and settings dialog trigger.       |
+| `app/job-list/job-list.component.ts`                        | [`JobListComponent`](../../../pinpoint/webui/app/job-list/job-list.component.ts#L20)                               | Component | Top-level job explorer container hosting search filters, user filter, bot configuration selector, job table, and column customizer.                    |
+| `app/job-list/job-table/job-table.component.ts`             | [`JobTableComponent`](../../../pinpoint/webui/app/job-list/job-table/job-table.component.ts#L29)                   | Component | High-density data table (`mat-table`) rendering job ID, user, bot, benchmark, created time, status badges, and action buttons (Cancel, View).          |
+| `app/job-list/column-selector/column-selector.component.ts` | [`ColumnSelectorComponent`](../../../pinpoint/webui/app/job-list/column-selector/column-selector.component.ts#L19) | Component | Interactive column configuration dropdown allowing users to show, hide, and reorder table columns.                                                     |
+| `app/new-job/new-job.component.ts`                          | [`NewJobComponent`](../../../pinpoint/webui/app/new-job/new-job.component.ts#L71)                                  | Component | Comprehensive form dialog for creating try-jobs: selects bot, benchmark, story, base commit/patch, experiment commit/patch, and extra browser args.    |
+| `app/new-job/patch-parser.ts`                               | [`PatchParser`](../../../pinpoint/webui/app/new-job/patch-parser.ts#L22)                                           | Utility   | Parses Gerrit code-review URLs (`chromium-review.googlesource.com/c/project/+/12345/2`) into structured host, project, change ID, and patchset number. |
+| `app/cancel-job-dialog/cancel-job-dialog.component.ts`      | [`CancelJobDialogComponent`](../../../pinpoint/webui/app/cancel-job-dialog/cancel-job-dialog.component.ts#L20)     | Component | Confirmation modal capturing user cancellation reason and dispatching `CancelJob` API call.                                                            |
+| `app/gateway/gateway.service.ts`                            | [`GatewayService`](../../../pinpoint/webui/app/gateway/gateway.service.ts#L33)                                     | Service   | Angular HTTP client wrapper implementing `PinpointGateway` interface via REST endpoints (`/pinpoint/v1/...`).                                          |
+| `app/job-list/jobs.service.ts`                              | [`JobsService`](../../../pinpoint/webui/app/job-list/jobs.service.ts#L26)                                          | Service   | Reactive state store for job listings, active search queries, cursor pagination (`nextCursor`, `prevCursor`), and real-time polling.                   |
+| `app/job-list/job-table-columns.service.ts`                 | [`JobTableColumnsService`](../../../pinpoint/webui/app/job-list/job-table-columns.service.ts#L21)                  | Service   | Manages column visibility state and persists user preferences into `localStorage`.                                                                     |
+| `app/settings/settings.service.ts`                          | [`SettingsService`](../../../pinpoint/webui/app/settings/settings.service.ts#L18)                                  | Service   | Manages user application preferences (default bot pool, auto-refresh intervals).                                                                       |
+| `app/theme/theme.service.ts`                                | [`ThemeService`](../../../pinpoint/webui/app/theme/theme.service.ts#L15)                                           | Service   | Controls light/dark theme toggles and synchronizes theme classes with document root.                                                                   |
 
 ### 3.2 Lit-based Custom Web Components (`pinpoint/ui/...`)
 
-| Directory / File | Element Tag / Symbol | Type | Primary Role & Interaction |
-| :--- | :--- | :--- | :--- |
-| `modules/pinpoint-scaffold-sk` | `<pinpoint-scaffold-sk>` | Element | Application shell providing layout navigation, header, login status, and responsive container. |
-| `modules/pinpoint-landing-page-sk`| `<pinpoint-landing-page-sk>`| Element | Landing dashboard rendering search bar, job filters, and `<jobs-table-sk>`. |
-| `modules/jobs-table-sk` | `<jobs-table-sk>` | Element | Table rendering historic Pinpoint runs fetched from `/json/jobs/list`. |
-| `modules/pinpoint-new-job-sk` | `<pinpoint-new-job-sk>` | Element | Interactive form element initiating new try and bisect jobs against `/pinpoint/v1/schedule`. |
-| `modules/pinpoint-results-page-sk`| `<pinpoint-results-page-sk>`| Element | Detailed execution view rendering job status, commit comparisons, and test histograms. |
-| `modules/job-overview-sk` | `<job-overview-sk>` | Element | High-level summary card displaying benchmark name, configuration, author, and verdict. |
-| `modules/commit-run-overview-sk` | `<commit-run-overview-sk>` | Element | Visual comparison card contrasting build isolates and swarming task outputs for a commit pair. |
-| `modules/wilcoxon-results-sk` | `<wilcoxon-results-sk>` | Element | Chart and table component visualizing Wilcoxon signed-rank confidence intervals, p-values, and medians. |
-| `services/api.ts` | `fetchJobs`, `getJob`, etc. | Module | Client API module executing HTTP requests against `/json/jobs/list` and `/json/job/{jobID}`. |
+| Directory / File                   | Element Tag / Symbol         | Type    | Primary Role & Interaction                                                                              |
+| :--------------------------------- | :--------------------------- | :------ | :------------------------------------------------------------------------------------------------------ |
+| `modules/pinpoint-scaffold-sk`     | `<pinpoint-scaffold-sk>`     | Element | Application shell providing layout navigation, header, login status, and responsive container.          |
+| `modules/pinpoint-landing-page-sk` | `<pinpoint-landing-page-sk>` | Element | Landing dashboard rendering search bar, job filters, and `<jobs-table-sk>`.                             |
+| `modules/jobs-table-sk`            | `<jobs-table-sk>`            | Element | Table rendering historic Pinpoint runs fetched from `/json/jobs/list`.                                  |
+| `modules/pinpoint-new-job-sk`      | `<pinpoint-new-job-sk>`      | Element | Interactive form element initiating new try and bisect jobs against `/pinpoint/v1/schedule`.            |
+| `modules/pinpoint-results-page-sk` | `<pinpoint-results-page-sk>` | Element | Detailed execution view rendering job status, commit comparisons, and test histograms.                  |
+| `modules/job-overview-sk`          | `<job-overview-sk>`          | Element | High-level summary card displaying benchmark name, configuration, author, and verdict.                  |
+| `modules/commit-run-overview-sk`   | `<commit-run-overview-sk>`   | Element | Visual comparison card contrasting build isolates and swarming task outputs for a commit pair.          |
+| `modules/wilcoxon-results-sk`      | `<wilcoxon-results-sk>`      | Element | Chart and table component visualizing Wilcoxon signed-rank confidence intervals, p-values, and medians. |
+| `services/api.ts`                  | `fetchJobs`, `getJob`, etc.  | Module  | Client API module executing HTTP requests against `/json/jobs/list` and `/json/job/{jobID}`.            |
 
 ---
 
 ## 4. Bot Configurations, Isolate Target Mapping & Benchmark Support Matrix
 
 ### 4.1 Bot Configuration Architecture (`bot_configs.go`)
+
 Pinpoint uses two embedded JSON catalogs:
+
 1. `external.json`: Public builders and bot configurations (e.g. `linux-perf`, `win-11-perf`, `mac-m2-pro-perf`).
 2. `internal.json`: Internal Google-proprietary test hardware (e.g. `android-pixel*-perf`, `internal-linux-perf`).
 
 Each `BotConfig` defines:
+
 - **`browser`**: Target browser binary (`chrome`, `android-chrome-bundle`, etc.).
 - **`bucket`**: LUCI pool used to compile binaries (typically `try` or `luci.chrome.try`).
 - **`builder`**: Compile builder on Buildbucket (e.g. `linux-perf-builder`, `android-perf-builder`).
@@ -243,27 +257,28 @@ Each `BotConfig` defines:
 - **`dimensions`**: Swarming bot selector tags (`os`, `device_type`, `pool:chrome.tests.perf`).
 
 ### 4.2 Isolate Target Mapping Matrix (`isolate_targets.yaml`)
+
 To run benchmarks on Swarming, Pinpoint must compile the correct isolate binary on Buildbucket. Target resolution is performed by `bot_configs.GetIsolateTarget(bot, benchmark)`:
 
-| Benchmark / Bot Criteria | Resolved Build Isolate Target | Underlying Target Rationale |
-| :--- | :--- | :--- |
-| **Benchmark Exact:** `webrtc_perf_tests` | `webrtc_perf_tests` | Standalone WebRTC performance benchmark runner binary. |
-| **Bot Exact:** `android-go-wembley-perf` | `performance_test_suite_android_chrome_google_bundle` | Android Go Low-RAM Chrome bundle. |
-| **Bot Exact:** `android-new-pixel-perf` | `performance_test_suite_android_chrome_google_bundle` | Modern Pixel device Google Chrome application bundle. |
-| **Bot Exact:** `android-new-pixel-pro-perf` | `performance_test_suite_android_chrome_google_bundle` | Pixel Pro flagship bundle. |
-| **Bot Exact:** `android-pixel-fold-perf` | `performance_test_suite_android_chrome_google_bundle` | Pixel Foldable bundle. |
-| **Bot Exact:** `android-pixel-tangor-perf[-cbb]` | `performance_test_suite_android_chrome_google_bundle` | Pixel Tablet bundle. |
-| **Bot Exact:** `android-pixel10-perf[-cbb]` | `performance_test_suite_android_chrome_google_bundle` | Next-gen Pixel bundle. |
-| **Bot Exact:** `android-pixel4-perf[-pgo]` | `performance_test_suite_android_chrome_google_bundle` | Legacy Pixel 4 hardware bundle. |
-| **Bot Exact:** `android-pixel6-perf[-pgo]` | `performance_test_suite_android_chrome_google_bundle` | Pixel 6 Tensor v1 bundle. |
-| **Bot Exact:** `android-pixel6-pro-perf` | `performance_test_suite_android_chrome_google_bundle` | Pixel 6 Pro Tensor v1 bundle. |
-| **Bot Exact:** `android-pixel9-perf` | `performance_test_suite_android_chrome_google_bundle` | Pixel 9 Tensor v4 bundle. |
-| **Bot Exact:** `android-pixel9-pro[-xl]-perf` | `performance_test_suite_android_chrome_google_bundle` | Pixel 9 Pro flagship bundles. |
-| **Bot Exact:** `android-samsung-foldable-perf` | `performance_test_suite_android_chrome_google_bundle` | Samsung Galaxy Fold bundle. |
-| **Regex Match:** `.*webview.*` | `performance_webview_test_suite` | Android System WebView shell and driver tests. |
-| **Regex Match:** `.*eve.*` | `performance_test_suite_eve` | ChromeOS Google Pixelbook (Eve) Chromebook target. |
-| **Regex Match:** `.*fuchsia-perf.*` | `performance_web_engine_test_suite` | Fuchsia OS WebEngine headless runner. |
-| **Default Fallback:** (All other desktop bots) | `performance_test_suite` | Standard desktop Linux, Windows, and macOS Chrome performance harness. |
+| Benchmark / Bot Criteria                         | Resolved Build Isolate Target                         | Underlying Target Rationale                                            |
+| :----------------------------------------------- | :---------------------------------------------------- | :--------------------------------------------------------------------- |
+| **Benchmark Exact:** `webrtc_perf_tests`         | `webrtc_perf_tests`                                   | Standalone WebRTC performance benchmark runner binary.                 |
+| **Bot Exact:** `android-go-wembley-perf`         | `performance_test_suite_android_chrome_google_bundle` | Android Go Low-RAM Chrome bundle.                                      |
+| **Bot Exact:** `android-new-pixel-perf`          | `performance_test_suite_android_chrome_google_bundle` | Modern Pixel device Google Chrome application bundle.                  |
+| **Bot Exact:** `android-new-pixel-pro-perf`      | `performance_test_suite_android_chrome_google_bundle` | Pixel Pro flagship bundle.                                             |
+| **Bot Exact:** `android-pixel-fold-perf`         | `performance_test_suite_android_chrome_google_bundle` | Pixel Foldable bundle.                                                 |
+| **Bot Exact:** `android-pixel-tangor-perf[-cbb]` | `performance_test_suite_android_chrome_google_bundle` | Pixel Tablet bundle.                                                   |
+| **Bot Exact:** `android-pixel10-perf[-cbb]`      | `performance_test_suite_android_chrome_google_bundle` | Next-gen Pixel bundle.                                                 |
+| **Bot Exact:** `android-pixel4-perf[-pgo]`       | `performance_test_suite_android_chrome_google_bundle` | Legacy Pixel 4 hardware bundle.                                        |
+| **Bot Exact:** `android-pixel6-perf[-pgo]`       | `performance_test_suite_android_chrome_google_bundle` | Pixel 6 Tensor v1 bundle.                                              |
+| **Bot Exact:** `android-pixel6-pro-perf`         | `performance_test_suite_android_chrome_google_bundle` | Pixel 6 Pro Tensor v1 bundle.                                          |
+| **Bot Exact:** `android-pixel9-perf`             | `performance_test_suite_android_chrome_google_bundle` | Pixel 9 Tensor v4 bundle.                                              |
+| **Bot Exact:** `android-pixel9-pro[-xl]-perf`    | `performance_test_suite_android_chrome_google_bundle` | Pixel 9 Pro flagship bundles.                                          |
+| **Bot Exact:** `android-samsung-foldable-perf`   | `performance_test_suite_android_chrome_google_bundle` | Samsung Galaxy Fold bundle.                                            |
+| **Regex Match:** `.*webview.*`                   | `performance_webview_test_suite`                      | Android System WebView shell and driver tests.                         |
+| **Regex Match:** `.*eve.*`                       | `performance_test_suite_eve`                          | ChromeOS Google Pixelbook (Eve) Chromebook target.                     |
+| **Regex Match:** `.*fuchsia-perf.*`              | `performance_web_engine_test_suite`                   | Fuchsia OS WebEngine headless runner.                                  |
+| **Default Fallback:** (All other desktop bots)   | `performance_test_suite`                              | Standard desktop Linux, Windows, and macOS Chrome performance harness. |
 
 ---
 
@@ -274,7 +289,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ### Category 1: UI_INTERACTIVE
 
 #### Action 1.1: WebUI Try Job Scheduling (Pairwise A/B Analysis)
+
 - **Level 1: Simplistic View**
+
 ```
 [User configures Try Job in NewJobComponent]
                     |
@@ -296,6 +313,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                     v
 [Returns JobID to Frontend UI]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. User fills in benchmark, bot configuration, story, base commit/patch, and experiment commit/patch in `NewJobComponent` ([`new-job.component.ts:350`](../../../pinpoint/webui/app/new-job/new-job.component.ts#L350)) and clicks "Submit".
   2. If a patch URL was provided, `PatchParser.parsePatch` ([`patch-parser.ts:22`](../../../pinpoint/webui/app/new-job/patch-parser.ts#L22)) decomposes the URL into host, project, change ID, and patchset number.
@@ -315,7 +333,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 1.2: Bisection Scheduling via API / Perf UI
+
 - **Level 1: Simplistic View**
+
 ```
 [Perf UI / User invokes POST /pinpoint/v1/bisection]
                         |
@@ -334,6 +354,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                         v
 [Returns BisectExecution{JobId: uuid}]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. Triggered from Skia Perf's `bisect-dialog-sk` or via cURL `POST /pinpoint/v1/bisection` with `ScheduleBisectRequest` payload.
   2. Handled by `server.ScheduleBisection` ([`service_impl.go:133`](../../../pinpoint/go/service/service_impl.go#L133)).
@@ -350,7 +371,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 1.3: Job Querying & Status Monitoring
+
 - **Level 1: Simplistic View**
+
 ```
 [Client sends GET /pinpoint/v1/query?job_id=xxx or /query-pairwise]
                                   |
@@ -371,6 +394,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                                                            v
                                            [Return Status: COMPLETED + Results]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. Frontend polls `GET /pinpoint/v1/query-pairwise?job_id={id}` or `GET /json/job/{jobID}`.
   2. For pairwise queries: `server.QueryPairwise` ([`service_impl.go:268`](../../../pinpoint/go/service/service_impl.go#L268)) validates `job_id`.
@@ -387,7 +411,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 1.4: Legacy Catapult Job Bridge & Datastore Sync
+
 - **Level 1: Simplistic View**
+
 ```
 [Catapult UI requests GET /api/job/xxx or LegacyJobQuery]
                             |
@@ -400,6 +426,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                             v
 [WriteBisectToCatapultActivity: POST /api/job -> Catapult Datastore]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. Catapult bisection jobs run via `CatapultBisectWorkflow` ([`catapult_bisect.go:140`](../../../pinpoint/go/workflows/catapult/catapult_bisect.go#L140)).
   2. After `internal.BisectWorkflow` completes, executes child workflow `ConvertToCatapultResponseWorkflow` ([`catapult_bisect.go:63`](../../../pinpoint/go/workflows/catapult/catapult_bisect.go#L63)).
@@ -408,39 +435,53 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
   5. `updateStatesWithComparisons` ([`catapult_bisect.go:28`](../../../pinpoint/go/workflows/catapult/catapult_bisect.go#L28)) computes `Prev` and `Next` verdict strings for each commit state.
   6. Workflow invokes activity `WriteBisectToCatapultActivity` ([`write.go:34`](../../../pinpoint/go/workflows/catapult/write.go#L34)).
   7. Formats URL: `https://pinpoint-dot-chromeperf.appspot.com/api/job/{job_id}` (or `staging-dot-chromeperf...`).
-  8. Serializes JSON and sends HTTP `POST` using authorized OAuth2 token (`ScopeUserinfoEmail`).
+  8. Serializes JSON and sends HTTP `POST` using authorized OAuth2 token (`ScopeUserinfoEmail`) with header `Content-Type: application/protobuf`.
 - **Level 3: Supported Configurations Matrix**
   Supported by all legacy bisection jobs triggered from Chromeperf.
 
 ---
 
-#### Action 1.5: Job Cancellation
+#### Action 1.5: Job Cancellation (Dual Architecture)
+
 - **Level 1: Simplistic View**
+
 ```
+WebUI Route:
 [User clicks "Cancel" in CancelJobDialogComponent]
-                        |
-                        v
-[POST /pinpoint/v1/job/cancel or GET /pinpoint/v1/cancel]
-                        |
-                        v
-[server.CancelJob -> c.CancelWorkflow(ctx, jobID)]
-                        |
-                        v
+                     |
+                     v
+[POST /pinpoint/v1/job/cancel -> gatewayServer.CancelJob]
+                     |
+                     v
+[LegacyClient.CancelJob: Injects "Cancelled by user" to Catapult]
+
+Core gRPC Route:
+[Client calls GET /pinpoint/v1/cancel with JobId & Reason]
+                     |
+                     v
+[server.CancelJob -> Temporal: c.CancelWorkflow(ctx, jobID)]
+                     |
+                     v
 [Workflow catches ErrCanceled -> DisconnectedContext Cleanup]
-                        |
-                        v
+                     |
+                     v
 [CleanupBuildActivity / CleanupBenchmarkRunActivity / UpdateJobStatus]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
-  1. User enters reason in `CancelJobDialogComponent` ([`cancel-job-dialog.component.ts:40`](../../../pinpoint/webui/app/cancel-job-dialog/cancel-job-dialog.component.ts#L40)).
-  2. Dispatches `POST /pinpoint/v1/job/cancel` via `GatewayService.CancelJob`.
-  3. Calls `server.CancelJob` ([`service_impl.go:88`](../../../pinpoint/go/service/service_impl.go#L88)).
-  4. Connects to Temporal and invokes `c.CancelWorkflow(ctx, req.JobId, "")`.
-  5. In `BuildWorkflow`, the deferred cleanup block detects `errors.Is(ctx.Err(), workflow.ErrCanceled)`.
-  6. Creates disconnected context: `workflow.NewDisconnectedContext(ctx)`.
-  7. Executes `bca.CleanupBuildActivity` ([`build_workflow.go:42`](../../../pinpoint/go/workflows/internal/build_workflow.go#L42)) to cancel running Buildbucket builds.
-  8. In `RunBenchmarkWorkflow`, executes `rba.CleanupBenchmarkRunActivity` ([`run_benchmark.go:77`](../../../pinpoint/go/workflows/internal/run_benchmark.go#L77)) calling `sc.CancelTasks(ctx, []string{taskID})`.
-  9. In `PairwiseWorkflow`, executes `UpdateJobStatus(jobID, "Canceled")` against Spanner.
+  1. **WebUI Route**:
+     - User confirms cancellation in `CancelJobDialogComponent` ([`cancel-job-dialog.component.ts:15`](../../../pinpoint/webui/app/cancel-job-dialog/cancel-job-dialog.component.ts#L15)). The dialog modal does not prompt for a reason.
+     - Calls `JobsService.cancelJob(this.data.jobId)` at L34 -> `GatewayService.CancelJob` ([`gateway.service.ts:73`](../../../pinpoint/webui/app/gateway/gateway.service.ts#L73)).
+     - Dispatches `POST /pinpoint/v1/job/cancel` to `gatewayServer.CancelJob` ([`gateway.go:94`](../../../pinpoint/go/pinpoint/gateway.go#L94)).
+     - Delegates to `Client.CancelJob` -> `LegacyClient.CancelJob` ([`legacy_client.go:830`](../../../pinpoint/go/pinpoint/internal/legacy_client.go#L830)), injecting default reason "Cancelled by user" to Catapult App Engine.
+  2. **Core gRPC API Route**:
+     - Client calls `server.CancelJob` ([`service_impl.go:88`](../../../pinpoint/go/service/service_impl.go#L88)) passing required `JobId` and `Reason`.
+  3. Connects to Temporal and invokes `c.CancelWorkflow(ctx, req.JobId, "")`.
+  4. In `BuildWorkflow`, the deferred cleanup block detects `errors.Is(ctx.Err(), workflow.ErrCanceled)`.
+  5. Creates disconnected context: `workflow.NewDisconnectedContext(ctx)`.
+  6. Executes `bca.CleanupBuildActivity` ([`build_workflow.go:42`](../../../pinpoint/go/workflows/internal/build_workflow.go#L42)) to cancel running Buildbucket builds.
+  7. In `RunBenchmarkWorkflow`, executes `rba.CleanupBenchmarkRunActivity` ([`run_benchmark.go:77`](../../../pinpoint/go/workflows/internal/run_benchmark.go#L77)) calling `sc.CancelTasks(ctx, []string{taskID})`.
+  8. In `PairwiseWorkflow`, executes `UpdateJobStatus(jobID, "Canceled")` against Spanner.
 - **Level 3: Supported Configurations Matrix**
   Supported by all active workflows.
 
@@ -449,7 +490,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ### Category 2: TASK_DISPATCH_AND_EXECUTION
 
 #### Action 2.1: Chrome Build Orchestration via Buildbucket
+
 - **Level 1: Simplistic View**
+
 ```
 [SingleCommitRunner / PairwiseCommitsRunner requires Build]
                              |
@@ -475,6 +518,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                              v (SUCCESS)
 [RetrieveBuildArtifactActivity: Extract CAS Reference from swarm_hashes_refs]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `buildChrome` ([`commits_runner.go:121`](../../../pinpoint/go/workflows/internal/commits_runner.go#L121)) invokes `bot_configs.GetIsolateTarget(bot, benchmark)`.
   2. Resolves isolate target from `isolate_targets.yaml` (e.g. `performance_test_suite_android_chrome_google_bundle` or `performance_test_suite`).
@@ -493,7 +537,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 2.2: Swarming Task Dispatch & Bot Allocation
+
 - **Level 1: Simplistic View**
+
 ```
 [SingleCommitRunner / PairwiseCommitsRunner launches runBenchmark]
                              |
@@ -516,6 +562,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                              v
 [RetrieveTestCASActivity: Fetch CasOutputRoot digest]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `runBenchmark` ([`commits_runner.go:169`](../../../pinpoint/go/workflows/internal/commits_runner.go#L169)) constructs `RunBenchmarkParams` with `BuildCAS`, `BotConfig`, `Benchmark`, `Story`, and specific `Dimensions` (`key: "id", value: botId`).
   2. Dispatches child workflow `workflows.RunBenchmark` (`RunBenchmarkWorkflow`, [`run_benchmark.go:59`](../../../pinpoint/go/workflows/internal/run_benchmark.go#L59)).
@@ -537,7 +584,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 2.3: CAS Result Fetching & Value Reading
+
 - **Level 1: Simplistic View**
+
 ```
 [Swarming Task Completes -> returns TestRun.CAS Digest]
                              |
@@ -556,6 +605,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                              v
 [Parses chart measurements, applies aggregation (mean), returns float64 array]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. In `SingleCommitRunner` ([`commits_runner.go:199`](../../../pinpoint/go/workflows/internal/commits_runner.go#L199)), after `runBenchmark` returns `TestRun`, calls activity `CollectValuesActivity` or `CollectAllValuesActivity`.
   2. `CollectValuesActivity` ([`commits_runner.go:280`](../../../pinpoint/go/workflows/internal/commits_runner.go#L280)) calls `read_values.DialRBECAS(ctx, run.CAS.CasInstance)`.
@@ -571,7 +621,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 2.4: Pairwise Randomized Execution & Bot Locking
+
 - **Level 1: Simplistic View**
+
 ```
 [PairwiseCommitsRunnerWorkflow initiates pairs]
                         |
@@ -594,6 +646,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                         v
 [Remove Missing Data & Balance Pairs: Equalize LeftThenRight and RightThenLeft]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `PairwiseCommitsRunnerWorkflow` ([`pairwise_runner.go:256`](../../../pinpoint/go/workflows/internal/pairwise_runner.go#L256)) executes activity `FindAvailableBotsActivity` ([`pairwise_runner.go:165`](../../../pinpoint/go/workflows/internal/pairwise_runner.go#L165)).
   2. Calls `sc.FetchFreeBots(botConfig)` and shuffles the bot IDs using `rand.New(rand.NewSource(seed))`.
@@ -619,7 +672,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ### Category 3: STATISTICAL_ANALYSIS_AND_MIDPOINT
 
 #### Action 3.1: Adaptive Performance Bisection Statistical Engine
+
 - **Level 1: Simplistic View**
+
 ```
 [BisectWorkflow compares Lower vs Higher Commit Runs]
                          |
@@ -644,6 +699,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                    v                       v                       v
           [Verdict: Different]     [Verdict: Unknown]      [Verdict: Same]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `BisectWorkflow` ([`bisect.go:256`](../../../pinpoint/go/workflows/internal/bisect.go#L256)) calls `compareRuns(ctx, lower, higher, chart, magnitude, improvementDir)`.
   2. Gathers sample arrays: `valuesA = lower.AllValues(chart)` and `valuesB = higher.AllValues(chart)`.
@@ -666,7 +722,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 3.2: Pairwise Wilcoxon Signed-Rank Test
+
 - **Level 1: Simplistic View**
+
 ```
 [PairwiseWorkflow finishes paired benchmark runs]
                         |
@@ -692,6 +750,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                     v                                             v
            [Verdict: Different (Significant)]             [Verdict: Same]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `PairwiseWorkflow` ([`pairwise.go:177`](../../../pinpoint/go/workflows/internal/pairwise.go#L177)) calls `comparePairwiseRuns(ctx, pr, dir)`.
   2. For each common chart in `pr.GetCommonCharts()`, calls `compare.ComparePairwise(valuesA, valuesB, dir)` ([`compare.go:141`](../../../pinpoint/go/compare/compare.go#L141)).
@@ -712,7 +771,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 3.3: Midpoint Commit Resolution & DEPS Roll Unraveling
+
 - **Level 1: Simplistic View**
+
 ```
 [BisectWorkflow detects Verdict: Different between Start & End]
                              |
@@ -734,6 +795,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                                           [Return CombinedCommit{Main: start,
                                             ModifiedDeps: [V8@mid]}]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. In `BisectWorkflow` ([`bisect.go:308`](../../../pinpoint/go/workflows/internal/bisect.go#L308)), when a pair is `Different`, invokes activity `FindMidCommitActivity` calling `MidpointHandler.FindMidCombinedCommit(ctx, lower, higher)` ([`midpoint.go:355`](../../../pinpoint/go/midpoint/midpoint.go#L355)).
   2. If `startCommit.Key() == endCommit.Key()`, errors out (identical commits).
@@ -754,14 +816,16 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
   5. **Case C: Multi-tier Nested DEPS (ModifiedDeps already present)**:
      - `m.fillModifiedDeps` ([`midpoint.go:250`](../../../pinpoint/go/midpoint/midpoint.go#L250)) synchronizes dependency depths across both arms before calculating midpoint.
   6. Back in `BisectWorkflow`, checks `CheckCombinedCommitEqualActivity(lower, mid)`:
-     - If `equal`: Bisection has terminated at adjacent commits. Appends `mid` to `be.Culprits` and `be.DetailedCulprits{Prior: lower, Culprit: mid}` ([`bisect.go:323`](../../../pinpoint/go/workflows/internal/bisect.go#L323)).
+     - If `equal`: Bisection has terminated at adjacent commits. Since no commits exist between `lower` (baseline) and `higher`, the culprit commit is **`higher`**! Appends `higher` to `be.Culprits` and records `be.DetailedCulprits{Prior: lower.CombinedCommit(), Culprit: higher.CombinedCommit()}` ([`bisect.go:323-328`](../../../pinpoint/go/workflows/internal/bisect.go#L323-L328)).
 - **Level 3: Supported Configurations Matrix**
   Supports any Git-based repository configured in `DEPS` (e.g. V8, WebRTC, Skia, Dawn, ANGLE). CIPD dependencies are ignored.
 
 ---
 
 #### Action 3.4: Functional Bisection / Flakiness Analysis
+
 - **Level 1: Simplistic View**
+
 ```
 [All benchmark runs fail or produce errors on a commit]
                           |
@@ -777,8 +841,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                           v
 [HighThresholdFunctional lookup -> Evaluates KS & MWU tests on failure rates]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
-  1. In `compareRuns` ([`workflows/internal/compare.go:37`](../../../pinpoint/go/workflows/internal/compare.go#L37)), when `len(valuesA) == 0 || len(valuesB) == 0`, checks if error runs exist.
+  1. In `CompareActivity` ([`workflows/internal/compare.go:48`](../../../pinpoint/go/workflows/internal/compare.go#L48)), functional comparison is evaluated **first on every bisection step**, rather than only as a fallback.
   2. Calls `lower.AllErrorValues(chart)` and `higher.AllErrorValues(chart)` ([`commits_runner.go:91`](../../../pinpoint/go/workflows/internal/commits_runner.go#L91)), generating binary arrays where `1.0` indicates task failure or missing CAS and `0.0` indicates success.
   3. Calls `compare.CompareFunctional(valuesA, valuesB, expectedErrRate=1.0)` ([`compare.go:251`](../../../pinpoint/go/compare/compare.go#L251)).
   4. Queries `thresholds.HighThresholdFunctional(expectedErrRate, avgSampleSize)` ([`thresholds/thresholds.go:37`](../../../pinpoint/go/compare/thresholds/thresholds.go#L37)).
@@ -792,7 +857,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ### Category 4: WORKFLOW_ORCHESTRATED (TEMPORAL)
 
 #### Action 4.1: Adaptive Bisection Workflow (`BisectWorkflow`)
+
 - **Level 1: Simplistic View**
+
 ```
 [Start BisectWorkflow (perf.bisect)]
                   |
@@ -830,6 +897,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                   v
 [Returns BisectExecution with all identified culprits and run histories]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `BisectWorkflow` ([`bisect.go:116`](../../../pinpoint/go/workflows/internal/bisect.go#L116)) is launched on `perf-internal` Temporal namespace.
   2. Activity `FindAvailableBotsActivity` populates `p.BotIds`.
@@ -859,7 +927,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 4.2: Pairwise A/B Try Job Workflow (`PairwiseWorkflow`)
+
 - **Level 1: Simplistic View**
+
 ```
 [PairwiseWorkflow (perf.pairwise) starts]
                     |
@@ -878,6 +948,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                     v
 [AddResults & UpdateJobStatus: Writes p-values & medians to Spanner]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `PairwiseWorkflow` ([`pairwise.go:27`](../../../pinpoint/go/workflows/internal/pairwise.go#L27)) receives `PairwiseParams`.
   2. Converts CAS references via `convertCas`.
@@ -895,7 +966,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 4.3: Sandwich Verification / Culprit Finder Workflow (`CulpritFinderWorkflow`)
+
 - **Level 1: Simplistic View**
+
 ```
 [CulpritFinderWorkflow (perf.culprit_finder) starts]
                          |
@@ -921,6 +994,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
          v
 [Phase 4: InvokeCulpritProcessingWorkflow -> perf.process_culprit on perf.grouping]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `CulpritFinderWorkflow` ([`catapult/culprit_finder.go:23`](../../../pinpoint/go/workflows/catapult/culprit_finder.go#L23)) receives `CulpritFinderParams`.
   2. **Phase 1: Regression Verification**:
@@ -943,7 +1017,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 4.4: Cross-Browser Benchmark Runner (`CbbRunnerWorkflow`)
+
 - **Level 1: Simplistic View**
+
 ```
 [CbbRunnerWorkflow (perf.cbb_runner) starts]
                         |
@@ -962,6 +1038,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                         v
 [format.Format -> GCS Upload Activity -> gs://{bucket}/cbb/... json format]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `CbbRunnerWorkflow` ([`cbb_runner.go:132`](../../../pinpoint/go/workflows/internal/cbb_runner.go#L132)) receives `CbbRunnerParams`.
   2. `validateParameters` checks browser support (`chrome`, `edge`, `safari`) and release channels (`stable`, `dev`, `technology-preview`).
@@ -977,7 +1054,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 4.5: Catapult Legacy Bisect Adapter (`CatapultBisectWorkflow`)
+
 - **Level 1: Simplistic View**
+
 ```
 [CatapultBisectWorkflow (perf.catapult.bisect) starts]
                          |
@@ -993,13 +1072,14 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                          v
 [Returns BisectExecution to Catapult Chromeperf callers]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `CatapultBisectWorkflow` ([`catapult_bisect.go:140`](../../../pinpoint/go/workflows/catapult/catapult_bisect.go#L140)) receives `BisectParams`.
   2. Ensures deterministic `workflowID = p.JobID` or generates UUID via `workflow.SideEffect`.
   3. Executes child workflow `internal.BisectWorkflow` ([`catapult_bisect.go:164`](../../../pinpoint/go/workflows/catapult/catapult_bisect.go#L164)).
   4. Passes completed `BisectExecution` into `ConvertToCatapultResponseWorkflow`.
   5. Executes activity `WriteBisectToCatapultActivity` ([`catapult_bisect.go:178`](../../../pinpoint/go/workflows/catapult/catapult_bisect.go#L178)):
-     - Sends HTTP POST payload to `https://pinpoint-dot-chromeperf.appspot.com/api/job/{job_id}`.
+     - Sends HTTP POST payload to `https://pinpoint-dot-chromeperf.appspot.com/api/job` with header `Content-Type: application/protobuf`.
      - On non-production environments (`!p.Production`), ignores write errors to allow smooth local testing.
   6. Returns `&pb.BisectExecution{JobId, Culprits, DetailedCulprits}`.
 - **Level 3: Supported Configurations Matrix**
@@ -1010,7 +1090,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ### Category 5: RESULT_REPORTING_AND_INTEGRATION
 
 #### Action 5.1: Culprit Reporting to Perf Spanner Autobisections
+
 - **Level 1: Simplistic View**
+
 ```
 [Pinpoint Bisection finishes -> returns verified culprit commits]
                               |
@@ -1023,6 +1105,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                               v
 [Stores: JobID, AnomalyGroupID, Culprit Git Hash, RegressionStatus]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. In Perf's `MaybeTriggerBisectionWorkflow` ([`perf/go/workflows/internal/maybe_trigger_bisection.go:514`](../../go/workflows/internal/maybe_trigger_bisection.go#L514)), after `waitPinpointJobCompletion` returns, calls `processBisectJobResults`.
   2. Extracts culprit hashes from `culpritCommits`: `culprits[i] = c.GitHash`.
@@ -1040,7 +1123,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 5.2: Perf Process Culprit Callback
+
 - **Level 1: Simplistic View**
+
 ```
 [CulpritFinderWorkflow identifies verified culprits]
                          |
@@ -1055,6 +1140,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
   1. CulpritServiceActivity.PersistCulprit (Spanner Culprits table)
   2. IssueTrackerServiceActivity.AddComment (Notifies sheriff on Buganizer)
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. In `CulpritFinderWorkflow` ([`catapult/culprit_finder.go:99`](../../../pinpoint/go/workflows/catapult/culprit_finder.go#L99)), calls `InvokeCulpritProcessingWorkflow(ctx, cfp, verifiedCulprits)`.
   2. Iterates over `verified_combined_culprits`, calling `findLastDepCommit` ([`catapult/culprit_finder.go:145`](../../../pinpoint/go/workflows/catapult/culprit_finder.go#L145)) to extract the specific leaf culprit commit (either from `ModifiedDeps` or `Main`).
@@ -1071,7 +1157,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 5.3: Legacy Catapult Datastore Writeback
+
 - **Level 1: Simplistic View**
+
 ```
 [CatapultBisectWorkflow finishes ConvertToCatapultResponseWorkflow]
                                   |
@@ -1087,6 +1175,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                                   v
 [Catapult Datastore saves Job entity with full state & comparisons]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `CatapultBisectWorkflow` ([`catapult_bisect.go:178`](../../../pinpoint/go/workflows/catapult/catapult_bisect.go#L178)) executes `WriteBisectToCatapultActivity`.
   2. Activity function ([`catapult/write.go:34`](../../../pinpoint/go/workflows/catapult/write.go#L34)) formats target endpoint based on `isProduction` flag:
@@ -1102,7 +1191,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 5.4: Google IssueTracker (Buganizer) Commenting & Culprit Tagging
+
 - **Level 1: Simplistic View**
+
 ```
 [Culprit identified and bug_id is present]
                     |
@@ -1118,6 +1209,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                     v
 [Google IssueTracker API: ModifyIssue (adds markdown comment with Gitiles links)]
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. When a bisection or culprit verification finishes with a non-empty `bug_id`, `BugUpdateWorkflow` ([`bug_update.go:21`](../../../pinpoint/go/workflows/internal/bug_update.go#L21)) is executed.
   2. Executes activity `ita.ReportCulpritActivity(bug_id, culprits)` ([`bug_update.go:48`](../../../pinpoint/go/workflows/internal/bug_update.go#L48)).
@@ -1133,7 +1225,9 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
 ---
 
 #### Action 5.5: Pinpoint Spanner JobsStore Lifecycle Persistence
+
 - **Level 1: Simplistic View**
+
 ```
 [PairwiseWorkflow Lifecycle Milestones]
                     |
@@ -1147,6 +1241,7 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
                     |
                     +---> 5. UpdateJobStatus: status set to 'Completed' (or 'Failed' / 'Canceled')
 ```
+
 - **Level 2: Detailed Call-Stack Flow**
   1. `JobStoreActivities` ([`database_activities.go:23`](../../../pinpoint/go/workflows/internal/database_activities.go#L23)) wraps Spanner `JobStore` methods.
   2. **Job Creation**: `AddInitialJob` ([`jobs_store.go:98`](../../../pinpoint/go/sql/jobs_store/jobs_store.go#L98)) executes:
@@ -1158,3 +1253,111 @@ Every interaction across Pinpoint is cataloged under its respective trigger cate
   6. **Error Logging**: On workflow error, `SetErrors` ([`jobs_store.go:250`](../../../pinpoint/go/sql/jobs_store/jobs_store.go#L250)) records error strings into the `errors` column.
 - **Level 3: Supported Configurations Matrix**
   Supported by all Go native Pinpoint jobs managed by `perfserver`.
+
+---
+
+### Category 6: CLI_AND_OFFLINE_TOOLING
+
+#### Action 6.1: Safari Technology Preview (STP) CIPD Downloader & Packager
+
+- **Level 1: Simplistic View**
+
+```
+[Automation Runs: go run ./pinpoint/go/cbb/download_stp]
+                        |
+                        v
+     [Scrapes developer.apple.com for Safari Technology Preview (STP) DMGs]
+                        |
+                        v
+     [Downloads macOS DMG, Builds CIPD Package & Updates Refs for CBB Bots]
+```
+
+- **Level 2: Detailed Call-Stack Flow**
+  1. Entrypoint in `pinpoint/go/cbb/download_stp/main.go`.
+  2. Scrapes Apple Developer resources at `https://developer.apple.com/safari/resources/`, extracts macOS DMG links for the latest **Safari Technology Preview (STP)**.
+  3. Downloads DMG image, packages it into a CIPD artifact, and uploads to CIPD repository (`infra/cbb/safari_technology_preview/mac/...`).
+  4. Tags CIPD refs so Swarming macOS CBB bots automatically provision the matching Safari Technology Preview binary.
+- **Level 3: Supported Configurations Matrix**
+  Cross-browser benchmarking bare-metal macOS fleets.
+
+---
+
+#### Action 6.2: V3 Benchmark Telemetry Uploader
+
+- **Level 1: Simplistic View**
+
+```
+[Automation Runs: go run ./pinpoint/go/cbb/upload_v3_data]
+                        |
+                        v
+        [Parses V3 Benchmark Measurement JSON]
+                        |
+                        v
+     [Uploads Ingestion Payloads to Target GCS Bucket]
+```
+
+- **Level 2: Detailed Call-Stack Flow**
+  1. Entrypoint in `pinpoint/go/cbb/upload_v3_data/main.go`.
+  2. Parses raw output measurements from Speedometer/JetStream runs, formats into V3 JSON schema, and uploads to GCS for downstream ingestion.
+- **Level 3: Supported Configurations Matrix**
+  CBB data ingestion pipelines.
+
+---
+
+#### Action 6.3: WebUI Gateway Server Dispatch
+
+- **Level 1: Simplistic View**
+
+```
+[Container Starts: pinpoint-webui --port :8000]
+                        |
+                        v
+[Serves Angular SPA Static Files & Proxies /pinpoint/v1 to gRPC]
+```
+
+- **Level 2: Detailed Call-Stack Flow**
+  1. Entrypoint in `pinpoint/go/webui/main.go` (defaults to listening on port `:8000`).
+  2. Initializes HTTP reverse proxy server, mounts compiled Angular 17+ static assets, and maps REST endpoints (`/pinpoint/v1/*`) to backend gRPC services via `PinpointGatewayServer`.
+- **Level 3: Supported Configurations Matrix**
+  Modern Pinpoint Web UI production deployments.
+
+---
+
+#### Action 6.4: Standalone Pinpoint Frontend Service Dispatch
+
+- **Level 1: Simplistic View**
+
+```
+[Container Starts: pinpoint-frontend --port :8080]
+                        |
+                        v
+[Hosts Legacy HTML & REST API: /json/jobs/list, /benchmarks, etc.]
+```
+
+- **Level 2: Detailed Call-Stack Flow**
+  1. Entrypoint in `pinpoint/go/frontend/cmd/main.go` (defaults to listening on port `:8080`).
+  2. Mounts `Service` handlers in [`pinpoint/go/frontend/service/jobs.go`](../../../pinpoint/go/frontend/service/jobs.go) serving `/json/jobs/list`, `/json/job/{jobID}`, `/benchmarks`, `/bots`, `/stories`, and static landing/results HTML pages.
+- **Level 3: Supported Configurations Matrix**
+  Standalone jobs service deployments.
+
+---
+
+#### Action 6.5: Chromium Revision Resolution via Crrev
+
+- **Level 1: Simplistic View**
+
+```
+[Service Queries Revision -> CrrevClient.GetCommitHash(ctx, commitPosition)]
+                                   |
+                                   v
+             [Queries https://crrev.com Redirect Headers]
+                                   |
+                                   v
+                    [Returns Canonical Git Commit Hash]
+```
+
+- **Level 2: Detailed Call-Stack Flow**
+  1. Invoked from bisection workflows or API services via `backends.CrrevClient` ([`pinpoint/go/backends/crrev.go`](../../../pinpoint/go/backends/crrev.go)).
+  2. Resolves sequential Chromium commit position numbers (e.g. `1234567`) by querying `crrev.com` HTTP 302 location headers, returning the canonical SHA-1 Git hash.
+- **Level 3: Supported Configurations Matrix**
+  All Chromium revision lookups.
