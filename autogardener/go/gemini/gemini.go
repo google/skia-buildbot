@@ -723,7 +723,7 @@ func (c *clientImpl) generate(ctx context.Context, prompt, model string, rl *uti
 
 		var toolResponses []genai.Part
 		for _, fc := range functionCalls {
-			toolRes, err := c.mcpClient.CallTool(ctx, fc.Name, fc.Args)
+			toolRes, err := mcpClient.CallTool(ctx, fc.Name, fc.Args)
 			if err != nil {
 				return skerr.Wrapf(err, "tool call %s failed", fc.Name)
 			}
