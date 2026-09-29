@@ -126,7 +126,7 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/command_wrapper/${platform}": {
 		Path:    ".",
 		Name:    "skia/tools/command_wrapper/${platform}",
-		Version: "git_revision:596e1cde3fd70390ed18b78e0c866dbb3d0f3aa5",
+		Version: "git_revision:f0e86a7ddcd60efbe1d9d475777559d1bb6ada8c",
 	},
 	"skia/tools/goldctl/${platform}": {
 		Path:    ".",
