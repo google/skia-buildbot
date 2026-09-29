@@ -582,11 +582,11 @@ cipd.download_http(
     name = "git",
     cipd_package = "infra/3pp/tools/git/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "d5a20a23ab261d3997b0bbfd8ff2202f40b880468ff8a2ab2f87b3b6475f8cf6",
-        "linux-arm64": "50a0f26180cbde2ef47e62b9920eb547c3725e593cd36fa6d865022b0dc37069",
-        "mac-amd64": "154b137f4be2ba42a6c79a0d9430db146fcbf57873baf028ef7badc5b6f62900",
-        "mac-arm64": "0155e93e3c4c1dd2d3684cd27a3d9f2fcec70173977a1c52fefb34ed06cc783c",
-        "windows-amd64": "66f63edaa34a43bd9cbe8a3054b15f98e468b903f6d4962700b503f5ddd947d4",
+        "linux-amd64": "bcef73e72c940ceced565b18ea27ed1b9816b94fd094c479abd8731ed0364135",
+        "linux-arm64": "d9eaa27b58d67d39726fa0aabbeb0abdbf65b5808563a0786d064b9b7bdffcf6",
+        "mac-amd64": "7ab7bd23cea0960a7b6f10de366ac1427a692e0232cde427b0f5572a2b731da2",
+        "mac-arm64": "775948f178868246078ad3ff097c2e6fa9fa6a6dbf61a2e99344d92bcee90790",
+        "windows-amd64": "a54625cacb2486b78056a6c7f36cb8dde8dd123b535a4d1288c22f91efe4d4d4",
     },
     postinstall_cmds_posix = [
         "mkdir -p etc",
@@ -601,7 +601,7 @@ cipd.download_http(
         "echo \"\tname = Bazel Test User\" >> etc/gitconfig",
         "echo \"\temail = bazel-test-user@example.com\" >> etc/gitconfig",
     ],
-    tag = "version:3@2.56.0-rc2.chromium.11",
+    tag = "version:3@2.56.0.chromium.11",
 )
 use_repo(cipd, "git_linux-amd64", "git_windows-amd64")
 
