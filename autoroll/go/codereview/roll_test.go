@@ -122,7 +122,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	}
 	urlMock := mockhttpclient.NewURLMock()
 	client := urlMock.Client()
-	gr, err := newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, nil)
+	gr, err := newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, true, nil)
 	require.NoError(t, err)
 	require.False(t, issue.IsDryRun)
 	require.False(t, gr.IsFinished())
@@ -233,7 +233,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 		}
 		g.MockGetTrybotResults(ci, 1, []*buildbucketpb.Build{tryjob})
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, true, nil)
 	require.NoError(t, err)
 	require.True(t, issue.IsDryRun)
 	require.False(t, gr.IsFinished())
@@ -287,7 +287,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, true, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes := g.MakePostRequest(ci, "Mode was changed to dry run", gc.SetDryRunLabels, nil)
@@ -308,7 +308,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, true, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes = g.MakePostRequest(ci, "Mode was changed to normal", gc.SetCqLabels, nil)
@@ -329,7 +329,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, true, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FakeGerritURL, ci.Issue)
@@ -355,7 +355,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
 	}
-	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, nil)
+	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, client, recent, "http://issue/", fromRev, toRev, true, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FakeGerritURL, ci.Issue)
@@ -904,7 +904,7 @@ func TestGerritRollWaitForLabels(t *testing.T) {
 	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ci, nil).Once()
 	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
 
-	gr, err := newGerritRoll(ctx, cfg, issue, g, client, recent, "http://issue/", fromRev, toRev, nil)
+	gr, err := newGerritRoll(ctx, cfg, issue, g, client, recent, "http://issue/", fromRev, toRev, true, nil)
 	require.NoError(t, err)
 	require.False(t, gr.IsFinished())
 	mockDBPut(issue)
@@ -957,8 +957,18 @@ func TestGerritRollWaitForLabels(t *testing.T) {
 	require.NoError(t, gr.RemoveFromCQ(ctx))
 	g.AssertExpectations(t)
 
-	// 5. Close clears expectedLabels and does not wait.
-	g.On("Abandon", testutils.AnyContext, ciNoCQ, "close it!").Return(nil).Once()
+	// 5. Update does not wait for labels even when CQ labels are unset (e.g.
+	// when a dry run or CQ attempt finishes).
+	g.On("GetIssueProperties", testutils.AnyContext, int64(123)).Return(ciMissingCQ, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(123), int64(1)).Return(nil, nil).Once()
+	mockDBPut(issue)
+
+	require.NoError(t, gr.Update(ctx))
+	require.True(t, gr.IsFinished())
+	g.AssertExpectations(t)
+
+	// 6. Close does not wait for labels.
+	g.On("Abandon", testutils.AnyContext, ciMissingCQ, "close it!").Return(nil).Once()
 	ciAbandoned, _ := makeFakeRoll(t, cfg, 123, from, to, false)
 	gerrit.UnsetLabels(ciAbandoned, gc.SetCqLabels)
 	ciAbandoned.Status = gerrit.ChangeStatusAbandoned
@@ -970,14 +980,26 @@ func TestGerritRollWaitForLabels(t *testing.T) {
 	require.True(t, gr.IsClosed())
 	g.AssertExpectations(t)
 
-	// 6. Timeout when labels never match expectation moves on without error.
+	// 7. newGerritRoll with waitForLabels=false does not wait for CQ labels
+	// even if CQ labels are unset and CqFinished/DryRunFinished are false.
+	ciNoWait, issueNoWait := makeFakeRoll(t, cfg, 125, from, to, true)
+	gerrit.UnsetLabels(ciNoWait, gc.SetDryRunLabels)
+	g.On("GetIssueProperties", testutils.AnyContext, int64(125)).Return(ciNoWait, nil).Once()
+	g.On("GetTrybotResults", testutils.AnyContext, int64(125), int64(1)).Return(nil, nil).Once()
+
+	grNoWait, err := newGerritRoll(ctx, cfg, issueNoWait, g, client, recent, "http://issue/", fromRev, toRev, false, nil)
+	require.NoError(t, err)
+	require.True(t, grNoWait.IsDryRunFinished())
+	g.AssertExpectations(t)
+
+	// 8. Timeout when labels never match expectation moves on without error.
 	ciNeverMatch, issueNeverMatch := makeFakeRoll(t, cfg, 124, from, to, false)
 	gerrit.UnsetLabels(ciNeverMatch, gc.SetCqLabels)
 	expectedPolls := int(gerritWaitForLabelsTimeout/gerritWaitForLabelsPollInterval) + 1
 	g.On("GetIssueProperties", testutils.AnyContext, int64(124)).Return(ciNeverMatch, nil).Times(expectedPolls)
 	g.On("GetTrybotResults", testutils.AnyContext, int64(124), int64(1)).Return(nil, nil).Times(expectedPolls)
 
-	grTimeout, err := newGerritRoll(ctx, cfg, issueNeverMatch, g, client, recent, "http://issue/", fromRev, toRev, nil)
+	grTimeout, err := newGerritRoll(ctx, cfg, issueNeverMatch, g, client, recent, "http://issue/", fromRev, toRev, true, nil)
 	require.NoError(t, err)
 	require.True(t, grTimeout.IsFinished())
 	g.AssertExpectations(t)

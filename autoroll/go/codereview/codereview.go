@@ -30,7 +30,7 @@ type CodeReview interface {
 	// modify it, insert it into the RecentRolls DB, etc.
 	// TODO(borenet): Consider storing the rollingTo Revision as part of the
 	// autoroll.AutoRollIssue struct, to avoid passing it around.
-	RetrieveRoll(context.Context, *autoroll.AutoRollIssue, *recent_rolls.RecentRolls, *revision.Revision, *revision.Revision, func(context.Context, RollImpl) error) (RollImpl, error)
+	RetrieveRoll(context.Context, *autoroll.AutoRollIssue, *recent_rolls.RecentRolls, *revision.Revision, *revision.Revision, bool, func(context.Context, RollImpl) error) (RollImpl, error)
 
 	// UserEmail returns the email address of the authenticated user.
 	UserEmail() string
@@ -83,8 +83,8 @@ func (c *GerritCodeReview) GetFullHistoryUrl() string {
 }
 
 // RetrieveRoll implements CodeReview.
-func (c *GerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingFrom *revision.Revision, rollingTo *revision.Revision, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
-	return newGerritRoll(ctx, c.cfg, issue, c.gerritClient, c.client, recent, c.issueUrlBase, rollingFrom, rollingTo, finishedCallback)
+func (c *GerritCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingFrom *revision.Revision, rollingTo *revision.Revision, waitForLabels bool, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
+	return newGerritRoll(ctx, c.cfg, issue, c.gerritClient, c.client, recent, c.issueUrlBase, rollingFrom, rollingTo, waitForLabels, finishedCallback)
 }
 
 // UserEmail implements CodeReview.
@@ -147,7 +147,7 @@ func (c *githubCodeReview) GetFullHistoryUrl() string {
 }
 
 // RetrieveRoll implements CodeReview.
-func (c *githubCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingFrom, rollingTo *revision.Revision, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
+func (c *githubCodeReview) RetrieveRoll(ctx context.Context, issue *autoroll.AutoRollIssue, recent *recent_rolls.RecentRolls, rollingFrom, rollingTo *revision.Revision, waitForLabels bool, finishedCallback func(context.Context, RollImpl) error) (RollImpl, error) {
 	return newGithubRoll(ctx, issue, c.githubClient, recent, c.issueUrlBase, c.cfg, rollingFrom, rollingTo, finishedCallback)
 }
 

@@ -345,7 +345,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer email.Client, 
 		// a human to make manual changes in the DB.
 		rollingFrom, rollingFromErr := arb.getRevision(ctx, current.RollingFrom)
 		rollingTo, rollingToErr := arb.getRevision(ctx, current.RollingTo)
-		roll, err := arb.retrieveRoll(ctx, current, rollingFrom, rollingTo)
+		roll, err := arb.retrieveRoll(ctx, current, rollingFrom, rollingTo, false)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "failed to retrieve current roll")
 		}
@@ -380,8 +380,8 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer email.Client, 
 // into the RecentRolls DB, etc. The Issue field is required, and if the roll
 // has not yet been inserted into the DB, the RollingFrom, and RollingTo fields
 // must be set as well.
-func (r *AutoRoller) retrieveRoll(ctx context.Context, roll *autoroll.AutoRollIssue, rollingFrom *revision.Revision, rollingTo *revision.Revision) (codereview.RollImpl, error) {
-	return r.codereview.RetrieveRoll(ctx, roll, r.recent, rollingFrom, rollingTo, r.rollFinished)
+func (r *AutoRoller) retrieveRoll(ctx context.Context, roll *autoroll.AutoRollIssue, rollingFrom *revision.Revision, rollingTo *revision.Revision, waitForLabels bool) (codereview.RollImpl, error) {
+	return r.codereview.RetrieveRoll(ctx, roll, r.recent, rollingFrom, rollingTo, waitForLabels, r.rollFinished)
 }
 
 // isSyncError returns true iff the error looks like a sync error.
@@ -547,7 +547,7 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revis
 	if err != nil {
 		return nil, err
 	}
-	roll, err := r.retrieveRoll(ctx, issue, from, to)
+	roll, err := r.retrieveRoll(ctx, issue, from, to, true)
 	if err != nil {
 		return nil, err
 	}
@@ -1115,7 +1115,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			continue
 		}
 		sklog.Infof("Getting status for manual roll # %d", issue.Issue)
-		roll, err := r.retrieveRoll(ctx, issue, from, to)
+		roll, err := r.retrieveRoll(ctx, issue, from, to, req.Status == manual.STATUS_PENDING)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to retrieve manual roll %s: %s", req.Id, err)
 		}

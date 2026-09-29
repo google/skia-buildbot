@@ -157,7 +157,6 @@ func updateIssueFromGerritChangeInfo(i *autoroll.AutoRollIssue, ci *gerrit.Chang
 // gerritRoll is an implementation of RollImpl.
 type gerritRoll struct {
 	ci               *gerrit.ChangeInfo
-	expectedLabels   map[string]int
 	issue            *autoroll.AutoRollIssue
 	issueUrl         string
 	finishedCallback func(context.Context, RollImpl) error
@@ -198,13 +197,15 @@ func checkLabels(ci *gerrit.ChangeInfo, expected map[string]int) bool {
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, client *http.Client, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingFrom, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	expectedLabels := gerrit.MergeLabels(g.Config().SelfApproveLabels, g.Config().SetCqLabels)
-	if issue.IsDryRun {
-		expectedLabels = g.Config().SetDryRunLabels
+func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, client *http.Client, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingFrom, rollingTo *revision.Revision, waitForLabels bool, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	var expectedLabels map[string]int
+	if waitForLabels {
+		expectedLabels = gerrit.MergeLabels(g.Config().SelfApproveLabels, g.Config().SetCqLabels)
+		if issue.IsDryRun {
+			expectedLabels = g.Config().SetDryRunLabels
+		}
 	}
 	r := &gerritRoll{
-		expectedLabels:   expectedLabels,
 		issue:            issue,
 		issueUrl:         fmt.Sprintf("%s%d", issueUrlBase, issue.Issue),
 		finishedCallback: cb,
@@ -216,7 +217,7 @@ func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autorol
 		rollingFrom: rollingFrom,
 		rollingTo:   rollingTo,
 	}
-	if err := r.retrieve(ctx, true); err != nil {
+	if err := r.retrieve(ctx, expectedLabels); err != nil {
 		return nil, err
 	}
 	gitilesRepo, err := gitiles.NewRepoWithClient(g.GetRepoUrl()+"/"+r.ci.Project, client)
@@ -240,7 +241,7 @@ func (r *gerritRoll) AddComment(ctx context.Context, msg string) error {
 // Helper function for modifying a roll CL which might fail due to the CL being
 // closed by a human or some other process, in which case we don't want to error
 // out.
-func (r *gerritRoll) withModify(ctx context.Context, action string, fn func() error) error {
+func (r *gerritRoll) withModify(ctx context.Context, action string, expectedLabels map[string]int, fn func() error) error {
 	if err := fn(); err != nil {
 		// It's possible that somebody abandoned the CL (or the CL
 		// landed) while we were working. If that's the case, log an
@@ -254,16 +255,14 @@ func (r *gerritRoll) withModify(ctx context.Context, action string, fn func() er
 		}
 		return err
 	}
-	return r.update(ctx, true)
+	return r.update(ctx, expectedLabels)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Close(ctx context.Context, result, msg string) error {
 	sklog.Infof("Closing issue %d (result %q) with message: %s", r.ci.Issue, result, msg)
-	checkLabels(r.ci, r.expectedLabels)
 	r.result = result
-	return r.withModify(ctx, "close the CL", func() error {
-		r.expectedLabels = nil
+	return r.withModify(ctx, "close the CL", nil, func() error {
 		return r.g.Abandon(ctx, r.ci, msg)
 	})
 }
@@ -330,11 +329,10 @@ func (r *gerritRoll) SwitchToDryRun(ctx context.Context) error {
 	if err := errorIfHumanIntervened(r.issue); err != nil {
 		return skerr.Wrap(err)
 	}
-	return r.withModify(ctx, "switch the CL to dry run", func() error {
+	return r.withModify(ctx, "switch the CL to dry run", r.g.Config().SetDryRunLabels, func() error {
 		if err := r.g.SendToDryRun(ctx, r.ci, "Mode was changed to dry run"); err != nil {
 			return skerr.Wrap(err)
 		}
-		r.expectedLabels = r.g.Config().SetDryRunLabels
 		r.issue.IsDryRun = true
 		return nil
 	})
@@ -345,11 +343,10 @@ func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
 	if err := errorIfHumanIntervened(r.issue); err != nil {
 		return skerr.Wrap(err)
 	}
-	return r.withModify(ctx, "switch the CL out of dry run", func() error {
+	return r.withModify(ctx, "switch the CL out of dry run", r.g.Config().SetCqLabels, func() error {
 		if err := r.g.SendToCQ(ctx, r.ci, "Mode was changed to normal"); err != nil {
 			return err
 		}
-		r.expectedLabels = r.g.Config().SetCqLabels
 		r.issue.IsDryRun = false
 		return nil
 	})
@@ -357,12 +354,8 @@ func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) RemoveFromCQ(ctx context.Context) error {
-	return r.withModify(ctx, "remove CQ labels", func() error {
-		if err := r.g.RemoveFromCQ(ctx, r.ci, "Removing CL from commit queue"); err != nil {
-			return err
-		}
-		r.expectedLabels = r.g.Config().NoCqLabels
-		return nil
+	return r.withModify(ctx, "remove CQ labels", r.g.Config().NoCqLabels, func() error {
+		return r.g.RemoveFromCQ(ctx, r.ci, "Removing CL from commit queue")
 	})
 }
 
@@ -404,14 +397,13 @@ func (r *gerritRoll) RetryCQ(ctx context.Context) error {
 	if err := errorIfHumanIntervened(r.issue); err != nil {
 		return skerr.Wrap(err)
 	}
-	return r.withModify(ctx, "retry the CQ", func() error {
+	return r.withModify(ctx, "retry the CQ", r.g.Config().SetCqLabels, func() error {
 		if err := r.maybeRebaseCL(ctx); err != nil {
 			return skerr.Wrap(err)
 		}
 		if err := r.g.SendToCQ(ctx, r.ci, "CQ failed but there are no new commits. Retrying..."); err != nil {
 			return skerr.Wrap(err)
 		}
-		r.expectedLabels = r.g.Config().SetCqLabels
 		r.issue.IsDryRun = false
 		r.issue.Attempt++
 		r.issue.AttemptStart = time.Now()
@@ -424,14 +416,13 @@ func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 	if err := errorIfHumanIntervened(r.issue); err != nil {
 		return skerr.Wrap(err)
 	}
-	return r.withModify(ctx, "retry the CQ (dry run)", func() error {
+	return r.withModify(ctx, "retry the CQ (dry run)", r.g.Config().SetDryRunLabels, func() error {
 		if err := r.maybeRebaseCL(ctx); err != nil {
 			return skerr.Wrap(err)
 		}
 		if err := r.g.SendToDryRun(ctx, r.ci, "Dry run failed but there are no new commits. Retrying..."); err != nil {
 			return skerr.Wrap(err)
 		}
-		r.expectedLabels = r.g.Config().SetDryRunLabels
 		r.issue.IsDryRun = true
 		r.issue.Attempt++
 		r.issue.AttemptStart = time.Now()
@@ -441,12 +432,12 @@ func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Update(ctx context.Context) error {
-	return r.update(ctx, false)
+	return r.update(ctx, nil)
 }
 
-func (r *gerritRoll) update(ctx context.Context, waitForLabels bool) error {
+func (r *gerritRoll) update(ctx context.Context, expectedLabels map[string]int) error {
 	alreadyClosed := r.IsClosed()
-	if err := r.retrieve(ctx, waitForLabels); err != nil {
+	if err := r.retrieve(ctx, expectedLabels); err != nil {
 		return err
 	}
 	if r.result != "" {
@@ -461,7 +452,7 @@ func (r *gerritRoll) update(ctx context.Context, waitForLabels bool) error {
 	return nil
 }
 
-func (r *gerritRoll) retrieve(ctx context.Context, waitForLabels bool) error {
+func (r *gerritRoll) retrieve(ctx context.Context, expectedLabels map[string]int) error {
 	start := now.Now(ctx)
 	for {
 		ci, err := r.retrieveRoll(ctx)
@@ -469,7 +460,7 @@ func (r *gerritRoll) retrieve(ctx context.Context, waitForLabels bool) error {
 			return err
 		}
 		r.ci = ci
-		if r.IsClosed() || checkLabels(r.ci, r.expectedLabels) || !waitForLabels {
+		if r.IsClosed() || checkLabels(r.ci, expectedLabels) {
 			return nil
 		}
 		if now.Now(ctx).Sub(start) >= gerritWaitForLabelsTimeout {
