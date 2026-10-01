@@ -43,8 +43,9 @@ _validate_domain      3600    IN CNAME nonce.domainvalidation.dvs.goog.
 ;;; and its subdomains (*.luci.app).
 _validation-persist   3600    IN TXT "pki.goog; accounturi=https://dv-allowlist.acme-v02.api.pki.goog/account/ojKjjp_A2vBkQO-gKbmZ8A; policy=wildcard"
 
-;;; Master A record. Hosted in the GCP project skia-infra-public.
+;;; Master A and AAAA records. Hosted in the GCP project skia-infra-public.
 @                     300     IN A 34.110.212.89
+@                     300     IN AAAA 2600:1901:0:7125::
 
 ;;; CNAME all the hosts for this domain.
 *                     3600    IN CNAME luci.app.

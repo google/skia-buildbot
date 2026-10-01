@@ -93,6 +93,33 @@ task-scheduler           300      IN A 34.110.212.89
 task-scheduler-internal  300      IN A 34.110.212.89
 task-scheduler-staging   300      IN A 34.110.212.89
 temporal-ui              300      IN A 34.110.212.89
+androidx2-perf           300      IN AAAA 2600:1901:0:7125::
+androidx-perf            300      IN AAAA 2600:1901:0:7125::
+attest                   300      IN AAAA 2600:1901:0:7125::
+autoroll                 300      IN AAAA 2600:1901:0:7125::
+autoroll-google3         300      IN AAAA 2600:1901:0:7125::
+bugs-central             300      IN AAAA 2600:1901:0:7125::
+cabe                     300      IN AAAA 2600:1901:0:7125::
+cdn                      300      IN AAAA 2600:1901:0:7125::
+codesize                 300      IN AAAA 2600:1901:0:7125::
+debugger                 300      IN AAAA 2600:1901:0:7125::
+demos                    300      IN AAAA 2600:1901:0:7125::
+envoy-admin-panel-public 300      IN AAAA 2600:1901:0:7125::
+fiddle                   300      IN AAAA 2600:1901:0:7125::
+jsfiddle                 300      IN AAAA 2600:1901:0:7125::
+leasing                  300      IN AAAA 2600:1901:0:7125::
+npm                      300      IN AAAA 2600:1901:0:7125::
+perf-infra-public-cdb    300      IN AAAA 2600:1901:0:7125::
+scrap                    300      IN AAAA 2600:1901:0:7125::
+shaders                  300      IN AAAA 2600:1901:0:7125::
+skcq                     300      IN AAAA 2600:1901:0:7125::
+skottie                  300      IN AAAA 2600:1901:0:7125::
+status                   300      IN AAAA 2600:1901:0:7125::
+task-driver              300      IN AAAA 2600:1901:0:7125::
+task-scheduler           300      IN AAAA 2600:1901:0:7125::
+task-scheduler-internal  300      IN AAAA 2600:1901:0:7125::
+task-scheduler-staging   300      IN AAAA 2600:1901:0:7125::
+temporal-ui              300      IN AAAA 2600:1901:0:7125::
 
 ;;; Master A record. Hosted in the GCP project skia-public.
 @         300      IN A 35.201.76.220
