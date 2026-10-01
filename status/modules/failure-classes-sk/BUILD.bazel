@@ -1,0 +1,32 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
+
+sk_element(
+    name = "failure-classes-sk",
+    sass_deps = ["//status/modules:styles_sass_lib"],
+    sass_srcs = ["failure-classes-sk.scss"],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+    ],
+    ts_srcs = [
+        "failure-classes-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "failure-classes-sk_test",
+    src = "failure-classes-sk_test.ts",
+    deps = [
+        ":failure-classes-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)

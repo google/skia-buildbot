@@ -74,6 +74,7 @@ var (
 	capacityTemplate           *template.Template                 = nil
 	commitsTemplate            *template.Template                 = nil
 	experimentalTemplate       *template.Template                 = nil
+	fcCache                    *failureClassesCache               = nil
 	tasksMachinesTemplate      *template.Template                 = nil
 	iCache                     *incremental.IncrementalCacheImpl  = nil
 	lkgrObj                    *lkgr.LKGR                         = nil
@@ -362,6 +363,7 @@ func runServer(serverURL string, srv http.Handler) {
 		r.HandleFunc("/dist/*", httputils.MakeResourceHandler(*resourcesDir))
 		handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 		r.HandleFunc("/json/task-summary/{taskId}", taskSummaryHandler)
+		r.HandleFunc("/json/failure-classes", fcCache.Handler)
 		r.HandleFunc("/json/orphaned-tasks-machines", orphanedTasksMachinesCache.Handler())
 	})
 	var h http.Handler = topLevelRouter
@@ -573,6 +575,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	fcCache = newFailureClassesCache(ctx, autogardenerDB)
 
 	// Create Twirp Server.
 	twirpServer := rpc.NewStatusServer(iCache, taskDb, capacityClient, getAutorollerStatusesTwirp, getRepoTwirp, maxCommitsToLoad, defaultCommitsToLoad, podId)

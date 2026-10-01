@@ -55,21 +55,27 @@ export class DetailsDialogSk extends ElementSk {
       ${el.detailsSection
         ? [
             el.detailsSection,
-            html`
-              <br />
-              <hr />
-            `,
+            el.commentData
+              ? html`
+                  <br />
+                  <hr />
+                `
+              : html``,
           ]
         : html``}
-      <div>
-        <comments-sk
-          .commentData=${el.commentData}
-          .allowAdd=${true}
-          .allowDelete=${true}
-          .showIgnoreFailure=${el.showCommentsIgnoreFailure}
-          .showFlaky=${el.showCommentsFlaky}
-          .editRights=${el.canEditComments}></comments-sk>
-      </div>
+      ${el.commentData
+        ? html`
+            <div>
+              <comments-sk
+                .commentData=${el.commentData}
+                .allowAdd=${true}
+                .allowDelete=${true}
+                .showIgnoreFailure=${el.showCommentsIgnoreFailure}
+                .showFlaky=${el.showCommentsFlaky}
+                .editRights=${el.canEditComments}></comments-sk>
+            </div>
+          `
+        : html``}
     </div>
   `;
 
@@ -126,6 +132,7 @@ export class DetailsDialogSk extends ElementSk {
     this.actionButton = null;
     this.titleSection = html``;
     this.detailsSection = null;
+    this.commentData = undefined;
     this.showCommentsFlaky = false;
     this.showCommentsIgnoreFailure = false;
     const commentInput = $$('comments-sk input-sk', this) as HTMLInputElement;
@@ -272,6 +279,19 @@ export class DetailsDialogSk extends ElementSk {
     this.detailsSection = html`
       <h3>${escapeAndLinkify(commit.subject)}</h3>
       <p>${escapeAndLinkify(commit.body)}</p>
+    `;
+    this.open();
+  }
+
+  displayFailureClass(summary: TaskSummary, taskCount: number) {
+    this.reset();
+    this.titleSection = html`<h3>Failure Class (${taskCount} task(s))</h3>`;
+    this.detailsSection = html`
+      <div>
+        <table class="task-info">
+          ${taskSummaryRows(summary)}
+        </table>
+      </div>
     `;
     this.open();
   }

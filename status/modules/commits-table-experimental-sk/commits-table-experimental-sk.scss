@@ -321,6 +321,25 @@ commits-table-experimental-sk {
     background-color: var(--unexpected);
   }
 
+  .commitsTableContainer.highlighting-failure-class .task:not(.highlight-failure-class) {
+    opacity: 0.35;
+  }
+
+  .task.highlight-failure-class {
+    outline: 2px solid var(--on-surface);
+    transform: scale(1.1);
+    opacity: 1;
+    z-index: 3;
+
+    &.bg-failure {
+      background-color: var(--failure);
+    }
+
+    &.bg-mishap {
+      background-color: var(--unexpected);
+    }
+  }
+
   .fill-green {
     fill: var(--success);
   }

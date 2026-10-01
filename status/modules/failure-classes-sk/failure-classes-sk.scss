@@ -1,0 +1,55 @@
+@use '../styles';
+
+failure-classes-sk {
+  display: block;
+
+  .failure-classes-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty {
+    padding: 8px;
+    color: var(--secondary);
+    font-style: italic;
+    font-size: 0.9em;
+  }
+
+  .failure-class-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--surface-1dp);
+    cursor: pointer;
+    gap: 8px;
+
+    &:hover,
+    &.hovered {
+      background-color: var(--surface-1dp);
+      color: var(--on-surface);
+
+      .value {
+        text-decoration: underline;
+      }
+    }
+
+    .analysis {
+      flex: 1;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .count {
+      flex-shrink: 0;
+    }
+
+    .value {
+      background-color: var(--failure-alpha);
+      color: var(--on-failure);
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-weight: 600;
+    }
+  }
+}

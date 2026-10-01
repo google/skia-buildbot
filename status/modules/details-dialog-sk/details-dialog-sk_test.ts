@@ -154,4 +154,19 @@ describe('details-dialog-sk', () => {
     expect($('hr', element)).to.have.length(1);
     expect($('table.comments tr.comment', element)).to.have.length(1);
   });
+
+  it('displays failure class', () => {
+    element.displayFailureClass(
+      {
+        analysis: 'Failure analysis text',
+        errorMessage: 'Error stack trace',
+      },
+      3
+    );
+    expect($$('h3', element)).to.have.property('innerText', 'Failure Class (3 task(s))');
+    expect($('button.action', element)).to.have.length(0);
+    expect($$('code', element)?.textContent).to.equal('Error stack trace');
+    expect($('hr', element)).to.have.length(0);
+    expect($('comments-sk', element)).to.have.length(0);
+  });
 });

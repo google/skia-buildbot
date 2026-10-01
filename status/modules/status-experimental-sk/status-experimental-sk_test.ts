@@ -92,6 +92,7 @@ describe('status-experimental-sk', () => {
       'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener',
       infraRoleResp
     );
+    fetchMock.post('/json/failure-classes', []);
     Date.now = () => 1600883976659;
     SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');

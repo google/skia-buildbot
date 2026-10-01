@@ -15,6 +15,7 @@ import '../../../infra-sk/modules/alogin-sk';
 import '../autoroller-status-sk';
 import '../bugs-status-sk';
 import '../commits-table-experimental-sk';
+import '../failure-classes-sk';
 import '../gold-status-sk';
 import '../navigation-sk';
 import '../perf-status-sk';
@@ -29,6 +30,9 @@ import { TreeStatus } from '../tree-status-sk/tree-status-sk';
 import { RotationsSk } from '../rotations-sk/rotations-sk';
 import { AutorollerStatus } from '../rpc';
 import { BranchesSk } from '../branches-sk/branches-sk';
+import { CommitsTableExperimentalSk } from '../commits-table-experimental-sk/commits-table-experimental-sk';
+import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
+import { ActiveFailureClass, FailureClassesSk } from '../failure-classes-sk/failure-classes-sk';
 
 export class StatusExperimentalSk extends ElementSk {
   private repo: string = defaultRepo();
@@ -44,6 +48,8 @@ export class StatusExperimentalSk extends ElementSk {
   private navOpen: boolean = true;
 
   private rotationsOpen: boolean = true;
+
+  private failureClassesOpen: boolean = false;
 
   constructor() {
     super(StatusExperimentalSk.template);
@@ -165,9 +171,36 @@ export class StatusExperimentalSk extends ElementSk {
       </aside>
 
       <main>
-        <commits-table-experimental-sk
-          @repo-changed=${(e: CustomEvent) =>
-            el.updateRepo(e.detail)}></commits-table-experimental-sk>
+        <div class="main-layout">
+          <div class="commits-panel">
+            <commits-table-experimental-sk
+              @repo-changed=${(e: CustomEvent) => el.updateRepo(e.detail)}
+              @failed-tasks-changed=${(e: CustomEvent) => el.onFailedTasksChanged(e.detail.taskIds)}
+              @task-hover=${(e: CustomEvent) =>
+                el.onTaskHover(e.detail.taskId, e.detail.hovered)}></commits-table-experimental-sk>
+          </div>
+          <aside class="right-sidebar ${el.failureClassesOpen ? 'open' : 'closed'}">
+            <div>
+              <button
+                class="collapser"
+                @click=${() => {
+                  el.failureClassesOpen = !el.failureClassesOpen;
+                  el._render();
+                }}>
+                ${el.failureClassesOpen
+                  ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+                  : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+                Known Failures
+              </button>
+              <collapse-sk ?closed=${!el.failureClassesOpen}>
+                <failure-classes-sk
+                  @highlight-tasks=${(e: CustomEvent) => el.onHighlightTasks(e.detail.taskIds)}
+                  @select-failure-class=${(e: CustomEvent<ActiveFailureClass>) =>
+                    el.onSelectFailureClass(e.detail)}></failure-classes-sk>
+              </collapse-sk>
+            </div>
+          </aside>
+        </div>
         <error-toast-sk></error-toast-sk>
       </main>
 
@@ -194,6 +227,34 @@ export class StatusExperimentalSk extends ElementSk {
     const branchSk = $$<BranchesSk>('branches-sk', this)!;
     branchSk.rolls = rolls;
     branchSk.repoUrl = repoUrl(this.repo.toLowerCase());
+  }
+
+  private onFailedTasksChanged(taskIds: Array<string>) {
+    const fcSk = $$<FailureClassesSk>('failure-classes-sk', this);
+    if (fcSk) {
+      fcSk.taskIds = taskIds;
+    }
+  }
+
+  private onTaskHover(taskId: string, hovered: boolean) {
+    const fcSk = $$<FailureClassesSk>('failure-classes-sk', this);
+    if (fcSk) {
+      fcSk.setHoveredTask(taskId, hovered);
+    }
+  }
+
+  private onHighlightTasks(taskIds: Array<string>) {
+    const tableSk = $$<CommitsTableExperimentalSk>('commits-table-experimental-sk', this);
+    if (tableSk) {
+      tableSk.highlightTasks(taskIds);
+    }
+  }
+
+  private onSelectFailureClass(fc: ActiveFailureClass) {
+    const dialog = $$<DetailsDialogSk>('details-dialog-sk', this);
+    if (dialog) {
+      dialog.displayFailureClass(fc.failureClass, fc.taskIds.length);
+    }
   }
 
   private updateTreeStatus(r: TreeStatus) {

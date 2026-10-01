@@ -705,6 +705,8 @@ export class CommitsTableExperimentalSk extends ElementSk {
 
   private mishapTasks: Array<Task> = [];
 
+  private failedTaskIds: Array<string> = [];
+
   private requestLimiter: RequestLimiter = new RequestLimiter();
 
   private stateHasChanged: () => void = () => {};
@@ -1278,6 +1280,9 @@ export class CommitsTableExperimentalSk extends ElementSk {
         if (task.status === TASK_STATUS_MISHAP) {
           this.mishapTasks.push(task);
         }
+        if (task.status === TASK_STATUS_FAILURE || task.status === TASK_STATUS_MISHAP) {
+          this.failedTaskIds.push(task.id);
+        }
         const displayTaskRows = this.displayTaskRows(task, commitIndex);
         if (displayTaskRows.every(Boolean)) {
           // The task bubble is contiguous, just draw a single div over that span.
@@ -1287,8 +1292,8 @@ export class CommitsTableExperimentalSk extends ElementSk {
               style=${this.gridLocation(rowStart, colStart, rowStart + displayTaskRows.length)}
               title=${taskTitle(task)}
               data-task-id=${task.id}
-              @mouseenter=${() => this.taskMouseInOut(task)}
-              @mouseleave=${() => this.taskMouseInOut(task)}>
+              @mouseenter=${() => this.taskMouseInOut(task, true)}
+              @mouseleave=${() => this.taskMouseInOut(task, false)}>
               ${this.taskIcon(task)}
             </div>`
           );
@@ -1299,8 +1304,8 @@ export class CommitsTableExperimentalSk extends ElementSk {
           res.push(
             html`<div
               class="multicommit-task grow"
-              @mouseenter=${() => this.taskMouseInOut(task)}
-              @mouseleave=${() => this.taskMouseInOut(task)}
+              @mouseenter=${() => this.taskMouseInOut(task, true)}
+              @mouseleave=${() => this.taskMouseInOut(task, false)}
               style=${this.gridLocation(rowStart, colStart, rowStart + displayTaskRows.length)}>
               ${this.multiCommitTaskSlots(displayTaskRows, rowStart, task)}
             </div>`
@@ -1310,12 +1315,35 @@ export class CommitsTableExperimentalSk extends ElementSk {
     }
   }
 
-  private taskMouseInOut(task: Task) {
+  private taskMouseInOut(task: Task, hovered: boolean = false) {
     task.commits!.forEach((hash) => {
       $$<HTMLDivElement>(`.${this.attributeStringFromHash(hash)}`, this)?.classList.toggle(
         `task-emphasize-${task.status?.toLowerCase() || 'unknown'}`
       );
     });
+    this.dispatchEvent(
+      new CustomEvent('task-hover', {
+        bubbles: true,
+        detail: { taskId: task.id, hovered },
+      })
+    );
+  }
+
+  highlightTasks(taskIds: string[]) {
+    const container = $$('.commitsTableContainer', this);
+    $('.highlight-failure-class', this).forEach((el) =>
+      el.classList.remove('highlight-failure-class')
+    );
+    if (!taskIds || taskIds.length === 0) {
+      container?.classList.remove('highlighting-failure-class');
+      return;
+    }
+    container?.classList.add('highlighting-failure-class');
+    for (const id of taskIds) {
+      $(`[data-task-id="${id}"]`, this).forEach((el) =>
+        el.classList.add('highlight-failure-class')
+      );
+    }
   }
 
   // Return a time label if one should be used for the commit at the given index.
@@ -1352,6 +1380,7 @@ export class CommitsTableExperimentalSk extends ElementSk {
     // at least 1 more than the commits panel, even if we have no tasks displayed.
     this.lastColumn = Math.max(taskSpecStartCols.size + TASK_START_COL, TASK_START_COL + 1);
     this.mishapTasks = [];
+    this.failedTaskIds = [];
     let taskStartRow = COMMIT_START_ROW;
     if (this.cursor) {
       res.push(html`
@@ -1547,6 +1576,12 @@ export class CommitsTableExperimentalSk extends ElementSk {
     //console.time('render');
     this._render();
     //console.timeEnd('render');
+    this.dispatchEvent(
+      new CustomEvent('failed-tasks-changed', {
+        bubbles: true,
+        detail: { taskIds: this.failedTaskIds.slice() },
+      })
+    );
   }
 }
 

@@ -26,6 +26,8 @@ sk_element(
         "//status/modules/gold-status-sk",
         "//status/modules/perf-status-sk",
         "//status/modules/tree-status-sk",
+        "//status/modules/failure-classes-sk",
+        "//status/modules/details-dialog-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",

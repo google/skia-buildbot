@@ -1,8 +1,10 @@
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "status_lib",
     srcs = [
+        "failure_classes.go",
         "main.go",
         "tasks_per_commit.go",
     ],
@@ -10,6 +12,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//autogardener/go/db",
+        "//autogardener/go/types",
         "//autoroll/go/status",
         "//go/alogin",
         "//go/alogin/proxylogin",
@@ -48,6 +51,7 @@ go_library(
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",
+        "@org_golang_x_sync//errgroup",
     ],
 )
 
@@ -55,4 +59,16 @@ go_binary(
     name = "status",
     embed = [":status_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "status_test",
+    srcs = ["failure_classes_test.go"],
+    embed = [":status_lib"],
+    deps = [
+        "//autogardener/go/db/mocks",
+        "//autogardener/go/types",
+        "//go/testutils",
+        "@com_github_stretchr_testify//require",
+    ],
 )

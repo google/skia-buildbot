@@ -95,6 +95,7 @@ fetchMock.getOnce(
   'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener',
   infraRoleResp
 );
+fetchMock.post('/json/failure-classes', []);
 
 const data = document.createElement('status-experimental-sk');
 ($$('#container') as HTMLElement).appendChild(data);
