@@ -105,28 +105,22 @@ func (b *DB) Update(ctx context.Context) error {
 // occur. Starts the goroutine and returns immediately. The goroutine exits when
 // the given context expires.
 func (b *DB) AutoUpdate(ctx context.Context) {
+	makeQuery := func() fs.Query {
+		return b.coll.Query
+	}
 	go func() {
-		// TODO(borenet): The QuerySnapshotChannel will stop if it
-		// encounters any error. We should add retry with backoff,
-		// either here or in the go/firestore package.
-		for snap := range firestore.QuerySnapshotChannel(ctx, b.coll.Query) {
+		for changes := range firestore.QuerySnapshotChannel[Rule](ctx, makeQuery) {
 			sklog.Infof("Received skip_tasks update")
-			docs, err := snap.Documents.GetAll()
-			if err != nil {
-				sklog.Errorf("Failed to retrieve documents from query snapshot: %s", err)
-				continue
-			}
-			rules := make(map[string]*Rule, len(docs))
-			for _, doc := range docs {
-				var r Rule
-				if err := doc.DataTo(&r); err != nil {
-					sklog.Errorf("Failed to decode document %s from query snapshot: %s", doc.Ref.ID, err)
-					continue
-				}
-				rules[r.Name] = &r
-			}
 			b.mtx.Lock()
-			b.rules = rules
+			for _, r := range changes.Added {
+				b.rules[r.Name] = r
+			}
+			for _, r := range changes.Modified {
+				b.rules[r.Name] = r
+			}
+			for _, r := range changes.Removed {
+				delete(b.rules, r.Name)
+			}
 			b.mtx.Unlock()
 		}
 	}()

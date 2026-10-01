@@ -692,47 +692,90 @@ func EnsureNotEmulator() {
 	}
 }
 
+// QuerySnapshotChanges contains the decoded document changes from a single
+// QuerySnapshot, categorized by DocumentChangeKind.
+type QuerySnapshotChanges[T any] struct {
+	Added     []*T
+	Removed   []*T
+	Modified  []*T
+	Timestamp time.Time
+}
+
 // QuerySnapshotChannel is a helper for firestore.QuerySnapshotIterator which
-// passes each QuerySnapshot along the returned channel. QuerySnapshotChannel
-// returns the channel immediately but spins up a goroutine which runs
-// indefinitely or until an error occurs, in which case the channel is closed
-// and an error is logged.
+// passes the decoded document changes for each QuerySnapshot along the returned
+// channel. QuerySnapshotChannel returns the channel immediately and spins up a
+// goroutine which runs until the given Context is canceled, retrying with
+// exponential backoff if the iterator returns an error.
 //
 // A couple of notes:
 //
 //  1. QuerySnapshotIterator immediately produces a QuerySnapshot containing all
-//     of the current results for the query, then blocks until those results
-//     change. QuerySnapshot.Changes contains the changes since the last snapshot
-//     (and will therefore be empty on the first snapshot), while its Documents
-//     field is an iterator which will obtain all of the updated results.
+//     of the current results for the query (as Added changes), then blocks until
+//     those results change.
 //  2. If the consumer of the QuerySnapshotChannel is slower than the
 //     QuerySnapshotIterator, the most recent snapshot will get stuck waiting to
 //     be passed along the channel and thus may be out of date by the time the
 //     consumer sees it. If your consumer is slow, consider adding a buffered
 //     channel as an intermediate, or a goroutine to collect batches of snapshots
 //     to be processed.
-func QuerySnapshotChannel(ctx context.Context, q firestore.Query) <-chan *firestore.QuerySnapshot {
-	ch := make(chan *firestore.QuerySnapshot)
+func QuerySnapshotChannel[T any](ctx context.Context, makeQuery func() firestore.Query) <-chan QuerySnapshotChanges[T] {
+	ch := make(chan QuerySnapshotChanges[T])
+	backoffWait := backoff.NewExponentialBackOff()
 	go func() {
-		iter := q.Snapshots(ctx)
+		defer close(ch)
 		for {
-			qsnap, err := iter.Next()
-			if err != nil {
-				if ctx.Err() == context.Canceled {
-					sklog.Warningf("Context canceled; closing QuerySnapshotChannel: %s", err)
-				} else if st, ok := status.FromError(err); ok && st.Code() == codes.Canceled {
-					sklog.Warningf("Context canceled; closing QuerySnapshotChannel: %s", err)
-				} else {
-					sklog.Errorf("QuerySnapshotIterator returned error; closing QuerySnapshotChannel: %s", err)
-				}
-				iter.Stop()
-				close(ch)
+			querySnapshotLoop(ctx, makeQuery(), backoffWait, ch)
+			if err := ctx.Err(); err != nil {
+				sklog.Warningf("%s while watching query.", err)
 				return
 			}
-			ch <- qsnap
+			// If we reached this point, the QuerySnapshotIterator has stopped for
+			// some reason. Restart it after a brief wait in case it's repeatedly
+			// failing.
+			time.Sleep(backoffWait.NextBackOff())
 		}
 	}()
 	return ch
+}
+
+func querySnapshotLoop[T any](ctx context.Context, q firestore.Query, backoffWait backoff.BackOff, outCh chan<- QuerySnapshotChanges[T]) {
+	iter := q.Snapshots(ctx)
+	defer iter.Stop()
+	for {
+		qsnap, err := iter.Next()
+		if err != nil {
+			if ctx.Err() == context.Canceled {
+				sklog.Warningf("Context canceled; closing QuerySnapshotIterator: %s", err)
+			} else if st, ok := status.FromError(err); ok && st.Code() == codes.Canceled {
+				sklog.Warningf("Context canceled; closing QuerySnapshotIterator: %s", err)
+			} else {
+				sklog.Errorf("QuerySnapshotIterator returned error: %s", err)
+			}
+			return
+		}
+		backoffWait.Reset()
+		changes := QuerySnapshotChanges[T]{
+			Timestamp: qsnap.ReadTime,
+		}
+		for _, ch := range qsnap.Changes {
+			var doc T
+			if err := ch.Doc.DataTo(&doc); err != nil {
+				sklog.Errorf("Failed to decode document %s from query snapshot: %+v", ch.Doc.Ref.ID, ch.Doc.Data())
+				continue
+			}
+			switch ch.Kind {
+			case firestore.DocumentAdded:
+				changes.Added = append(changes.Added, &doc)
+			case firestore.DocumentRemoved:
+				changes.Removed = append(changes.Removed, &doc)
+			case firestore.DocumentModified:
+				changes.Modified = append(changes.Modified, &doc)
+			default:
+				sklog.Errorf("Unknown DocumentChangeKind: %v", ch.Kind)
+			}
+		}
+		outCh <- changes
+	}
 }
 
 // BatchWrite executes breaks a large amount of writes into batches of the given size and commits

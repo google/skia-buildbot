@@ -39,4 +39,8 @@ type AutoGardenerDB interface {
 	// GetRecentFailureClasses retrieves FailureClasses seen after the given
 	// timestamp, up to the specified limit.
 	GetRecentFailureClasses(ctx context.Context, repo string, since time.Time, limit int) ([]*types.FailureClass, error)
+
+	// ModifiedFailureClassesCh returns a channel which produces slices of
+	// FailureClasses seen within the given window as they are modified in the DB.
+	ModifiedFailureClassesCh(ctx context.Context, window time.Duration) <-chan []*types.FailureClass
 }

@@ -167,6 +167,26 @@ func (_m *AutoGardenerDB) GetUnclassifiedTaskSummaries(ctx context.Context, limi
 	return r0, r1
 }
 
+// ModifiedFailureClassesCh provides a mock function with given fields: ctx, window
+func (_m *AutoGardenerDB) ModifiedFailureClassesCh(ctx context.Context, window time.Duration) <-chan []*types.FailureClass {
+	ret := _m.Called(ctx, window)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ModifiedFailureClassesCh")
+	}
+
+	var r0 <-chan []*types.FailureClass
+	if rf, ok := ret.Get(0).(func(context.Context, time.Duration) <-chan []*types.FailureClass); ok {
+		r0 = rf(ctx, window)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(<-chan []*types.FailureClass)
+		}
+	}
+
+	return r0
+}
+
 // PutFailureClass provides a mock function with given fields: ctx, fc
 func (_m *AutoGardenerDB) PutFailureClass(ctx context.Context, fc *types.FailureClass) error {
 	ret := _m.Called(ctx, fc)

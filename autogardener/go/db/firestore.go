@@ -8,6 +8,7 @@ import (
 	fs "cloud.google.com/go/firestore"
 	"go.skia.org/infra/autogardener/go/types"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -147,6 +148,23 @@ func (d *firestoreDB) GetRecentFailureClasses(ctx context.Context, repo string, 
 		return nil, skerr.Wrap(err)
 	}
 	return results, nil
+}
+
+func (d *firestoreDB) ModifiedFailureClassesCh(ctx context.Context, window time.Duration) <-chan []*types.FailureClass {
+	outCh := make(chan []*types.FailureClass)
+	makeQuery := func() fs.Query {
+		return d.client.Collection(collectionFailureClass).Where("LastSeen", ">=", now.Now(ctx).Add(-window))
+	}
+	go func() {
+		defer close(outCh)
+		for changes := range firestore.QuerySnapshotChannel[types.FailureClass](ctx, makeQuery) {
+			fcs := append(changes.Added, changes.Modified...)
+			if len(fcs) > 0 {
+				outCh <- fcs
+			}
+		}
+	}()
+	return outCh
 }
 
 var _ AutoGardenerDB = &firestoreDB{}
