@@ -271,7 +271,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		}
 		pythonBinary, err := cpython3.Find()
 		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to find python3.8 binary from CIPD")
+			return nil, skerr.Wrapf(err, "Failed to find python3 binary from CIPD")
 		}
 		pythonBinaryDir := filepath.Dir(pythonBinary)
 		paths = append([]string{pythonBinaryDir}, paths...)
