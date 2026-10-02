@@ -95,6 +95,14 @@ func TestSkiaOrgDNSConfiguration(t *testing.T) {
 	testSkiaOrgZoneEntry(t, dns.TypeA, "perf-infra-public-cdb.skia.org.", "34.110.212.89")
 	testSkiaOrgZoneEntry(t, dns.TypeA, "envoy-admin-panel-public.skia.org.", "34.110.212.89")
 
+	testSkiaOrgZoneEntry(t, dns.TypeAAAA, "androidx2-perf.skia.org.", "2600:1901:0:7125::")
+	testSkiaOrgZoneEntry(t, dns.TypeAAAA, "androidx-perf.skia.org.", "2600:1901:0:7125::")
+	testSkiaOrgZoneEntry(t, dns.TypeAAAA, "autoroll.skia.org.", "2600:1901:0:7125::")
+	testSkiaOrgZoneEntry(t, dns.TypeAAAA, "status.skia.org.", "2600:1901:0:7125::")
+	testSkiaOrgZoneEntry(t, dns.TypeAAAA, "cabe.skia.org.", "2600:1901:0:7125::")
+	testSkiaOrgZoneEntry(t, dns.TypeAAAA, "perf-infra-public-cdb.skia.org.", "2600:1901:0:7125::")
+	testSkiaOrgZoneEntry(t, dns.TypeAAAA, "envoy-admin-panel-public.skia.org.", "2600:1901:0:7125::")
+
 	testSkiaOrgZoneEntry(t, dns.TypeA, "skia.org.", "35.201.76.220")
 
 	testSkiaOrgZoneEntry(t, dns.TypeTXT, "skia.org.", "v=spf1 include:_spf.google.com ~all")
@@ -119,5 +127,6 @@ func TestLuciAppDNSConfiguration(t *testing.T) {
 	testLuciAppZoneEntry(t, dns.TypeCAA, "luci.app.", "pki.goog")
 	testLuciAppZoneEntry(t, dns.TypeCNAME, "_validate_domain.luci.app.", "nonce.domainvalidation.dvs.goog.")
 	testLuciAppZoneEntry(t, dns.TypeA, "luci.app.", "34.110.212.89")
+	testLuciAppZoneEntry(t, dns.TypeAAAA, "luci.app.", "2600:1901:0:7125::")
 	testLuciAppZoneEntry(t, dns.TypeCNAME, "some-random-sub-domain.luci.app.", "luci.app.")
 }
