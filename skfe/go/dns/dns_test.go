@@ -104,6 +104,7 @@ func TestSkiaOrgDNSConfiguration(t *testing.T) {
 	testSkiaOrgZoneEntry(t, dns.TypeAAAA, "envoy-admin-panel-public.skia.org.", "2600:1901:0:7125::")
 
 	testSkiaOrgZoneEntry(t, dns.TypeA, "skia.org.", "35.201.76.220")
+	testSkiaOrgZoneEntry(t, dns.TypeAAAA, "skia.org.", "2600:1901:0:257e::")
 
 	testSkiaOrgZoneEntry(t, dns.TypeTXT, "skia.org.", "v=spf1 include:_spf.google.com ~all")
 
