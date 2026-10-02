@@ -121,8 +121,9 @@ task-scheduler-internal  300      IN AAAA 2600:1901:0:7125::
 task-scheduler-staging   300      IN AAAA 2600:1901:0:7125::
 temporal-ui              300      IN AAAA 2600:1901:0:7125::
 
-;;; Master A record. Hosted in the GCP project skia-public.
+;;; Master A and AAAA records. Hosted in the GCP project skia-public.
 @         300      IN A 35.201.76.220
+@         300      IN AAAA 2600:1901:0:257e::
 
 ;;; SPF record for domains that send email using Dasher/Google Apps.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
