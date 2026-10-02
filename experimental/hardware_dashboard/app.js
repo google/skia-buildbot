@@ -458,11 +458,7 @@ function renderDashboard(builders, gnArgsMapping = {}, swarmingDimensionsMapping
         const benchSearchStr = (tc.benchmarks || []).join(' ').toLowerCase();
         const searchStr = `${tc.name.toLowerCase()} ${dimsSearchStr} ${benchSearchStr}`;
 
-        const chromeosTesters = [
-          'android-corsola-steelix-8gb-perf',
-          'android-brya-kano-i5-8gb-perf',
-          'android-nissa-uldren-8gb-perf',
-        ];
+        const chromeosTesters = ['android-brya-kano-i5-8gb-perf'];
         let swarmingServer = chromeosTesters.includes(tc.name)
           ? 'https://chromeos-swarming.appspot.com'
           : 'https://chrome-swarming.appspot.com';
