@@ -64,13 +64,15 @@ func testZoneEntry(t *testing.T, qType uint16, domainName, expectedValue string,
 			},
 		},
 	}
+	dnsMsg.SetEdns0(4096, false)
 	dnsClient := dns.Client{}
 
 	t.Run(fmt.Sprintf("%s_%d", domainName, qType), func(t *testing.T) {
 		for _, nameserver := range nameservers {
 			response, _, err := dnsClient.Exchange(dnsMsg, nameserver)
 			require.NoError(t, err, "nameserver: %q", nameserver)
-			require.Contains(t, response.Answer[0].String(), expectedValue, "nameserver: %q", nameserver)
+			require.NotEmpty(t, response.Answer, "nameserver: %q", nameserver)
+			require.Contains(t, response.String(), expectedValue, "nameserver: %q", nameserver)
 		}
 	})
 
@@ -86,6 +88,11 @@ func TestSkiaOrgDNSConfiguration(t *testing.T) {
 	testSkiaOrgZoneEntry(t, dns.TypeCAA, "skia.org.", "pki.goog")
 
 	testSkiaOrgZoneEntry(t, dns.TypeCNAME, "_validate_domain.skia.org.", "nonce.domainvalidation.dvs.goog.")
+
+	testSkiaOrgZoneEntry(t, dns.TypeTXT, "_validation-persist.skia.org.", "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/-hp_UqbNXIyKURH60i1QDw; policy=wildcard")
+	testSkiaOrgZoneEntry(t, dns.TypeTXT, "_validation-persist.skia.org.", "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/AgqaatevDcGzoTR4waGTew; policy=wildcard")
+	testSkiaOrgZoneEntry(t, dns.TypeTXT, "_validation-persist.skia.org.", "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/LJzVN6WH3SdkuNYN_A7s4g; policy=wildcard")
+	testSkiaOrgZoneEntry(t, dns.TypeTXT, "_validation-persist.skia.org.", "pki.goog; accounturi=https://dv-allowlist.acme-v02.api.pki.goog/account/P7MdecKq0sMSdk5oqPoHOQ; policy=wildcard")
 
 	testSkiaOrgZoneEntry(t, dns.TypeA, "androidx2-perf.skia.org.", "34.110.212.89")
 	testSkiaOrgZoneEntry(t, dns.TypeA, "androidx-perf.skia.org.", "34.110.212.89")
@@ -127,6 +134,7 @@ func TestLuciAppDNSConfiguration(t *testing.T) {
 
 	testLuciAppZoneEntry(t, dns.TypeCAA, "luci.app.", "pki.goog")
 	testLuciAppZoneEntry(t, dns.TypeCNAME, "_validate_domain.luci.app.", "nonce.domainvalidation.dvs.goog.")
+	testLuciAppZoneEntry(t, dns.TypeTXT, "_validation-persist.luci.app.", "pki.goog; accounturi=https://dv-allowlist.acme-v02.api.pki.goog/account/ojKjjp_A2vBkQO-gKbmZ8A; policy=wildcard")
 	testLuciAppZoneEntry(t, dns.TypeA, "luci.app.", "34.110.212.89")
 	testLuciAppZoneEntry(t, dns.TypeAAAA, "luci.app.", "2600:1901:0:7125::")
 	testLuciAppZoneEntry(t, dns.TypeCNAME, "some-random-sub-domain.luci.app.", "luci.app.")
