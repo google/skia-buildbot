@@ -488,6 +488,11 @@ third_party {
     month: %d
     day: %d
   }
+  security: {
+    tag: "android:on_device_usage"
+    tag: "android:privilege_level:privileged"
+    tag: "android:untrusted_input"
+  }
 }
 `, r.projectMetadataFileConfig.Name, r.projectMetadataFileConfig.Description, r.projectMetadataFileConfig.HomePage, r.projectMetadataFileConfig.GitUrl, to.Id, r.projectMetadataFileConfig.LicenseType, d.Year(), d.Month(), d.Day())
 
