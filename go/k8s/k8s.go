@@ -36,6 +36,15 @@ type Client interface {
 
 	// GetEvents retrieves events for the given namespace.
 	GetEvents(ctx context.Context, namespace string) ([]corev1.Event, error)
+
+	// GetSecret retrieves a single Secret in the namespace.
+	GetSecret(ctx context.Context, namespace, name string, opts metav1.GetOptions) (*corev1.Secret, error)
+
+	// CreateSecret creates a new Secret in the namespace.
+	CreateSecret(ctx context.Context, namespace string, secret *corev1.Secret, opts metav1.CreateOptions) (*corev1.Secret, error)
+
+	// UpdateSecret updates an existing Secret in the namespace.
+	UpdateSecret(ctx context.Context, namespace string, secret *corev1.Secret, opts metav1.UpdateOptions) (*corev1.Secret, error)
 }
 
 // ClientImpl implements Client.
@@ -99,6 +108,33 @@ func (c *ClientImpl) GetEvents(ctx context.Context, namespace string) ([]corev1.
 		return nil, skerr.Wrap(err)
 	}
 	return resp.Items, nil
+}
+
+// GetSecret implements Client.
+func (c *ClientImpl) GetSecret(ctx context.Context, namespace, name string, opts metav1.GetOptions) (*corev1.Secret, error) {
+	result, err := c.c.CoreV1().Secrets(namespace).Get(ctx, name, opts)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return result, nil
+}
+
+// CreateSecret implements Client.
+func (c *ClientImpl) CreateSecret(ctx context.Context, namespace string, secret *corev1.Secret, opts metav1.CreateOptions) (*corev1.Secret, error) {
+	result, err := c.c.CoreV1().Secrets(namespace).Create(ctx, secret, opts)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return result, nil
+}
+
+// UpdateSecret implements Client.
+func (c *ClientImpl) UpdateSecret(ctx context.Context, namespace string, secret *corev1.Secret, opts metav1.UpdateOptions) (*corev1.Secret, error) {
+	result, err := c.c.CoreV1().Secrets(namespace).Update(ctx, secret, opts)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return result, nil
 }
 
 // Assert that ClientImpl implements Client.

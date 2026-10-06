@@ -101,6 +101,9 @@ packages:
   go.skia.org/infra/go/gitstore:
     interfaces:
       GitStore:
+  go.skia.org/infra/go/k8s:
+    interfaces:
+      Client:
   go.skia.org/infra/go/login:
     interfaces:
       OAuthConfig:
