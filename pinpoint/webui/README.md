@@ -93,16 +93,16 @@ profile popup), the Angular CLI dev-server proxy is configured in
 
 ```json
 "headers": {
-  "Grpc-Metadata-X-Webauth-User": "test-user@google.com"
+  "X-Webauth-User": "test-user@google.com"
 }
 ```
 
 - **Default User**: The default user is `test-user@google.com`.
 - **Changing User**: To test with a different email address, edit the value of
-  `"Grpc-Metadata-X-Webauth-User"` in `pinpoint/webui/proxy.local.json` and
+  `"X-Webauth-User"` in `pinpoint/webui/proxy.local.json` and
   restart the dev server.
 - **Anonymous Mode**: To test the application as an anonymous/logged-out user,
-  remove the `"headers"` block or the `"Grpc-Metadata-X-Webauth-User"` entry
+  remove the `"headers"` block or the `"X-Webauth-User"` entry
   from `pinpoint/webui/proxy.local.json` and restart the dev server.
 
 Note: if you modify `test-user@google.com`, revert it before merging.

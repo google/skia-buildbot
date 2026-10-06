@@ -1,7 +1,9 @@
 package pinpoint
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +15,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -23,22 +27,23 @@ func TestGetUserInfo(t *testing.T) {
 		expectedEmail string
 	}{
 		{
-			name: "Gateway Path (HTTP)",
-			ctx: metadata.NewIncomingContext(context.Background(), metadata.Pairs(
-				"grpcmetadata-x-webauth-user", "user-http@google.com",
-			)),
+			name: "Authenticated User via alogin.Status",
+			ctx: alogin.FakeStatus(context.Background(), &alogin.Status{
+				EMail: "user-http@google.com",
+			}),
 			expectedEmail: "user-http@google.com",
 		},
 		{
-			name: "Direct gRPC Path",
-			ctx: metadata.NewIncomingContext(context.Background(), metadata.Pairs(
-				"x-webauth-user", "user-grpc@google.com",
-			)),
-			expectedEmail: "user-grpc@google.com",
+			name:          "No Auth Status",
+			ctx:           context.Background(),
+			expectedEmail: "",
 		},
 		{
-			name:          "No Auth Header",
-			ctx:           context.Background(),
+			name: "Ignores Raw gRPC Metadata Keys",
+			ctx: metadata.NewIncomingContext(context.Background(), metadata.Pairs(
+				"grpcmetadata-x-webauth-user", "spoof-http@google.com",
+				"x-webauth-user", "spoof-grpc@google.com",
+			)),
 			expectedEmail: "",
 		},
 	}
@@ -67,6 +72,104 @@ func TestNewGatewayJSONHandler_GetUserInfo(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Contains(t, rr.Body.String(), `"email":"user@google.com"`)
+}
+
+func TestGatewayIdentity_IgnoresClientMetadataHeaders(t *testing.T) {
+	const (
+		attackerEmail = "attacker@google.com"
+		victimEmail   = "victim@google.com"
+		iterations    = 50
+	)
+
+	testCases := []struct {
+		name         string
+		applyHeaders func(h http.Header)
+	}{
+		{
+			name: "Grpc-Metadata-Grpcmetadata-X-Webauth-User",
+			applyHeaders: func(h http.Header) {
+				h.Set("X-WEBAUTH-USER", attackerEmail)
+				h.Set("Grpc-Metadata-Grpcmetadata-X-Webauth-User", victimEmail)
+			},
+		},
+		{
+			name: "Grpc-Metadata-X-Webauth-User",
+			applyHeaders: func(h http.Header) {
+				h.Set("X-WEBAUTH-USER", attackerEmail)
+				h.Set("Grpc-Metadata-X-Webauth-User", victimEmail)
+			},
+		},
+		{
+			name: "lowercase grpc-metadata-grpcmetadata-x-webauth-user",
+			applyHeaders: func(h http.Header) {
+				h.Set("X-WEBAUTH-USER", attackerEmail)
+				h.Set("grpc-metadata-grpcmetadata-x-webauth-user", victimEmail)
+				h["grpc-metadata-grpcmetadata-x-webauth-user"] = []string{victimEmail}
+			},
+		},
+		{
+			name: "lowercase grpc-metadata-x-webauth-user",
+			applyHeaders: func(h http.Header) {
+				h.Set("X-WEBAUTH-USER", attackerEmail)
+				h.Set("grpc-metadata-x-webauth-user", victimEmail)
+				h["grpc-metadata-x-webauth-user"] = []string{victimEmail}
+			},
+		},
+		{
+			name: "duplicated X-WEBAUTH-USER headers",
+			applyHeaders: func(h http.Header) {
+				h.Set("X-WEBAUTH-USER", attackerEmail)
+				h.Add("X-WEBAUTH-USER", victimEmail)
+			},
+		},
+	}
+
+	tryJobPayload, err := json.Marshal(&pb.CreateTryJobRequest{
+		Benchmark:     "speedometer3",
+		Configuration: "linux-perf",
+		Story:         "Story1",
+		AttemptCount:  10,
+		Base:          &pb.VariantConfig{Commit: "base-sha"},
+		Experiment:    &pb.VariantConfig{Commit: "exp-sha"},
+		User:          victimEmail,
+	})
+	require.NoError(t, err)
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			for i := 0; i < iterations; i++ {
+				var capturedUser string
+				client := &mockPinpointClient{
+					createPinpointTryJobFunc: func(ctx context.Context, r *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error) {
+						capturedUser = r.User
+						return &pb.CreateJobResponse{JobId: "job-1"}, nil
+					},
+				}
+
+				handler, err := newGatewayJSONHandler(context.Background(), client, proxylogin.NewWithDefaults())
+				require.NoError(t, err)
+
+				userReq := httptest.NewRequest(http.MethodGet, "/pinpoint/v1/user", http.NoBody)
+				tc.applyHeaders(userReq.Header)
+				userRec := httptest.NewRecorder()
+				handler.ServeHTTP(userRec, userReq)
+
+				require.Equal(t, http.StatusOK, userRec.Code)
+				var userResp pb.GetUserInfoResponse
+				require.NoError(t, json.Unmarshal(userRec.Body.Bytes(), &userResp))
+				require.Equal(t, attackerEmail, userResp.Email, "iteration %d: GET /pinpoint/v1/user", i)
+
+				newReq := httptest.NewRequest(http.MethodPost, "/pinpoint/v1/new", bytes.NewReader(tryJobPayload))
+				newReq.Header.Set("Content-Type", "application/json")
+				tc.applyHeaders(newReq.Header)
+				newRec := httptest.NewRecorder()
+				handler.ServeHTTP(newRec, newReq)
+
+				require.Equal(t, http.StatusOK, newRec.Code)
+				require.Equal(t, attackerEmail, capturedUser, "iteration %d: POST /pinpoint/v1/new", i)
+			}
+		})
+	}
 }
 
 type mockPinpointClient struct {
@@ -181,19 +284,23 @@ func TestCreateTryJob(t *testing.T) {
 		}
 	}
 
-	t.Run("with user email specified in request", func(t *testing.T) {
+	t.Run("overwrites user email specified in request with context email", func(t *testing.T) {
 		req := validReq()
 		req.User = "somebody@google.com"
 
 		client := &mockPinpointClient{
 			createPinpointTryJobFunc: func(ctx context.Context, r *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error) {
-				assert.Equal(t, "somebody@google.com", r.User)
+				assert.Equal(t, "user-http@google.com", r.User)
 				return &pb.CreateJobResponse{JobId: "try-job-123"}, nil
 			},
 		}
 		srv := &gatewayServer{client: client}
 
-		resp, err := srv.CreateTryJob(context.Background(), req)
+		ctx := alogin.FakeStatus(context.Background(), &alogin.Status{
+			EMail: "user-http@google.com",
+		})
+
+		resp, err := srv.CreateTryJob(ctx, req)
 		require.NoError(t, err)
 		assert.Equal(t, "try-job-123", resp.JobId)
 	})
@@ -209,14 +316,34 @@ func TestCreateTryJob(t *testing.T) {
 		}
 		srv := &gatewayServer{client: client}
 
-		// Inject HTTP header in context
-		ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs(
-			"grpcmetadata-x-webauth-user", "user-http@google.com",
-		))
+		ctx := alogin.FakeStatus(context.Background(), &alogin.Status{
+			EMail: "user-http@google.com",
+		})
 
 		resp, err := srv.CreateTryJob(ctx, req)
 		require.NoError(t, err)
 		assert.Equal(t, "try-job-456", resp.JobId)
+	})
+
+	t.Run("without user email, ignores raw gRPC metadata keys", func(t *testing.T) {
+		req := validReq()
+
+		client := &mockPinpointClient{
+			createPinpointTryJobFunc: func(ctx context.Context, r *pb.CreateTryJobRequest) (*pb.CreateJobResponse, error) {
+				assert.Empty(t, r.User)
+				return &pb.CreateJobResponse{JobId: "try-job-789"}, nil
+			},
+		}
+		srv := &gatewayServer{client: client}
+
+		ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs(
+			"grpcmetadata-x-webauth-user", "spoof-http@google.com",
+			"x-webauth-user", "spoof-grpc@google.com",
+		))
+
+		resp, err := srv.CreateTryJob(ctx, req)
+		require.NoError(t, err)
+		assert.Equal(t, "try-job-789", resp.JobId)
 	})
 
 	t.Run("client returns error", func(t *testing.T) {

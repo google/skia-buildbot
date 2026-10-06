@@ -3,11 +3,11 @@ package pinpoint
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"google.golang.org/grpc/metadata"
 
+	"go.skia.org/infra/go/alogin"
+	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/skerr"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
@@ -32,21 +32,18 @@ type gatewayServer struct {
 // NewGatewayJSONHandler registers the http handlers for the PinpointGateway
 // service and returns the handler.
 func NewGatewayJSONHandler(ctx context.Context, client *Client) (http.Handler, error) {
+	return newGatewayJSONHandler(ctx, client, proxylogin.NewWithDefaults())
+}
+
+func newGatewayJSONHandler(ctx context.Context, client pinpointClient, login alogin.Login) (http.Handler, error) {
 	srv := &gatewayServer{
 		client: client,
 	}
-	m := runtime.NewServeMux(
-		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
-			if strings.EqualFold(key, "x-webauth-user") {
-				return "x-webauth-user", true
-			}
-			return runtime.DefaultHeaderMatcher(key)
-		}),
-	)
+	m := runtime.NewServeMux()
 	if err := pb.RegisterPinpointGatewayHandlerServer(ctx, m, srv); err != nil {
 		return nil, skerr.Wrapf(err, "unable to register pinpoint gateway handler")
 	}
-	return m, nil
+	return alogin.StatusMiddleware(login)(m), nil
 }
 
 func (s *gatewayServer) QueryJobList(
@@ -60,26 +57,12 @@ func (s *gatewayServer) QueryJobList(
 	return resp, nil
 }
 
-func getEmailFromContext(ctx context.Context) string {
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		// When the request is from HTTP, like the Angular Web UI.
-		if emails := md.Get("grpcmetadata-x-webauth-user"); len(emails) > 0 {
-			return emails[0]
-		}
-		// A fallback in case the request is from a direct gRPC call.
-		if emails := md.Get("x-webauth-user"); len(emails) > 0 {
-			return emails[0]
-		}
-	}
-	return ""
-}
-
 func (s *gatewayServer) GetUserInfo(
 	ctx context.Context,
 	req *pb.GetUserInfoRequest,
 ) (*pb.GetUserInfoResponse, error) {
 	return &pb.GetUserInfoResponse{
-		Email: getEmailFromContext(ctx),
+		Email: alogin.GetStatus(ctx).EMail.String(),
 	}, nil
 }
 
@@ -87,9 +70,7 @@ func (s *gatewayServer) CreateTryJob(
 	ctx context.Context,
 	req *pb.CreateTryJobRequest,
 ) (*pb.CreateJobResponse, error) {
-	if req.User == "" {
-		req.User = getEmailFromContext(ctx)
-	}
+	req.User = alogin.GetStatus(ctx).EMail.String()
 
 	resp, err := s.client.CreatePinpointTryJob(ctx, req)
 	if err != nil {

@@ -3,7 +3,7 @@
     "target": "http://localhost:8000",
     "secure": false,
     "headers": {
-      "Grpc-Metadata-X-Webauth-User": "test-user@google.com"
+      "X-Webauth-User": "test-user@google.com"
     }
   }
 }
