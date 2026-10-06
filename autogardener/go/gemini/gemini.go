@@ -50,6 +50,9 @@ const (
 
 	// Maximum number of log snippets.
 	maxLogSnippetCount = 20
+
+	// Maximum byte length of an individual log line before splitting/wrapping.
+	maxLogLineLength = 500
 )
 
 // Client is an interface for the Gemini client, used for testing.
@@ -235,7 +238,7 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 		if strings.TrimSpace(taskSteps.SwarmingTaskLogs) != "" {
 			anyFailedStepHasLogs = true
 		}
-		lines := strings.Split(taskSteps.SwarmingTaskLogs, "\n")
+		lines := logs.SplitLongLines(strings.Split(taskSteps.SwarmingTaskLogs, "\n"), maxLogLineLength)
 		snippet := logs.RenderLineRanges(lines, logs.ExtractSnippets(lines, logSnippetContext, logSnippetLinesAtEnd, maxLogSnippetLength, maxLogSnippetCount))
 		logSnippets = append(logSnippets, fmt.Sprintf("## Raw Swarming Task Log Snippet\n\n%s\n", snippet))
 		taskStepsStr = fmt.Sprintf("(raw swarming task; no steps available)\nSwarming Task State: %s", taskSteps.SwarmingTaskState)
@@ -460,7 +463,7 @@ func (c *clientImpl) fetchStepLogs(ctx context.Context, tool string, toolArgs ma
 			break
 		}
 	}
-	return allLines, nil
+	return logs.SplitLongLines(allLines, maxLogLineLength), nil
 }
 
 func (c *clientImpl) GetTaskHealthReport(ctx context.Context, repo, branch string, limit int) (*task_scheduler.TaskHealthReport, error) {
@@ -628,6 +631,9 @@ func (c *clientImpl) generateWithBackoffAndRateLimiting(ctx context.Context, opN
 		// prevent exceeding quota.
 		estTokens, err := rl.Wait(ctx, c.client, history, parts)
 		if err != nil {
+			if strings.Contains(err.Error(), "exceeds limiter's burst") {
+				return backoff.Permanent(skerr.Wrap(err))
+			}
 			return skerr.Wrap(err)
 		}
 		resp, err = fn()

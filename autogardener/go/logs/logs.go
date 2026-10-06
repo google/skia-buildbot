@@ -6,7 +6,48 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
+
+func isWhitespace(r rune) bool {
+	return r == ' ' || r == '\t'
+}
+
+// SplitLongLines splits any line in lines that exceeds maxLineLength into
+// multiple lines of at most maxLineLength bytes, prioritizing word boundaries
+// and falling back to UTF-8 rune boundaries when a single word exceeds
+// maxLineLength.
+func SplitLongLines(lines []string, maxLineLength int) []string {
+	if maxLineLength <= 0 {
+		return lines
+	}
+	rv := make([]string, 0, len(lines))
+	for _, line := range lines {
+		if len(line) <= maxLineLength {
+			rv = append(rv, line)
+			continue
+		}
+		start := 0
+		lastSpace := -1
+		for idx, r := range line {
+			if isWhitespace(r) && idx-start <= maxLineLength {
+				lastSpace = idx
+			}
+			if idx+utf8.RuneLen(r)-start > maxLineLength {
+				if lastSpace > start {
+					rv = append(rv, line[start:lastSpace])
+					start = lastSpace + 1
+				} else {
+					rv = append(rv, line[start:idx])
+					start = idx
+				}
+				lastSpace = -1
+			}
+		}
+		rv = append(rv, line[start:])
+	}
+	return rv
+}
 
 // LineRange represents a range of lines within a log.
 type LineRange struct {

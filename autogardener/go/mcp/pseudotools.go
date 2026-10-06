@@ -40,6 +40,8 @@ func WrapFuncAsTool(name, description string, parameters *genai.Schema, fn ToolC
 	}
 }
 
+const maxGetLogLinesCount = 500
+
 func GetLogLinesTool(logsByStep map[string][]string) *PseudoTool {
 	const (
 		keyStep       = "step"
@@ -58,7 +60,7 @@ func GetLogLinesTool(logsByStep map[string][]string) *PseudoTool {
 				Type:        genai.TypeInteger,
 			},
 			keyEndIndex: {
-				Description: "Ending index of log lines to retrieve, exclusive. Required.",
+				Description: fmt.Sprintf("Ending index of log lines to retrieve, exclusive (capped at %d lines per call). Required.", maxGetLogLinesCount),
 				Type:        genai.TypeInteger,
 			},
 		},
@@ -83,6 +85,15 @@ func GetLogLinesTool(logsByStep map[string][]string) *PseudoTool {
 		}
 		if startIndex < 0 {
 			startIndex = 0
+		}
+		if startIndex > len(lines) {
+			startIndex = len(lines)
+		}
+		if endIndex < startIndex {
+			endIndex = startIndex
+		}
+		if endIndex-startIndex > maxGetLogLinesCount {
+			endIndex = startIndex + maxGetLogLinesCount
 		}
 		if endIndex > len(lines) {
 			endIndex = len(lines)

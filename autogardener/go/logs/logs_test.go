@@ -291,3 +291,38 @@ func TestExtractLogSnippet_TSAN(t *testing.T) {
 16 | ==================
 `, snippet)
 }
+
+func TestSplitLongLines(t *testing.T) {
+	lines := []string{
+		"short line ok",
+		"word boundary splitting keeps words intact when possible",
+		"unbroken_long_token_0123456789abcdef with trailing words",
+		"123456789🎉abcdef",
+		"prefix with middle fatal: error in middle and suffix words",
+	}
+
+	got := SplitLongLines(lines, 15)
+	require.Equal(t, []string{
+		"short line ok",
+		"word boundary",
+		"splitting keeps",
+		"words intact",
+		"when possible",
+		"unbroken_long_t",
+		"oken_0123456789",
+		"abcdef with",
+		"trailing words",
+		"123456789🎉ab", // Split cleanly on UTF-8 boundary before cutting mid-emoji or exceeding 15 bytes
+		"cdef",
+		"prefix with",
+		"middle fatal:",
+		"error in middle",
+		"and suffix",
+		"words",
+	}, got)
+
+	// Verify that an error in the middle of a giant single line is surfaced by ExtractSnippets.
+	snippet := RenderLineRanges(got, ExtractSnippets(got, 1, 0, 100, 0))
+	require.Contains(t, snippet, "middle fatal:")
+	require.Contains(t, snippet, "error in middle")
+}

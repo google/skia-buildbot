@@ -147,6 +147,22 @@ func TestGetLogLinesTool(t *testing.T) {
 	require.True(t, res.IsError)
 	text = getText(res)
 	require.Contains(t, text, "parameter \"start_index\" is required")
+
+	// Clamping when requesting more than maxGetLogLinesCount lines
+	manyLines := make([]string, maxGetLogLinesCount+100)
+	for i := range manyLines {
+		manyLines[i] = "line"
+	}
+	logs["big"] = manyLines
+	res, err = tool.Call(ctx, map[string]interface{}{
+		"step":        "big",
+		"start_index": 10,
+		"end_index":   maxGetLogLinesCount + 100,
+	})
+	require.NoError(t, err)
+	require.False(t, res.IsError)
+	text = getText(res)
+	require.Contains(t, text, "==== Lines 11-510 of 600 ====")
 }
 
 func TestWrapFuncAsTool(t *testing.T) {
