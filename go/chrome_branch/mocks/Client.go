@@ -16,7 +16,7 @@ type Client struct {
 }
 
 // Get provides a mock function with given fields: _a0
-func (_m *Client) Get(_a0 context.Context) (*chrome_branch.Branches, []*chrome_branch.Branch, error) {
+func (_m *Client) Get(_a0 context.Context) (*chrome_branch.Branches, []*chrome_branch.Branch, []*chrome_branch.Branch, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
@@ -25,8 +25,9 @@ func (_m *Client) Get(_a0 context.Context) (*chrome_branch.Branches, []*chrome_b
 
 	var r0 *chrome_branch.Branches
 	var r1 []*chrome_branch.Branch
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*chrome_branch.Branches, []*chrome_branch.Branch, error)); ok {
+	var r2 []*chrome_branch.Branch
+	var r3 error
+	if rf, ok := ret.Get(0).(func(context.Context) (*chrome_branch.Branches, []*chrome_branch.Branch, []*chrome_branch.Branch, error)); ok {
 		return rf(_a0)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context) *chrome_branch.Branches); ok {
@@ -45,13 +46,21 @@ func (_m *Client) Get(_a0 context.Context) (*chrome_branch.Branches, []*chrome_b
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context) []*chrome_branch.Branch); ok {
 		r2 = rf(_a0)
 	} else {
-		r2 = ret.Error(2)
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).([]*chrome_branch.Branch)
+		}
 	}
 
-	return r0, r1, r2
+	if rf, ok := ret.Get(3).(func(context.Context) error); ok {
+		r3 = rf(_a0)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
 }
 
 // NewClient creates a new instance of Client. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

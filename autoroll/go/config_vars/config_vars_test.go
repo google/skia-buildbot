@@ -156,7 +156,7 @@ func TestRegistry(t *testing.T) {
 	ctx := context.Background()
 	v := FakeVars()
 	cbc := &mocks.Client{}
-	cbc.On("Get", ctx).Return(v.Branches.Chromium, v.Branches.ActiveMilestones, nil)
+	cbc.On("Get", ctx).Return(v.Branches.Chromium, v.Branches.ActiveMilestones, v.Branches.ActiveMilestones, nil)
 	r, err := NewRegistry(ctx, cbc)
 	require.NoError(t, err)
 

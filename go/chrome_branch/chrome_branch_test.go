@@ -469,7 +469,7 @@ const (
 )
 
 func fakeBranches() *Branches {
-	m := fakeMilestones()
+	m := fakeActiveMilestones()
 	return &Branches{
 		Main: &Branch{
 			Milestone: 94,
@@ -482,7 +482,7 @@ func fakeBranches() *Branches {
 	}
 }
 
-func fakeMilestones() []*Branch {
+func fakeActiveMilestones() []*Branch {
 	return []*Branch{
 		{
 			Milestone: 93,
@@ -497,6 +497,15 @@ func fakeMilestones() []*Branch {
 			V8Branch:  "9.2",
 		},
 	}
+}
+
+func fakeAllMilestones() []*Branch {
+	return append(fakeActiveMilestones(), &Branch{
+		Milestone: 91,
+		Number:    4472,
+		Ref:       fmt.Sprintf(refTmplRelease, 4472),
+		V8Branch:  "9.1",
+	})
 }
 
 func TestBranchCopy(t *testing.T) {
@@ -600,43 +609,45 @@ func TestGet(t *testing.T) {
 
 	// Everything okay.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(fakeData)))
-	b, m, err := Get(ctx, c)
+	b, m, all, err := Get(ctx, c)
 	require.NoError(t, err)
 	require.Equal(t, fakeBranches(), b)
-	require.Equal(t, fakeMilestones(), m)
+	require.Equal(t, fakeActiveMilestones(), m)
+	require.Equal(t, fakeAllMilestones(), all)
 
 	// Beta channel is missing, we retrieve the branch via milestone number.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, schedulePhaseBeta, "dev"))))
-	b, m, err = Get(ctx, c)
+	b, m, all, err = Get(ctx, c)
 	require.NoError(t, err)
 	require.Equal(t, fakeBranches(), b)
-	require.Equal(t, fakeMilestones(), m)
+	require.Equal(t, fakeActiveMilestones(), m)
+	require.Equal(t, fakeAllMilestones(), all)
 
 	// Beta channel is actually missing.
 	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData, schedulePhaseBeta, "dev"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noBeta)))
-	b, m, err = Get(ctx, c)
+	b, _, _, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
 
 	// Stable channel is missing.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, schedulePhaseStable, "dev"))))
-	b, m, err = Get(ctx, c)
+	b, _, _, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "Stable branch is missing"), err)
 
 	// Invalid branch number.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "4577", "nope"))))
-	b, m, err = Get(ctx, c)
+	b, _, _, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "invalid branch number \"nope\" for channel \"beta\""), err)
 
 	// Missing milestone.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "93", "null"))))
-	b, m, err = Get(ctx, c)
+	b, _, _, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "Beta branch is invalid: Milestone is required"), err)
@@ -650,7 +661,7 @@ func TestGetSecondDataSet(t *testing.T) {
 	// Everything okay. This data set is missing the "beta" branch in
 	// schedule_phase, so we fall back to using "stable_cut".
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(fakeData2)))
-	b, _, err := Get(ctx, c)
+	b, _, _, err := Get(ctx, c)
 	require.NoError(t, err)
 	expect := fakeBranches()
 	expect.Main.Milestone = 95
@@ -665,7 +676,7 @@ func TestGetSecondDataSet(t *testing.T) {
 	// "stable_cut" is missing, so we fall back to using "branch"
 	noBeta := strings.ReplaceAll(strings.ReplaceAll(fakeData2, schedulePhaseStableCut, "other"), strconv.Itoa(fakeBranches().Beta.Milestone), "9999")
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noBeta)))
-	b, _, err = Get(ctx, c)
+	b, _, _, err = Get(ctx, c)
 	require.NoError(t, err)
 	expect.Beta = expect.Dev
 	expect.Dev = nil
@@ -673,21 +684,21 @@ func TestGetSecondDataSet(t *testing.T) {
 	// Stable channel is missing.
 	noStable := strings.ReplaceAll(fakeData2, fmt.Sprintf("\"%s\"", schedulePhaseStable), "\"dev\"")
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(noStable)))
-	b, _, err = Get(ctx, c)
+	b, _, _, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "Stable branch is missing"), err)
 
 	// Invalid branch number.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData2, "4577", "nope"))))
-	b, _, err = Get(ctx, c)
+	b, _, _, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "invalid branch number \"nope\" for channel \"stable_cut\""), err)
 
 	// Missing milestone.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData2, "93", "null"))))
-	b, _, err = Get(ctx, c)
+	b, _, _, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "Beta branch is invalid: Milestone is required"), err)
@@ -701,7 +712,7 @@ func TestGetThirdDataSet(t *testing.T) {
 	// Everything okay. This data set has two "stable" branches in
 	// schedule_phase, so we use the highest milestone number.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(fakeData3)))
-	b, _, err := Get(ctx, c)
+	b, _, _, err := Get(ctx, c)
 	require.NoError(t, err)
 	expect := fakeBranches()
 	expect.Main.Milestone = 95
@@ -722,7 +733,7 @@ func TestGetFourthDataSet(t *testing.T) {
 	// Everything okay. This data set has no "beta" branch; instead there's a
 	// "branch". Ensure that Beta falls back to using that.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(fakeData4)))
-	b, _, err := Get(ctx, c)
+	b, _, _, err := Get(ctx, c)
 	require.NoError(t, err)
 	expect := &Branches{
 		Main: &Branch{
@@ -759,7 +770,7 @@ func TestGetFifthDataSet(t *testing.T) {
 
 	// Everything okay. This data set has an "extended" branch.
 	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(fakeData5)))
-	b, _, err := Get(ctx, c)
+	b, _, _, err := Get(ctx, c)
 	require.NoError(t, err)
 	expect := fakeBranches()
 	expect.Main.Milestone = 95

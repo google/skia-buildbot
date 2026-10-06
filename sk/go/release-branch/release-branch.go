@@ -137,7 +137,7 @@ func releaseBranch(ctx context.Context, newBranch string, reviewers []string, al
 	}
 
 	// Update the supported branch list.
-	_, activeMilestones, err := cbc.Get(ctx)
+	_, activeMilestones, _, err := cbc.Get(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

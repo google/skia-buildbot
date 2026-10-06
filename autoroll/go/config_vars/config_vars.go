@@ -87,12 +87,12 @@ func FakeVars() *Vars {
 	}
 }
 
-func computeCrOS4WeekBranches(activeMilestones []*chrome_branch.Branch) (*chrome_branch.Branch, *chrome_branch.Branch) {
-	activeMilestoneStack := activeMilestones
+func computeCrOS4WeekBranches(allMilestones []*chrome_branch.Branch) (*chrome_branch.Branch, *chrome_branch.Branch) {
+	milestoneStack := allMilestones
 	findNextEvenMilestone := func() *chrome_branch.Branch {
-		for len(activeMilestoneStack) > 0 {
-			m := activeMilestoneStack[0]
-			activeMilestoneStack = activeMilestoneStack[1:]
+		for len(milestoneStack) > 0 {
+			m := milestoneStack[0]
+			milestoneStack = milestoneStack[1:]
 			if m.Milestone%2 == 0 {
 				return m
 			}
@@ -344,11 +344,16 @@ func (r *Registry) updateFrom(v *Vars) error {
 
 // Update all of the Templates managed by this Registry by loading new values.
 func (r *Registry) Update(ctx context.Context) error {
-	chromeBranches, activeMilestones, err := r.cbc.Get(ctx)
+	chromeBranches, activeMilestones, allMilestones, err := r.cbc.Get(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	crosBeta, crosStable := computeCrOS4WeekBranches(activeMilestones)
+	// ChromeOS promotes even-numbered milestones to Stable on a 4-week cadence,
+	// whereas desktop Chrome only keeps M%4 == 0 milestones in "extended"
+	// (schedule_active: true) and marks M%4 == 2 milestones inactive once M+1
+	// reaches desktop Stable. Compute CrOS branches from allMilestones so
+	// active CrOS Stable branches are not skipped.
+	crosBeta, crosStable := computeCrOS4WeekBranches(allMilestones)
 	vars := &Vars{
 		Branches: &Branches{
 			ActiveMilestones: activeMilestones,

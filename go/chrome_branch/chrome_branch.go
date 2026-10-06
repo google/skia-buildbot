@@ -143,15 +143,16 @@ func (b *Branches) Validate() error {
 	return nil
 }
 
-// Get retrieves the current Branches and the list of active milestones.
-func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
+// Get retrieves the current Branches, the list of active milestones, and the
+// list of all milestones.
+func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, []*Branch, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, jsonURL, nil)
 	if err != nil {
-		return nil, nil, skerr.Wrap(err)
+		return nil, nil, nil, skerr.Wrap(err)
 	}
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, nil, skerr.Wrap(err)
+		return nil, nil, nil, skerr.Wrap(err)
 	}
 	defer util.Close(resp.Body)
 
@@ -163,18 +164,19 @@ func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
 	}
 	var milestones []milestone
 	if err := json.NewDecoder(resp.Body).Decode(&milestones); err != nil {
-		return nil, nil, skerr.Wrap(err)
+		return nil, nil, nil, skerr.Wrap(err)
 	}
 	byPhase := map[string]*Branch{}
 	byMilestone := map[int]*Branch{}
 	activeMilestones := []*Branch{}
+	allMilestones := make([]*Branch, 0, len(milestones))
 	for _, milestone := range milestones {
 		branch := &Branch{}
 		branch.Milestone = milestone.Milestone
 		branch.V8Branch = fmt.Sprintf("%d.%d", milestone.Milestone/10, branch.Milestone%10)
 		number, err := strconv.Atoi(milestone.ChromiumBranch)
 		if err != nil {
-			return nil, nil, skerr.Wrapf(err, "invalid branch number %q for channel %q", milestone.ChromiumBranch, milestone.SchedulePhase)
+			return nil, nil, nil, skerr.Wrapf(err, "invalid branch number %q for channel %q", milestone.ChromiumBranch, milestone.SchedulePhase)
 		}
 		branch.Number = number
 		branch.Ref = ReleaseBranchRef(number)
@@ -183,6 +185,7 @@ func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
 			byPhase[milestone.SchedulePhase] = branch
 		}
 		byMilestone[milestone.Milestone] = branch
+		allMilestones = append(allMilestones, branch)
 		if milestone.ScheduleActive {
 			activeMilestones = append(activeMilestones, branch)
 		}
@@ -215,15 +218,16 @@ func Get(ctx context.Context, c *http.Client) (*Branches, []*Branch, error) {
 		}
 	}
 	if err := rv.Validate(); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return rv, activeMilestones, nil
+	return rv, activeMilestones, allMilestones, nil
 }
 
 // Client is a wrapper for Get which facilitates testing.
 type Client interface {
-	// Get retrieves the current Branches and the list of active milestones.
-	Get(context.Context) (*Branches, []*Branch, error)
+	// Get retrieves the current Branches, the list of active milestones, and
+	// the list of all milestones.
+	Get(context.Context) (*Branches, []*Branch, []*Branch, error)
 }
 
 // client implements Client.
@@ -239,6 +243,6 @@ func NewClient(c *http.Client) Client {
 }
 
 // See documentation for Client interface.
-func (c *client) Get(ctx context.Context) (*Branches, []*Branch, error) {
+func (c *client) Get(ctx context.Context) (*Branches, []*Branch, []*Branch, error) {
 	return Get(ctx, c.Client)
 }
