@@ -17,6 +17,7 @@ const (
 	// K8s config kinds.
 	ClusterRoleKind        = "ClusterRole"
 	ClusterRoleBindingKind = "ClusterRoleBinding"
+	ConnectionKind         = "Connection"
 	CronJobKind            = "CronJob"
 	DaemonSetKind          = "DaemonSet"
 	DeploymentKind         = "Deployment"
@@ -28,19 +29,21 @@ const (
 	WorkerDeploymentKind   = "WorkerDeployment"
 
 	// Unsupported kinds.
-	BackendConfigKind        = "BackendConfig"
-	ClusterPodMonitoringKind = "ClusterPodMonitoring"
-	ClusterRulesKind         = "ClusterRules"
-	ConfigMapKind            = "ConfigMap"
-	IngressKind              = "Ingress"
-	OperatorConfigKind       = "OperatorConfig"
-	PodDisruptionBudgetKind  = "PodDisruptionBudget"
-	StorageClassKind         = "StorageClass"
+	BackendConfigKind          = "BackendConfig"
+	ClusterPodMonitoringKind   = "ClusterPodMonitoring"
+	ClusterRulesKind           = "ClusterRules"
+	ConfigMapKind              = "ConfigMap"
+	IngressKind                = "Ingress"
+	OperatorConfigKind         = "OperatorConfig"
+	PodDisruptionBudgetKind    = "PodDisruptionBudget"
+	StorageClassKind           = "StorageClass"
+	WorkerResourceTemplateKind = "WorkerResourceTemplate"
 )
 
 type K8sConfigFile struct {
 	ClusterRole        []*rbac.ClusterRole
 	ClusterRoleBinding []*rbac.ClusterRoleBinding
+	Connection         []*TemporalConnection
 	CronJob            []*batch.CronJob
 	DaemonSet          []*apps.DaemonSet
 	Deployment         []*apps.Deployment
@@ -50,6 +53,13 @@ type K8sConfigFile struct {
 	ServiceAccount     []*core.ServiceAccount
 	StatefulSet        []*apps.StatefulSet
 	WorkerDeployment   []*TemporalWorkerDeployment
+}
+
+// TemporalConnection is a minimal representation of the Temporal Connection
+// CRD used by WorkerDeployments to connect to the Temporal server.
+type TemporalConnection struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
 }
 
 // TemporalWorkerDeployment is a minimal representation of the Temporal
@@ -62,7 +72,12 @@ type TemporalWorkerDeployment struct {
 }
 
 type TemporalWorkerDeploymentSpec struct {
-	Template core.PodTemplateSpec `json:"template"`
+	WorkerOptions TemporalWorkerOptions `json:"workerOptions,omitempty"`
+	Template      core.PodTemplateSpec  `json:"template"`
+}
+
+type TemporalWorkerOptions struct {
+	ConnectionRef core.LocalObjectReference `json:"connectionRef,omitempty"`
 }
 
 type ByteRange struct {
@@ -161,6 +176,13 @@ func parseYamlDoc(yamlDoc []byte, rv *K8sConfigFile) (interface{}, error) {
 		}
 		rv.ClusterRoleBinding = append(rv.ClusterRoleBinding, v)
 		return v, nil
+	case ConnectionKind:
+		v := new(TemporalConnection)
+		if err := yaml.Unmarshal(yamlDoc, v); err != nil {
+			return nil, skerr.Wrapf(err, "failed to parse config file")
+		}
+		rv.Connection = append(rv.Connection, v)
+		return v, nil
 	case CronJobKind:
 		v := new(batch.CronJob)
 		if err := yaml.Unmarshal(yamlDoc, v); err != nil {
@@ -224,7 +246,7 @@ func parseYamlDoc(yamlDoc []byte, rv *K8sConfigFile) (interface{}, error) {
 		}
 		rv.WorkerDeployment = append(rv.WorkerDeployment, v)
 		return v, nil
-	case BackendConfigKind, ClusterPodMonitoringKind, ClusterRulesKind, ConfigMapKind, IngressKind, OperatorConfigKind, PodDisruptionBudgetKind, StorageClassKind:
+	case BackendConfigKind, ClusterPodMonitoringKind, ClusterRulesKind, ConfigMapKind, IngressKind, OperatorConfigKind, PodDisruptionBudgetKind, StorageClassKind, WorkerResourceTemplateKind:
 		// We ignore these Kinds because we don't do anything with them at
 		// this time.
 		return nil, nil

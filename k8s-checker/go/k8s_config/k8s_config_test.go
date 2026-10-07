@@ -504,3 +504,58 @@ subjects:
 		},
 	}, ranges)
 }
+
+func TestParseK8sConfigFile_WorkerDeploymentAndConnection_Success(t *testing.T) {
+	const temporalConfig = `apiVersion: temporal.io/v1alpha1
+kind: Connection
+metadata:
+  name: temporal-connection
+  namespace: perf
+spec:
+  hostPort: temporal.temporal:7233
+---
+apiVersion: temporal.io/v1alpha1
+kind: WorkerResourceTemplate
+metadata:
+  name: perf-bisect-worker-budget
+  namespace: perf
+spec:
+  workerDeploymentRef:
+    name: perf-bisect-worker
+---
+apiVersion: temporal.io/v1alpha1
+kind: WorkerDeployment
+metadata:
+  name: perf-bisect-worker
+  namespace: perf
+spec:
+  replicas: 4
+  workerOptions:
+    connectionRef:
+      name: temporal-connection
+    temporalNamespace: perf-internal
+  template:
+    metadata:
+      labels:
+        app: perf-bisect-worker
+        appgroup: perf
+    spec:
+      containers:
+        - name: worker
+          image: gcr.io/skia-public/bisect_workflow@sha256:5c97df33dc3e6c26d921de0e09b9f5dc10de6e8515248cc4d410baadb045468e
+`
+	k8sConfigs, _, err := ParseK8sConfigFile([]byte(temporalConfig))
+	require.NoError(t, err)
+	require.Len(t, k8sConfigs.Connection, 1)
+	require.Equal(t, "temporal-connection", k8sConfigs.Connection[0].Name)
+	require.Equal(t, "perf", k8sConfigs.Connection[0].Namespace)
+
+	require.Len(t, k8sConfigs.WorkerDeployment, 1)
+	require.Equal(t, "perf-bisect-worker", k8sConfigs.WorkerDeployment[0].Name)
+	require.Equal(t, "perf", k8sConfigs.WorkerDeployment[0].Namespace)
+	require.Equal(t, "temporal-connection", k8sConfigs.WorkerDeployment[0].Spec.WorkerOptions.ConnectionRef.Name)
+	require.Equal(t, "perf-bisect-worker", k8sConfigs.WorkerDeployment[0].Spec.Template.Labels["app"])
+	require.Equal(t, "perf", k8sConfigs.WorkerDeployment[0].Spec.Template.Labels["appgroup"])
+	require.Len(t, k8sConfigs.WorkerDeployment[0].Spec.Template.Spec.Containers, 1)
+	require.Equal(t, "worker", k8sConfigs.WorkerDeployment[0].Spec.Template.Spec.Containers[0].Name)
+}

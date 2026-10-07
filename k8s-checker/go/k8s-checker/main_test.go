@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/k8s-checker/go/k8s_config"
 )
 
 func TestParseNamespaceAllowFilterFlag_MalFormed_ReturnsError(t *testing.T) {
@@ -80,4 +81,36 @@ func TestAddMetricForImageAge_NameHasInvalidDateEncoded_ReturnsError(t *testing.
 	metrics := map[metrics2.Int64Metric]struct{}{}
 	err := addMetricForImageAge(context.Background(), "my-app", "my-app-container", "my-namepspace", "my-yaml", "my-repo", invalidDate, metrics)
 	require.Error(t, err)
+}
+
+func TestExtractAppConfigs_IncludesWorkerDeployment(t *testing.T) {
+	const yamlContents = `apiVersion: temporal.io/v1alpha1
+kind: WorkerDeployment
+metadata:
+  name: perf-bisect-worker
+  namespace: perf
+spec:
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: perf-bisect-worker
+        appgroup: perf
+    spec:
+      containers:
+        - name: worker
+          image: gcr.io/skia-public/bisect_workflow@sha256:5c97df33dc3e6c26d921de0e09b9f5dc10de6e8515248cc4d410baadb045468e
+`
+	k8sConfigs, _, err := k8s_config.ParseK8sConfigFile([]byte(yamlContents))
+	require.NoError(t, err)
+
+	apps, namespaces, containers, volumeClaims := extractAppConfigs(k8sConfigs)
+	require.Equal(t, []string{"perf-bisect-worker"}, apps)
+	require.Equal(t, []string{"perf"}, namespaces)
+	require.Len(t, containers, 1)
+	require.Len(t, containers[0], 1)
+	require.Equal(t, "worker", containers[0][0].Name)
+	require.Equal(t, "gcr.io/skia-public/bisect_workflow@sha256:5c97df33dc3e6c26d921de0e09b9f5dc10de6e8515248cc4d410baadb045468e", containers[0][0].Image)
+	require.Len(t, volumeClaims, 1)
+	require.Empty(t, volumeClaims[0])
 }

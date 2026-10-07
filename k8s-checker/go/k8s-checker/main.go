@@ -422,28 +422,7 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 			}
 		}
 
-		apps := []string{}
-		namespaces := []string{}
-		containers := [][]v1.Container{}
-		volumeClaims := [][]v1.PersistentVolumeClaim{}
-		for _, config := range k8sConfigs.Deployment {
-			apps = append(apps, config.Spec.Template.Labels[appLabel])
-			namespaces = append(namespaces, fixupNamespace(config.Namespace))
-			containers = append(containers, config.Spec.Template.Spec.Containers)
-			volumeClaims = append(volumeClaims, []v1.PersistentVolumeClaim{})
-		}
-		for _, config := range k8sConfigs.StatefulSet {
-			apps = append(apps, config.Spec.Template.Labels[appLabel])
-			namespaces = append(namespaces, fixupNamespace(config.Namespace))
-			containers = append(containers, config.Spec.Template.Spec.Containers)
-			volumeClaims = append(volumeClaims, config.Spec.VolumeClaimTemplates)
-		}
-		for _, config := range k8sConfigs.DaemonSet {
-			apps = append(apps, config.Spec.Template.Labels[appLabel])
-			namespaces = append(namespaces, fixupNamespace(config.Namespace))
-			containers = append(containers, config.Spec.Template.Spec.Containers)
-			volumeClaims = append(volumeClaims, []v1.PersistentVolumeClaim{})
-		}
+		apps, namespaces, containers, volumeClaims := extractAppConfigs(k8sConfigs)
 		for idx, app := range apps {
 			// Create a simple mapping of volume name to its size.
 			volumeNameToSize := map[string]int64{}
@@ -615,6 +594,41 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 	}
 
 	return newMetrics, nil
+}
+
+// extractAppConfigs extracts the app labels, namespaces, containers, and volume
+// claims from all workload kinds (Deployment, StatefulSet, DaemonSet, and
+// WorkerDeployment) in a parsed K8sConfigFile.
+func extractAppConfigs(k8sConfigs *k8s_config.K8sConfigFile) ([]string, []string, [][]v1.Container, [][]v1.PersistentVolumeClaim) {
+	apps := []string{}
+	namespaces := []string{}
+	containers := [][]v1.Container{}
+	volumeClaims := [][]v1.PersistentVolumeClaim{}
+	for _, config := range k8sConfigs.Deployment {
+		apps = append(apps, config.Spec.Template.Labels[appLabel])
+		namespaces = append(namespaces, fixupNamespace(config.Namespace))
+		containers = append(containers, config.Spec.Template.Spec.Containers)
+		volumeClaims = append(volumeClaims, []v1.PersistentVolumeClaim{})
+	}
+	for _, config := range k8sConfigs.StatefulSet {
+		apps = append(apps, config.Spec.Template.Labels[appLabel])
+		namespaces = append(namespaces, fixupNamespace(config.Namespace))
+		containers = append(containers, config.Spec.Template.Spec.Containers)
+		volumeClaims = append(volumeClaims, config.Spec.VolumeClaimTemplates)
+	}
+	for _, config := range k8sConfigs.DaemonSet {
+		apps = append(apps, config.Spec.Template.Labels[appLabel])
+		namespaces = append(namespaces, fixupNamespace(config.Namespace))
+		containers = append(containers, config.Spec.Template.Spec.Containers)
+		volumeClaims = append(volumeClaims, []v1.PersistentVolumeClaim{})
+	}
+	for _, config := range k8sConfigs.WorkerDeployment {
+		apps = append(apps, config.Spec.Template.Labels[appLabel])
+		namespaces = append(namespaces, fixupNamespace(config.Namespace))
+		containers = append(containers, config.Spec.Template.Spec.Containers)
+		volumeClaims = append(volumeClaims, []v1.PersistentVolumeClaim{})
+	}
+	return apps, namespaces, containers, volumeClaims
 }
 
 // addMetricForDirtyCommittedImage creates a metric for if the committed image is dirty, and adds
