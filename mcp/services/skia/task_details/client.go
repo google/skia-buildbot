@@ -13,8 +13,6 @@ import (
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"github.com/mark3labs/mcp-go/mcp"
-	"go.chromium.org/luci/grpc/prpc"
-	"go.chromium.org/luci/logdog/client/coordinator"
 	annopb "go.chromium.org/luci/luciexe/legacy/annotee/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/auth"
@@ -32,11 +30,11 @@ import (
 )
 
 const (
-	logdogProject = "skia"
+	LogDogProject = "skia"
 	logdogHost    = "logs.chromium.org"
 
 	logdogPathTmplRun      = "%s/+/annotations"
-	logdogPathTmplStepLogs = "%s/+/%s"
+	LogDogPathTmplStepLogs = "%s/+/%s"
 )
 
 type TaskDetailsClient struct {
@@ -62,13 +60,6 @@ func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance, sw
 		return nil, skerr.Wrap(err)
 	}
 
-	c := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	prpcClient := prpc.Client{
-		C:       c,
-		Host:    logdogHost,
-		Options: prpc.DefaultOptions(),
-	}
-	coord := coordinator.NewClient(&prpcClient)
 	tdLogs, err := logs.NewLogsManager(ctx, btProject, btInstance, ts)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -83,7 +74,7 @@ func NewClient(ctx context.Context, btProject, btInstance, firestoreInstance, sw
 		td:              tdDB,
 		tdLogs:          tdLogs,
 		ts:              tsDB,
-		logdog:          &logDogClientImpl{coord},
+		logdog:          NewLogDogClient(ts),
 	}, nil
 }
 
@@ -131,9 +122,12 @@ func (c *TaskDetailsClient) GetTaskStepsHandler(ctx context.Context, req mcp.Cal
 	res.SwarmingBotID = task.SwarmingBotId
 
 	// Fall back to Recipe steps via LogDog.
-	step, err := c.logdog.GetBuildSteps(ctx, logdogProject, fixupSwarmingTaskID(task.SwarmingTaskId))
+	step, finished, err := c.logdog.GetBuildSteps(ctx, LogDogProject, FixupSwarmingTaskID(task.SwarmingTaskId))
 	if err == nil {
-		res.Recipe = toRecipeStep(step)
+		res.Recipe = ToRecipeStep(step)
+		if !finished && res.Recipe != nil {
+			res.Recipe.Finished = false
+		}
 		return &res, nil
 	} else if !strings.Contains(err.Error(), "coordinator: no access") {
 		return nil, skerr.Wrap(err)
@@ -173,7 +167,7 @@ func (c *TaskDetailsClient) GetRecipeStepLogsHandler(ctx context.Context, req mc
 	}
 	reverse := req.GetBool(argReverse, false)
 
-	logPath := fmt.Sprintf(logdogPathTmplStepLogs, fixupSwarmingTaskID(swarmingTaskID), path)
+	logPath := fmt.Sprintf(LogDogPathTmplStepLogs, FixupSwarmingTaskID(swarmingTaskID), path)
 
 	// Decode the cursor to a starting index.
 	// Note: in the reverse case, we use the last startIndex as the cursor, so
@@ -186,7 +180,7 @@ func (c *TaskDetailsClient) GetRecipeStepLogsHandler(ctx context.Context, req mc
 		// No starting index was provided, and we're loading in reverse. Use the
 		// index of the last entry of the stream, plus one to account for the
 		// fact that the index range is non-inclusive.
-		lastEntry, err := c.logdog.GetLastEntry(ctx, logdogProject, logPath)
+		lastEntry, _, err := c.logdog.GetLastEntry(ctx, LogDogProject, logPath)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -202,7 +196,7 @@ func (c *TaskDetailsClient) GetRecipeStepLogsHandler(ctx context.Context, req mc
 	}
 
 	// Retrieve the log lines.
-	lines, done, err := c.fetchLogDogStepLogs(ctx, logPath, startIndex, limit)
+	lines, nextIndex, done, err := c.fetchLogDogStepLogs(ctx, logPath, startIndex, limit)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to retrieve logs for task %q", swarmingTaskID)
 	}
@@ -216,7 +210,7 @@ func (c *TaskDetailsClient) GetRecipeStepLogsHandler(ctx context.Context, req mc
 			nextCursor = b64EncodeCursor(startIndex)
 		}
 	} else if !done {
-		nextCursor = b64EncodeCursor(startIndex + limit)
+		nextCursor = b64EncodeCursor(nextIndex)
 	}
 
 	return &GetLogsResponse{
@@ -285,10 +279,10 @@ func (c *TaskDetailsClient) GetTaskDriverLogsHandler(ctx context.Context, req mc
 	return &response, nil
 }
 
-func (c *TaskDetailsClient) fetchLogDogStepLogs(ctx context.Context, logPath string, index, limit int) ([]string, bool, error) {
-	entries, err := c.logdog.FetchLogEntries(ctx, logdogProject, logPath, index, limit)
+func (c *TaskDetailsClient) fetchLogDogStepLogs(ctx context.Context, logPath string, index, limit int) ([]string, int, bool, error) {
+	entries, tidx, err := c.logdog.FetchLogEntries(ctx, LogDogProject, logPath, index, limit)
 	if err != nil {
-		return nil, false, skerr.Wrap(err)
+		return nil, 0, false, skerr.Wrap(err)
 	}
 	logLines := make([]string, 0, len(entries))
 	for _, entry := range entries {
@@ -298,13 +292,22 @@ func (c *TaskDetailsClient) fetchLogDogStepLogs(ctx context.Context, logPath str
 			}
 		}
 	}
-	return logLines, len(entries) < limit, nil
+	if len(entries) == 0 {
+		return logLines, index, true, nil
+	}
+	lastIndex := int(entries[len(entries)-1].StreamIndex)
+	nextIndex := lastIndex + 1
+	if tidx < 0 {
+		return logLines, nextIndex, len(entries) < limit, nil
+	}
+	done := lastIndex >= int(tidx)
+	return logLines, nextIndex, done, nil
 }
 
-// fixupSwarmingTaskID ensures that the given Swarming task ID is a *run* ID as
+// FixupSwarmingTaskID ensures that the given Swarming task ID is a *run* ID as
 // opposed to a *request* ID. The request ID ends with a zero, while the first
 // for a given request ends in a one.
-func fixupSwarmingTaskID(taskID string) string {
+func FixupSwarmingTaskID(taskID string) string {
 	if len(taskID) > 0 && taskID[len(taskID)-1] == '0' {
 		return taskID[:len(taskID)-1] + "1"
 	}
@@ -317,19 +320,21 @@ type RecipeStep struct {
 	StdoutStream string        `json:"stdout_stream,omitempty"`
 	StderrStream string        `json:"stderr_stream,omitempty"`
 	Substeps     []*RecipeStep `json:"substeps,omitempty"`
+	Finished     bool          `json:"finished"`
 }
 
 type RecipeLog struct {
 	Name string `json:"name"`
 }
 
-func toRecipeStep(step *annopb.Step) *RecipeStep {
+func ToRecipeStep(step *annopb.Step) *RecipeStep {
 	if step == nil {
 		return nil
 	}
 	res := &RecipeStep{
-		Name:   step.Name,
-		Status: step.Status.String(),
+		Name:     step.Name,
+		Status:   step.Status.String(),
+		Finished: step.Ended != nil && step.Status != annopb.Status_RUNNING && step.Status != annopb.Status_PENDING,
 	}
 	if step.StdoutStream != nil {
 		res.StdoutStream = step.StdoutStream.Name
@@ -339,7 +344,11 @@ func toRecipeStep(step *annopb.Step) *RecipeStep {
 	}
 	for _, sub := range step.Substep {
 		if s := sub.GetStep(); s != nil {
-			res.Substeps = append(res.Substeps, toRecipeStep(s))
+			subStep := ToRecipeStep(s)
+			if !subStep.Finished {
+				res.Finished = false
+			}
+			res.Substeps = append(res.Substeps, subStep)
 		}
 	}
 	return res

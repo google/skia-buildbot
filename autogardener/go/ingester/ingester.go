@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/mcp/services/skia/task_details"
 	td_db "go.skia.org/infra/task_driver/go/db"
 	ts_db "go.skia.org/infra/task_scheduler/go/db"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
@@ -41,8 +42,8 @@ const (
 	minStringContainsLength               = 30
 	minClassIDPrefixLength                = 16
 	workerPoolSize                        = 10
-	taskDriverMaxWaitDelay                = 5 * time.Minute
-	taskDriverRequeueDelay                = 5 * time.Second
+	unfinishedTaskMaxWait                 = 5 * time.Minute
+	unfinishedTaskRequeueDelay            = 5 * time.Second
 )
 
 // sleepFn allows overriding time.Sleep in tests.
@@ -55,6 +56,7 @@ type Ingester struct {
 	repos      repograph.Map
 	tsDB       ts_db.TaskReader
 	tdDB       td_db.DB
+	logdog     task_details.LogDogClient
 }
 
 func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos repograph.Map, tsDB ts_db.TaskReader, tdDB td_db.DB) (*Ingester, error) {
@@ -69,6 +71,7 @@ func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos 
 		repos:      repos,
 		tsDB:       tsDB,
 		tdDB:       tdDB,
+		logdog:     task_details.NewLogDogClient(ts),
 	}, nil
 }
 
@@ -264,23 +267,23 @@ func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingReg
 		return taskSummary, nil
 	}
 
-	// Occasionally task drivers have propagation delay to the DB which causes
-	// some steps and/or their logs to be missing. If this is a task driver with
-	// any unfinished steps, re-enqueue it after a short wait.
-	isUnfinished, err := isUnfinishedTaskDriver(ctx, i.tdDB, task.Id)
+	// Occasionally task drivers and recipes have propagation delay to the DB
+	// which causes some steps and/or their logs to be missing. If this task has
+	// any unfinished steps or logs, re-enqueue it after a short wait.
+	isUnfinished, err := isUnfinished(ctx, i.tdDB, i.logdog, task)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	if isUnfinished {
-		if now.Now(ctx).Sub(task.Finished) < taskDriverMaxWaitDelay {
-			sklog.Infof("Task driver %s has unfinished steps; re-enqueuing after %s", task.Id, taskDriverRequeueDelay)
+		if now.Now(ctx).Sub(task.Finished) < unfinishedTaskMaxWait {
+			sklog.Infof("Task %s has unfinished steps or logs; re-enqueuing after %s", task.Id, unfinishedTaskRequeueDelay)
 			go func(t *ts_types.Task) {
-				sleepFn(taskDriverRequeueDelay)
+				sleepFn(unfinishedTaskRequeueDelay)
 				taskCh <- t
 			}(task)
 			return nil, nil
 		}
-		sklog.Warningf("Task driver %s still has unfinished steps after %s; proceeding anyway.", task.Id, now.Now(ctx).Sub(task.Finished))
+		sklog.Warningf("Task %s still has unfinished steps or logs after %s; proceeding anyway.", task.Id, now.Now(ctx).Sub(task.Finished))
 	}
 
 	// Use Gemini to find the error summary for this task and insert it
@@ -310,25 +313,90 @@ func makeGenericFailureClass() *types.FailureClass {
 	}
 }
 
-// isUnfinishedTaskDriver returns true if the given task ID is a task driver
-// and is unfinished.
-func isUnfinishedTaskDriver(ctx context.Context, tdDB td_db.DB, taskID string) (bool, error) {
-	td, err := tdDB.GetTaskDriver(ctx, taskID)
+func isUnfinished(ctx context.Context, tdDB td_db.DB, logdog task_details.LogDogClient, task *ts_types.Task) (bool, error) {
+	td, err := tdDB.GetTaskDriver(ctx, task.Id)
 	if err != nil {
-		return false, skerr.Wrapf(err, "failed to get task driver for %s", taskID)
+		return false, skerr.Wrapf(err, "failed to get task driver for %s", task.Id)
 	}
-	if td == nil {
-		return false, nil
+	if td != nil {
+		return isUnfinishedTaskDriver(td), nil
 	}
+	return isUnfinishedRecipe(ctx, logdog, task.SwarmingTaskId)
+}
+
+// isUnfinishedTaskDriver returns true if the given task driver run has any
+// unfinished steps.
+func isUnfinishedTaskDriver(td *td_db.TaskDriverRun) bool {
 	if len(td.Steps) == 0 {
-		return false, nil
+		return false
 	}
 	for _, step := range td.Steps {
 		if step.Finished.IsZero() {
-			return true, nil
+			return true
 		}
 	}
-	return false, nil
+	return false
+}
+
+// isUnfinishedRecipe returns true if the given Swarming task ID is a recipe
+// task whose steps or failed step logs have not finished propagating to LogDog.
+func isUnfinishedRecipe(ctx context.Context, logdog task_details.LogDogClient, swarmingTaskID string) (bool, error) {
+	fixedTaskID := task_details.FixupSwarmingTaskID(swarmingTaskID)
+	step, finished, err := logdog.GetBuildSteps(ctx, task_details.LogDogProject, fixedTaskID)
+	if err != nil {
+		if strings.Contains(err.Error(), "coordinator: no access") {
+			// Not a recipe task (no LogDog annotations stream).
+			return false, nil
+		}
+		if strings.Contains(err.Error(), "no annotation entries found in stream") {
+			return true, nil
+		}
+		return false, skerr.Wrapf(err, "failed to get build steps for %s", swarmingTaskID)
+	}
+	if !finished {
+		return true, nil
+	}
+	recipeStep := task_details.ToRecipeStep(step)
+	if recipeStep == nil {
+		return false, nil
+	}
+	if !recipeStep.Finished {
+		return true, nil
+	}
+
+	var checkStepLogs func(s *task_details.RecipeStep) (bool, error)
+	checkStepLogs = func(s *task_details.RecipeStep) (bool, error) {
+		if s == nil {
+			return false, nil
+		}
+		if s.Status != "SUCCESS" && s.Name != "" {
+			for _, logStream := range []string{s.StdoutStream, s.StderrStream} {
+				if logStream == "" {
+					continue
+				}
+				logPath := fmt.Sprintf(task_details.LogDogPathTmplStepLogs, fixedTaskID, logStream)
+				_, finished, err := logdog.GetLastEntry(ctx, task_details.LogDogProject, logPath)
+				if err != nil {
+					if strings.Contains(err.Error(), "coordinator: no access") {
+						return true, nil
+					}
+					return false, skerr.Wrapf(err, "failed to get last log entry for %s (%s)", swarmingTaskID, logStream)
+				}
+				if !finished {
+					return true, nil
+				}
+			}
+		}
+		for _, sub := range s.Substeps {
+			unfinished, err := checkStepLogs(sub)
+			if err != nil || unfinished {
+				return unfinished, err
+			}
+		}
+		return false, nil
+	}
+
+	return checkStepLogs(recipeStep)
 }
 
 func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task, taskSummary *types.TaskSummary) error {

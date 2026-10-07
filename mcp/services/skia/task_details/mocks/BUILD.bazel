@@ -8,6 +8,7 @@ go_library(
     deps = [
         "@com_github_stretchr_testify//mock",
         "@org_chromium_go_luci//logdog/api/logpb",
+        "@org_chromium_go_luci//logdog/common/types",
         "@org_chromium_go_luci//luciexe/legacy/annotee/proto",
     ],
 )

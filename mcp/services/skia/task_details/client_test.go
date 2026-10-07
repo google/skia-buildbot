@@ -7,9 +7,12 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/logdog/api/logpb"
+	"go.chromium.org/luci/logdog/common/types"
+	annopb "go.chromium.org/luci/luciexe/legacy/annotee/proto"
 	"go.skia.org/infra/mcp/services/skia/task_details/mocks"
 	"go.skia.org/infra/task_driver/go/display"
 	"go.skia.org/infra/task_driver/go/td"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestGetTaskStepsResult_String_TaskDriver(t *testing.T) {
@@ -151,10 +154,11 @@ func TestGetRecipeStepLogsHandler_Pagination(t *testing.T) {
 			},
 		}
 	}
-	mockLogDog.On("FetchLogEntries", ctx, logdogProject, logPath, 0, 15).Return(entries[0:15], nil)
-	mockLogDog.On("FetchLogEntries", ctx, logdogProject, logPath, 15, 15).Return(entries[15:30], nil)
-	mockLogDog.On("FetchLogEntries", ctx, logdogProject, logPath, 30, 15).Return(entries[30:45], nil)
-	mockLogDog.On("FetchLogEntries", ctx, logdogProject, logPath, 45, 15).Return(entries[45:50], nil)
+	tidx := types.MessageIndex(len(entries) - 1)
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 0, 15).Return(entries[0:15], tidx, nil)
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 15, 15).Return(entries[15:30], tidx, nil)
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 30, 15).Return(entries[30:45], tidx, nil)
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 45, 15).Return(entries[45:50], tidx, nil)
 
 	// Collect the log pages.
 	resps := [][]string{}
@@ -217,11 +221,12 @@ func TestGetRecipeStepLogsHandler_Reverse(t *testing.T) {
 			},
 		}
 	}
-	mockLogDog.On("GetLastEntry", ctx, logdogProject, logPath).Return(entries[len(entries)-1], nil)
-	mockLogDog.On("FetchLogEntries", ctx, logdogProject, logPath, 35, 15).Return(entries[35:50], nil)
-	mockLogDog.On("FetchLogEntries", ctx, logdogProject, logPath, 20, 15).Return(entries[20:35], nil)
-	mockLogDog.On("FetchLogEntries", ctx, logdogProject, logPath, 5, 15).Return(entries[5:20], nil)
-	mockLogDog.On("FetchLogEntries", ctx, logdogProject, logPath, 0, 5).Return(entries[0:5], nil) // Note the reduced limit.
+	tidx := types.MessageIndex(len(entries) - 1)
+	mockLogDog.On("GetLastEntry", ctx, LogDogProject, logPath).Return(entries[len(entries)-1], true, nil)
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 35, 15).Return(entries[35:50], tidx, nil)
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 20, 15).Return(entries[20:35], tidx, nil)
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 5, 15).Return(entries[5:20], tidx, nil)
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 0, 5).Return(entries[0:5], tidx, nil) // Note the reduced limit.
 
 	// Collect the log pages.
 	resps := [][]string{}
@@ -265,4 +270,98 @@ func TestGetRecipeStepLogsHandler_Reverse(t *testing.T) {
 			i++
 		}
 	}
+}
+
+func TestGetRecipeStepLogsHandler_ByteTruncatedPage(t *testing.T) {
+	ctx := t.Context()
+
+	makeEntry := func(idx int) *logpb.LogEntry {
+		return &logpb.LogEntry{
+			StreamIndex: uint64(idx),
+			Content: &logpb.LogEntry_Text{
+				Text: &logpb.Text{
+					Lines: []*logpb.Text_Line{{Value: []byte(fmt.Sprintf("line %d", idx))}},
+				},
+			},
+		}
+	}
+
+	mockLogDog := mocks.NewLogDogClient(t)
+	client := &TaskDetailsClient{logdog: mockLogDog}
+	page1 := []*logpb.LogEntry{makeEntry(0), makeEntry(1)}
+	page2 := []*logpb.LogEntry{makeEntry(2), makeEntry(3)}
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 0, 15).Return(page1, types.MessageIndex(3), nil)
+	mockLogDog.On("FetchLogEntries", ctx, LogDogProject, logPath, 2, 15).Return(page2, types.MessageIndex(3), nil)
+
+	res1, err := client.GetRecipeStepLogsHandler(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Arguments: map[string]interface{}{
+				argSwarmingTaskID: "task1230",
+				argLogPath:        "step/0/log",
+				argLimit:          15,
+			},
+		},
+	})
+	require.NoError(t, err)
+	logsRes1 := res1.(*GetLogsResponse)
+	require.Equal(t, []string{"line 0", "line 1"}, logsRes1.Logs)
+	require.NotEmpty(t, logsRes1.Cursor)
+
+	res2, err := client.GetRecipeStepLogsHandler(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Arguments: map[string]interface{}{
+				argSwarmingTaskID: "task1230",
+				argLogPath:        "step/0/log",
+				argLimit:          15,
+				argCursor:         logsRes1.Cursor,
+			},
+		},
+	})
+	require.NoError(t, err)
+	logsRes2 := res2.(*GetLogsResponse)
+	require.Equal(t, []string{"line 2", "line 3"}, logsRes2.Logs)
+	require.Empty(t, logsRes2.Cursor)
+}
+
+func TestToRecipeStep_Finished(t *testing.T) {
+	nowTs := timestamppb.Now()
+
+	completeStep := &annopb.Step{
+		Name:   "root",
+		Status: annopb.Status_FAILURE,
+		Ended:  nowTs,
+		Substep: []*annopb.Step_Substep{
+			{
+				Substep: &annopb.Step_Substep_Step{
+					Step: &annopb.Step{
+						Name:   "sub1",
+						Status: annopb.Status_FAILURE,
+						Ended:  nowTs,
+					},
+				},
+			},
+		},
+	}
+	res := ToRecipeStep(completeStep)
+	require.True(t, res.Finished)
+	require.True(t, res.Substeps[0].Finished)
+
+	unfinishedSubstep := &annopb.Step{
+		Name:   "root",
+		Status: annopb.Status_FAILURE,
+		Ended:  nowTs,
+		Substep: []*annopb.Step_Substep{
+			{
+				Substep: &annopb.Step_Substep_Step{
+					Step: &annopb.Step{
+						Name:   "sub1",
+						Status: annopb.Status_RUNNING,
+					},
+				},
+			},
+		},
+	}
+	resUnfinished := ToRecipeStep(unfinishedSubstep)
+	require.False(t, resUnfinished.Finished)
+	require.False(t, resUnfinished.Substeps[0].Finished)
 }

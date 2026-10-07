@@ -8,18 +8,23 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.chromium.org/luci/logdog/api/logpb"
+	annopb "go.chromium.org/luci/luciexe/legacy/annotee/proto"
 	db_mocks "go.skia.org/infra/autogardener/go/db/mocks"
 	gemini_mocks "go.skia.org/infra/autogardener/go/gemini/mocks"
 	"go.skia.org/infra/autogardener/go/types"
 	"go.skia.org/infra/autogardener/go/utils"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/mcp/services/skia/task_details"
+	task_details_mocks "go.skia.org/infra/mcp/services/skia/task_details/mocks"
 	td_db "go.skia.org/infra/task_driver/go/db"
 	td_mocks "go.skia.org/infra/task_driver/go/db/mocks"
 	"go.skia.org/infra/task_driver/go/td"
 	ts_db "go.skia.org/infra/task_scheduler/go/db"
 	ts_mocks "go.skia.org/infra/task_scheduler/go/mocks"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestTaskProcessingRegistry(t *testing.T) {
@@ -48,15 +53,18 @@ func TestIngestTask(t *testing.T) {
 	mockDB := db_mocks.NewAutoGardenerDB(t)
 	mockG := gemini_mocks.NewClient(t)
 	mockTDDB := td_mocks.NewDB(t)
+	mockLogDog := task_details_mocks.NewLogDogClient(t)
 	i := &Ingester{
 		db:     mockDB,
 		gemini: mockG,
 		tdDB:   mockTDDB,
+		logdog: mockLogDog,
 	}
 
 	task := &ts_types.Task{
-		Id:       "task1",
-		Finished: time.Now().Add(-5 * time.Minute),
+		Id:             "task1",
+		SwarmingTaskId: "7b0cc6e0f5226b10",
+		Finished:       time.Now().Add(-5 * time.Minute),
 	}
 
 	// 1. Task already has a summary in the DB.
@@ -84,6 +92,7 @@ func TestIngestTask(t *testing.T) {
 		}
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
 		mockTDDB.On("GetTaskDriver", ctx, task.Id).Return(nil, nil).Once()
+		mockLogDog.On("GetBuildSteps", ctx, task_details.LogDogProject, "7b0cc6e0f5226b11").Return(nil, false, errors.New("coordinator: no access")).Once()
 		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
 		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
 
@@ -497,10 +506,12 @@ func TestIngestTasks(t *testing.T) {
 	mockDB := db_mocks.NewAutoGardenerDB(t)
 	mockG := gemini_mocks.NewClient(t)
 	mockTDDB := td_mocks.NewDB(t)
+	mockLogDog := task_details_mocks.NewLogDogClient(t)
 	i := &Ingester{
 		db:     mockDB,
 		gemini: mockG,
 		tdDB:   mockTDDB,
+		logdog: mockLogDog,
 	}
 
 	task1 := &ts_types.Task{
@@ -512,6 +523,7 @@ func TestIngestTasks(t *testing.T) {
 
 	mockDB.On("GetTaskSummary", mock.Anything, task1.Id).Return(nil, nil).Once()
 	mockTDDB.On("GetTaskDriver", mock.Anything, task1.Id).Return(nil, nil).Once()
+	mockLogDog.On("GetBuildSteps", mock.Anything, task_details.LogDogProject, "").Return(nil, false, errors.New("coordinator: no access")).Once()
 	mockG.On("GetTaskSummary", mock.Anything, task1).Return(summary, nil).Once()
 	mockDB.On("PutTaskSummary", mock.Anything, task1.Id, summary).Return(nil).Once()
 
@@ -521,6 +533,7 @@ func TestIngestTasks(t *testing.T) {
 	someError := errors.New("uh oh")
 	mockDB.On("GetTaskSummary", mock.Anything, task2.Id).Return(nil, nil).Once()
 	mockTDDB.On("GetTaskDriver", mock.Anything, task2.Id).Return(nil, nil).Once()
+	mockLogDog.On("GetBuildSteps", mock.Anything, task_details.LogDogProject, "").Return(nil, false, errors.New("coordinator: no access")).Once()
 	mockG.On("GetTaskSummary", mock.Anything, task2).Return(nil, someError).Once()
 
 	inputCh := make(chan *ts_types.Task)
@@ -617,12 +630,15 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 
 	mockTDDB := td_mocks.NewDB(t)
 	mockTDDB.On("GetTaskDriver", mock.Anything, task.Id).Return(nil, nil).Once()
+	mockLogDog := task_details_mocks.NewLogDogClient(t)
+	mockLogDog.On("GetBuildSteps", mock.Anything, task_details.LogDogProject, "").Return(nil, false, errors.New("coordinator: no access")).Once()
 
 	i := &Ingester{
 		db:     mockDB,
 		gemini: mockG,
 		tsDB:   mockTSDB,
 		tdDB:   mockTDDB,
+		logdog: mockLogDog,
 	}
 
 	// Step 1: Ingest task summary
@@ -817,5 +833,191 @@ func TestIngestTask_TaskDriverStepsCheck(t *testing.T) {
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
 		mockTDDB.AssertExpectations(t)
+	})
+
+	t.Run("recipe all steps and logs finished", func(t *testing.T) {
+		mockDB := db_mocks.NewAutoGardenerDB(t)
+		mockG := gemini_mocks.NewClient(t)
+		mockTDDB := td_mocks.NewDB(t)
+		mockLogDog := task_details_mocks.NewLogDogClient(t)
+
+		taskID := "task-recipe-finished"
+		swarmingTaskID := "7b0cc6e0f5226b10"
+		fixedSwarmingID := "7b0cc6e0f5226b11"
+		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(nil, nil).Once()
+
+		nowTs := timestamppb.New(mockTime)
+		stepProto := &annopb.Step{
+			Name:   "",
+			Status: annopb.Status_FAILURE,
+			Ended:  nowTs,
+			Substep: []*annopb.Step_Substep{
+				{
+					Substep: &annopb.Step_Substep_Step{
+						Step: &annopb.Step{
+							Name:         "symbolized nanobench",
+							Status:       annopb.Status_FAILURE,
+							Ended:        nowTs,
+							StdoutStream: &annopb.LogdogStream{Name: "steps/symbolized_nanobench/0/stdout"},
+						},
+					},
+				},
+			},
+		}
+		mockLogDog.On("GetBuildSteps", ctx, task_details.LogDogProject, fixedSwarmingID).Return(stepProto, true, nil).Once()
+		mockLogDog.On("GetLastEntry", ctx, task_details.LogDogProject, fixedSwarmingID+"/+/steps/symbolized_nanobench/0/stdout").Return(&logpb.LogEntry{StreamIndex: 0}, true, nil).Once()
+
+		i := &Ingester{
+			db:     mockDB,
+			gemini: mockG,
+			tdDB:   mockTDDB,
+			logdog: mockLogDog,
+		}
+
+		task := &ts_types.Task{
+			Id:             taskID,
+			SwarmingTaskId: swarmingTaskID,
+			Finished:       mockTime.Add(-1 * time.Minute),
+		}
+		summary := &types.TaskSummary{
+			Analysis:     "analysis",
+			ErrorMessage: "error",
+		}
+
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
+		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+
+		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, nil)
+		require.NoError(t, err)
+		require.Equal(t, summary, taskSummary)
+	})
+
+	t.Run("unfinished recipe step logs re-enqueue", func(t *testing.T) {
+		mockDB := db_mocks.NewAutoGardenerDB(t)
+		mockG := gemini_mocks.NewClient(t)
+		mockTDDB := td_mocks.NewDB(t)
+		mockLogDog := task_details_mocks.NewLogDogClient(t)
+
+		taskID := "task-unfinished-recipe"
+		swarmingTaskID := "7b0cc6e0f5226b10"
+		fixedSwarmingID := "7b0cc6e0f5226b11"
+		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(nil, nil).Once()
+
+		nowTs := timestamppb.New(mockTime)
+		stepProto := &annopb.Step{
+			Name:   "",
+			Status: annopb.Status_FAILURE,
+			Ended:  nowTs,
+			Substep: []*annopb.Step_Substep{
+				{
+					Substep: &annopb.Step_Substep_Step{
+						Step: &annopb.Step{
+							Name:         "symbolized nanobench",
+							Status:       annopb.Status_FAILURE,
+							Ended:        nowTs,
+							StdoutStream: &annopb.LogdogStream{Name: "steps/symbolized_nanobench/0/stdout"},
+						},
+					},
+				},
+			},
+		}
+		// Step annotations are finished, but stdout stream tail is not yet finished.
+		mockLogDog.On("GetBuildSteps", ctx, task_details.LogDogProject, fixedSwarmingID).Return(stepProto, true, nil).Once()
+		mockLogDog.On("GetLastEntry", ctx, task_details.LogDogProject, fixedSwarmingID+"/+/steps/symbolized_nanobench/0/stdout").Return(&logpb.LogEntry{StreamIndex: 0}, false, nil).Once()
+
+		i := &Ingester{
+			db:     mockDB,
+			gemini: mockG,
+			tdDB:   mockTDDB,
+			logdog: mockLogDog,
+		}
+
+		task := &ts_types.Task{
+			Id:             taskID,
+			SwarmingTaskId: swarmingTaskID,
+			Finished:       mockTime.Add(-1 * time.Minute),
+		}
+
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+
+		taskCh := make(chan *ts_types.Task, 1)
+
+		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
+		require.NoError(t, err)
+		require.Nil(t, taskSummary)
+
+		select {
+		case popped := <-taskCh:
+			require.Equal(t, task.Id, popped.Id)
+		case <-time.After(100 * time.Millisecond):
+			t.Fatal("timed out waiting for task to be re-enqueued")
+		}
+	})
+
+	t.Run("unfinished recipe step logs exceeded timeout", func(t *testing.T) {
+		mockDB := db_mocks.NewAutoGardenerDB(t)
+		mockG := gemini_mocks.NewClient(t)
+		mockTDDB := td_mocks.NewDB(t)
+		mockLogDog := task_details_mocks.NewLogDogClient(t)
+
+		taskID := "task-unfinished-recipe-exceeded"
+		swarmingTaskID := "7b0cc6e0f5226b10"
+		fixedSwarmingID := "7b0cc6e0f5226b11"
+		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(nil, nil).Once()
+
+		nowTs := timestamppb.New(mockTime)
+		stepProto := &annopb.Step{
+			Name:   "",
+			Status: annopb.Status_FAILURE,
+			Ended:  nowTs,
+			Substep: []*annopb.Step_Substep{
+				{
+					Substep: &annopb.Step_Substep_Step{
+						Step: &annopb.Step{
+							Name:         "symbolized nanobench",
+							Status:       annopb.Status_FAILURE,
+							Ended:        nowTs,
+							StdoutStream: &annopb.LogdogStream{Name: "steps/symbolized_nanobench/0/stdout"},
+						},
+					},
+				},
+			},
+		}
+		mockLogDog.On("GetBuildSteps", ctx, task_details.LogDogProject, fixedSwarmingID).Return(stepProto, true, nil).Once()
+		mockLogDog.On("GetLastEntry", ctx, task_details.LogDogProject, fixedSwarmingID+"/+/steps/symbolized_nanobench/0/stdout").Return((*logpb.LogEntry)(nil), false, nil).Once()
+
+		i := &Ingester{
+			db:     mockDB,
+			gemini: mockG,
+			tdDB:   mockTDDB,
+			logdog: mockLogDog,
+		}
+
+		task := &ts_types.Task{
+			Id:             taskID,
+			SwarmingTaskId: swarmingTaskID,
+			Finished:       mockTime.Add(-15 * time.Minute),
+		}
+		summary := &types.TaskSummary{
+			Analysis:     "analysis",
+			ErrorMessage: "error",
+		}
+
+		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
+		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+
+		taskCh := make(chan *ts_types.Task, 1)
+
+		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
+		require.NoError(t, err)
+		require.Equal(t, summary, taskSummary)
+
+		select {
+		case <-taskCh:
+			t.Fatal("task was unexpectedly re-enqueued")
+		default:
+		}
 	})
 }
