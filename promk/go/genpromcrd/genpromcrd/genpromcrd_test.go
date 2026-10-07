@@ -53,6 +53,17 @@ func TestGetAlertTargetsFromFilename_ContainsOneStatefulSetInNonDefaultNamespace
 	}
 }
 
+func TestGetAlertTargetsFromFilename_ContainsOneWorkerDeployment_Success(t *testing.T) {
+	got, err := getAlertTargetsFromFilename(filepath.Join(testutils.TestDataDir(t), "workerdeployment.yml"))
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+
+	for alertTarget := range got {
+		require.Equal(t, "perf", alertTarget.AppGroup)
+		require.Contains(t, alertTarget.Directory, "/promk/go/genpromcrd/genpromcrd/testdata")
+	}
+}
+
 func TestGetAlertTargetsFromFilename_FileDoesNotExist_ReturnsError(t *testing.T) {
 
 	_, err := getAlertTargetsFromFilename(filepath.Join(testutils.TestDataDir(t), "the-name-of-a-file-that-does-not-exist.yml"))

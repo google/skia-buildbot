@@ -1,0 +1,20 @@
+apiVersion: temporal.io/v1alpha1
+kind: WorkerDeployment
+metadata:
+  name: perf-bisect-worker
+  namespace: perf
+spec:
+  replicas: 4
+  workerOptions:
+    connectionRef:
+      name: temporal-connection
+    temporalNamespace: perf-internal
+  template:
+    metadata:
+      labels:
+        app: perf-bisect-worker
+        appgroup: perf
+    spec:
+      containers:
+        - name: worker
+          image: gcr.io/skia-public/bisect_workflow@sha256:5c97df33dc3e6c26d921de0e09b9f5dc10de6e8515248cc4d410baadb045468e

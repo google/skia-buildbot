@@ -376,6 +376,19 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges, sf *stages.Stage
 			containers = append(containers, c...)
 		}
 	}
+	for _, workerDeployment := range k8sConfigs.WorkerDeployment {
+		c, err := validateSpecAndGetContainers(ctx, f.fileName, sf, workerDeployment.Name, workerDeployment.Spec.Template)
+		if err != nil {
+			logf(ctx, "%s\n", skerr.Unwrap(err))
+			ok = false
+		} else {
+			containers = append(containers, c...)
+		}
+		if err := validateWorkerDeploymentConnectionRef(f.fileName, workerDeployment); err != nil {
+			logf(ctx, "%s\n", skerr.Unwrap(err))
+			ok = false
+		}
+	}
 	for _, container := range containers {
 		ok = ok && validateContainer(ctx, container)
 	}
@@ -401,6 +414,37 @@ func checkK8sConfigFile(ctx context.Context, f fileWithChanges, sf *stages.Stage
 	}
 
 	return ok
+}
+
+func validateWorkerDeploymentConnectionRef(fileName string, wd *k8s_config.TemporalWorkerDeployment) error {
+	connName := wd.Spec.WorkerOptions.ConnectionRef.Name
+	if connName == "" {
+		return skerr.Fmt("WorkerDeployment %q in %s is missing spec.workerOptions.connectionRef.name", wd.Name, fileName)
+	}
+	clusterDir := filepath.Dir(fileName)
+	entries, err := os.ReadDir(clusterDir)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to read cluster directory %s", clusterDir)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || !isYAMLFile(entry.Name()) {
+			continue
+		}
+		b, err := os.ReadFile(filepath.Join(clusterDir, entry.Name()))
+		if err != nil {
+			return skerr.Wrapf(err, "failed to read %s", filepath.Join(clusterDir, entry.Name()))
+		}
+		cfg, _, err := k8s_config.ParseK8sConfigFile(b)
+		if err != nil {
+			continue
+		}
+		for _, conn := range cfg.Connection {
+			if conn.Name == connName && conn.Namespace == wd.Namespace {
+				return nil
+			}
+		}
+	}
+	return skerr.Fmt("WorkerDeployment %q in %s references Connection %q in namespace %q, which was not found in %s", wd.Name, fileName, connName, wd.Namespace, clusterDir)
 }
 
 func validateSpecAndGetContainers(ctx context.Context, fileName string, sf *stages.StageFile, serviceName string, spec corev1.PodTemplateSpec) ([]corev1.Container, error) {

@@ -363,7 +363,7 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 				}
 
 				// Gather all containers across all deployments, statefulsets,
-				// and cron jobs.
+				// cron jobs, daemonsets, and worker deployments.
 				containers := []v1.Container{}
 				for _, config := range k8sConfigs.Deployment {
 					containers = append(containers, config.Spec.Template.Spec.Containers...)
@@ -375,6 +375,9 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 					containers = append(containers, config.Spec.JobTemplate.Spec.Template.Spec.Containers...)
 				}
 				for _, config := range k8sConfigs.DaemonSet {
+					containers = append(containers, config.Spec.Template.Spec.Containers...)
+				}
+				for _, config := range k8sConfigs.WorkerDeployment {
 					containers = append(containers, config.Spec.Template.Spec.Containers...)
 				}
 

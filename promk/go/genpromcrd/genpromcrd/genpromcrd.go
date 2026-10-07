@@ -49,9 +49,9 @@ type AlertTargets map[AlertTarget]bool
 // The possible file extensions used for YAML files.
 var yamlFileExtensions = []string{".yaml", ".yml"}
 
-// getAlertTargetsFromFilename parses the given file and for each Deployment or
-// StatefulSet found in the file will return an AlertTarget for each one found
-// that has an `appgroup` label.
+// getAlertTargetsFromFilename parses the given file and for each Deployment,
+// StatefulSet, or WorkerDeployment found in the file will return an AlertTarget
+// for each one found that has an `appgroup` label.
 func getAlertTargetsFromFilename(filename string) (AlertTargets, error) {
 	ret := AlertTargets{}
 	err := util.WithReadFile(filename, func(f io.Reader) error {
@@ -72,6 +72,14 @@ func getAlertTargetsFromFilename(filename string) (AlertTargets, error) {
 			}
 		}
 		for _, d := range k8sConfigs.StatefulSet {
+			if appgroup, ok := d.Spec.Template.Labels["appgroup"]; ok {
+				ret[AlertTarget{
+					AppGroup:  appgroup,
+					Directory: filepath.Dir(filename),
+				}] = true
+			}
+		}
+		for _, d := range k8sConfigs.WorkerDeployment {
 			if appgroup, ok := d.Spec.Template.Labels["appgroup"]; ok {
 				ret[AlertTarget{
 					AppGroup:  appgroup,
