@@ -899,3 +899,91 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 		expectMiddleRevA,
 	}, notRolledRevs)
 }
+
+func TestCIPDChild_Update_Platforms_OneMissing(t *testing.T) {
+	mockCipdClient := &mocks.CIPDClient{}
+	c := &CIPDChild{
+		client:        mockCipdClient,
+		name:          "some/package/${platform}",
+		ref:           "latest",
+		revisionIdTag: "version",
+		platforms: []string{
+			"linux-amd64",
+			"linux-arm64",
+			"mac-amd64",
+			"mac-arm64",
+			"windows-amd64",
+		},
+	}
+	ctx := context.Background()
+	const instanceTag = "version:5"
+	fullPackageToID := map[string]string{
+		"some/package/linux-amd64":   "Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+		"some/package/linux-arm64":   "XhM6rCCaRV3DJ4DkjsSTEahG-w3Er_ulss6w9-GwgkwC",
+		"some/package/mac-amd64":     "1az5xiBG-ds55R4yd7fCkODv0xrApC5gC6iLb2SCig8C",
+		"some/package/mac-arm64":     "bfOh3y10stM2Fj7HG-dDsJpJfm-J8yELSuoY94ec9UQC",
+		"some/package/windows-amd64": "MeJ2G6pEJ4Vz3CvzoEf1QhrbEZqSzSh2uujaq7KwJtYC",
+	}
+	var primarySha256 string
+	for pkg, instanceID := range fullPackageToID {
+		sha256, err := cipd.InstanceIDToSha256(instanceID)
+		require.NoError(t, err)
+		if strings.HasSuffix(pkg, c.platforms[0]) {
+			primarySha256 = sha256
+			mockCipdClient.On("ResolveVersion", testutils.AnyContext, pkg, c.ref).Return(common.Pin{
+				PackageName: pkg,
+				InstanceID:  instanceID,
+			}, nil)
+		} else {
+			mockCipdClient.On("Describe", testutils.AnyContext, pkg, instanceTag, false).Return(nil, errors.New("No such instance"))
+			if strings.Contains(pkg, "windows-amd64") {
+				mockCipdClient.On("SearchInstances", testutils.AnyContext, pkg, []string{instanceTag}).Return(common.PinSlice(nil), nil)
+				continue
+			}
+			mockCipdClient.On("SearchInstances", testutils.AnyContext, pkg, []string{instanceTag}).Return(common.PinSlice([]common.Pin{
+				{
+					PackageName: pkg,
+					InstanceID:  instanceID,
+				},
+			}), nil)
+		}
+		mockCipdClient.On("Describe", testutils.AnyContext, pkg, instanceID, false).Return(&cipd_api.InstanceDescription{
+			InstanceInfo: cipd_api.InstanceInfo{
+				Pin: common.Pin{
+					PackageName: pkg,
+					InstanceID:  instanceID,
+				},
+				RegisteredBy: "me@google.com",
+				RegisteredTs: cipd_api.UnixTime(ts),
+			},
+			Tags: []cipd_api.TagInfo{
+				{
+					Tag: instanceTag,
+				},
+			},
+		}, nil)
+	}
+	lastRollRev := &revision.Revision{
+		Id: "version:4",
+	}
+	nextRollRev, notRolledRevs, err := c.Update(ctx, lastRollRev)
+	require.NoError(t, err)
+	expectRev := &revision.Revision{
+		Id:            instanceTag,
+		Checksum:      primarySha256,
+		Author:        "me@google.com",
+		Description:   "some/package/linux-amd64:Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+		Display:       "5",
+		Timestamp:     ts,
+		URL:           "https://chrome-infra-packages.appspot.com/p/some/package/linux-amd64/+/Vxy3fSLmQ7k5NqOhQUvsgu_GSH387Gp05UB0qd5tl6MC",
+		InvalidReason: "no package instance exists for \"some/package/windows-amd64\" with version \"version:5\"",
+		Meta: map[string]string{
+			"linux-amd64": "571cb77d22e643b93936a3a1414bec82efc6487dfcec6a74e54074a9de6d97a3",
+			"linux-arm64": "5e133aac209a455dc32780e48ec49311a846fb0dc4affba5b2ceb0f7e1b0824c",
+			"mac-amd64":   "d5acf9c62046f9db39e51e3277b7c290e0efd31ac0a42e600ba88b6f64828a0f",
+			"mac-arm64":   "6df3a1df2d74b2d336163ec71be743b09a497e6f89f3210b4aea18f7879cf544",
+		},
+	}
+	require.Equal(t, expectRev, nextRollRev)
+	require.Equal(t, []*revision.Revision{expectRev}, notRolledRevs)
+}

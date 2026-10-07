@@ -90,29 +90,19 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 			pkgNames = append(pkgNames, strings.ReplaceAll(c.name, cipd.PlatformPlaceholder, platform))
 		}
 	}
-	instances := make([]*cipd_api.InstanceDescription, 0, len(pkgNames))
-	var invalidReason string
-	for _, pkgName := range pkgNames {
-		instance, err := c.findInstance(ctx, pkgName, id)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		if instance == nil {
-			invalidReason = fmt.Sprintf("no package instance exists for %q with version %q", pkgName, id)
-		}
-		// Always keep the instance, even if nil. This simplifies handling of
-		// Meta below.
-		instances = append(instances, instance)
+	primaryInstance, err := c.findInstance(ctx, pkgNames[0], id)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	if len(instances) == 0 {
-		return nil, skerr.Fmt("failed to find instances matching %q", id)
+	if primaryInstance == nil {
+		return nil, skerr.Fmt("failed to find instance for %s matching %q", pkgNames[0], id)
 	}
-	rev, err := CIPDInstanceToRevision(pkgNames[0], instances[0], c.revisionIdTag, c.revisionIdTagStripKey)
+	rev, err := CIPDInstanceToRevision(pkgNames[0], primaryInstance, c.revisionIdTag, c.revisionIdTagStripKey)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	if c.gitRepo != nil {
-		gitRevision := getGitRevisionFromCIPDInstance(instances[0])
+		gitRevision := getGitRevisionFromCIPDInstance(primaryInstance)
 		if gitRevision == "" {
 			rev.InvalidReason = "No git_revision tag"
 		} else {
@@ -128,10 +118,20 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 
 	// Set the Meta field, if applicable.
 	if len(c.platforms) > 0 {
-		rev.Meta = make(map[string]string, len(instances))
-		for idx, platform := range c.platforms {
-			instance := instances[idx]
-			if instance != nil {
+		rev.Meta = make(map[string]string, len(c.platforms))
+		rev.Meta[c.platforms[0]] = rev.Checksum
+		for idx, platform := range c.platforms[1:] {
+			pkgName := pkgNames[idx+1]
+			instance, err := c.findInstance(ctx, pkgName, rev.Id)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			if instance == nil {
+				if rev.InvalidReason != "" {
+					rev.InvalidReason += "; "
+				}
+				rev.InvalidReason += fmt.Sprintf("no package instance exists for %q with version %q", pkgName, rev.Id)
+			} else {
 				sha256, err := cipd.InstanceIDToSha256(instance.Pin.InstanceID)
 				if err != nil {
 					return nil, skerr.Wrap(err)
@@ -140,7 +140,6 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 			}
 		}
 	}
-	rev.InvalidReason = invalidReason
 	return rev, nil
 }
 

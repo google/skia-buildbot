@@ -133,11 +133,7 @@ use_repo(cipd, "some_package_linux-amd64")
 	}
 
 	for pkgName, instanceID := range newInstanceIDs {
-		mockCIPD.On("ResolveVersion", testutils.AnyContext, pkgName, childCfg.Tag).Return(common.Pin{
-			PackageName: pkgName,
-			InstanceID:  instanceID,
-		}, nil)
-		mockCIPD.On("Describe", testutils.AnyContext, pkgName, instanceID, false).Return(&cipd.InstanceDescription{
+		desc := &cipd.InstanceDescription{
 			InstanceInfo: cipd.InstanceInfo{
 				Pin: common.Pin{
 					PackageName: pkgName,
@@ -147,7 +143,16 @@ use_repo(cipd, "some_package_linux-amd64")
 			Tags: []cipd.TagInfo{
 				{Tag: newVersionTag},
 			},
-		}, nil)
+		}
+		if pkgName == "some/package/linux-amd64" {
+			mockCIPD.On("ResolveVersion", testutils.AnyContext, pkgName, childCfg.Tag).Return(common.Pin{
+				PackageName: pkgName,
+				InstanceID:  instanceID,
+			}, nil)
+			mockCIPD.On("Describe", testutils.AnyContext, pkgName, instanceID, false).Return(desc, nil)
+		} else {
+			mockCIPD.On("Describe", testutils.AnyContext, pkgName, newVersionTag, false).Return(desc, nil)
+		}
 	}
 
 	// Run Update() to obtain the revision to roll.
