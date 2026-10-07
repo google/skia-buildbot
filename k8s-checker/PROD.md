@@ -163,3 +163,15 @@ the associated message field or investigate cluster logs to determine the cause
 and appropriate resolution.
 
 Key metrics: k8s_events
+
+## K8sImagePullBackOff
+
+A pod in the Kubernetes cluster is failing to pull its container image
+(`ErrImagePull` / `ImagePullBackOff`). This can occur if an old deployment or
+orphaned replica set references a container image digest that has been
+garbage-collected from the container registry, or if an invalid image digest was
+pushed. Read the associated message field or run `kubectl describe pod` in the
+affected namespace to identify the failing pod and redeploy or clean up the
+stale workload.
+
+Key metrics: k8s_events
