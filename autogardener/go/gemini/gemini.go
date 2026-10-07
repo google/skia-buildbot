@@ -894,7 +894,7 @@ Analysis:
 `+"```"+`
 %s
 `+"```"+`
-`, cand.Id, cand.ErrorMessage, cand.Analysis))
+`, cand.Id, cand.ErrorMessage(), cand.Analysis()))
 	}
 	prompt := fmt.Sprintf(`# Failure Classification Task
 

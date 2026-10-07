@@ -119,11 +119,10 @@ func (c *failureClassesCache) getActiveFailureClasses(ctx context.Context, taskI
 		return nil, skerr.Wrap(err)
 	}
 
-	results := make([]activeFailureClass, 0, len(tasksByClassID))
+	initialClasses := make([]*autogardener_types.FailureClass, 0, len(tasksByClassID))
 	var fcEg errgroup.Group
-	for classID, classTaskIDs := range tasksByClassID {
-		classID := classID           // https://golang.org/doc/faq#closures_and_goroutines
-		classTaskIDs := classTaskIDs // https://golang.org/doc/faq#closures_and_goroutines
+	for classID := range tasksByClassID {
+		classID := classID // https://golang.org/doc/faq#closures_and_goroutines
 		fcEg.Go(func() error {
 			fc, err := c.getFailureClass(ctx, classID)
 			if err != nil {
@@ -132,19 +131,29 @@ func (c *failureClassesCache) getActiveFailureClasses(ctx context.Context, taskI
 			if fc == nil {
 				return nil
 			}
-			sortedTaskIDs := append([]string(nil), classTaskIDs...)
-			sort.Strings(sortedTaskIDs)
 			mtx.Lock()
-			results = append(results, activeFailureClass{
-				FailureClass: fc,
-				TaskIDs:      sortedTaskIDs,
-			})
+			initialClasses = append(initialClasses, fc)
 			mtx.Unlock()
 			return nil
 		})
 	}
 	if err := fcEg.Wait(); err != nil {
 		return nil, skerr.Wrap(err)
+	}
+
+	allClasses, err := autogardener_db.FetchLinkedFailureClasses(ctx, initialClasses, c.getFailureClass)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	results := make([]activeFailureClass, 0, len(allClasses))
+	for _, fc := range allClasses {
+		sortedTaskIDs := append([]string{}, tasksByClassID[fc.Id]...)
+		sort.Strings(sortedTaskIDs)
+		results = append(results, activeFailureClass{
+			FailureClass: fc,
+			TaskIDs:      sortedTaskIDs,
+		})
 	}
 
 	sort.Slice(results, func(i, j int) bool {

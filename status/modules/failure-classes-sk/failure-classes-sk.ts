@@ -15,26 +15,150 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
+export interface FailureClassUpdate {
+  timestamp: string;
+  user: string;
+  message?: string;
+  title?: string | null;
+  errorMessage?: string | null;
+  analysis?: string | null;
+  flaky?: boolean | null;
+  culprits?: string[] | null;
+  resolvedBy?: string[] | null;
+  bugs?: string[] | null;
+  duplicateOf?: string | null;
+  duplicates?: string[] | null;
+}
+
 export interface FailureClass {
   id: string;
-  errorMessage: string;
-  analysis: string;
   lastSeen?: string;
   repo?: string;
-  classification?: string;
-  culprits?: string[];
-  resolved?: boolean;
+  updates?: FailureClassUpdate[] | null;
+}
+
+export interface FailureClassFlat extends FailureClass {
+  title: string;
+  errorMessage: string;
+  analysis: string;
+  flaky: boolean;
+  culprits: string[];
+  resolvedBy: string[];
+  bugs: string[];
+  duplicateOf: string;
+  duplicates: string[];
+}
+
+export function flattenFailureClass(fc: FailureClass): FailureClassFlat {
+  const flattened: FailureClassFlat = {
+    ...fc,
+    title: '',
+    errorMessage: '',
+    analysis: '',
+    flaky: false,
+    culprits: [],
+    resolvedBy: [],
+    bugs: [],
+    duplicateOf: '',
+    duplicates: [],
+  };
+  for (const update of fc.updates || []) {
+    if (update.title !== undefined && update.title !== null) {
+      flattened.title = update.title;
+    }
+    if (update.errorMessage !== undefined && update.errorMessage !== null) {
+      flattened.errorMessage = update.errorMessage;
+    }
+    if (update.analysis !== undefined && update.analysis !== null) {
+      flattened.analysis = update.analysis;
+    }
+    if (update.flaky !== undefined && update.flaky !== null) {
+      flattened.flaky = update.flaky;
+    }
+    if (update.culprits !== undefined && update.culprits !== null) {
+      flattened.culprits = update.culprits;
+    }
+    if (update.resolvedBy !== undefined && update.resolvedBy !== null) {
+      flattened.resolvedBy = update.resolvedBy;
+    }
+    if (update.bugs !== undefined && update.bugs !== null) {
+      flattened.bugs = update.bugs;
+    }
+    if (update.duplicateOf !== undefined && update.duplicateOf !== null) {
+      flattened.duplicateOf = update.duplicateOf;
+    }
+    if (update.duplicates !== undefined && update.duplicates !== null) {
+      flattened.duplicates = update.duplicates;
+    }
+  }
+  return flattened;
 }
 
 export interface ActiveFailureClass {
-  failureClass: FailureClass;
+  failureClass: FailureClassFlat;
   taskIds: string[];
+}
+
+export function resolveFailureClasses(allClasses: ActiveFailureClass[]): ActiveFailureClass[] {
+  const byId = new Map<string, ActiveFailureClass>();
+  for (const item of allClasses || []) {
+    byId.set(item.failureClass.id, item);
+  }
+
+  const resolveId = (id: string): string => {
+    const visited = new Set<string>();
+    let currId = id;
+    while (currId && !visited.has(currId)) {
+      visited.add(currId);
+      const entry = byId.get(currId);
+      if (!entry || !entry.failureClass.duplicateOf || !byId.has(entry.failureClass.duplicateOf)) {
+        return currId;
+      }
+      currId = entry.failureClass.duplicateOf;
+    }
+    return currId;
+  };
+
+  const canonicalTasks = new Map<string, Set<string>>();
+  for (const [id, entry] of byId.entries()) {
+    const canonicalId = resolveId(id);
+    if (!canonicalTasks.has(canonicalId)) {
+      canonicalTasks.set(canonicalId, new Set<string>());
+    }
+    const taskSet = canonicalTasks.get(canonicalId)!;
+    for (const tid of entry.taskIds || []) {
+      taskSet.add(tid);
+    }
+  }
+
+  const results: ActiveFailureClass[] = [];
+  for (const [canonicalId, taskSet] of canonicalTasks.entries()) {
+    const entry = byId.get(canonicalId);
+    if (!entry || taskSet.size === 0) {
+      continue;
+    }
+    results.push({
+      failureClass: entry.failureClass,
+      taskIds: Array.from(taskSet).sort(),
+    });
+  }
+
+  results.sort((a, b) => {
+    if (a.taskIds.length !== b.taskIds.length) {
+      return b.taskIds.length - a.taskIds.length;
+    }
+    return a.failureClass.id.localeCompare(b.failureClass.id);
+  });
+
+  return results;
 }
 
 const FALLBACK_POLL_INTERVAL_MS = 30 * 1000;
 
 export class FailureClassesSk extends ElementSk {
   private _taskIds: string[] = [];
+
+  private allClasses: ActiveFailureClass[] = [];
 
   private classes: ActiveFailureClass[] = [];
 
@@ -52,35 +176,33 @@ export class FailureClassesSk extends ElementSk {
     <div class="failure-classes-list">
       ${el.classes.length === 0
         ? html`<div class="empty">No active failure classes</div>`
-        : el.classes.map(
-            (item) => html`
+        : el.classes.map((item) => {
+            const fc = item.failureClass;
+            return html`
               <div
-                class="failure-class-item ${el.hoveredClassId === item.failureClass.id
-                  ? 'hovered'
-                  : ''}"
-                data-failure-class-id=${item.failureClass.id}
+                class="failure-class-item ${el.hoveredClassId === fc.id ? 'hovered' : ''}"
+                data-failure-class-id=${fc.id}
                 @mouseenter=${() => el.onClassMouseEnter(item)}
                 @mouseleave=${() => el.onClassMouseLeave()}
                 @click=${(e: Event) => {
                   e.stopPropagation();
                   el.selectClass(item);
                 }}>
-                <div class="analysis">${item.failureClass.analysis || '(No analysis)'}</div>
+                <div class="analysis">${fc.title || fc.analysis || '(No analysis)'}</div>
                 <div class="count">
                   <span class="value" title="${item.taskIds.length} failed task(s)">
                     ${item.taskIds.length}
                   </span>
                 </div>
               </div>
-            `
-          )}
+            `;
+          })}
     </div>
   `;
 
   connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('taskIds');
-    this._render();
     if (this._taskIds.length > 0) {
       this.refresh();
     }
@@ -105,6 +227,7 @@ export class FailureClassesSk extends ElementSk {
     this._taskIds = normalized;
     this.clearRefreshTimeout();
     if (this._taskIds.length === 0) {
+      this.allClasses = [];
       this.classes = [];
       this.taskToClass.clear();
       this.hoveredClassId = '';
@@ -182,12 +305,16 @@ export class FailureClassesSk extends ElementSk {
       body: JSON.stringify({ taskIds: requestedIds }),
     })
       .then(jsonOrThrow)
-      .then((json: ActiveFailureClass[]) => {
+      .then((json: { failureClass: FailureClass; taskIds: string[] }[]) => {
         // Ignore stale responses if taskIds changed while the request was in flight.
         if (this._taskIds !== requestedIds) {
           return;
         }
-        this.classes = json || [];
+        this.allClasses = (json || []).map((item) => ({
+          failureClass: flattenFailureClass(item.failureClass),
+          taskIds: item.taskIds || [],
+        }));
+        this.classes = resolveFailureClasses(this.allClasses);
         this.taskToClass.clear();
         let classifiedCount = 0;
         for (const item of this.classes) {

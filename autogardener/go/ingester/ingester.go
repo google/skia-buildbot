@@ -2,7 +2,6 @@ package ingester
 
 import (
 	"context"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,6 +16,7 @@ import (
 	"go.skia.org/infra/autogardener/go/types"
 	"go.skia.org/infra/autogardener/go/utils"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -307,9 +307,14 @@ const genericFailureClassID = "generic-failure"
 
 func makeGenericFailureClass() *types.FailureClass {
 	return &types.FailureClass{
-		Id:           genericFailureClassID,
-		ErrorMessage: "",
-		Analysis:     "The error did not contain enough identifiable details to classify successfully.",
+		Id: genericFailureClassID,
+		Updates: []*types.FailureClassUpdate{
+			{
+				User:         "autogardener",
+				ErrorMessage: types.Ptr(""),
+				Analysis:     types.Ptr("The error did not contain enough identifiable details to classify successfully."),
+			},
+		},
 	}
 }
 
@@ -435,8 +440,9 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 		sklog.Debugf("Found %d recent failure classes", len(failureClasses))
 
 		for _, cand := range failureClasses {
-			candErrSanitized := utils.SanitizeErrorText(cand.ErrorMessage)
-			if taskSummary.ErrorMessage == cand.ErrorMessage || (taskErrSanitized != "" && taskErrSanitized == candErrSanitized) {
+			candErr := cand.ErrorMessage()
+			candErrSanitized := utils.SanitizeErrorText(candErr)
+			if taskSummary.ErrorMessage == candErr || (taskErrSanitized != "" && taskErrSanitized == candErrSanitized) {
 				sklog.Debugf("Exact match of error message for %s; no need to use gemini.", task.Id)
 				metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "exact_match"}).Observe(1.0)
 				assignedFailureClass = cand
@@ -452,7 +458,7 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 	if assignedFailureClass == nil {
 		var bestCand *types.FailureClass
 		for _, cand := range failureClasses {
-			candErrSanitized := utils.SanitizeErrorText(cand.ErrorMessage)
+			candErrSanitized := utils.SanitizeErrorText(cand.ErrorMessage())
 			similarity := util.NgramSimilarity(taskErrSanitized, candErrSanitized, ngramSize)
 			overlap := util.NgramOverlap(taskErrSanitized, candErrSanitized, ngramSize)
 
@@ -521,10 +527,16 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 	// Case 5: No match. Create a new FailureClass.
 	if assignedFailureClass == nil {
 		assignedFailureClass = &types.FailureClass{
-			Id:           fmt.Sprintf("%x", sha256.Sum256([]byte(taskSummary.ErrorMessage))),
-			ErrorMessage: taskSummary.ErrorMessage,
-			Analysis:     taskSummary.Analysis,
-			Repo:         task.Repo,
+			Id:   firestore.AlphaNumID(),
+			Repo: task.Repo,
+			Updates: []*types.FailureClassUpdate{
+				{
+					Timestamp:    now.Now(ctx),
+					User:         "autogardener",
+					ErrorMessage: types.Ptr(taskSummary.ErrorMessage),
+					Analysis:     types.Ptr(taskSummary.Analysis),
+				},
+			},
 		}
 		sklog.Infof("Registered new FailureClass %s for task %s. Best similarity score was %.3f", assignedFailureClass.Id, task.Id, bestScore)
 		metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "no_match"}).Observe(bestScore)

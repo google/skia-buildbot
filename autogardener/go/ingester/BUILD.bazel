@@ -12,6 +12,7 @@ go_library(
         "//autogardener/go/types",
         "//autogardener/go/utils",
         "//go/auth",
+        "//go/firestore",
         "//go/git/repograph",
         "//go/httputils",
         "//go/metrics2",

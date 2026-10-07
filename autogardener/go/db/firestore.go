@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"net/url"
+	"sort"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
@@ -107,6 +108,29 @@ func (d *firestoreDB) PutReport(ctx context.Context, repo, branch string, report
 	return skerr.Wrap(err)
 }
 
+func fixLegacyFailureClass(fc *types.FailureClass) {
+	if len(fc.Updates) == 0 && (fc.LegacyErrorMessage != nil || fc.LegacyAnalysis != nil) {
+		fc.Updates = []*types.FailureClassUpdate{
+			{
+				User:         "autogardener",
+				ErrorMessage: fc.LegacyErrorMessage,
+				Analysis:     fc.LegacyAnalysis,
+			},
+		}
+	}
+	fc.LegacyErrorMessage = nil
+	fc.LegacyAnalysis = nil
+}
+
+func decodeFailureClass(doc *fs.DocumentSnapshot) (*types.FailureClass, error) {
+	var fc types.FailureClass
+	if err := doc.DataTo(&fc); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	fixLegacyFailureClass(&fc)
+	return &fc, nil
+}
+
 func (d *firestoreDB) GetFailureClass(ctx context.Context, id string) (*types.FailureClass, error) {
 	doc, err := d.client.Get(ctx, d.client.Collection(collectionFailureClass).Doc(id), defaultAttempts, defaultTimeout)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
@@ -114,16 +138,107 @@ func (d *firestoreDB) GetFailureClass(ctx context.Context, id string) (*types.Fa
 	} else if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	var rv types.FailureClass
-	if err := doc.DataTo(&rv); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &rv, nil
+	return decodeFailureClass(doc)
 }
 
 func (d *firestoreDB) PutFailureClass(ctx context.Context, fc *types.FailureClass) error {
-	_, err := d.client.Set(ctx, d.client.Collection(collectionFailureClass).Doc(fc.Id), fc, defaultAttempts, defaultTimeout)
-	return skerr.Wrap(err)
+	fc.LastSeen = firestore.FixTimestamp(fc.LastSeen)
+	for _, u := range fc.Updates {
+		u.Timestamp = firestore.FixTimestamp(u.Timestamp)
+	}
+	ref := d.client.Collection(collectionFailureClass).Doc(fc.Id)
+	var merged types.FailureClass
+	err := d.client.RunTransaction(ctx, "PutFailureClass", fc.Id, defaultAttempts, defaultTimeout, func(ctx context.Context, tx *fs.Transaction) error {
+		merged = *fc
+		doc, err := tx.Get(ref)
+		if err != nil {
+			if st, ok := status.FromError(err); !ok || st.Code() != codes.NotFound {
+				return err
+			}
+			merged.Updates = mergeFailureClassUpdates(nil, fc.Updates)
+		} else {
+			existing, err := decodeFailureClass(doc)
+			if err != nil {
+				return err
+			}
+			if existing.LastSeen.After(merged.LastSeen) {
+				merged.LastSeen = existing.LastSeen
+			}
+			merged.Updates = mergeFailureClassUpdates(existing.Updates, fc.Updates)
+		}
+
+		// Ensure that there are no cycles in DuplicateOf.
+		visited := map[string]bool{merged.Id: true}
+		for currID := merged.DuplicateOf(); currID != ""; {
+			if visited[currID] {
+				return skerr.Fmt("cycle detected in DuplicateOf for FailureClass %s", merged.Id)
+			}
+			visited[currID] = true
+			targetDoc, err := tx.Get(d.client.Collection(collectionFailureClass).Doc(currID))
+			if err != nil {
+				if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
+					break
+				}
+				return err
+			}
+			targetFC, err := decodeFailureClass(targetDoc)
+			if err != nil {
+				return err
+			}
+			currID = targetFC.DuplicateOf()
+		}
+		for _, dupID := range merged.Duplicates() {
+			if visited[dupID] {
+				return skerr.Fmt("cycle detected in Duplicates for FailureClass %s", merged.Id)
+			}
+		}
+		return tx.Set(ref, &merged)
+	})
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	*fc = merged
+	return nil
+}
+
+type updateKey struct {
+	ts   int64
+	user string
+}
+
+func makeUpdateKey(u *types.FailureClassUpdate) updateKey {
+	return updateKey{
+		ts:   firestore.FixTimestamp(u.Timestamp).UnixNano(),
+		user: u.User,
+	}
+}
+
+func mergeFailureClassUpdates(existing, incoming []*types.FailureClassUpdate) []*types.FailureClassUpdate {
+	if len(existing) == 0 && len(incoming) == 0 {
+		return nil
+	}
+	byKey := make(map[updateKey]*types.FailureClassUpdate, len(existing)+len(incoming))
+	for _, u := range existing {
+		cp := *u
+		cp.Timestamp = firestore.FixTimestamp(cp.Timestamp)
+		byKey[makeUpdateKey(&cp)] = &cp
+	}
+	for _, u := range incoming {
+		cp := *u
+		cp.Timestamp = firestore.FixTimestamp(cp.Timestamp)
+		byKey[makeUpdateKey(&cp)] = &cp
+	}
+	rv := make([]*types.FailureClassUpdate, 0, len(byKey))
+	for _, u := range byKey {
+		rv = append(rv, u)
+	}
+	sort.Slice(rv, func(i, j int) bool {
+		if rv[i].Timestamp.Equal(rv[j].Timestamp) {
+			return rv[i].User < rv[j].User
+		}
+		return rv[i].Timestamp.Before(rv[j].Timestamp)
+	})
+	return rv
 }
 
 func (d *firestoreDB) GetRecentFailureClasses(ctx context.Context, repo string, since time.Time, limit int) ([]*types.FailureClass, error) {
@@ -137,17 +252,18 @@ func (d *firestoreDB) GetRecentFailureClasses(ctx context.Context, repo string, 
 
 	var results []*types.FailureClass
 	err := d.client.IterDocs(ctx, "GetRecentFailureClasses", "", query, defaultAttempts, defaultTimeout, func(doc *fs.DocumentSnapshot) error {
-		var fc types.FailureClass
-		if err := doc.DataTo(&fc); err != nil {
+		fc, err := decodeFailureClass(doc)
+		if err != nil {
 			return err
 		}
-		results = append(results, &fc)
+		results = append(results, fc)
 		return nil
 	})
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return results, nil
+
+	return FetchLinkedFailureClasses(ctx, results, d.GetFailureClass)
 }
 
 func (d *firestoreDB) ModifiedFailureClassesCh(ctx context.Context, window time.Duration) <-chan []*types.FailureClass {
@@ -160,6 +276,9 @@ func (d *firestoreDB) ModifiedFailureClassesCh(ctx context.Context, window time.
 		for changes := range firestore.QuerySnapshotChannel[types.FailureClass](ctx, makeQuery) {
 			fcs := append(changes.Added, changes.Modified...)
 			if len(fcs) > 0 {
+				for _, fc := range fcs {
+					fixLegacyFailureClass(fc)
+				}
 				outCh <- fcs
 			}
 		}

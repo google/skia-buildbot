@@ -155,7 +155,7 @@ func TestClassifyTaskSummary(t *testing.T) {
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
 		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return([]*types.FailureClass{}, nil).Once()
 		mockDB.On("PutFailureClass", mock.Anything, mock.MatchedBy(func(fc *types.FailureClass) bool {
-			return fc.Repo == task.Repo && fc.ErrorMessage == taskSummary.ErrorMessage && fc.Analysis == taskSummary.Analysis && fc.Id != ""
+			return fc.Repo == task.Repo && fc.ErrorMessage() == taskSummary.ErrorMessage && fc.Analysis() == taskSummary.Analysis && fc.Id != ""
 		})).Return(nil).Once()
 		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
 			return ts.FailureClassId != ""
@@ -173,9 +173,13 @@ func TestClassifyTaskSummary(t *testing.T) {
 		mockDB, mockG, i, task, taskSummary := setup(t)
 
 		fc := &types.FailureClass{
-			Id:           "class_abc",
-			Repo:         task.Repo,
-			ErrorMessage: taskSummary.ErrorMessage,
+			Id:   "class_abc",
+			Repo: task.Repo,
+			Updates: []*types.FailureClassUpdate{
+				{
+					ErrorMessage: types.Ptr(taskSummary.ErrorMessage),
+				},
+			},
 		}
 		failureClasses := []*types.FailureClass{fc}
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
@@ -196,9 +200,13 @@ func TestClassifyTaskSummary(t *testing.T) {
 		mockDB, mockG, i, task, taskSummary := setup(t)
 
 		fc := &types.FailureClass{
-			Id:           "class_abc",
-			Repo:         task.Repo,
-			ErrorMessage: "task failed with: " + taskSummary.ErrorMessage,
+			Id:   "class_abc",
+			Repo: task.Repo,
+			Updates: []*types.FailureClassUpdate{
+				{
+					ErrorMessage: types.Ptr("task failed with: " + taskSummary.ErrorMessage),
+				},
+			},
 		}
 		failureClasses := []*types.FailureClass{fc}
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
@@ -330,9 +338,13 @@ Failures:
 		}
 
 		fc := &types.FailureClass{
-			Id:           "overlap-failure-class",
-			Repo:         task.Repo,
-			ErrorMessage: shortErr,
+			Id:   "overlap-failure-class",
+			Repo: task.Repo,
+			Updates: []*types.FailureClassUpdate{
+				{
+					ErrorMessage: types.Ptr(shortErr),
+				},
+			},
 		}
 		failureClasses := []*types.FailureClass{fc}
 		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
@@ -606,9 +618,13 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 	}
 	failureClass := &types.FailureClass{
 		Id: "failure-class-1",
-		// Use an error message which doesn't exactly match, to ensure that we
-		// call into Gemini.
-		ErrorMessage: "task failed with: " + summary.ErrorMessage,
+		Updates: []*types.FailureClassUpdate{
+			{
+				// Use an error message which doesn't exactly match, to ensure that we
+				// call into Gemini.
+				ErrorMessage: types.Ptr("task failed with: " + summary.ErrorMessage),
+			},
+		},
 	}
 
 	ctx, cancel := context.WithCancel(t.Context())

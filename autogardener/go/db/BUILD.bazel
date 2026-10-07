@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "db",
@@ -18,5 +19,18 @@ go_library(
         "@org_golang_google_api//option",
         "@org_golang_google_grpc//codes",
         "@org_golang_google_grpc//status",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_test(
+    name = "db_test",
+    srcs = ["firestore_test.go"],
+    embed = [":db"],
+    deps = [
+        "//autogardener/go/types",
+        "//go/firestore/testutils",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_x_sync//errgroup",
     ],
 )
