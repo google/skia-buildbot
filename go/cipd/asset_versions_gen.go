@@ -116,7 +116,7 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/bazel_build_all/${platform}": {
 		Path:    ".",
 		Name:    "skia/tools/bazel_build_all/${platform}",
-		Version: "git_revision:f2fc891dd0fbd4a97cfa21036a95126b5150b834",
+		Version: "git_revision:cbdd9976bce93e20b84de153ce1b2838a09018e8",
 	},
 	"skia/tools/bazel_test_all/${platform}": {
 		Path:    ".",
