@@ -10,6 +10,8 @@
 // * Workflow Type: perf.cbb_new_release_detector
 // * Workflow Id: perf.cbb_new_release_detector
 // * Task Queue: perf.perf-chrome-public.bisect
+// * Execution Timeout: 16 hours (prevents a worker-starved run from hanging in
+//   Running state across multiple days and skipping subsequent weekday runs)
 // * Schedule Spec: Click on "Days of the Week" tab, and then select Weekdays
 // * Time: Enter 22 hrs, 00 min
 // And then click Create Schedule button.
@@ -18,7 +20,7 @@
 // Temporal CLI installed locally. You need to follow steps 1 through 3 at
 // https://skia.googlesource.com/buildbot/+/refs/heads/main/temporal/README.md#locally-trigger-production-workflow-follow-these-steps-with-care
 // and then run the following command:
-//	temporal schedule create --schedule-id 'CBB Schedule' --workflow-type perf.cbb_new_release_detector --workflow-id perf.cbb_new_release_detector --cron '0 22 * * 1-5' --task-queue perf.perf-chrome-public.bisect --namespace perf-internal
+//	temporal schedule create --schedule-id 'CBB Schedule' --workflow-type perf.cbb_new_release_detector --workflow-id perf.cbb_new_release_detector --cron '0 22 * * 1-5' --task-queue perf.perf-chrome-public.bisect --execution-timeout 16h --namespace perf-internal
 //
 // Regardless of how you created it, you can view the schedule at
 // https://skia-temporal-ui.corp.goog/namespaces/perf-internal/schedules,
