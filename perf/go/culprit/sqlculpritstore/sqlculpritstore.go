@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,10 +37,13 @@ func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, er
 	ctx, span := trace.StartSpan(ctx, "sqlculpritstore.Get")
 	defer span.End()
 
-	statement := "SELECT id, host, project, ref, revision, anomaly_group_ids, issue_ids, group_issue_map FROM Culprits where id IN (%s)"
-	query := fmt.Sprintf(statement, quotedSlice(ids))
-	sklog.Debugf("[CP] Get query: %s", query)
-	rows, err := s.db.Query(ctx, query)
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	statement := "SELECT id, host, project, ref, revision, anomaly_group_ids, issue_ids, group_issue_map FROM Culprits WHERE id = ANY($1)"
+	sklog.Debugf("[CP] Get query: %s with %d ids", statement, len(ids))
+	rows, err := s.db.Query(ctx, statement, ids)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query Culprit")
 	}
@@ -255,16 +257,6 @@ func removeDuplicateStr(strSlice []string) []string {
 		}
 	}
 	return list
-}
-
-// Takes a string array as input, and returns a comma joined string where each element
-// is single quoted.
-func quotedSlice(a []string) string {
-	q := make([]string, len(a))
-	for i, s := range a {
-		q[i] = fmt.Sprintf("'%s'", s)
-	}
-	return strings.Join(q, ", ")
 }
 
 // Takes culprit protos and anomaly_group_id as input, and returns a culprit schema struct where

@@ -57,6 +57,36 @@ func TestGet_HappyPath_ReturnsCulprits(t *testing.T) {
 	assert.ElementsMatch(t, actual, expected)
 }
 
+func TestGet_EmptyIds_ReturnsNil(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	actual, err := store.Get(ctx, []string{})
+
+	require.NoError(t, err)
+	assert.Empty(t, actual)
+}
+
+func TestGet_SQLInjectionAttempt_ReturnsNoResultsWithoutError(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+	populateDb(t, ctx, db, schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "123",
+		AnomalyGroupIDs: []string{"a1"},
+		IssueIds:        []string{"b1"},
+		GroupIssueMap:   map[string]string{"a1": "b1"},
+	})
+
+	actual, err := store.Get(ctx, []string{"1' OR '1'='1", "1') UNION SELECT 1,2,3,4,5,6,7,8 --"})
+
+	require.NoError(t, err)
+	assert.Empty(t, actual)
+}
+
 func TestUpsert_MissingAnomlayGroupId_ReturnErr(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
