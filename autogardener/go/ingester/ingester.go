@@ -2,25 +2,15 @@ package ingester
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"net/http"
-	"sort"
-	"strings"
-	"sync"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/autogardener/go/db"
 	"go.skia.org/infra/autogardener/go/gemini"
 	"go.skia.org/infra/autogardener/go/types"
-	"go.skia.org/infra/autogardener/go/utils"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -33,30 +23,14 @@ import (
 
 const (
 	getUnclassifiedExtractedErrorsBatchSize = 100
-	maxRecentFailureClasses                 = 25
-	ngramSize                               = 4
-	ngramSimilarityCandidateThreshold       = 0.10
-	ngramFastPathThreshold                  = 0.90
-	ngramOverlapCandidateThreshold          = 0.50
-	minNgramOverlapLength                   = 25
-	minStringContainsLength                 = 30
-	minClassIDPrefixLength                  = 16
-	workerPoolSize                          = 10
-	unfinishedTaskMaxWait                   = 5 * time.Minute
-	unfinishedTaskRequeueDelay              = 5 * time.Second
 )
-
-// sleepFn allows overriding time.Sleep in tests.
-var sleepFn = time.Sleep
 
 type Ingester struct {
 	db         db.AutoGardenerDB
 	gemini     gemini.Client
-	httpClient *http.Client
-	repos      repograph.Map
 	tsDB       ts_db.TaskReader
-	tdDB       td_db.DB
-	logdog     task_details.LogDogClient
+	extractor  *errorExtractor
+	classifier *errorClassifier
 }
 
 func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos repograph.Map, tsDB ts_db.TaskReader, tdDB td_db.DB) (*Ingester, error) {
@@ -67,11 +41,9 @@ func New(ctx context.Context, db db.AutoGardenerDB, gemini gemini.Client, repos 
 	return &Ingester{
 		db:         db,
 		gemini:     gemini,
-		httpClient: httputils.DefaultClientConfig().WithTokenSource(ts).Client(),
-		repos:      repos,
 		tsDB:       tsDB,
-		tdDB:       tdDB,
-		logdog:     task_details.NewLogDogClient(ts),
+		extractor:  newErrorExtractor(db, gemini, tdDB, task_details.NewLogDogClient(ts)),
+		classifier: newErrorClassifier(db, gemini),
 	}, nil
 }
 
@@ -129,36 +101,6 @@ func (i *Ingester) periodicTaskPollingFallback(ctx context.Context, repoURL stri
 	})
 }
 
-type taskIngestionResult struct {
-	types.TaskAndError
-	err error
-}
-
-func (i *Ingester) ingestTasks(ctx context.Context, input chan *ts_types.Task, output chan<- *taskIngestionResult) {
-	processing := newTaskProcessingRegistry()
-	for range workerPoolSize {
-		go func() {
-			for {
-				select {
-				case task := <-input:
-					extractedErr, err := i.ingestTask(ctx, processing, task, input)
-					result := &taskIngestionResult{}
-					if err != nil {
-						result.err = err
-					} else {
-						result.Task = task
-						result.Error = extractedErr
-					}
-					output <- result
-				case <-ctx.Done():
-					return
-				}
-			}
-		}()
-	}
-	<-ctx.Done()
-}
-
 func (i *Ingester) periodicUnclassifiedExtractedErrorPollingFallback(ctx context.Context, classifyCh chan<- *types.TaskAndError) {
 	util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
 		// TODO(borenet): This retrieves extracted errors for ALL repos.
@@ -180,7 +122,7 @@ func (i *Ingester) periodicUnclassifiedExtractedErrorPollingFallback(ctx context
 	})
 }
 
-func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoURL string, period time.Duration) {
+func (i *Ingester) StartIngestingForRepo(ctx context.Context, repoURL string, period time.Duration) {
 	taskCh := make(chan *ts_types.Task)
 
 	// Primary: receive tasks from DB as they are updated.
@@ -190,369 +132,20 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 	// any are missed by the above.
 	go i.periodicTaskPollingFallback(ctx, repoURL, period, taskCh)
 
-	// Start up a worker pool to ingest the tasks in parallel.
-	taskIngestResultCh := make(chan *taskIngestionResult)
-	go i.ingestTasks(ctx, taskCh, taskIngestResultCh)
-
 	// We classify failures sequentially to prevent the race condition in which
 	// multiple task failures with the same, new, failure class are processed at
 	// the same time and thus add duplicates to the DB.
 	classifyCh := make(chan *types.TaskAndError, getUnclassifiedExtractedErrorsBatchSize)
 
-	// Consume task ingestion results from that channel and enqueue them into
-	// the classification channel.
-	go func() {
-		for {
-			select {
-			case result := <-taskIngestResultCh:
-				if result.err != nil {
-					sklog.Errorf("failed to ingest task: %s", result.err)
-					continue
-				} else if result.Error == nil {
-					// This occurs if the worker received a task which was
-					// already being processed by another worker. Ignore.
-					continue
-				} else if result.Error.FailureClassId != "" {
-					continue
-				}
-
-				// Enqueue the classification of the extracted error. Do so in
-				// a separate goroutine to prevent blocking workers.
-				go func() {
-					classifyCh <- &types.TaskAndError{
-						Task:  result.Task,
-						Error: result.Error,
-					}
-				}()
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
+	// Extract error messages in parallel.
+	go i.extractor.extractErrorMessages(ctx, taskCh, classifyCh)
 
 	// Backup: periodically fetch all unclassified extracted errors and add them
 	// to the queue.
 	go i.periodicUnclassifiedExtractedErrorPollingFallback(ctx, classifyCh)
 
 	// Classify extracted errors.
-	go func() {
-		for {
-			select {
-			case job := <-classifyCh:
-				if err := i.classifyExtractedError(ctx, job.Task, job.Error); err != nil {
-					sklog.Errorf("Failed to classify extracted error: %s", err)
-					continue
-				}
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-}
-
-func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingRegistry, task *ts_types.Task, taskCh chan *ts_types.Task) (*types.ExtractedError, error) {
-	// If another worker is already processing this task, skip it.
-	release, ok := processing.TryClaimTask(task.Id)
-	if !ok {
-		return nil, nil
-	}
-	defer release()
-
-	// If we already have an extracted error for this task, skip it.
-	extractedErr, err := i.db.GetExtractedError(ctx, task.Id)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to ingest task %s", task.Id)
-	}
-	if extractedErr != nil {
-		return extractedErr, nil
-	}
-
-	// Occasionally task drivers and recipes have propagation delay to the DB
-	// which causes some steps and/or their logs to be missing. If this task has
-	// any unfinished steps or logs, re-enqueue it after a short wait.
-	isUnfinished, err := isUnfinished(ctx, i.tdDB, i.logdog, task)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if isUnfinished {
-		if now.Now(ctx).Sub(task.Finished) < unfinishedTaskMaxWait {
-			sklog.Infof("Task %s has unfinished steps or logs; re-enqueuing after %s", task.Id, unfinishedTaskRequeueDelay)
-			go func(t *ts_types.Task) {
-				sleepFn(unfinishedTaskRequeueDelay)
-				taskCh <- t
-			}(task)
-			return nil, nil
-		}
-		sklog.Warningf("Task %s still has unfinished steps or logs after %s; proceeding anyway.", task.Id, now.Now(ctx).Sub(task.Finished))
-	}
-
-	// Use Gemini to extract the error message for this task and insert it
-	// into the DB.
-	extractedErr, err = i.gemini.ExtractErrorMessage(ctx, task)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to ingest task %s", task.Id)
-	}
-	if err := i.db.PutExtractedError(ctx, task.Id, extractedErr); err != nil {
-		return nil, skerr.Wrapf(err, "failed to save extracted error %s: %s", task.Id, err)
-	}
-	latency := now.Now(ctx).Sub(task.Finished).Seconds()
-	metrics2.GetFloat64SummaryMetric("autogardener_task_ingest_latency").Observe(latency)
-	sklog.Infof("Ingested task %s with latency of %2f seconds", task.Id, latency)
-	return extractedErr, nil
-}
-
-var errDone = errors.New("done")
-
-const genericFailureClassID = "generic-failure"
-
-func makeGenericFailureClass() *types.FailureClass {
-	return &types.FailureClass{
-		Id: genericFailureClassID,
-		Updates: []*types.FailureClassUpdate{
-			{
-				User:         "autogardener",
-				ErrorMessage: types.Ptr(""),
-				Analysis:     types.Ptr("The error did not contain enough identifiable details to classify successfully."),
-			},
-		},
-	}
-}
-
-func isUnfinished(ctx context.Context, tdDB td_db.DB, logdog task_details.LogDogClient, task *ts_types.Task) (bool, error) {
-	td, err := tdDB.GetTaskDriver(ctx, task.Id)
-	if err != nil {
-		return false, skerr.Wrapf(err, "failed to get task driver for %s", task.Id)
-	}
-	if td != nil {
-		return isUnfinishedTaskDriver(td), nil
-	}
-	return isUnfinishedRecipe(ctx, logdog, task.SwarmingTaskId)
-}
-
-// isUnfinishedTaskDriver returns true if the given task driver run has any
-// unfinished steps.
-func isUnfinishedTaskDriver(td *td_db.TaskDriverRun) bool {
-	if len(td.Steps) == 0 {
-		return false
-	}
-	for _, step := range td.Steps {
-		if step.Finished.IsZero() {
-			return true
-		}
-	}
-	return false
-}
-
-// isUnfinishedRecipe returns true if the given Swarming task ID is a recipe
-// task whose steps or failed step logs have not finished propagating to LogDog.
-func isUnfinishedRecipe(ctx context.Context, logdog task_details.LogDogClient, swarmingTaskID string) (bool, error) {
-	fixedTaskID := task_details.FixupSwarmingTaskID(swarmingTaskID)
-	step, finished, err := logdog.GetBuildSteps(ctx, task_details.LogDogProject, fixedTaskID)
-	if err != nil {
-		if strings.Contains(err.Error(), "coordinator: no access") {
-			// Not a recipe task (no LogDog annotations stream).
-			return false, nil
-		}
-		if strings.Contains(err.Error(), "no annotation entries found in stream") {
-			return true, nil
-		}
-		return false, skerr.Wrapf(err, "failed to get build steps for %s", swarmingTaskID)
-	}
-	if !finished {
-		return true, nil
-	}
-	recipeStep := task_details.ToRecipeStep(step)
-	if recipeStep == nil {
-		return false, nil
-	}
-	if !recipeStep.Finished {
-		return true, nil
-	}
-
-	var checkStepLogs func(s *task_details.RecipeStep) (bool, error)
-	checkStepLogs = func(s *task_details.RecipeStep) (bool, error) {
-		if s == nil {
-			return false, nil
-		}
-		if s.Status != "SUCCESS" && s.Name != "" {
-			for _, logStream := range []string{s.StdoutStream, s.StderrStream} {
-				if logStream == "" {
-					continue
-				}
-				logPath := fmt.Sprintf(task_details.LogDogPathTmplStepLogs, fixedTaskID, logStream)
-				_, finished, err := logdog.GetLastEntry(ctx, task_details.LogDogProject, logPath)
-				if err != nil {
-					if strings.Contains(err.Error(), "coordinator: no access") {
-						return true, nil
-					}
-					return false, skerr.Wrapf(err, "failed to get last log entry for %s (%s)", swarmingTaskID, logStream)
-				}
-				if !finished {
-					return true, nil
-				}
-			}
-		}
-		for _, sub := range s.Substeps {
-			unfinished, err := checkStepLogs(sub)
-			if err != nil || unfinished {
-				return unfinished, err
-			}
-		}
-		return false, nil
-	}
-
-	return checkStepLogs(recipeStep)
-}
-
-func (i *Ingester) classifyExtractedError(ctx context.Context, task *ts_types.Task, extractedErr *types.ExtractedError) error {
-	// Retrieve the ExtractedError from the DB to ensure that we haven't already
-	// classified it (since the primary and backup queuing mechanisms may
-	// overlap and enqueue the same TaskAndError multiple times).
-	if exist, err := i.db.GetExtractedError(ctx, task.Id); err != nil {
-		return skerr.Wrap(err)
-	} else if exist.FailureClassId != "" {
-		return nil
-	}
-
-	taskErrSanitized := utils.SanitizeErrorText(extractedErr.ErrorMessage)
-
-	// Case 1: The error message is too generic. Skip classification entirely.
-	var assignedFailureClass *types.FailureClass
-	if utils.ErrorIsGeneric(extractedErr.ErrorMessage) || utils.ErrorIsGeneric(taskErrSanitized) {
-		sklog.Debugf("Error message for %s is too generic.", task.Id)
-		assignedFailureClass = makeGenericFailureClass()
-		metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "generic"}).Observe(1.0)
-	}
-
-	// Case 2: Exact match of existing candidate.
-	var failureClasses []*types.FailureClass
-	if assignedFailureClass == nil {
-		// TODO(borenet): We should probably do this per-repo and ensure
-		// that we include the last N commits.
-		windowStart := time.Now().Add(-90 * 24 * time.Hour)
-		// TODO(borenet): These need to be cached, rather than hitting the DB for
-		// every single failed task.
-		var err error
-		failureClasses, err = i.db.GetRecentFailureClasses(ctx, task.Repo, windowStart, 0)
-		if err != nil {
-			sklog.Errorf("Failed to retrieve recent failure classes: %s", err)
-		}
-		sklog.Debugf("Found %d recent failure classes", len(failureClasses))
-
-		for _, cand := range failureClasses {
-			candErr := cand.ErrorMessage()
-			candErrSanitized := utils.SanitizeErrorText(candErr)
-			if extractedErr.ErrorMessage == candErr || (taskErrSanitized != "" && taskErrSanitized == candErrSanitized) {
-				sklog.Debugf("Exact match of error message for %s; no need to use gemini.", task.Id)
-				metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "exact_match"}).Observe(1.0)
-				assignedFailureClass = cand
-				break
-			}
-		}
-	}
-
-	// Case 3: N-gram similarity and overlap.
-	scores := make(map[*types.FailureClass]float64, len(failureClasses))
-	var candidates []*types.FailureClass
-	var bestScore float64
-	if assignedFailureClass == nil {
-		var bestCand *types.FailureClass
-		for _, cand := range failureClasses {
-			candErrSanitized := utils.SanitizeErrorText(cand.ErrorMessage())
-			similarity := util.NgramSimilarity(taskErrSanitized, candErrSanitized, ngramSize)
-			overlap := util.NgramOverlap(taskErrSanitized, candErrSanitized, ngramSize)
-
-			minLen := len(taskErrSanitized)
-			if len(candErrSanitized) < minLen {
-				minLen = len(candErrSanitized)
-			}
-
-			// Include candidate if n-gram similarity or overlap is greater than the
-			// thresholds, or one string exactly contains the other.
-			isCandidate := (similarity >= ngramSimilarityCandidateThreshold) ||
-				(minLen >= minNgramOverlapLength && overlap >= ngramOverlapCandidateThreshold) ||
-				(minLen >= minStringContainsLength && (strings.Contains(candErrSanitized, taskErrSanitized) || strings.Contains(taskErrSanitized, candErrSanitized)))
-			if !isCandidate {
-				continue
-			}
-
-			candScore := max(similarity, overlap)
-			scores[cand] = candScore
-			candidates = append(candidates, cand)
-			if similarity > bestScore {
-				bestScore = similarity
-				bestCand = cand
-			}
-		}
-		if bestScore >= ngramFastPathThreshold {
-			sklog.Debugf("N-gram fast-path match (similarity: %.2f) for task %s; assigning to %s.", bestScore, task.Id, bestCand.Id)
-			metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "ngram_threshold_match"}).Observe(bestScore)
-			assignedFailureClass = bestCand
-		}
-	}
-
-	// Case 4: Match using Gemini.
-	if assignedFailureClass == nil && len(candidates) > 0 {
-		// Sort candidates in descending order of similarity
-		sort.Slice(candidates, func(i, j int) bool {
-			return scores[candidates[i]] > scores[candidates[j]]
-		})
-
-		err := util.ChunkIter(len(candidates), maxRecentFailureClasses, func(start, end int) error {
-			classID, err := i.gemini.ClassifyFailure(ctx, extractedErr, candidates[start:end], task.Repo)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			if classID != "" {
-				for _, fc := range candidates[start:end] {
-					if fc.Id == classID || (len(classID) >= minClassIDPrefixLength && strings.HasPrefix(fc.Id, classID)) {
-						sklog.Infof("Gemini assigned task %s to failure class %s with N-gram similarity %.3f", task.Id, fc.Id, scores[fc])
-						metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "gemini_match"}).Observe(scores[fc])
-						assignedFailureClass = fc
-						break
-					}
-				}
-				if assignedFailureClass == nil {
-					return skerr.Fmt("Failed to classify failure for task %s: unknown failure class with ID %q", task.Id, classID)
-				}
-				return errDone
-			}
-			return nil
-		})
-		if err != nil && skerr.Unwrap(err) != errDone {
-			return skerr.Wrap(err)
-		}
-	}
-
-	// Case 5: No match. Create a new FailureClass.
-	if assignedFailureClass == nil {
-		assignedFailureClass = &types.FailureClass{
-			Id:   firestore.AlphaNumID(),
-			Repo: task.Repo,
-			Updates: []*types.FailureClassUpdate{
-				{
-					Timestamp:    now.Now(ctx),
-					User:         "autogardener",
-					ErrorMessage: types.Ptr(extractedErr.ErrorMessage),
-					Analysis:     types.Ptr(extractedErr.Analysis),
-				},
-			},
-		}
-		sklog.Infof("Registered new FailureClass %s for task %s. Best similarity score was %.3f", assignedFailureClass.Id, task.Id, bestScore)
-		metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "no_match"}).Observe(bestScore)
-	}
-
-	// Insert/update the FailureClass.
-	if assignedFailureClass.LastSeen.Before(task.Finished) {
-		assignedFailureClass.LastSeen = task.Finished
-	}
-	if err := i.db.PutFailureClass(ctx, assignedFailureClass); err != nil {
-		return skerr.Wrapf(err, "failed to save failure class %s", assignedFailureClass.Id)
-	}
-
-	// Store the extracted error with the resolved FailureClassId.
-	extractedErr.FailureClassId = assignedFailureClass.Id
-	return skerr.Wrap(i.db.PutExtractedError(ctx, task.Id, extractedErr))
+	go i.classifier.classifyExtractedErrors(ctx, classifyCh)
 }
 
 func (i *Ingester) getFailedTasks(ctx context.Context, repoURL string, period time.Duration) ([]*ts_types.Task, error) {
@@ -574,29 +167,4 @@ func (i *Ingester) getFailedTasks(ctx context.Context, repoURL string, period ti
 	}
 	sklog.Infof("Found %d failing tasks for %s in last %s.", len(allTasks), repoURL, period)
 	return allTasks, nil
-}
-
-type taskProcessingRegistry struct {
-	processing map[string]bool
-	mtx        sync.Mutex
-}
-
-func newTaskProcessingRegistry() *taskProcessingRegistry {
-	return &taskProcessingRegistry{
-		processing: map[string]bool{},
-	}
-}
-
-func (r *taskProcessingRegistry) TryClaimTask(taskID string) (func(), bool) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-	if r.processing[taskID] {
-		return nil, false
-	}
-	r.processing[taskID] = true
-	return func() {
-		r.mtx.Lock()
-		defer r.mtx.Unlock()
-		delete(r.processing, taskID)
-	}, true
 }

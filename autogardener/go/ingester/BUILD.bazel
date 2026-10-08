@@ -3,7 +3,11 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "ingester",
-    srcs = ["ingester.go"],
+    srcs = [
+        "classify_error_message.go",
+        "extract_error.go",
+        "ingester.go",
+    ],
     importpath = "go.skia.org/infra/autogardener/go/ingester",
     visibility = ["//visibility:public"],
     deps = [
@@ -14,7 +18,6 @@ go_library(
         "//go/auth",
         "//go/firestore",
         "//go/git/repograph",
-        "//go/httputils",
         "//go/metrics2",
         "//go/now",
         "//go/skerr",
@@ -31,7 +34,11 @@ go_library(
 
 go_test(
     name = "ingester_test",
-    srcs = ["ingester_test.go"],
+    srcs = [
+        "classify_error_message_test.go",
+        "extract_error_test.go",
+        "ingester_test.go",
+    ],
     embed = [":ingester"],
     deps = [
         "//autogardener/go/db/mocks",

@@ -8,398 +8,16 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.chromium.org/luci/logdog/api/logpb"
-	annopb "go.chromium.org/luci/luciexe/legacy/annotee/proto"
 	db_mocks "go.skia.org/infra/autogardener/go/db/mocks"
 	gemini_mocks "go.skia.org/infra/autogardener/go/gemini/mocks"
 	"go.skia.org/infra/autogardener/go/types"
-	"go.skia.org/infra/autogardener/go/utils"
-	"go.skia.org/infra/go/now"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/mcp/services/skia/task_details"
 	task_details_mocks "go.skia.org/infra/mcp/services/skia/task_details/mocks"
-	td_db "go.skia.org/infra/task_driver/go/db"
 	td_mocks "go.skia.org/infra/task_driver/go/db/mocks"
-	"go.skia.org/infra/task_driver/go/td"
 	ts_db "go.skia.org/infra/task_scheduler/go/db"
 	ts_mocks "go.skia.org/infra/task_scheduler/go/mocks"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
-func TestTaskProcessingRegistry(t *testing.T) {
-	r := newTaskProcessingRegistry()
-
-	// 1. First claim succeeds
-	release1, ok := r.TryClaimTask("task1")
-	require.True(t, ok)
-	require.NotNil(t, release1)
-
-	// 2. Second concurrent claim for same task ID fails
-	release2, ok := r.TryClaimTask("task1")
-	require.False(t, ok)
-	require.Nil(t, release2)
-
-	// 3. Releasing first claim allows claiming again
-	release1()
-	release3, ok := r.TryClaimTask("task1")
-	require.True(t, ok)
-	require.NotNil(t, release3)
-	release3()
-}
-
-func TestIngestTask(t *testing.T) {
-	ctx := t.Context()
-	mockDB := db_mocks.NewAutoGardenerDB(t)
-	mockG := gemini_mocks.NewClient(t)
-	mockTDDB := td_mocks.NewDB(t)
-	mockLogDog := task_details_mocks.NewLogDogClient(t)
-	i := &Ingester{
-		db:     mockDB,
-		gemini: mockG,
-		tdDB:   mockTDDB,
-		logdog: mockLogDog,
-	}
-
-	task := &ts_types.Task{
-		Id:             "task1",
-		SwarmingTaskId: "7b0cc6e0f5226b10",
-		Finished:       time.Now().Add(-5 * time.Minute),
-	}
-
-	// 1. Task already has an extracted error in the DB.
-	t.Run("already ingested", func(t *testing.T) {
-		registry := newTaskProcessingRegistry()
-		existing := &types.ExtractedError{
-			ErrorMessage: "error",
-			Analysis:     "analysis",
-		}
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(existing, nil).Once()
-		extractedErr, err := i.ingestTask(ctx, registry, task, nil)
-		require.NoError(t, err)
-		require.Equal(t, existing, extractedErr)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-		mockTDDB.AssertExpectations(t)
-	})
-
-	// 2. Task needs error extracted.
-	t.Run("not yet ingested", func(t *testing.T) {
-		registry := newTaskProcessingRegistry()
-		extracted := &types.ExtractedError{
-			Analysis:     "analysis",
-			ErrorMessage: "error",
-		}
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
-		mockTDDB.On("GetTaskDriver", ctx, task.Id).Return(nil, nil).Once()
-		mockLogDog.On("GetBuildSteps", ctx, task_details.LogDogProject, "7b0cc6e0f5226b11").Return(nil, false, errors.New("coordinator: no access")).Once()
-		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
-		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
-
-		extractedErr, err := i.ingestTask(ctx, registry, task, nil)
-		require.NoError(t, err)
-		require.Equal(t, extracted, extractedErr)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-		mockTDDB.AssertExpectations(t)
-	})
-
-	// 3. Task is already being processed, return nil, nil.
-	t.Run("already being processed", func(t *testing.T) {
-		registry := newTaskProcessingRegistry()
-		release, ok := registry.TryClaimTask(task.Id)
-		require.True(t, ok)
-		defer release()
-
-		taskSummary, err := i.ingestTask(ctx, registry, task, nil)
-		require.NoError(t, err)
-		require.Nil(t, taskSummary)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-		mockTDDB.AssertExpectations(t)
-	})
-}
-
-func TestClassifyExtractedError(t *testing.T) {
-	ctx := t.Context()
-
-	setup := func(t *testing.T) (*db_mocks.AutoGardenerDB, *gemini_mocks.Client, *Ingester, *ts_types.Task, *types.ExtractedError) {
-		mockDB := db_mocks.NewAutoGardenerDB(t)
-		mockG := gemini_mocks.NewClient(t)
-		i := &Ingester{
-			db:     mockDB,
-			gemini: mockG,
-			tdDB:   td_mocks.NewDB(t),
-		}
-
-		task := &ts_types.Task{
-			Id: "task1",
-			TaskKey: ts_types.TaskKey{
-				RepoState: ts_types.RepoState{
-					Repo: "my_repo",
-				},
-			},
-		}
-		extractedErr := &types.ExtractedError{
-			Analysis:     "analysis",
-			ErrorMessage: "Compilation failed due to missing semicolon in SkCanvas.cpp:123",
-		}
-		return mockDB, mockG, i, task, extractedErr
-	}
-
-	// Case 1: No previous matching failure classes exist.
-	// This results in a new failure class being registered, without calling into Gemini.
-	t.Run("no existing failure class", func(t *testing.T) {
-		mockDB, mockG, i, task, extractedErr := setup(t)
-
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(extractedErr, nil).Once()
-		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return([]*types.FailureClass{}, nil).Once()
-		mockDB.On("PutFailureClass", mock.Anything, mock.MatchedBy(func(fc *types.FailureClass) bool {
-			return fc.Repo == task.Repo && fc.ErrorMessage() == extractedErr.ErrorMessage && fc.Analysis() == extractedErr.Analysis && fc.Id != ""
-		})).Return(nil).Once()
-		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
-			return ee.FailureClassId != ""
-		})).Return(nil).Once()
-
-		err := i.classifyExtractedError(ctx, task, extractedErr)
-		require.NoError(t, err)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-	})
-
-	// Case 2: Failure class with exactly-matching error message. No need to
-	// call into Gemini.
-	t.Run("has exactly-matching failure class", func(t *testing.T) {
-		mockDB, mockG, i, task, extractedErr := setup(t)
-
-		fc := &types.FailureClass{
-			Id:   "class_abc",
-			Repo: task.Repo,
-			Updates: []*types.FailureClassUpdate{
-				{
-					ErrorMessage: types.Ptr(extractedErr.ErrorMessage),
-				},
-			},
-		}
-		failureClasses := []*types.FailureClass{fc}
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(extractedErr, nil).Once()
-		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return(failureClasses, nil).Once()
-		mockDB.On("PutFailureClass", mock.Anything, fc).Return(nil).Once()
-		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
-			return ee.FailureClassId == "class_abc"
-		})).Return(nil).Once()
-
-		err := i.classifyExtractedError(ctx, task, extractedErr)
-		require.NoError(t, err)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-	})
-
-	// Case 3: Matching failure class exists, Gemini returns its ID.
-	t.Run("gemini assigned failure class", func(t *testing.T) {
-		mockDB, mockG, i, task, extractedErr := setup(t)
-
-		fc := &types.FailureClass{
-			Id:   "class_abc",
-			Repo: task.Repo,
-			Updates: []*types.FailureClassUpdate{
-				{
-					ErrorMessage: types.Ptr("task failed with: " + extractedErr.ErrorMessage),
-				},
-			},
-		}
-		failureClasses := []*types.FailureClass{fc}
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(extractedErr, nil).Once()
-		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return(failureClasses, nil).Once()
-		mockG.On("ClassifyFailure", mock.Anything, extractedErr, failureClasses, task.Repo).Return("class_abc", nil).Once()
-		mockDB.On("PutFailureClass", mock.Anything, fc).Return(nil).Once()
-		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
-			return ee.FailureClassId == "class_abc"
-		})).Return(nil).Once()
-
-		err := i.classifyExtractedError(ctx, task, extractedErr)
-		require.NoError(t, err)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-	})
-
-	// Case 4: One error contains the other, with a massive amount of extra
-	// context. Jaccard similarity is low, but overlap is high, so we still
-	// consider the candidate.
-	t.Run("overlap candidate assigned by gemini", func(t *testing.T) {
-		mockDB, mockG, i, task, _ := setup(t)
-
-		shortErr := "../../../../../skia/tests/MultiPictureDocumentTest.cpp:426	 [SkMultiPictureDocument_AHardwarebuffer, Vulkan]: ToolUtils::equal_pixels(img.get(), expectedImages[0].get())"
-		longErr := `
-[560/635] unit test  SkSLMetalTest_Ganesh done
-[561/635] unit test  GrSurfaceProxyTest done
-[562/635] unit test  PathOpsOpTest_Threaded done
-[563/635] unit test  ParagraphTest_FontCollection done
-[564/635] unit test  SkRuntimeEffectTest_Blender done
-[565/635] unit test  UnicodeTest_GraphemeCluster done
-[566/635] unit test  MeshTest_VertexSpecification done
-[567/635] unit test  CodecTest_AnimatedWebP done
-[568/635] unit test  ShadowUtilsTest_AmbientSpot done
-[569/635] unit test  ColorSpaceTest_TransferFn done
-[570/635] unit test  WritePixelsTest_AlphaType done
-[571/635] unit test  ReadPixelsTest_Dimensions done
-[572/635] unit test  SurfaceTest_SnapRRect done
-[573/635] unit test  ImageFilterTest_MatrixConvolution done
-[574/635] unit test  FontMgrTest_MatchFamilyStyle done
-[575/635] unit test  ClipStackTest_IsRRect done
-[576/635] unit test  PictureShaderTest_LocalMatrix done
-[577/635] unit test  VerticesTest_AttributeCount done
-[578/635] unit test  AnnotationTest_PdfLink done
-[579/635] unit test  BigMatrixTest_Perspective done
-[580/635] unit test  CanvasTest_SaveLayerRec done
-[581/635] unit test  RegionTest_OpDifference done
-[582/635] unit test  ShaderTest_LinearGradient done
-[583/635] unit test  MatrixTest_ConcatRotateScale done
-[584/635] unit test  PaintTest_StrokeMiterLimit done
-[585/635] unit test  PathTest_AddRoundRect done
-[586/635] unit test  RecordDrawTest_CullRect done
-[587/635] unit test  SVGDeviceTest_ClipPath done
-[588/635] unit test  TextBlobTest_Intercepts done
-[589/635] unit test  TypefaceTest_GetKerningPairAdjustments done
-[590/635] unit test  MatrixProcsTest_Perspective done
-[591/635] unit test  GeometryTest_QuadChopAt done
-[592/635] unit test  DataRefTest_FromFile done
-[593/635] unit test  StreamTest_MemoryStream done
-[594/635] unit test  FlattenableTest_FactorySerialization done
-[595/635] unit test  FilterResult_ganesh_MakeFromImage done
-[596/635] unit test  FilterResult_ganesh_RescaleWithColorFilter done
-[597/635] unit test  FilterResult_ganesh_RescaleWithTransform done
-[598/635] unit test  FilterResult_ganesh_RescaleWithTileMode done
-[599/635] unit test  FilterResult_ganesh_BackdropFilterRotated done
-[600/635] unit test  FilterResult_ganesh_CroppedTransformedTransparencyAffectingColorFilter done
-[601/635] unit test  FilterResult_ganesh_CroppedTransformedColorFilter done
-[602/635] unit test  FilterResult_ganesh_ColorFilterBetweenCrops done
-[603/635] unit test  FilterResult_ganesh_CropBetweenColorFilters done
-[604/635] unit test  FilterResult_ganesh_CroppedColorFilter done
-[605/635] unit test  FilterResult_ganesh_ColorFilterBetweenTransforms done
-[606/635] unit test  FilterResult_ganesh_TransformBetweenColorFilters done
-[607/635] unit test  FilterResult_ganesh_TransformedColorFilter done
-[608/635] unit test  FilterResult_ganesh_ColorFilter done
-[609/635] unit test  FilterResult_ganesh_TransformAndTile done
-[610/635] unit test  FilterResult_ganesh_TransformAndCrop done
-[611/635] unit test  FilterResult_ganesh_TransformBecomesEmpty done
-[612/635] unit test  FilterResult_ganesh_IntegerOffsetIgnoresNearestSampling done
-[613/635] unit test  FilterResult_ganesh_IncompatibleSamplingResolvesImages done
-[614/635] unit test  FilterResult_ganesh_CompatibleSamplingConcatsTransforms done
-[615/635] unit test  FilterResult_ganesh_Transform done
-[616/635] unit test  FilterResult_ganesh_DecalThenClamp done
-[617/635] unit test  FilterResult_ganesh_PeriodicTileCrops done
-[618/635] unit test  FilterResult_ganesh_IntersectingCrops done
-[619/635] unit test  FilterResult_ganesh_DisjointCrops done
-[620/635] unit test  FilterResult_ganesh_EmptyCrop done
-[621/635] unit test  FilterResult_ganesh_CropDisjointFromSourceAndOutput done
-[622/635] unit test  FilterResult_ganesh_Crop done
-[623/635] unit test  FilterResult_ganesh_EmptyDesiredOutput done
-[624/635] unit test  FilterResult_ganesh_EmptySource done
-[625/635] unit test  F16DrawTest_Ganesh done
-[626/635] unit test  ExtendedSkColorTypeTests_gpu done
-	start unit test  DirectMaskLimitTest_Ganesh
-[627/635] unit test  DirectMaskLimitTest_Ganesh done
-	start unit test  SpecialImage_GPUDevice
-[628/635] unit test  SpecialImage_GPUDevice done
-	start unit test  ComposeFailureWithInputElision
-[629/635] unit test  ComposeFailureWithInputElision done
-	start unit test  TestManyDrawsGanesh
-[630/635] unit test  TestManyDrawsGanesh done
-	start unit test  BlurDegenerateAffineFuzzer
-[631/635] unit test  BlurDegenerateAffineFuzzer done
-[632/635] unit test  BlurMaskBiggerThanDest done
-	start unit test  SmallBoxBlurBug
-[633/635] unit test  SmallBoxBlurBug done
-[634/635] unit test  TiledDrawCacheTest_Ganesh done
-[635/635] unit test  BigImageTest_Ganesh done
-
-[635/635] 150MB RAM, 460MB peak, 0 queued, 1 threads:
-	unit test  BigImageTest_Ganesh  done
-
-[635/635] 150MB RAM, 460MB peak, 0 queued, 1 threads:
-	unit test  BigImageTest_Ganesh  done
-Failures:
-	../../../../../skia/tests/MultiPictureDocumentTest.cpp:426	 [SkMultiPictureDocument_AHardwarebuffer, Vulkan]: ToolUtils::equal_pixels(img.get(), expectedImages[0].get())
-1 failures
-+ >/data/local/tmp/rc
-+ echo 1
-`
-		// Self-test: ensure that the ngram similarity and overlap are under and
-		// over their respective thresholds.
-		shortErrSanitized := utils.SanitizeErrorText(shortErr)
-		longErrSanitized := utils.SanitizeErrorText(longErr)
-		require.Less(t, util.NgramSimilarity(shortErrSanitized, longErrSanitized, ngramSize), ngramSimilarityCandidateThreshold)
-		require.Greater(t, util.NgramOverlap(shortErrSanitized, longErrSanitized, ngramSize), ngramOverlapCandidateThreshold)
-
-		extractedErr := &types.ExtractedError{
-			Analysis:     "analysis",
-			ErrorMessage: longErr,
-		}
-
-		fc := &types.FailureClass{
-			Id:   "overlap-failure-class",
-			Repo: task.Repo,
-			Updates: []*types.FailureClassUpdate{
-				{
-					ErrorMessage: types.Ptr(shortErr),
-				},
-			},
-		}
-		failureClasses := []*types.FailureClass{fc}
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(extractedErr, nil).Once()
-		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return(failureClasses, nil).Once()
-		mockG.On("ClassifyFailure", mock.Anything, extractedErr, failureClasses, task.Repo).Return(fc.Id, nil).Once()
-		mockDB.On("PutFailureClass", mock.Anything, fc).Return(nil).Once()
-		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
-			return ee.FailureClassId == fc.Id
-		})).Return(nil).Once()
-
-		err := i.classifyExtractedError(ctx, task, extractedErr)
-		require.NoError(t, err)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-	})
-
-	// Case 5: Shortcut if we already classified the ExtractedError.
-	t.Run("already classified", func(t *testing.T) {
-		mockDB, mockG, i, task, extractedErr := setup(t)
-
-		alreadyClassified := &types.ExtractedError{
-			ErrorMessage:   extractedErr.ErrorMessage,
-			Analysis:       extractedErr.Analysis,
-			FailureClassId: "some-failure-class",
-		}
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(alreadyClassified, nil).Once()
-		err := i.classifyExtractedError(ctx, task, extractedErr)
-		require.NoError(t, err)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-	})
-
-	// Case 6: Generic error message shortcuts classification to generic-unidentified-failure.
-	t.Run("generic error message", func(t *testing.T) {
-		mockDB, mockG, i, task, _ := setup(t)
-
-		genericExtractedErr := &types.ExtractedError{
-			Analysis:     "analysis",
-			ErrorMessage: "exit status 1",
-		}
-
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(genericExtractedErr, nil).Once()
-		mockDB.On("PutFailureClass", mock.Anything, mock.MatchedBy(func(fc *types.FailureClass) bool {
-			return fc.Id == genericFailureClassID
-		})).Return(nil).Once()
-		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
-			return ee.FailureClassId == genericFailureClassID
-		})).Return(nil).Once()
-
-		err := i.classifyExtractedError(ctx, task, genericExtractedErr)
-		require.NoError(t, err)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-	})
-}
 
 func TestEnqueueModifiedTasks(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
@@ -462,13 +80,9 @@ func TestEnqueueModifiedTasks(t *testing.T) {
 
 	go i.enqueueModifiedTasks(ctx, repoURL, taskCh)
 
-	// Send tasks to modCh. enqueueModifiedTasks processes tasks in the order
-	// that they arrive, so sending taskValid last allows us to use its arrival
-	// from taskCh to signal that all other tasks have been processed as well.
 	modCh <- []*ts_types.Task{taskMismatchedRepo, taskRunning, taskSuccess}
 	modCh <- []*ts_types.Task{taskValid}
 
-	// Verify only the valid task is written to taskCh
 	popped := <-taskCh
 	require.Equal(t, taskValid.Id, popped.Id)
 }
@@ -487,7 +101,6 @@ func TestPeriodicTaskPollingFallback(t *testing.T) {
 		db:     mockDB,
 		gemini: mockG,
 		tsDB:   mockTSDB,
-		tdDB:   td_mocks.NewDB(t),
 	}
 
 	task := &ts_types.Task{
@@ -495,7 +108,6 @@ func TestPeriodicTaskPollingFallback(t *testing.T) {
 		Status: ts_types.TASK_STATUS_FAILURE,
 	}
 
-	// Query fallback tasks: SearchTasks is called twice (for FAILURE and MISHAP status)
 	mockTSDB.On("SearchTasks", mock.Anything, mock.MatchedBy(func(p *ts_db.TaskSearchParams) bool {
 		return *p.Status == ts_types.TASK_STATUS_FAILURE
 	})).Return([]*ts_types.Task{task}, nil).Once()
@@ -509,61 +121,6 @@ func TestPeriodicTaskPollingFallback(t *testing.T) {
 
 	popped := <-taskCh
 	require.Equal(t, task.Id, popped.Id)
-}
-
-func TestIngestTasks(t *testing.T) {
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-
-	mockDB := db_mocks.NewAutoGardenerDB(t)
-	mockG := gemini_mocks.NewClient(t)
-	mockTDDB := td_mocks.NewDB(t)
-	mockLogDog := task_details_mocks.NewLogDogClient(t)
-	i := &Ingester{
-		db:     mockDB,
-		gemini: mockG,
-		tdDB:   mockTDDB,
-		logdog: mockLogDog,
-	}
-
-	task1 := &ts_types.Task{
-		Id: "task1",
-	}
-	extracted := &types.ExtractedError{
-		Analysis: "analysis",
-	}
-
-	mockDB.On("GetExtractedError", mock.Anything, task1.Id).Return(nil, nil).Once()
-	mockTDDB.On("GetTaskDriver", mock.Anything, task1.Id).Return(nil, nil).Once()
-	mockLogDog.On("GetBuildSteps", mock.Anything, task_details.LogDogProject, "").Return(nil, false, errors.New("coordinator: no access")).Once()
-	mockG.On("ExtractErrorMessage", mock.Anything, task1).Return(extracted, nil).Once()
-	mockDB.On("PutExtractedError", mock.Anything, task1.Id, extracted).Return(nil).Once()
-
-	task2 := &ts_types.Task{
-		Id: "task2",
-	}
-	someError := errors.New("uh oh")
-	mockDB.On("GetExtractedError", mock.Anything, task2.Id).Return(nil, nil).Once()
-	mockTDDB.On("GetTaskDriver", mock.Anything, task2.Id).Return(nil, nil).Once()
-	mockLogDog.On("GetBuildSteps", mock.Anything, task_details.LogDogProject, "").Return(nil, false, errors.New("coordinator: no access")).Once()
-	mockG.On("ExtractErrorMessage", mock.Anything, task2).Return(nil, someError).Once()
-
-	inputCh := make(chan *ts_types.Task)
-	outputCh := make(chan *taskIngestionResult)
-
-	go i.ingestTasks(ctx, inputCh, outputCh)
-
-	inputCh <- task1
-	result1 := <-outputCh
-	require.NoError(t, result1.err)
-	require.Equal(t, task1.Id, result1.Task.Id)
-	require.Equal(t, extracted.Analysis, result1.Error.Analysis)
-
-	inputCh <- task2
-	result2 := <-outputCh
-	require.ErrorContains(t, result2.err, someError.Error())
-	require.Nil(t, result2.Task)
-	require.Nil(t, result2.Error)
 }
 
 func TestPeriodicUnclassifiedExtractedErrorPollingFallback(t *testing.T) {
@@ -580,12 +137,12 @@ func TestPeriodicUnclassifiedExtractedErrorPollingFallback(t *testing.T) {
 	task := &ts_types.Task{
 		Id: "unclassified-task",
 	}
-	extracted := &types.ExtractedError{
+	extractedErr := &types.ExtractedError{
 		Analysis: "unclassified analysis",
 	}
 
 	mockDB.On("GetUnclassifiedExtractedErrors", mock.Anything, getUnclassifiedExtractedErrorsBatchSize).Return(map[string]*types.ExtractedError{
-		task.Id: extracted,
+		task.Id: extractedErr,
 	}, nil).Once()
 	mockTSDB.On("GetTaskById", mock.Anything, task.Id).Return(task, nil).Once()
 
@@ -595,10 +152,10 @@ func TestPeriodicUnclassifiedExtractedErrorPollingFallback(t *testing.T) {
 
 	item := <-classifyCh
 	require.Equal(t, task.Id, item.Task.Id)
-	require.Equal(t, extracted.Analysis, item.Error.Analysis)
+	require.Equal(t, extractedErr.Analysis, item.Error.Analysis)
 }
 
-func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
+func TestStartIngestingForRepo(t *testing.T) {
 	repoURL := "http://my-repo.git"
 
 	task := &ts_types.Task{
@@ -612,7 +169,7 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 		},
 	}
 
-	extracted := &types.ExtractedError{
+	extractedErr := &types.ExtractedError{
 		Analysis:     "test analysis",
 		ErrorMessage: "test error",
 	}
@@ -622,7 +179,7 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 			{
 				// Use an error message which doesn't exactly match, to ensure that we
 				// call into Gemini.
-				ErrorMessage: types.Ptr("task failed with: " + extracted.ErrorMessage),
+				ErrorMessage: types.Ptr("task failed with: " + extractedErr.ErrorMessage),
 			},
 		},
 	}
@@ -637,11 +194,6 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 	modCh := make(chan []*ts_types.Task)
 	mockTSDB.On("ModifiedTasksCh", mock.Anything).Return((<-chan []*ts_types.Task)(modCh))
 	mockTSDB.On("SearchTasks", mock.Anything, mock.Anything).Return([]*ts_types.Task{}, nil).Maybe()
-
-	// We must use .Maybe() because the backup unclassified repeat loop runs asynchronously in a concurrent
-	// background goroutine immediately upon StartIngestingTaskSummariesForRepo starting.
-	// It may or may not execute before the test's context is canceled and asserts expectations,
-	// making its execution non-deterministic during the test run.
 	mockDB.On("GetUnclassifiedExtractedErrors", mock.Anything, getUnclassifiedExtractedErrorsBatchSize).Return(map[string]*types.ExtractedError{}, nil).Maybe()
 
 	mockTDDB := td_mocks.NewDB(t)
@@ -650,390 +202,35 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 	mockLogDog.On("GetBuildSteps", mock.Anything, task_details.LogDogProject, "").Return(nil, false, errors.New("coordinator: no access")).Once()
 
 	i := &Ingester{
-		db:     mockDB,
-		gemini: mockG,
-		tsDB:   mockTSDB,
-		tdDB:   mockTDDB,
-		logdog: mockLogDog,
+		db:         mockDB,
+		gemini:     mockG,
+		tsDB:       mockTSDB,
+		extractor:  newErrorExtractor(mockDB, mockG, mockTDDB, mockLogDog),
+		classifier: newErrorClassifier(mockDB, mockG),
 	}
 
-	// Step 1: Extract error message
+	// Stage 1: Extract error message
 	mockDB.On("GetExtractedError", mock.Anything, task.Id).Return(nil, nil).Once()
-	mockG.On("ExtractErrorMessage", mock.Anything, task).Return(extracted, nil).Once()
-	mockDB.On("PutExtractedError", mock.Anything, task.Id, extracted).Return(nil).Once()
+	mockG.On("ExtractErrorMessage", mock.Anything, task).Return(extractedErr, nil).Once()
+	mockDB.On("PutExtractedError", mock.Anything, task.Id, extractedErr).Return(nil).Once()
 
-	// Step 2: Classify extracted error
-	mockDB.On("GetExtractedError", mock.Anything, task.Id).Return(extracted, nil).Once()
+	// Stage 2: Classify extracted error
+	mockDB.On("GetExtractedError", mock.Anything, task.Id).Return(extractedErr, nil).Once()
 	mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return([]*types.FailureClass{failureClass}, nil).Once()
-	mockG.On("ClassifyFailure", mock.Anything, extracted, []*types.FailureClass{failureClass}, task.Repo).Return(failureClass.Id, nil).Once()
+	mockG.On("ClassifyFailure", mock.Anything, extractedErr, []*types.FailureClass{failureClass}, task.Repo).Return(failureClass.Id, nil).Once()
 	mockDB.On("PutFailureClass", mock.Anything, mock.Anything).Return(nil).Once()
 
-	// The final call to PutExtractedError indicates that the ingestion is
-	// finished. We'll close doneCh to reflect that.
 	doneCh := make(chan struct{})
 	mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		close(doneCh)
 	}).Once()
 
-	i.StartIngestingTaskSummariesForRepo(ctx, repoURL, 24*time.Hour)
+	i.StartIngestingForRepo(ctx, repoURL, 24*time.Hour)
 
-	// Send the task to modCh to trigger ingestion
 	modCh <- []*ts_types.Task{task}
 
-	// Wait for the whole pipeline to finish
-	<-doneCh // Wait for ingestion to complete.
+	<-doneCh
 	mockDB.AssertExpectations(t)
 	mockG.AssertExpectations(t)
 	mockTSDB.AssertExpectations(t)
-}
-
-func TestIngestTask_TaskDriverStepsCheck(t *testing.T) {
-	mockTime := time.Date(2026, 9, 9, 12, 0, 0, 0, time.UTC)
-	ctx := context.WithValue(t.Context(), now.ContextKey, mockTime)
-
-	// Mock sleepFn to no-op.
-	oldSleep := sleepFn
-	sleepFn = func(d time.Duration) {}
-	defer func() {
-		sleepFn = oldSleep
-	}()
-
-	t.Run("all steps finished", func(t *testing.T) {
-		mockDB := db_mocks.NewAutoGardenerDB(t)
-		mockG := gemini_mocks.NewClient(t)
-		mockTDDB := td_mocks.NewDB(t)
-
-		taskID := "task-all-finished"
-		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(&td_db.TaskDriverRun{
-			TaskId: taskID,
-			Steps: map[string]*td_db.Step{
-				"step-1": {
-					Properties: &td.StepProperties{
-						Id:   "step-1",
-						Name: "Step 1",
-					},
-					Finished: mockTime.Add(-5 * time.Minute),
-				},
-			},
-		}, nil).Once()
-
-		i := &Ingester{
-			db:     mockDB,
-			gemini: mockG,
-			tdDB:   mockTDDB,
-		}
-
-		task := &ts_types.Task{
-			Id:       taskID,
-			Finished: mockTime.Add(-5 * time.Minute),
-		}
-
-		extracted := &types.ExtractedError{
-			Analysis:     "analysis",
-			ErrorMessage: "error",
-		}
-
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
-		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
-		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
-
-		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, nil)
-		require.NoError(t, err)
-		require.Equal(t, extracted, extractedErr)
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-		mockTDDB.AssertExpectations(t)
-	})
-
-	t.Run("unfinished steps re-enqueue", func(t *testing.T) {
-		mockDB := db_mocks.NewAutoGardenerDB(t)
-		mockG := gemini_mocks.NewClient(t)
-		mockTDDB := td_mocks.NewDB(t)
-
-		taskID := "task-unfinished"
-		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(&td_db.TaskDriverRun{
-			TaskId: taskID,
-			Steps: map[string]*td_db.Step{
-				"step-1": {
-					Properties: &td.StepProperties{
-						Id:   "step-1",
-						Name: "Step 1",
-					},
-				},
-			},
-		}, nil).Once()
-
-		i := &Ingester{
-			db:     mockDB,
-			gemini: mockG,
-			tdDB:   mockTDDB,
-		}
-
-		task := &ts_types.Task{
-			Id:       taskID,
-			Finished: mockTime.Add(-1 * time.Minute), // well within the 5 min timeout
-		}
-
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
-
-		taskCh := make(chan *ts_types.Task, 1)
-
-		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
-		require.NoError(t, err)
-		require.Nil(t, extractedErr)
-
-		// Verify task was re-enqueued after sleep
-		select {
-		case popped := <-taskCh:
-			require.Equal(t, task.Id, popped.Id)
-		case <-time.After(100 * time.Millisecond):
-			t.Fatal("timed out waiting for task to be re-enqueued")
-		}
-
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-		mockTDDB.AssertExpectations(t)
-	})
-
-	t.Run("unfinished steps exceeded timeout", func(t *testing.T) {
-		mockDB := db_mocks.NewAutoGardenerDB(t)
-		mockG := gemini_mocks.NewClient(t)
-		mockTDDB := td_mocks.NewDB(t)
-
-		taskID := "task-unfinished-exceeded"
-		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(&td_db.TaskDriverRun{
-			TaskId: taskID,
-			Steps: map[string]*td_db.Step{
-				"step-1": {
-					Properties: &td.StepProperties{
-						Id:   "step-1",
-						Name: "Step 1",
-					},
-				},
-			},
-		}, nil).Once()
-
-		i := &Ingester{
-			db:     mockDB,
-			gemini: mockG,
-			tdDB:   mockTDDB,
-		}
-
-		task := &ts_types.Task{
-			Id:       taskID,
-			Finished: mockTime.Add(-15 * time.Minute), // exceeded the 5 min timeout
-		}
-
-		extracted := &types.ExtractedError{
-			Analysis:     "analysis",
-			ErrorMessage: "error",
-		}
-
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
-		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
-		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
-
-		taskCh := make(chan *ts_types.Task, 1)
-
-		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
-		require.NoError(t, err)
-		require.Equal(t, extracted, extractedErr)
-
-		// Verify no task was re-enqueued
-		select {
-		case <-taskCh:
-			t.Fatal("task was unexpectedly re-enqueued")
-		default:
-		}
-
-		mockDB.AssertExpectations(t)
-		mockG.AssertExpectations(t)
-		mockTDDB.AssertExpectations(t)
-	})
-
-	t.Run("recipe all steps and logs finished", func(t *testing.T) {
-		mockDB := db_mocks.NewAutoGardenerDB(t)
-		mockG := gemini_mocks.NewClient(t)
-		mockTDDB := td_mocks.NewDB(t)
-		mockLogDog := task_details_mocks.NewLogDogClient(t)
-
-		taskID := "task-recipe-finished"
-		swarmingTaskID := "7b0cc6e0f5226b10"
-		fixedSwarmingID := "7b0cc6e0f5226b11"
-		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(nil, nil).Once()
-
-		nowTs := timestamppb.New(mockTime)
-		stepProto := &annopb.Step{
-			Name:   "",
-			Status: annopb.Status_FAILURE,
-			Ended:  nowTs,
-			Substep: []*annopb.Step_Substep{
-				{
-					Substep: &annopb.Step_Substep_Step{
-						Step: &annopb.Step{
-							Name:         "symbolized nanobench",
-							Status:       annopb.Status_FAILURE,
-							Ended:        nowTs,
-							StdoutStream: &annopb.LogdogStream{Name: "steps/symbolized_nanobench/0/stdout"},
-						},
-					},
-				},
-			},
-		}
-		mockLogDog.On("GetBuildSteps", ctx, task_details.LogDogProject, fixedSwarmingID).Return(stepProto, true, nil).Once()
-		mockLogDog.On("GetLastEntry", ctx, task_details.LogDogProject, fixedSwarmingID+"/+/steps/symbolized_nanobench/0/stdout").Return(&logpb.LogEntry{StreamIndex: 0}, true, nil).Once()
-
-		i := &Ingester{
-			db:     mockDB,
-			gemini: mockG,
-			tdDB:   mockTDDB,
-			logdog: mockLogDog,
-		}
-
-		task := &ts_types.Task{
-			Id:             taskID,
-			SwarmingTaskId: swarmingTaskID,
-			Finished:       mockTime.Add(-1 * time.Minute),
-		}
-		extracted := &types.ExtractedError{
-			Analysis:     "analysis",
-			ErrorMessage: "error",
-		}
-
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
-		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
-		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
-
-		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, nil)
-		require.NoError(t, err)
-		require.Equal(t, extracted, extractedErr)
-	})
-
-	t.Run("unfinished recipe step logs re-enqueue", func(t *testing.T) {
-		mockDB := db_mocks.NewAutoGardenerDB(t)
-		mockG := gemini_mocks.NewClient(t)
-		mockTDDB := td_mocks.NewDB(t)
-		mockLogDog := task_details_mocks.NewLogDogClient(t)
-
-		taskID := "task-unfinished-recipe"
-		swarmingTaskID := "7b0cc6e0f5226b10"
-		fixedSwarmingID := "7b0cc6e0f5226b11"
-		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(nil, nil).Once()
-
-		nowTs := timestamppb.New(mockTime)
-		stepProto := &annopb.Step{
-			Name:   "",
-			Status: annopb.Status_FAILURE,
-			Ended:  nowTs,
-			Substep: []*annopb.Step_Substep{
-				{
-					Substep: &annopb.Step_Substep_Step{
-						Step: &annopb.Step{
-							Name:         "symbolized nanobench",
-							Status:       annopb.Status_FAILURE,
-							Ended:        nowTs,
-							StdoutStream: &annopb.LogdogStream{Name: "steps/symbolized_nanobench/0/stdout"},
-						},
-					},
-				},
-			},
-		}
-		// Step annotations are finished, but stdout stream tail is not yet finished.
-		mockLogDog.On("GetBuildSteps", ctx, task_details.LogDogProject, fixedSwarmingID).Return(stepProto, true, nil).Once()
-		mockLogDog.On("GetLastEntry", ctx, task_details.LogDogProject, fixedSwarmingID+"/+/steps/symbolized_nanobench/0/stdout").Return(&logpb.LogEntry{StreamIndex: 0}, false, nil).Once()
-
-		i := &Ingester{
-			db:     mockDB,
-			gemini: mockG,
-			tdDB:   mockTDDB,
-			logdog: mockLogDog,
-		}
-
-		task := &ts_types.Task{
-			Id:             taskID,
-			SwarmingTaskId: swarmingTaskID,
-			Finished:       mockTime.Add(-1 * time.Minute),
-		}
-
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
-
-		taskCh := make(chan *ts_types.Task, 1)
-
-		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
-		require.NoError(t, err)
-		require.Nil(t, extractedErr)
-
-		select {
-		case popped := <-taskCh:
-			require.Equal(t, task.Id, popped.Id)
-		case <-time.After(100 * time.Millisecond):
-			t.Fatal("timed out waiting for task to be re-enqueued")
-		}
-	})
-
-	t.Run("unfinished recipe step logs exceeded timeout", func(t *testing.T) {
-		mockDB := db_mocks.NewAutoGardenerDB(t)
-		mockG := gemini_mocks.NewClient(t)
-		mockTDDB := td_mocks.NewDB(t)
-		mockLogDog := task_details_mocks.NewLogDogClient(t)
-
-		taskID := "task-unfinished-recipe-exceeded"
-		swarmingTaskID := "7b0cc6e0f5226b10"
-		fixedSwarmingID := "7b0cc6e0f5226b11"
-		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(nil, nil).Once()
-
-		nowTs := timestamppb.New(mockTime)
-		stepProto := &annopb.Step{
-			Name:   "",
-			Status: annopb.Status_FAILURE,
-			Ended:  nowTs,
-			Substep: []*annopb.Step_Substep{
-				{
-					Substep: &annopb.Step_Substep_Step{
-						Step: &annopb.Step{
-							Name:         "symbolized nanobench",
-							Status:       annopb.Status_FAILURE,
-							Ended:        nowTs,
-							StdoutStream: &annopb.LogdogStream{Name: "steps/symbolized_nanobench/0/stdout"},
-						},
-					},
-				},
-			},
-		}
-		mockLogDog.On("GetBuildSteps", ctx, task_details.LogDogProject, fixedSwarmingID).Return(stepProto, true, nil).Once()
-		mockLogDog.On("GetLastEntry", ctx, task_details.LogDogProject, fixedSwarmingID+"/+/steps/symbolized_nanobench/0/stdout").Return((*logpb.LogEntry)(nil), false, nil).Once()
-
-		i := &Ingester{
-			db:     mockDB,
-			gemini: mockG,
-			tdDB:   mockTDDB,
-			logdog: mockLogDog,
-		}
-
-		task := &ts_types.Task{
-			Id:             taskID,
-			SwarmingTaskId: swarmingTaskID,
-			Finished:       mockTime.Add(-15 * time.Minute),
-		}
-		extracted := &types.ExtractedError{
-			Analysis:     "analysis",
-			ErrorMessage: "error",
-		}
-
-		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
-		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
-		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
-
-		taskCh := make(chan *ts_types.Task, 1)
-
-		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
-		require.NoError(t, err)
-		require.Equal(t, extracted, extractedErr)
-
-		select {
-		case <-taskCh:
-			t.Fatal("task was unexpectedly re-enqueued")
-		default:
-		}
-	})
 }

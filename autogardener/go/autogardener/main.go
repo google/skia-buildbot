@@ -173,7 +173,7 @@ func main() {
 
 	sklog.Infof("Setup complete. Starting loop.")
 	for _, repoURL := range *repoURLs {
-		ing.StartIngestingTaskSummariesForRepo(ctx, repoURL, period)
+		ing.StartIngestingForRepo(ctx, repoURL, period)
 		//ing.StartGeneratingReportsForRepo(ctx, repoURL, git.MainBranch, *numCommits, generateReportInterval)
 	}
 	httputils.RunHealthCheckServer(*port)
