@@ -18,7 +18,7 @@ type Client struct {
 }
 
 // ClassifyFailure provides a mock function with given fields: ctx, res, failureClasses, repoURL
-func (_m *Client) ClassifyFailure(ctx context.Context, res *types.TaskSummary, failureClasses []*types.FailureClass, repoURL string) (string, error) {
+func (_m *Client) ClassifyFailure(ctx context.Context, res *types.ExtractedError, failureClasses []*types.FailureClass, repoURL string) (string, error) {
 	ret := _m.Called(ctx, res, failureClasses, repoURL)
 
 	if len(ret) == 0 {
@@ -27,17 +27,47 @@ func (_m *Client) ClassifyFailure(ctx context.Context, res *types.TaskSummary, f
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *types.TaskSummary, []*types.FailureClass, string) (string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *types.ExtractedError, []*types.FailureClass, string) (string, error)); ok {
 		return rf(ctx, res, failureClasses, repoURL)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *types.TaskSummary, []*types.FailureClass, string) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *types.ExtractedError, []*types.FailureClass, string) string); ok {
 		r0 = rf(ctx, res, failureClasses, repoURL)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *types.TaskSummary, []*types.FailureClass, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *types.ExtractedError, []*types.FailureClass, string) error); ok {
 		r1 = rf(ctx, res, failureClasses, repoURL)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ExtractErrorMessage provides a mock function with given fields: ctx, task
+func (_m *Client) ExtractErrorMessage(ctx context.Context, task *gotypes.Task) (*types.ExtractedError, error) {
+	ret := _m.Called(ctx, task)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExtractErrorMessage")
+	}
+
+	var r0 *types.ExtractedError
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gotypes.Task) (*types.ExtractedError, error)); ok {
+		return rf(ctx, task)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *gotypes.Task) *types.ExtractedError); ok {
+		r0 = rf(ctx, task)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.ExtractedError)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *gotypes.Task) error); ok {
+		r1 = rf(ctx, task)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -68,36 +98,6 @@ func (_m *Client) GenerateReport(ctx context.Context, repo string, branch string
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, int) error); ok {
 		r1 = rf(ctx, repo, branch, numCommits)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetTaskSummary provides a mock function with given fields: ctx, task
-func (_m *Client) GetTaskSummary(ctx context.Context, task *gotypes.Task) (*types.TaskSummary, error) {
-	ret := _m.Called(ctx, task)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetTaskSummary")
-	}
-
-	var r0 *types.TaskSummary
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *gotypes.Task) (*types.TaskSummary, error)); ok {
-		return rf(ctx, task)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, *gotypes.Task) *types.TaskSummary); ok {
-		r0 = rf(ctx, task)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.TaskSummary)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, *gotypes.Task) error); ok {
-		r1 = rf(ctx, task)
 	} else {
 		r1 = ret.Error(1)
 	}

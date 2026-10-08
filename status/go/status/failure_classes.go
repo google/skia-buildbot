@@ -28,17 +28,17 @@ type activeFailureClass struct {
 }
 
 type failureClassesCache struct {
-	db             autogardener_db.AutoGardenerDB
-	mtx            sync.RWMutex
-	taskSummaries  map[string]*autogardener_types.TaskSummary
-	failureClasses map[string]*autogardener_types.FailureClass
+	db              autogardener_db.AutoGardenerDB
+	mtx             sync.RWMutex
+	extractedErrors map[string]*autogardener_types.ExtractedError
+	failureClasses  map[string]*autogardener_types.FailureClass
 }
 
 func newFailureClassesCache(ctx context.Context, db autogardener_db.AutoGardenerDB) *failureClassesCache {
 	c := &failureClassesCache{
-		db:             db,
-		taskSummaries:  make(map[string]*autogardener_types.TaskSummary),
-		failureClasses: make(map[string]*autogardener_types.FailureClass),
+		db:              db,
+		extractedErrors: make(map[string]*autogardener_types.ExtractedError),
+		failureClasses:  make(map[string]*autogardener_types.FailureClass),
 	}
 	ch := db.ModifiedFailureClassesCh(ctx, failureClassesWindow)
 	go func() {
@@ -53,25 +53,25 @@ func newFailureClassesCache(ctx context.Context, db autogardener_db.AutoGardener
 	return c
 }
 
-func (c *failureClassesCache) getTaskSummary(ctx context.Context, taskID string) (*autogardener_types.TaskSummary, error) {
+func (c *failureClassesCache) getExtractedError(ctx context.Context, taskID string) (*autogardener_types.ExtractedError, error) {
 	c.mtx.RLock()
-	cached, ok := c.taskSummaries[taskID]
+	cached, ok := c.extractedErrors[taskID]
 	c.mtx.RUnlock()
 	if ok {
 		return cached, nil
 	}
 
-	summary, err := c.db.GetTaskSummary(ctx, taskID)
+	extracted, err := c.db.GetExtractedError(ctx, taskID)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	// Only cache once FailureClassId has been assigned by autogardener.
-	if summary != nil && summary.FailureClassId != "" {
+	if extracted != nil && extracted.FailureClassId != "" {
 		c.mtx.Lock()
-		c.taskSummaries[taskID] = summary
+		c.extractedErrors[taskID] = extracted
 		c.mtx.Unlock()
 	}
-	return summary, nil
+	return extracted, nil
 }
 
 func (c *failureClassesCache) getFailureClass(ctx context.Context, id string) (*autogardener_types.FailureClass, error) {
@@ -103,13 +103,13 @@ func (c *failureClassesCache) getActiveFailureClasses(ctx context.Context, taskI
 	for _, taskID := range taskIDs {
 		taskID := taskID // https://golang.org/doc/faq#closures_and_goroutines
 		eg.Go(func() error {
-			summary, err := c.getTaskSummary(ctx, taskID)
+			extracted, err := c.getExtractedError(ctx, taskID)
 			if err != nil {
 				return err
 			}
-			if summary != nil && summary.FailureClassId != "" {
+			if extracted != nil && extracted.FailureClassId != "" {
 				mtx.Lock()
-				tasksByClassID[summary.FailureClassId] = append(tasksByClassID[summary.FailureClassId], taskID)
+				tasksByClassID[extracted.FailureClassId] = append(tasksByClassID[extracted.FailureClassId], taskID)
 				mtx.Unlock()
 			}
 			return nil

@@ -331,7 +331,7 @@ func taskSummaryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	summary, err := autogardenerDB.GetTaskSummary(r.Context(), taskID)
+	summary, err := autogardenerDB.GetExtractedError(r.Context(), taskID)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve task summary.", http.StatusInternalServerError)
 		return

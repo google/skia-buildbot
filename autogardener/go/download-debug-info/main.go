@@ -24,7 +24,7 @@ import (
 
 var (
 	gcsBucketDebug = flag.String("gcs-bucket-debug", "skia-autogardener", "Optional, GCS bucket name to upload debug information.")
-	object         = flag.String("object", "", "GCS object path, eg. \"GetTaskSummary/<taskID>\"")
+	object         = flag.String("object", "", "GCS object path, eg. \"ExtractErrorMessage/<taskID>\"")
 )
 
 func main() {

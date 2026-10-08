@@ -52,17 +52,17 @@ func TestFailureClassesHandler(t *stdtesting.T) {
 		return fcCache.failureClasses["class-1"] != nil
 	}, time.Second, 10*time.Millisecond)
 
-	mockDB.On("GetTaskSummary", testutils.AnyContext, "task-a").Return(&autogardener_types.TaskSummary{
+	mockDB.On("GetExtractedError", testutils.AnyContext, "task-a").Return(&autogardener_types.ExtractedError{
 		FailureClassId: "class-1",
 	}, nil).Once()
-	mockDB.On("GetTaskSummary", testutils.AnyContext, "task-b").Return(&autogardener_types.TaskSummary{
+	mockDB.On("GetExtractedError", testutils.AnyContext, "task-b").Return(&autogardener_types.ExtractedError{
 		FailureClassId: "class-2",
 	}, nil).Once()
-	mockDB.On("GetTaskSummary", testutils.AnyContext, "task-c").Return(&autogardener_types.TaskSummary{
+	mockDB.On("GetExtractedError", testutils.AnyContext, "task-c").Return(&autogardener_types.ExtractedError{
 		FailureClassId: "class-2",
 	}, nil).Once()
 	// Unclassified task should not be cached and should not break the response.
-	mockDB.On("GetTaskSummary", testutils.AnyContext, "task-unclassified").Return(&autogardener_types.TaskSummary{
+	mockDB.On("GetExtractedError", testutils.AnyContext, "task-unclassified").Return(&autogardener_types.ExtractedError{
 		FailureClassId: "",
 	}, nil).Twice()
 
@@ -150,7 +150,7 @@ func TestFailureClassesHandler(t *stdtesting.T) {
 		return fcCache.failureClasses["class-1"].DuplicateOf() == "class-3"
 	}, time.Second, 10*time.Millisecond)
 
-	mockDB.On("GetTaskSummary", testutils.AnyContext, "task-unclassified").Return(&autogardener_types.TaskSummary{
+	mockDB.On("GetExtractedError", testutils.AnyContext, "task-unclassified").Return(&autogardener_types.ExtractedError{
 		FailureClassId: "",
 	}, nil).Once()
 	mockDB.On("GetFailureClass", testutils.AnyContext, "class-3").Return(fc3, nil).Once()

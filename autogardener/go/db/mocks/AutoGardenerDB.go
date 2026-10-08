@@ -17,6 +17,36 @@ type AutoGardenerDB struct {
 	mock.Mock
 }
 
+// GetExtractedError provides a mock function with given fields: ctx, taskID
+func (_m *AutoGardenerDB) GetExtractedError(ctx context.Context, taskID string) (*types.ExtractedError, error) {
+	ret := _m.Called(ctx, taskID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExtractedError")
+	}
+
+	var r0 *types.ExtractedError
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*types.ExtractedError, error)); ok {
+		return rf(ctx, taskID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *types.ExtractedError); ok {
+		r0 = rf(ctx, taskID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.ExtractedError)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, taskID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetFailureClass provides a mock function with given fields: ctx, id
 func (_m *AutoGardenerDB) GetFailureClass(ctx context.Context, id string) (*types.FailureClass, error) {
 	ret := _m.Called(ctx, id)
@@ -107,54 +137,24 @@ func (_m *AutoGardenerDB) GetReport(ctx context.Context, repo string, branch str
 	return r0, r1
 }
 
-// GetTaskSummary provides a mock function with given fields: ctx, taskID
-func (_m *AutoGardenerDB) GetTaskSummary(ctx context.Context, taskID string) (*types.TaskSummary, error) {
-	ret := _m.Called(ctx, taskID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetTaskSummary")
-	}
-
-	var r0 *types.TaskSummary
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*types.TaskSummary, error)); ok {
-		return rf(ctx, taskID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *types.TaskSummary); ok {
-		r0 = rf(ctx, taskID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.TaskSummary)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, taskID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetUnclassifiedTaskSummaries provides a mock function with given fields: ctx, limit
-func (_m *AutoGardenerDB) GetUnclassifiedTaskSummaries(ctx context.Context, limit int) (map[string]*types.TaskSummary, error) {
+// GetUnclassifiedExtractedErrors provides a mock function with given fields: ctx, limit
+func (_m *AutoGardenerDB) GetUnclassifiedExtractedErrors(ctx context.Context, limit int) (map[string]*types.ExtractedError, error) {
 	ret := _m.Called(ctx, limit)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetUnclassifiedTaskSummaries")
+		panic("no return value specified for GetUnclassifiedExtractedErrors")
 	}
 
-	var r0 map[string]*types.TaskSummary
+	var r0 map[string]*types.ExtractedError
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) (map[string]*types.TaskSummary, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int) (map[string]*types.ExtractedError, error)); ok {
 		return rf(ctx, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) map[string]*types.TaskSummary); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int) map[string]*types.ExtractedError); ok {
 		r0 = rf(ctx, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]*types.TaskSummary)
+			r0 = ret.Get(0).(map[string]*types.ExtractedError)
 		}
 	}
 
@@ -182,6 +182,24 @@ func (_m *AutoGardenerDB) ModifiedFailureClassesCh(ctx context.Context, window t
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(<-chan []*types.FailureClass)
 		}
+	}
+
+	return r0
+}
+
+// PutExtractedError provides a mock function with given fields: ctx, taskID, err
+func (_m *AutoGardenerDB) PutExtractedError(ctx context.Context, taskID string, err *types.ExtractedError) error {
+	ret := _m.Called(ctx, taskID, err)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutExtractedError")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *types.ExtractedError) error); ok {
+		r0 = rf(ctx, taskID, err)
+	} else {
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -216,24 +234,6 @@ func (_m *AutoGardenerDB) PutReport(ctx context.Context, repo string, branch str
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, *types.Report) error); ok {
 		r0 = rf(ctx, repo, branch, report)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// PutTaskSummary provides a mock function with given fields: ctx, taskID, summary
-func (_m *AutoGardenerDB) PutTaskSummary(ctx context.Context, taskID string, summary *types.TaskSummary) error {
-	ret := _m.Called(ctx, taskID, summary)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PutTaskSummary")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *types.TaskSummary) error); ok {
-		r0 = rf(ctx, taskID, summary)
 	} else {
 		r0 = ret.Error(0)
 	}

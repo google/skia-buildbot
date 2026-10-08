@@ -67,38 +67,38 @@ func TestIngestTask(t *testing.T) {
 		Finished:       time.Now().Add(-5 * time.Minute),
 	}
 
-	// 1. Task already has a summary in the DB.
+	// 1. Task already has an extracted error in the DB.
 	t.Run("already ingested", func(t *testing.T) {
 		registry := newTaskProcessingRegistry()
-		existing := &types.TaskSummary{
+		existing := &types.ExtractedError{
 			ErrorMessage: "error",
 			Analysis:     "analysis",
 		}
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(existing, nil).Once()
-		taskSummary, err := i.ingestTask(ctx, registry, task, nil)
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(existing, nil).Once()
+		extractedErr, err := i.ingestTask(ctx, registry, task, nil)
 		require.NoError(t, err)
-		require.Equal(t, existing, taskSummary)
+		require.Equal(t, existing, extractedErr)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
 		mockTDDB.AssertExpectations(t)
 	})
 
-	// 2. Task needs to be summarized.
+	// 2. Task needs error extracted.
 	t.Run("not yet ingested", func(t *testing.T) {
 		registry := newTaskProcessingRegistry()
-		summary := &types.TaskSummary{
+		extracted := &types.ExtractedError{
 			Analysis:     "analysis",
 			ErrorMessage: "error",
 		}
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
 		mockTDDB.On("GetTaskDriver", ctx, task.Id).Return(nil, nil).Once()
 		mockLogDog.On("GetBuildSteps", ctx, task_details.LogDogProject, "7b0cc6e0f5226b11").Return(nil, false, errors.New("coordinator: no access")).Once()
-		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
-		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
+		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
 
-		taskSummary, err := i.ingestTask(ctx, registry, task, nil)
+		extractedErr, err := i.ingestTask(ctx, registry, task, nil)
 		require.NoError(t, err)
-		require.Equal(t, summary, taskSummary)
+		require.Equal(t, extracted, extractedErr)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
 		mockTDDB.AssertExpectations(t)
@@ -120,10 +120,10 @@ func TestIngestTask(t *testing.T) {
 	})
 }
 
-func TestClassifyTaskSummary(t *testing.T) {
+func TestClassifyExtractedError(t *testing.T) {
 	ctx := t.Context()
 
-	setup := func(t *testing.T) (*db_mocks.AutoGardenerDB, *gemini_mocks.Client, *Ingester, *ts_types.Task, *types.TaskSummary) {
+	setup := func(t *testing.T) (*db_mocks.AutoGardenerDB, *gemini_mocks.Client, *Ingester, *ts_types.Task, *types.ExtractedError) {
 		mockDB := db_mocks.NewAutoGardenerDB(t)
 		mockG := gemini_mocks.NewClient(t)
 		i := &Ingester{
@@ -140,28 +140,28 @@ func TestClassifyTaskSummary(t *testing.T) {
 				},
 			},
 		}
-		taskSummary := &types.TaskSummary{
+		extractedErr := &types.ExtractedError{
 			Analysis:     "analysis",
 			ErrorMessage: "Compilation failed due to missing semicolon in SkCanvas.cpp:123",
 		}
-		return mockDB, mockG, i, task, taskSummary
+		return mockDB, mockG, i, task, extractedErr
 	}
 
 	// Case 1: No previous matching failure classes exist.
 	// This results in a new failure class being registered, without calling into Gemini.
 	t.Run("no existing failure class", func(t *testing.T) {
-		mockDB, mockG, i, task, taskSummary := setup(t)
+		mockDB, mockG, i, task, extractedErr := setup(t)
 
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(extractedErr, nil).Once()
 		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return([]*types.FailureClass{}, nil).Once()
 		mockDB.On("PutFailureClass", mock.Anything, mock.MatchedBy(func(fc *types.FailureClass) bool {
-			return fc.Repo == task.Repo && fc.ErrorMessage() == taskSummary.ErrorMessage && fc.Analysis() == taskSummary.Analysis && fc.Id != ""
+			return fc.Repo == task.Repo && fc.ErrorMessage() == extractedErr.ErrorMessage && fc.Analysis() == extractedErr.Analysis && fc.Id != ""
 		})).Return(nil).Once()
-		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
-			return ts.FailureClassId != ""
+		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
+			return ee.FailureClassId != ""
 		})).Return(nil).Once()
 
-		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		err := i.classifyExtractedError(ctx, task, extractedErr)
 		require.NoError(t, err)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
@@ -170,26 +170,26 @@ func TestClassifyTaskSummary(t *testing.T) {
 	// Case 2: Failure class with exactly-matching error message. No need to
 	// call into Gemini.
 	t.Run("has exactly-matching failure class", func(t *testing.T) {
-		mockDB, mockG, i, task, taskSummary := setup(t)
+		mockDB, mockG, i, task, extractedErr := setup(t)
 
 		fc := &types.FailureClass{
 			Id:   "class_abc",
 			Repo: task.Repo,
 			Updates: []*types.FailureClassUpdate{
 				{
-					ErrorMessage: types.Ptr(taskSummary.ErrorMessage),
+					ErrorMessage: types.Ptr(extractedErr.ErrorMessage),
 				},
 			},
 		}
 		failureClasses := []*types.FailureClass{fc}
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(extractedErr, nil).Once()
 		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return(failureClasses, nil).Once()
 		mockDB.On("PutFailureClass", mock.Anything, fc).Return(nil).Once()
-		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
-			return ts.FailureClassId == "class_abc"
+		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
+			return ee.FailureClassId == "class_abc"
 		})).Return(nil).Once()
 
-		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		err := i.classifyExtractedError(ctx, task, extractedErr)
 		require.NoError(t, err)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
@@ -197,27 +197,27 @@ func TestClassifyTaskSummary(t *testing.T) {
 
 	// Case 3: Matching failure class exists, Gemini returns its ID.
 	t.Run("gemini assigned failure class", func(t *testing.T) {
-		mockDB, mockG, i, task, taskSummary := setup(t)
+		mockDB, mockG, i, task, extractedErr := setup(t)
 
 		fc := &types.FailureClass{
 			Id:   "class_abc",
 			Repo: task.Repo,
 			Updates: []*types.FailureClassUpdate{
 				{
-					ErrorMessage: types.Ptr("task failed with: " + taskSummary.ErrorMessage),
+					ErrorMessage: types.Ptr("task failed with: " + extractedErr.ErrorMessage),
 				},
 			},
 		}
 		failureClasses := []*types.FailureClass{fc}
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(extractedErr, nil).Once()
 		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return(failureClasses, nil).Once()
-		mockG.On("ClassifyFailure", mock.Anything, taskSummary, failureClasses, task.Repo).Return("class_abc", nil).Once()
+		mockG.On("ClassifyFailure", mock.Anything, extractedErr, failureClasses, task.Repo).Return("class_abc", nil).Once()
 		mockDB.On("PutFailureClass", mock.Anything, fc).Return(nil).Once()
-		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
-			return ts.FailureClassId == "class_abc"
+		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
+			return ee.FailureClassId == "class_abc"
 		})).Return(nil).Once()
 
-		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		err := i.classifyExtractedError(ctx, task, extractedErr)
 		require.NoError(t, err)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
@@ -332,7 +332,7 @@ Failures:
 		require.Less(t, util.NgramSimilarity(shortErrSanitized, longErrSanitized, ngramSize), ngramSimilarityCandidateThreshold)
 		require.Greater(t, util.NgramOverlap(shortErrSanitized, longErrSanitized, ngramSize), ngramOverlapCandidateThreshold)
 
-		taskSummary := &types.TaskSummary{
+		extractedErr := &types.ExtractedError{
 			Analysis:     "analysis",
 			ErrorMessage: longErr,
 		}
@@ -347,31 +347,31 @@ Failures:
 			},
 		}
 		failureClasses := []*types.FailureClass{fc}
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(taskSummary, nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(extractedErr, nil).Once()
 		mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return(failureClasses, nil).Once()
-		mockG.On("ClassifyFailure", mock.Anything, taskSummary, failureClasses, task.Repo).Return(fc.Id, nil).Once()
+		mockG.On("ClassifyFailure", mock.Anything, extractedErr, failureClasses, task.Repo).Return(fc.Id, nil).Once()
 		mockDB.On("PutFailureClass", mock.Anything, fc).Return(nil).Once()
-		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
-			return ts.FailureClassId == fc.Id
+		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
+			return ee.FailureClassId == fc.Id
 		})).Return(nil).Once()
 
-		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		err := i.classifyExtractedError(ctx, task, extractedErr)
 		require.NoError(t, err)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
 	})
 
-	// Case 5: Shortcut if we already classified the TaskSummary.
+	// Case 5: Shortcut if we already classified the ExtractedError.
 	t.Run("already classified", func(t *testing.T) {
-		mockDB, mockG, i, task, taskSummary := setup(t)
+		mockDB, mockG, i, task, extractedErr := setup(t)
 
-		alreadyClassified := &types.TaskSummary{
-			ErrorMessage:   taskSummary.ErrorMessage,
-			Analysis:       taskSummary.Analysis,
+		alreadyClassified := &types.ExtractedError{
+			ErrorMessage:   extractedErr.ErrorMessage,
+			Analysis:       extractedErr.Analysis,
 			FailureClassId: "some-failure-class",
 		}
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(alreadyClassified, nil).Once()
-		err := i.classifyTaskSummary(ctx, task, taskSummary)
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(alreadyClassified, nil).Once()
+		err := i.classifyExtractedError(ctx, task, extractedErr)
 		require.NoError(t, err)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
@@ -381,20 +381,20 @@ Failures:
 	t.Run("generic error message", func(t *testing.T) {
 		mockDB, mockG, i, task, _ := setup(t)
 
-		genericTaskSummary := &types.TaskSummary{
+		genericExtractedErr := &types.ExtractedError{
 			Analysis:     "analysis",
 			ErrorMessage: "exit status 1",
 		}
 
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(genericTaskSummary, nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(genericExtractedErr, nil).Once()
 		mockDB.On("PutFailureClass", mock.Anything, mock.MatchedBy(func(fc *types.FailureClass) bool {
 			return fc.Id == genericFailureClassID
 		})).Return(nil).Once()
-		mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.MatchedBy(func(ts *types.TaskSummary) bool {
-			return ts.FailureClassId == genericFailureClassID
+		mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.MatchedBy(func(ee *types.ExtractedError) bool {
+			return ee.FailureClassId == genericFailureClassID
 		})).Return(nil).Once()
 
-		err := i.classifyTaskSummary(ctx, task, genericTaskSummary)
+		err := i.classifyExtractedError(ctx, task, genericExtractedErr)
 		require.NoError(t, err)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
@@ -529,24 +529,24 @@ func TestIngestTasks(t *testing.T) {
 	task1 := &ts_types.Task{
 		Id: "task1",
 	}
-	summary := &types.TaskSummary{
+	extracted := &types.ExtractedError{
 		Analysis: "analysis",
 	}
 
-	mockDB.On("GetTaskSummary", mock.Anything, task1.Id).Return(nil, nil).Once()
+	mockDB.On("GetExtractedError", mock.Anything, task1.Id).Return(nil, nil).Once()
 	mockTDDB.On("GetTaskDriver", mock.Anything, task1.Id).Return(nil, nil).Once()
 	mockLogDog.On("GetBuildSteps", mock.Anything, task_details.LogDogProject, "").Return(nil, false, errors.New("coordinator: no access")).Once()
-	mockG.On("GetTaskSummary", mock.Anything, task1).Return(summary, nil).Once()
-	mockDB.On("PutTaskSummary", mock.Anything, task1.Id, summary).Return(nil).Once()
+	mockG.On("ExtractErrorMessage", mock.Anything, task1).Return(extracted, nil).Once()
+	mockDB.On("PutExtractedError", mock.Anything, task1.Id, extracted).Return(nil).Once()
 
 	task2 := &ts_types.Task{
 		Id: "task2",
 	}
 	someError := errors.New("uh oh")
-	mockDB.On("GetTaskSummary", mock.Anything, task2.Id).Return(nil, nil).Once()
+	mockDB.On("GetExtractedError", mock.Anything, task2.Id).Return(nil, nil).Once()
 	mockTDDB.On("GetTaskDriver", mock.Anything, task2.Id).Return(nil, nil).Once()
 	mockLogDog.On("GetBuildSteps", mock.Anything, task_details.LogDogProject, "").Return(nil, false, errors.New("coordinator: no access")).Once()
-	mockG.On("GetTaskSummary", mock.Anything, task2).Return(nil, someError).Once()
+	mockG.On("ExtractErrorMessage", mock.Anything, task2).Return(nil, someError).Once()
 
 	inputCh := make(chan *ts_types.Task)
 	outputCh := make(chan *taskIngestionResult)
@@ -557,16 +557,16 @@ func TestIngestTasks(t *testing.T) {
 	result1 := <-outputCh
 	require.NoError(t, result1.err)
 	require.Equal(t, task1.Id, result1.Task.Id)
-	require.Equal(t, summary.Analysis, result1.Summary.Analysis)
+	require.Equal(t, extracted.Analysis, result1.Error.Analysis)
 
 	inputCh <- task2
 	result2 := <-outputCh
 	require.ErrorContains(t, result2.err, someError.Error())
 	require.Nil(t, result2.Task)
-	require.Nil(t, result2.Summary)
+	require.Nil(t, result2.Error)
 }
 
-func TestPeriodicUnclassifiedTaskSummaryPollingFallback(t *testing.T) {
+func TestPeriodicUnclassifiedExtractedErrorPollingFallback(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
@@ -580,22 +580,22 @@ func TestPeriodicUnclassifiedTaskSummaryPollingFallback(t *testing.T) {
 	task := &ts_types.Task{
 		Id: "unclassified-task",
 	}
-	summary := &types.TaskSummary{
+	extracted := &types.ExtractedError{
 		Analysis: "unclassified analysis",
 	}
 
-	mockDB.On("GetUnclassifiedTaskSummaries", mock.Anything, getUnclassifiedTaskSummariesBatchSize).Return(map[string]*types.TaskSummary{
-		task.Id: summary,
+	mockDB.On("GetUnclassifiedExtractedErrors", mock.Anything, getUnclassifiedExtractedErrorsBatchSize).Return(map[string]*types.ExtractedError{
+		task.Id: extracted,
 	}, nil).Once()
 	mockTSDB.On("GetTaskById", mock.Anything, task.Id).Return(task, nil).Once()
 
-	classifyCh := make(chan *types.TaskAndSummary)
+	classifyCh := make(chan *types.TaskAndError)
 
-	go i.periodicUnclassifiedTaskSummaryPollingFallback(ctx, classifyCh)
+	go i.periodicUnclassifiedExtractedErrorPollingFallback(ctx, classifyCh)
 
 	item := <-classifyCh
 	require.Equal(t, task.Id, item.Task.Id)
-	require.Equal(t, summary.Analysis, item.Summary.Analysis)
+	require.Equal(t, extracted.Analysis, item.Error.Analysis)
 }
 
 func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
@@ -612,7 +612,7 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 		},
 	}
 
-	summary := &types.TaskSummary{
+	extracted := &types.ExtractedError{
 		Analysis:     "test analysis",
 		ErrorMessage: "test error",
 	}
@@ -622,7 +622,7 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 			{
 				// Use an error message which doesn't exactly match, to ensure that we
 				// call into Gemini.
-				ErrorMessage: types.Ptr("task failed with: " + summary.ErrorMessage),
+				ErrorMessage: types.Ptr("task failed with: " + extracted.ErrorMessage),
 			},
 		},
 	}
@@ -642,7 +642,7 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 	// background goroutine immediately upon StartIngestingTaskSummariesForRepo starting.
 	// It may or may not execute before the test's context is canceled and asserts expectations,
 	// making its execution non-deterministic during the test run.
-	mockDB.On("GetUnclassifiedTaskSummaries", mock.Anything, getUnclassifiedTaskSummariesBatchSize).Return(map[string]*types.TaskSummary{}, nil).Maybe()
+	mockDB.On("GetUnclassifiedExtractedErrors", mock.Anything, getUnclassifiedExtractedErrorsBatchSize).Return(map[string]*types.ExtractedError{}, nil).Maybe()
 
 	mockTDDB := td_mocks.NewDB(t)
 	mockTDDB.On("GetTaskDriver", mock.Anything, task.Id).Return(nil, nil).Once()
@@ -657,21 +657,21 @@ func TestStartIngestingTaskSummariesForRepo(t *testing.T) {
 		logdog: mockLogDog,
 	}
 
-	// Step 1: Ingest task summary
-	mockDB.On("GetTaskSummary", mock.Anything, task.Id).Return(nil, nil).Once()
-	mockG.On("GetTaskSummary", mock.Anything, task).Return(summary, nil).Once()
-	mockDB.On("PutTaskSummary", mock.Anything, task.Id, summary).Return(nil).Once()
+	// Step 1: Extract error message
+	mockDB.On("GetExtractedError", mock.Anything, task.Id).Return(nil, nil).Once()
+	mockG.On("ExtractErrorMessage", mock.Anything, task).Return(extracted, nil).Once()
+	mockDB.On("PutExtractedError", mock.Anything, task.Id, extracted).Return(nil).Once()
 
-	// Step 2: Classify task summary
-	mockDB.On("GetTaskSummary", mock.Anything, task.Id).Return(summary, nil).Once()
+	// Step 2: Classify extracted error
+	mockDB.On("GetExtractedError", mock.Anything, task.Id).Return(extracted, nil).Once()
 	mockDB.On("GetRecentFailureClasses", mock.Anything, task.Repo, mock.Anything, 0).Return([]*types.FailureClass{failureClass}, nil).Once()
-	mockG.On("ClassifyFailure", mock.Anything, summary, []*types.FailureClass{failureClass}, task.Repo).Return(failureClass.Id, nil).Once()
+	mockG.On("ClassifyFailure", mock.Anything, extracted, []*types.FailureClass{failureClass}, task.Repo).Return(failureClass.Id, nil).Once()
 	mockDB.On("PutFailureClass", mock.Anything, mock.Anything).Return(nil).Once()
 
-	// The final call to PutTaskSummary indicates that the ingestion is
+	// The final call to PutExtractedError indicates that the ingestion is
 	// finished. We'll close doneCh to reflect that.
 	doneCh := make(chan struct{})
-	mockDB.On("PutTaskSummary", mock.Anything, task.Id, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	mockDB.On("PutExtractedError", mock.Anything, task.Id, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		close(doneCh)
 	}).Once()
 
@@ -728,18 +728,18 @@ func TestIngestTask_TaskDriverStepsCheck(t *testing.T) {
 			Finished: mockTime.Add(-5 * time.Minute),
 		}
 
-		summary := &types.TaskSummary{
+		extracted := &types.ExtractedError{
 			Analysis:     "analysis",
 			ErrorMessage: "error",
 		}
 
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
-		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
-		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
+		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
+		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
 
-		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, nil)
+		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, nil)
 		require.NoError(t, err)
-		require.Equal(t, summary, taskSummary)
+		require.Equal(t, extracted, extractedErr)
 		mockDB.AssertExpectations(t)
 		mockG.AssertExpectations(t)
 		mockTDDB.AssertExpectations(t)
@@ -774,13 +774,13 @@ func TestIngestTask_TaskDriverStepsCheck(t *testing.T) {
 			Finished: mockTime.Add(-1 * time.Minute), // well within the 5 min timeout
 		}
 
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
 
 		taskCh := make(chan *ts_types.Task, 1)
 
-		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
+		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
 		require.NoError(t, err)
-		require.Nil(t, taskSummary)
+		require.Nil(t, extractedErr)
 
 		// Verify task was re-enqueued after sleep
 		select {
@@ -824,20 +824,20 @@ func TestIngestTask_TaskDriverStepsCheck(t *testing.T) {
 			Finished: mockTime.Add(-15 * time.Minute), // exceeded the 5 min timeout
 		}
 
-		summary := &types.TaskSummary{
+		extracted := &types.ExtractedError{
 			Analysis:     "analysis",
 			ErrorMessage: "error",
 		}
 
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
-		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
-		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
+		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
+		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
 
 		taskCh := make(chan *ts_types.Task, 1)
 
-		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
+		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
 		require.NoError(t, err)
-		require.Equal(t, summary, taskSummary)
+		require.Equal(t, extracted, extractedErr)
 
 		// Verify no task was re-enqueued
 		select {
@@ -895,18 +895,18 @@ func TestIngestTask_TaskDriverStepsCheck(t *testing.T) {
 			SwarmingTaskId: swarmingTaskID,
 			Finished:       mockTime.Add(-1 * time.Minute),
 		}
-		summary := &types.TaskSummary{
+		extracted := &types.ExtractedError{
 			Analysis:     "analysis",
 			ErrorMessage: "error",
 		}
 
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
-		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
-		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
+		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
+		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
 
-		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, nil)
+		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, nil)
 		require.NoError(t, err)
-		require.Equal(t, summary, taskSummary)
+		require.Equal(t, extracted, extractedErr)
 	})
 
 	t.Run("unfinished recipe step logs re-enqueue", func(t *testing.T) {
@@ -955,13 +955,13 @@ func TestIngestTask_TaskDriverStepsCheck(t *testing.T) {
 			Finished:       mockTime.Add(-1 * time.Minute),
 		}
 
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
 
 		taskCh := make(chan *ts_types.Task, 1)
 
-		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
+		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
 		require.NoError(t, err)
-		require.Nil(t, taskSummary)
+		require.Nil(t, extractedErr)
 
 		select {
 		case popped := <-taskCh:
@@ -1015,20 +1015,20 @@ func TestIngestTask_TaskDriverStepsCheck(t *testing.T) {
 			SwarmingTaskId: swarmingTaskID,
 			Finished:       mockTime.Add(-15 * time.Minute),
 		}
-		summary := &types.TaskSummary{
+		extracted := &types.ExtractedError{
 			Analysis:     "analysis",
 			ErrorMessage: "error",
 		}
 
-		mockDB.On("GetTaskSummary", ctx, task.Id).Return(nil, nil).Once()
-		mockG.On("GetTaskSummary", ctx, task).Return(summary, nil).Once()
-		mockDB.On("PutTaskSummary", ctx, task.Id, summary).Return(nil).Once()
+		mockDB.On("GetExtractedError", ctx, task.Id).Return(nil, nil).Once()
+		mockG.On("ExtractErrorMessage", ctx, task).Return(extracted, nil).Once()
+		mockDB.On("PutExtractedError", ctx, task.Id, extracted).Return(nil).Once()
 
 		taskCh := make(chan *ts_types.Task, 1)
 
-		taskSummary, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
+		extractedErr, err := i.ingestTask(ctx, newTaskProcessingRegistry(), task, taskCh)
 		require.NoError(t, err)
-		require.Equal(t, summary, taskSummary)
+		require.Equal(t, extracted, extractedErr)
 
 		select {
 		case <-taskCh:

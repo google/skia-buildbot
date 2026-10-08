@@ -9,19 +9,19 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-type TaskSummary struct {
+type ExtractedError struct {
 	Analysis       string `json:"analysis"`
 	ErrorMessage   string `json:"errorMessage"`
 	FailureClassId string `json:"failureClassId"`
 }
 
-func (s TaskSummary) String() string {
-	return fmt.Sprintf("**Error Message:**\n```\n%s\n```\n\n**Analysis:** %s\n", s.ErrorMessage, s.Analysis)
+func (e ExtractedError) String() string {
+	return fmt.Sprintf("**Error Message:**\n```\n%s\n```\n\n**Analysis:** %s\n", e.ErrorMessage, e.Analysis)
 }
 
-type TaskAndSummary struct {
-	Task    *types.Task
-	Summary *TaskSummary
+type TaskAndError struct {
+	Task  *types.Task
+	Error *ExtractedError
 }
 
 type Classification string
@@ -104,7 +104,7 @@ func (i *ReportItem) String() string {
 }
 
 type SummaryForTasks struct {
-	TaskSummary
+	ExtractedError
 	TaskNames []string
 	TaskIDs   []string
 }

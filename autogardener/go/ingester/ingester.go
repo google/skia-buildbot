@@ -32,18 +32,18 @@ import (
 )
 
 const (
-	getUnclassifiedTaskSummariesBatchSize = 100
-	maxRecentFailureClasses               = 25
-	ngramSize                             = 4
-	ngramSimilarityCandidateThreshold     = 0.10
-	ngramFastPathThreshold                = 0.90
-	ngramOverlapCandidateThreshold        = 0.50
-	minNgramOverlapLength                 = 25
-	minStringContainsLength               = 30
-	minClassIDPrefixLength                = 16
-	workerPoolSize                        = 10
-	unfinishedTaskMaxWait                 = 5 * time.Minute
-	unfinishedTaskRequeueDelay            = 5 * time.Second
+	getUnclassifiedExtractedErrorsBatchSize = 100
+	maxRecentFailureClasses                 = 25
+	ngramSize                               = 4
+	ngramSimilarityCandidateThreshold       = 0.10
+	ngramFastPathThreshold                  = 0.90
+	ngramOverlapCandidateThreshold          = 0.50
+	minNgramOverlapLength                   = 25
+	minStringContainsLength                 = 30
+	minClassIDPrefixLength                  = 16
+	workerPoolSize                          = 10
+	unfinishedTaskMaxWait                   = 5 * time.Minute
+	unfinishedTaskRequeueDelay              = 5 * time.Second
 )
 
 // sleepFn allows overriding time.Sleep in tests.
@@ -130,7 +130,7 @@ func (i *Ingester) periodicTaskPollingFallback(ctx context.Context, repoURL stri
 }
 
 type taskIngestionResult struct {
-	types.TaskAndSummary
+	types.TaskAndError
 	err error
 }
 
@@ -141,13 +141,13 @@ func (i *Ingester) ingestTasks(ctx context.Context, input chan *ts_types.Task, o
 			for {
 				select {
 				case task := <-input:
-					taskSummary, err := i.ingestTask(ctx, processing, task, input)
+					extractedErr, err := i.ingestTask(ctx, processing, task, input)
 					result := &taskIngestionResult{}
 					if err != nil {
 						result.err = err
 					} else {
 						result.Task = task
-						result.Summary = taskSummary
+						result.Error = extractedErr
 					}
 					output <- result
 				case <-ctx.Done():
@@ -159,22 +159,22 @@ func (i *Ingester) ingestTasks(ctx context.Context, input chan *ts_types.Task, o
 	<-ctx.Done()
 }
 
-func (i *Ingester) periodicUnclassifiedTaskSummaryPollingFallback(ctx context.Context, classifyCh chan<- *types.TaskAndSummary) {
+func (i *Ingester) periodicUnclassifiedExtractedErrorPollingFallback(ctx context.Context, classifyCh chan<- *types.TaskAndError) {
 	util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
-		// TODO(borenet): This retrieves task summaries for ALL repos.
-		unclassified, err := i.db.GetUnclassifiedTaskSummaries(ctx, getUnclassifiedTaskSummariesBatchSize)
+		// TODO(borenet): This retrieves extracted errors for ALL repos.
+		unclassified, err := i.db.GetUnclassifiedExtractedErrors(ctx, getUnclassifiedExtractedErrorsBatchSize)
 		if err != nil {
-			sklog.Errorf("Failed to retrieve unclassified task summaries: %s", err)
+			sklog.Errorf("Failed to retrieve unclassified extracted errors: %s", err)
 			return
 		}
-		for taskID, taskSummary := range unclassified {
+		for taskID, extractedErr := range unclassified {
 			task, err := i.tsDB.GetTaskById(ctx, taskID)
 			if err != nil {
 				sklog.Errorf("Failed to retrieve task from the DB: %s", err)
 			}
-			classifyCh <- &types.TaskAndSummary{
-				Task:    task,
-				Summary: taskSummary,
+			classifyCh <- &types.TaskAndError{
+				Task:  task,
+				Error: extractedErr,
 			}
 		}
 	})
@@ -197,7 +197,7 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 	// We classify failures sequentially to prevent the race condition in which
 	// multiple task failures with the same, new, failure class are processed at
 	// the same time and thus add duplicates to the DB.
-	classifyCh := make(chan *types.TaskAndSummary, getUnclassifiedTaskSummariesBatchSize)
+	classifyCh := make(chan *types.TaskAndError, getUnclassifiedExtractedErrorsBatchSize)
 
 	// Consume task ingestion results from that channel and enqueue them into
 	// the classification channel.
@@ -208,20 +208,20 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 				if result.err != nil {
 					sklog.Errorf("failed to ingest task: %s", result.err)
 					continue
-				} else if result.Summary == nil {
+				} else if result.Error == nil {
 					// This occurs if the worker received a task which was
 					// already being processed by another worker. Ignore.
 					continue
-				} else if result.Summary.FailureClassId != "" {
+				} else if result.Error.FailureClassId != "" {
 					continue
 				}
 
-				// Enqueue the classification of the task summary. Do so in
+				// Enqueue the classification of the extracted error. Do so in
 				// a separate goroutine to prevent blocking workers.
 				go func() {
-					classifyCh <- &types.TaskAndSummary{
-						Task:    result.Task,
-						Summary: result.Summary,
+					classifyCh <- &types.TaskAndError{
+						Task:  result.Task,
+						Error: result.Error,
 					}
 				}()
 			case <-ctx.Done():
@@ -230,17 +230,17 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 		}
 	}()
 
-	// Backup: periodically fetch all unclassified task summaries and add them
+	// Backup: periodically fetch all unclassified extracted errors and add them
 	// to the queue.
-	go i.periodicUnclassifiedTaskSummaryPollingFallback(ctx, classifyCh)
+	go i.periodicUnclassifiedExtractedErrorPollingFallback(ctx, classifyCh)
 
-	// Classify task summaries.
+	// Classify extracted errors.
 	go func() {
 		for {
 			select {
 			case job := <-classifyCh:
-				if err := i.classifyTaskSummary(ctx, job.Task, job.Summary); err != nil {
-					sklog.Errorf("Failed to classify task summary: %s", err)
+				if err := i.classifyExtractedError(ctx, job.Task, job.Error); err != nil {
+					sklog.Errorf("Failed to classify extracted error: %s", err)
 					continue
 				}
 			case <-ctx.Done():
@@ -250,7 +250,7 @@ func (i *Ingester) StartIngestingTaskSummariesForRepo(ctx context.Context, repoU
 	}()
 }
 
-func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingRegistry, task *ts_types.Task, taskCh chan *ts_types.Task) (*types.TaskSummary, error) {
+func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingRegistry, task *ts_types.Task, taskCh chan *ts_types.Task) (*types.ExtractedError, error) {
 	// If another worker is already processing this task, skip it.
 	release, ok := processing.TryClaimTask(task.Id)
 	if !ok {
@@ -258,13 +258,13 @@ func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingReg
 	}
 	defer release()
 
-	// If we already have a summary for this task, skip it.
-	taskSummary, err := i.db.GetTaskSummary(ctx, task.Id)
+	// If we already have an extracted error for this task, skip it.
+	extractedErr, err := i.db.GetExtractedError(ctx, task.Id)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to ingest task %s", task.Id)
 	}
-	if taskSummary != nil {
-		return taskSummary, nil
+	if extractedErr != nil {
+		return extractedErr, nil
 	}
 
 	// Occasionally task drivers and recipes have propagation delay to the DB
@@ -286,19 +286,19 @@ func (i *Ingester) ingestTask(ctx context.Context, processing *taskProcessingReg
 		sklog.Warningf("Task %s still has unfinished steps or logs after %s; proceeding anyway.", task.Id, now.Now(ctx).Sub(task.Finished))
 	}
 
-	// Use Gemini to find the error summary for this task and insert it
+	// Use Gemini to extract the error message for this task and insert it
 	// into the DB.
-	taskSummary, err = i.gemini.GetTaskSummary(ctx, task)
+	extractedErr, err = i.gemini.ExtractErrorMessage(ctx, task)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to ingest task %s", task.Id)
 	}
-	if err := i.db.PutTaskSummary(ctx, task.Id, taskSummary); err != nil {
-		return nil, skerr.Wrapf(err, "failed to save task summary %s: %s", task.Id, err)
+	if err := i.db.PutExtractedError(ctx, task.Id, extractedErr); err != nil {
+		return nil, skerr.Wrapf(err, "failed to save extracted error %s: %s", task.Id, err)
 	}
 	latency := now.Now(ctx).Sub(task.Finished).Seconds()
 	metrics2.GetFloat64SummaryMetric("autogardener_task_ingest_latency").Observe(latency)
 	sklog.Infof("Ingested task %s with latency of %2f seconds", task.Id, latency)
-	return taskSummary, nil
+	return extractedErr, nil
 }
 
 var errDone = errors.New("done")
@@ -404,21 +404,21 @@ func isUnfinishedRecipe(ctx context.Context, logdog task_details.LogDogClient, s
 	return checkStepLogs(recipeStep)
 }
 
-func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task, taskSummary *types.TaskSummary) error {
-	// Retrieve the TaskSummary from the DB to ensure that we haven't already
+func (i *Ingester) classifyExtractedError(ctx context.Context, task *ts_types.Task, extractedErr *types.ExtractedError) error {
+	// Retrieve the ExtractedError from the DB to ensure that we haven't already
 	// classified it (since the primary and backup queuing mechanisms may
-	// overlap and enqueue the same Task[Summary] multiple times).
-	if exist, err := i.db.GetTaskSummary(ctx, task.Id); err != nil {
+	// overlap and enqueue the same TaskAndError multiple times).
+	if exist, err := i.db.GetExtractedError(ctx, task.Id); err != nil {
 		return skerr.Wrap(err)
 	} else if exist.FailureClassId != "" {
 		return nil
 	}
 
-	taskErrSanitized := utils.SanitizeErrorText(taskSummary.ErrorMessage)
+	taskErrSanitized := utils.SanitizeErrorText(extractedErr.ErrorMessage)
 
 	// Case 1: The error message is too generic. Skip classification entirely.
 	var assignedFailureClass *types.FailureClass
-	if utils.ErrorIsGeneric(taskSummary.ErrorMessage) || utils.ErrorIsGeneric(taskErrSanitized) {
+	if utils.ErrorIsGeneric(extractedErr.ErrorMessage) || utils.ErrorIsGeneric(taskErrSanitized) {
 		sklog.Debugf("Error message for %s is too generic.", task.Id)
 		assignedFailureClass = makeGenericFailureClass()
 		metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "generic"}).Observe(1.0)
@@ -442,7 +442,7 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 		for _, cand := range failureClasses {
 			candErr := cand.ErrorMessage()
 			candErrSanitized := utils.SanitizeErrorText(candErr)
-			if taskSummary.ErrorMessage == candErr || (taskErrSanitized != "" && taskErrSanitized == candErrSanitized) {
+			if extractedErr.ErrorMessage == candErr || (taskErrSanitized != "" && taskErrSanitized == candErrSanitized) {
 				sklog.Debugf("Exact match of error message for %s; no need to use gemini.", task.Id)
 				metrics2.GetFloat64SummaryMetric("autogardener_classification_similarity", map[string]string{"outcome": "exact_match"}).Observe(1.0)
 				assignedFailureClass = cand
@@ -499,7 +499,7 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 		})
 
 		err := util.ChunkIter(len(candidates), maxRecentFailureClasses, func(start, end int) error {
-			classID, err := i.gemini.ClassifyFailure(ctx, taskSummary, candidates[start:end], task.Repo)
+			classID, err := i.gemini.ClassifyFailure(ctx, extractedErr, candidates[start:end], task.Repo)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
@@ -533,8 +533,8 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 				{
 					Timestamp:    now.Now(ctx),
 					User:         "autogardener",
-					ErrorMessage: types.Ptr(taskSummary.ErrorMessage),
-					Analysis:     types.Ptr(taskSummary.Analysis),
+					ErrorMessage: types.Ptr(extractedErr.ErrorMessage),
+					Analysis:     types.Ptr(extractedErr.Analysis),
 				},
 			},
 		}
@@ -550,9 +550,9 @@ func (i *Ingester) classifyTaskSummary(ctx context.Context, task *ts_types.Task,
 		return skerr.Wrapf(err, "failed to save failure class %s", assignedFailureClass.Id)
 	}
 
-	// Store the task summary with the resolved FailureClassId.
-	taskSummary.FailureClassId = assignedFailureClass.Id
-	return skerr.Wrap(i.db.PutTaskSummary(ctx, task.Id, taskSummary))
+	// Store the extracted error with the resolved FailureClassId.
+	extractedErr.FailureClassId = assignedFailureClass.Id
+	return skerr.Wrap(i.db.PutExtractedError(ctx, task.Id, extractedErr))
 }
 
 func (i *Ingester) getFailedTasks(ctx context.Context, repoURL string, period time.Duration) ([]*ts_types.Task, error) {

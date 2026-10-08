@@ -11,17 +11,17 @@ import (
 )
 
 type AutoGardenerDB interface {
-	// GetTaskSummary retrieves the Summary for the given task ID, if it exists.
-	// If not, it returns nil with no error.
-	GetTaskSummary(ctx context.Context, taskID string) (*types.TaskSummary, error)
+	// GetExtractedError retrieves the ExtractedError for the given task ID, if
+	// it exists. If not, it returns nil with no error.
+	GetExtractedError(ctx context.Context, taskID string) (*types.ExtractedError, error)
 
-	// PutTaskSummary sets the Summary for the given task ID, replacing any
-	// existing entry.
-	PutTaskSummary(ctx context.Context, taskID string, summary *types.TaskSummary) error
+	// PutExtractedError sets the ExtractedError for the given task ID, replacing
+	// any existing entry.
+	PutExtractedError(ctx context.Context, taskID string, err *types.ExtractedError) error
 
-	// GetUnclassifiedTaskSummaries retrieves any TaskSummary which has not been
-	// classified, keyed by task ID.
-	GetUnclassifiedTaskSummaries(ctx context.Context, limit int) (map[string]*types.TaskSummary, error)
+	// GetUnclassifiedExtractedErrors retrieves any ExtractedError which has not
+	// been classified, keyed by task ID.
+	GetUnclassifiedExtractedErrors(ctx context.Context, limit int) (map[string]*types.ExtractedError, error)
 
 	// GetReport retrieves the latest Report for the given repo and branch, if
 	// it exists. If not, it returns nil with no error.

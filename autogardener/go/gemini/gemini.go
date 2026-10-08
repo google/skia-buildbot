@@ -57,8 +57,8 @@ const (
 
 // Client is an interface for the Gemini client, used for testing.
 type Client interface {
-	GetTaskSummary(ctx context.Context, task *ts_types.Task) (*types.TaskSummary, error)
-	ClassifyFailure(ctx context.Context, res *types.TaskSummary, failureClasses []*types.FailureClass, repoURL string) (string, error)
+	ExtractErrorMessage(ctx context.Context, task *ts_types.Task) (*types.ExtractedError, error)
+	ClassifyFailure(ctx context.Context, res *types.ExtractedError, failureClasses []*types.FailureClass, repoURL string) (string, error)
 	GenerateReport(ctx context.Context, repo, branch string, numCommits int) (*types.Report, error)
 }
 
@@ -164,7 +164,7 @@ definitive report to developers.
 
 `
 
-func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*types.TaskSummary, error) {
+func (c *clientImpl) ExtractErrorMessage(ctx context.Context, task *ts_types.Task) (*types.ExtractedError, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Retrieve the task steps so that the agent doesn't have to.
@@ -253,7 +253,7 @@ func (c *clientImpl) GetTaskSummary(ctx context.Context, task *ts_types.Task) (*
 		if len(failedStepNames) > 0 {
 			analysis += fmt.Sprintf("\nThe following steps failed with no logs:\n- %s", strings.Join(failedStepNames, "\n- "))
 		}
-		return &types.TaskSummary{
+		return &types.ExtractedError{
 			ErrorMessage: "",
 			Analysis:     analysis,
 		}, nil
@@ -356,8 +356,8 @@ To successfully complete this task, you MUST follow this exact workflow. Do not 
 	mcpWrapper := mcp.MCPClientWithPseudoTools(c.mcpClient, []*mcp.PseudoTool{
 		mcp.GetLogLinesTool(logsByStep),
 	}, nil)
-	var res types.TaskSummary
-	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, "GetTaskSummary", fmt.Sprintf("GetTaskSummary/%s", task.Id), &res); err != nil {
+	var res types.ExtractedError
+	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, mcpWrapper, "ExtractErrorMessage", fmt.Sprintf("ExtractErrorMessage/%s", task.Id), &res); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	res.ErrorMessage = strings.TrimSpace(res.ErrorMessage)
@@ -480,7 +480,7 @@ func (c *clientImpl) GetTaskHealthReport(ctx context.Context, repo, branch strin
 	return &healthReport, nil
 }
 
-func (c *clientImpl) MergeTaskSummaries(ctx context.Context, summaries []*types.TaskAndSummary) ([]*types.SummaryForTasks, error) {
+func (c *clientImpl) MergeTaskSummaries(ctx context.Context, summaries []*types.TaskAndError) ([]*types.SummaryForTasks, error) {
 	ts := time.Now().UTC().Format(time.RFC3339Nano)
 	const aggregateSummariesPrompt = generalPromptHeader + `# Task
 
@@ -495,7 +495,7 @@ overly-broad "various infrastructure failures" or similar headline. Be specific.
 	// First aggregate within task names. We expect similar errors within a
 	// given task name, and this saves tokens for the larger aggregation between
 	// task names.
-	summariesByTaskName := map[string][]*types.TaskAndSummary{}
+	summariesByTaskName := map[string][]*types.TaskAndError{}
 	for _, summary := range summaries {
 		summariesByTaskName[summary.Task.Name] = append(summariesByTaskName[summary.Task.Name], summary)
 	}
@@ -508,8 +508,8 @@ overly-broad "various infrastructure failures" or similar headline. Be specific.
 		taskName := taskName // https://golang.org/doc/faq#closures_and_goroutines
 		var pb strings.Builder
 		for _, summary := range summariesByTaskName[taskName] {
-			if summary.Summary != nil {
-				_, _ = fmt.Fprintf(&pb, "### Task ID %s\n%s\n", summary.Task.Id, summary.Summary.String())
+			if summary.Error != nil {
+				_, _ = fmt.Fprintf(&pb, "### Task ID %s\n%s\n", summary.Task.Id, summary.Error.String())
 			}
 		}
 		_, _ = fmt.Fprint(&pb, aggregateSummariesPrompt)
@@ -559,20 +559,20 @@ func (c *clientImpl) GenerateReport(ctx context.Context, repo, branch string, nu
 
 	// Retrieve and aggregate summaries for all failed tasks.
 	var mtx sync.Mutex
-	var summaries []*types.TaskAndSummary
+	var summaries []*types.TaskAndError
 	for _, taskHistory := range healthReport.Tasks {
 		for _, task := range taskHistory {
 			task := task
 			eg.Go(func() error {
-				summary, err := c.db.GetTaskSummary(ctx, task.Id)
+				extractedErr, err := c.db.GetExtractedError(ctx, task.Id)
 				if err != nil {
 					return skerr.Wrap(err)
 				}
 				mtx.Lock()
 				defer mtx.Unlock()
-				summaries = append(summaries, &types.TaskAndSummary{
-					Task:    task,
-					Summary: summary,
+				summaries = append(summaries, &types.TaskAndError{
+					Task:  task,
+					Error: extractedErr,
 				})
 				return nil
 			})
@@ -850,7 +850,7 @@ func listModels(ctx context.Context, client *genai.Client) ([]string, error) {
 
 type summaryForTasksWithinTaskName struct {
 	TaskIDs []string
-	types.TaskSummary
+	types.ExtractedError
 }
 
 func (r summaryForTasksWithinTaskName) String() string {
@@ -877,7 +877,7 @@ type DebugInfo_ToolCall struct {
 	Result string                 `json:"result"`
 }
 
-func (c *clientImpl) ClassifyFailure(ctx context.Context, res *types.TaskSummary, failureClasses []*types.FailureClass, repoURL string) (string, error) {
+func (c *clientImpl) ClassifyFailure(ctx context.Context, res *types.ExtractedError, failureClasses []*types.FailureClass, repoURL string) (string, error) {
 	if res.ErrorMessage == "" {
 		return "", nil
 	}

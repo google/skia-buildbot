@@ -42,27 +42,27 @@ func NewFirestoreDB(ctx context.Context, project, instance string, opts ...optio
 	}, nil
 }
 
-func (d *firestoreDB) GetTaskSummary(ctx context.Context, taskID string) (*types.TaskSummary, error) {
+func (d *firestoreDB) GetExtractedError(ctx context.Context, taskID string) (*types.ExtractedError, error) {
 	doc, err := d.client.Get(ctx, d.client.Collection(collectionSummaryForTask).Doc(taskID), defaultAttempts, defaultTimeout)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	var rv types.TaskSummary
+	var rv types.ExtractedError
 	if err := doc.DataTo(&rv); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &rv, nil
 }
 
-func (d *firestoreDB) GetUnclassifiedTaskSummaries(ctx context.Context, limit int) (map[string]*types.TaskSummary, error) {
+func (d *firestoreDB) GetUnclassifiedExtractedErrors(ctx context.Context, limit int) (map[string]*types.ExtractedError, error) {
 	it := d.client.Collection(collectionSummaryForTask).
 		Where("FailureClassId", "==", "").
 		Limit(limit).
 		Documents(ctx)
 	defer it.Stop()
-	rv := make(map[string]*types.TaskSummary, limit)
+	rv := make(map[string]*types.ExtractedError, limit)
 	for {
 		doc, err := it.Next()
 		if err == iterator.Done {
@@ -70,17 +70,17 @@ func (d *firestoreDB) GetUnclassifiedTaskSummaries(ctx context.Context, limit in
 		} else if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		taskSummary := new(types.TaskSummary)
-		if err := doc.DataTo(taskSummary); err != nil {
+		extractedErr := new(types.ExtractedError)
+		if err := doc.DataTo(extractedErr); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		rv[doc.Ref.ID] = taskSummary
+		rv[doc.Ref.ID] = extractedErr
 	}
 	return rv, nil
 }
 
-func (d *firestoreDB) PutTaskSummary(ctx context.Context, taskID string, summary *types.TaskSummary) error {
-	_, err := d.client.Set(ctx, d.client.Collection(collectionSummaryForTask).Doc(taskID), summary, defaultAttempts, defaultTimeout)
+func (d *firestoreDB) PutExtractedError(ctx context.Context, taskID string, extractedErr *types.ExtractedError) error {
+	_, err := d.client.Set(ctx, d.client.Collection(collectionSummaryForTask).Doc(taskID), extractedErr, defaultAttempts, defaultTimeout)
 	return skerr.Wrap(err)
 }
 
