@@ -489,7 +489,7 @@ use_repo(oci, "envoy_alpine")
 # Pulls the node alpine container, needed by npm-audit-mirror.
 oci.pull(
     name = "node_alpine",
-    digest = "sha256:1e168eaa83acc4b002f7b91bd3584f6800c84737337fe665224c963ed6b5b1c0",  # index.docker.io/node:current-alpine3.21 as of Oct 2, 2025.
+    digest = "sha256:7b6a85d8b6e3c3d931431979884a97b99bad974cc686097915cec3c07d462ad7",  # index.docker.io/node:current-alpine3.24 as of Oct 9, 2026.
     image = "docker.io/library/node",
 )
 use_repo(oci, "node_alpine")

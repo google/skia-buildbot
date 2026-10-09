@@ -1853,7 +1853,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "lCMjOFEJWTMjQSCGwRsjWMnyY1L1vOgF+ikfw+iQIGo=",
+        "usagesDigest": "Upvt72OqifTjttpIxeu6eX3rYe1CC2Ar4CxghXQC2sg=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -2083,7 +2083,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/node",
-              "identifier": "sha256:1e168eaa83acc4b002f7b91bd3584f6800c84737337fe665224c963ed6b5b1c0",
+              "identifier": "sha256:7b6a85d8b6e3c3d931431979884a97b99bad974cc686097915cec3c07d462ad7",
               "target_name": "node_alpine_single",
               "bazel_tags": []
             }
@@ -2096,7 +2096,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/node",
-              "identifier": "sha256:1e168eaa83acc4b002f7b91bd3584f6800c84737337fe665224c963ed6b5b1c0",
+              "identifier": "sha256:7b6a85d8b6e3c3d931431979884a97b99bad974cc686097915cec3c07d462ad7",
               "platforms": {},
               "platform": "@@rules_oci+//oci:node_alpine_single",
               "bzlmod_repository": "node_alpine",
