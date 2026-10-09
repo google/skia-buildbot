@@ -892,18 +892,18 @@ type Anomaly struct {
 	// are used in Skia alerts to define which tests to apply the deteciton
 	// rules.
 	// In chromeperf's context, it should include the following keys:
-	//   - bot:
-	//     the name of the bot (a.k.a, 'builder' in waterfall, and
-	//     'configuration' in pinpoint job page.)
-	//   - benchmark:
-	//     the name of the benchmark
-	//   - story:
-	//     the name of the story (a.k.a., test)
-	//   - measurement:
-	//     the metric to look at. (a.k.a., 'test' in skia query ui,
-	//     and 'chart' in pinpoint job page)
-	//   - stat:
-	//     the aggregation method on the data points
+	//  - bot:
+	//      the name of the bot (a.k.a, 'builder' in waterfall, and
+	//      'configuration' in pinpoint job page.)
+	//  - benchmark:
+	//      the name of the benchmark
+	//  - story:
+	//      the name of the story (a.k.a., test)
+	//  - measurement:
+	//      the metric to look at. (a.k.a., 'test' in skia query ui,
+	//      and 'chart' in pinpoint job page)
+	//  - stat:
+	//      the aggregation method on the data points
 	Paramset map[string]string `protobuf:"bytes,3,rep,name=paramset,proto3" json:"paramset,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// indicate the direction towards which the change should be
 	// considered as regression.

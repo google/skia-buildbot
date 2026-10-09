@@ -3940,11 +3940,8 @@ type VersionFileConfig_File struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// path within the repo of the file which pins the dependency. The name of
 	// the file dictates how we read and write the revision pin:
-	//
 	//   - If `regex` is set, the name of this file is ignored.
-	//
 	//   - `DEPS`: we parse the file as a DEPS file using a Python parser.
-	//
 	//   - `*.pyl`: we assume the file contains a Python literal composed of
 	//     dictionaries and lists. In this case, the `id` field must be a dot-
 	//     separated path from the root of the object to the field which
@@ -3953,19 +3950,19 @@ type VersionFileConfig_File struct {
 	//     example, the id `key1.key2.id=my-dependency-id.revision` would
 	//     traverse the following literal to find the revision ID:
 	//
-	//     {
-	//     "key1": {
-	//     "key2": [
-	//     {
-	//     "id": "my-dependency-id",
-	//     "revision": "12345",
-	//     },
-	//     ],
-	//     },
-	//     }
+	//         {
+	//           "key1": {
+	//             "key2": [
+	//               {
+	//                 "id": "my-dependency-id",
+	//                 "revision": "12345",
+	//               },
+	//             ],
+	//           },
+	//         }
 	//
-	//   - Otherwise, we assume that the file's sole contents are the revision
-	//     ID and we read or write the entirety of the file.
+	//    - Otherwise, we assume that the file's sole contents are the revision
+	//      ID and we read or write the entirety of the file.
 	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 	// regex which is used to extract the existing revision of the dependency
 	// and to update the pin to the new revision. Optional.

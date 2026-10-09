@@ -151,7 +151,7 @@ func TestLogCtx_NoTemplate_SingleArg(t *testing.T) {
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
-	logger.LogCtx(ctx, 0, sklogimpl.Error, "", myObject)
+	logger.LogCtx(ctx, 0, sklogimpl.Error, emptyFormatString, myObject)
 }
 
 func TestLogCtx_NoTemplate_MultiArg(t *testing.T) {
@@ -178,7 +178,7 @@ func TestLogCtx_NoTemplate_MultiArg(t *testing.T) {
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
-	logger.LogCtx(ctx, 0, sklogimpl.Error, "", "this", "is", "text", "with", "no", "template")
+	logger.LogCtx(ctx, 0, sklogimpl.Error, emptyFormatString, "this", "is", "text", "with", "no", "template")
 }
 
 type MyString string
@@ -198,7 +198,7 @@ func TestLogCtx_NoTemplate_NamedString(t *testing.T) {
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
-	logger.LogCtx(ctx, 0, sklogimpl.Info, "", MyString("hello"))
+	logger.LogCtx(ctx, 0, sklogimpl.Info, emptyFormatString, MyString("hello"))
 }
 
 func TestLogCtx_NoTemplate_Int(t *testing.T) {
@@ -216,7 +216,7 @@ func TestLogCtx_NoTemplate_Int(t *testing.T) {
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
-	logger.LogCtx(ctx, 0, sklogimpl.Info, "", 123)
+	logger.LogCtx(ctx, 0, sklogimpl.Info, emptyFormatString, 123)
 }
 
 func TestLogCtx_NoTemplate_Error(t *testing.T) {
@@ -235,7 +235,7 @@ func TestLogCtx_NoTemplate_Error(t *testing.T) {
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
-	logger.LogCtx(ctx, 0, sklogimpl.Info, "", err)
+	logger.LogCtx(ctx, 0, sklogimpl.Info, emptyFormatString, err)
 }
 
 type myStringer struct{}
@@ -260,5 +260,5 @@ func TestLogCtx_NoTemplate_Stringer(t *testing.T) {
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
-	logger.LogCtx(ctx, 0, sklogimpl.Info, "", s)
+	logger.LogCtx(ctx, 0, sklogimpl.Info, emptyFormatString, s)
 }

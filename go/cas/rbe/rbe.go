@@ -156,7 +156,7 @@ func checkNodePropertiesIdentical(a, b *remoteexecution.NodeProperties) error {
 		}
 		if a.UnixMode != nil {
 			if a.UnixMode.Value != b.UnixMode.Value {
-				return skerr.Fmt("UnixMode %q != %q", a.UnixMode.Value, b.UnixMode.Value)
+				return skerr.Fmt("UnixMode %d != %d", a.UnixMode.Value, b.UnixMode.Value)
 			}
 		}
 		if len(a.Properties) != len(b.Properties) {
@@ -198,7 +198,7 @@ func checkFilesIdentical(a, b *remoteexecution.FileNode) error {
 			return skerr.Fmt("Digest hash %q != %q", a.Digest.Hash, b.Digest.Hash)
 		}
 		if a.Digest.SizeBytes != b.Digest.SizeBytes {
-			return skerr.Fmt("Size %q != %q", a.Digest.SizeBytes, b.Digest.SizeBytes)
+			return skerr.Fmt("Size %d != %d", a.Digest.SizeBytes, b.Digest.SizeBytes)
 		}
 	}
 	return checkNodePropertiesIdentical(a.NodeProperties, b.NodeProperties)

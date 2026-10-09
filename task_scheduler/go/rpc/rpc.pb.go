@@ -2134,7 +2134,7 @@ type Job struct {
 	Name string `protobuf:"bytes,9,opt,name=name,proto3" json:"name,omitempty"`
 	// priority is an indicator of the relative priority of this Job.
 	Priority float32 `protobuf:"fixed32,10,opt,name=priority,proto3" json:"priority,omitempty"`
-	// is the current state of the repository for this Job.
+	//  is the current state of the repository for this Job.
 	RepoState *RepoState `protobuf:"bytes,11,opt,name=repo_state,json=repoState,proto3" json:"repo_state,omitempty"`
 	// requested is the time at which this Job was requested. This is a
 	// commit timestamp, tryjob request creation timestamp, time at which
