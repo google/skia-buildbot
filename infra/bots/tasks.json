@@ -369,7 +369,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:32dfffc1feff5136b522112dbc1bdef230b20c5b",
         "--cipd",
-        "cipd_bin_packages:infra/tools/luci/isolate/${platform}@git_revision:9119ead6d70953d1f9a7670979431344c2cc3f10",
+        "cipd_bin_packages:infra/tools/luci/isolate/${platform}@git_revision:32dfffc1feff5136b522112dbc1bdef230b20c5b",
         "--cipd",
         "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:d22c07e22385de2d6e0c6060e5530d061498e3cb",
         "--cipd",
