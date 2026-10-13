@@ -103,15 +103,6 @@ pkg_tar(
 )
 
 pkg_tar(
-    name = "patch_tar",
-    srcs = ["@patch_linux_amd64//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages",
-    remap_paths = {"external/+cipd+patch_linux_amd64/": ""},
-    strip_prefix = ".",
-    visibility = ["//visibility:public"],
-)
-
-pkg_tar(
     name = "goldctl_tar",
     srcs = ["@goldctl_linux-amd64//:all_files"],
     package_dir = "/cipd/cipd_bin_packages",
@@ -125,15 +116,6 @@ pkg_tar(
     srcs = ["@cpython3_linux-amd64//:all_files"],
     package_dir = "/cipd/cipd_bin_packages/cpython3",
     remap_paths = {"external/+cipd+cpython3_linux-amd64/": ""},
-    strip_prefix = ".",
-    visibility = ["//visibility:public"],
-)
-
-pkg_tar(
-    name = "gsutil_tar",
-    srcs = ["@gsutil//:all_files"],
-    package_dir = "/cipd/cipd_bin_packages/gsutil",
-    remap_paths = {"external/+cipd+gsutil/gsutil/": ""},
     strip_prefix = ".",
     visibility = ["//visibility:public"],
 )

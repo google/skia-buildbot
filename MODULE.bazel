@@ -718,22 +718,6 @@ cipd.download_http(
 use_repo(cipd, "vpython3_linux-amd64")
 
 cipd.download_http(
-    name = "gsutil",
-    cipd_package = "skia/bots/gsutil",
-    sha256 = "ce033513e57dae147ad2c87acb2c62e5766d8323e0f5b75de8c71cd64e390d9b",
-    tag = "version:6",
-)
-use_repo(cipd, "gsutil")
-
-cipd.download_http(
-    name = "patch_linux_amd64",
-    cipd_package = "skia/bots/patch_linux_amd64",
-    sha256 = "757fd36db06f291f77a91aa314b855af449665a606d627ce16c36813464e1df6",
-    tag = "version:0",
-)
-use_repo(cipd, "patch_linux_amd64")
-
-cipd.download_http(
     name = "goldctl",
     cipd_package = "skia/tools/goldctl/${platform}",
     platform_to_sha256 = {
