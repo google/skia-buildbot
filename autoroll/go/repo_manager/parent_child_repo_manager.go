@@ -81,13 +81,9 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		gc, ok := codereview.GerritConfigs[cfg.Gerrit.Config]
+		g, ok := cr.Client().(gerrit.GerritInterface)
 		if !ok {
-			return nil, skerr.Fmt("Unknown Gerrit config %s", cfg.Gerrit.Config)
-		}
-		g, err := gerrit.NewGerritWithConfig(gc, cfg.Gerrit.Url, client)
-		if err != nil {
-			return nil, skerr.Wrap(err)
+			return nil, skerr.Fmt("GitilesParent must use Gerrit for code review.")
 		}
 		parentRM, err = parent.NewGitilesFile(ctx, c.GetGitilesParent(), repo, g, serverURL)
 	} else if c.GetGoModGerritParent() != nil {
@@ -145,13 +141,9 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		gc, ok := codereview.GerritConfigs[cfg.Gerrit.Config]
+		g, ok := cr.Client().(gerrit.GerritInterface)
 		if !ok {
-			return nil, skerr.Fmt("Unknown Gerrit config %s", cfg.Gerrit.Config)
-		}
-		g, err := gerrit.NewGerritWithConfig(gc, cfg.Gerrit.Url, client)
-		if err != nil {
-			return nil, skerr.Wrap(err)
+			return nil, skerr.Fmt("CopyParent must use Gerrit for code review.")
 		}
 		parentRM, err = parent.NewCopy(ctx, c.GetCopyParent(), repo, g, serverURL, childRM)
 	}

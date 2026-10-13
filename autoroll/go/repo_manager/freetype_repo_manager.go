@@ -20,13 +20,9 @@ func NewFreeTypeRepoManager(ctx context.Context, c *config.FreeTypeRepoManagerCo
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	gc, ok := codereview.GerritConfigs[c.Parent.Gitiles.Gerrit.Config]
+	g, ok := cr.Client().(gerrit.GerritInterface)
 	if !ok {
-		return nil, skerr.Fmt("Unknown Gerrit config %s", c.Parent.Gitiles.Gerrit.Config)
-	}
-	g, err := gerrit.NewGerritWithConfig(gc, c.Parent.Gitiles.Gerrit.Url, client)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Fmt("FreeTypeParent must use Gerrit for code review.")
 	}
 	parentRM, err := parent.NewFreeTypeParent(ctx, c.GetParent(), workdir, parentRepo, g, serverURL)
 	if err != nil {
