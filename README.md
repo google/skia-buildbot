@@ -2,7 +2,7 @@
 
 This repo contains infrastructure code for Skia.
 
-# Supported Infrastucture Platforms
+# Supported Infrastructure Platforms
 
 The infrastructure code is generally built to run on x86 linux. Running on other
 platforms may be possible but is not officially supported and success will vary
