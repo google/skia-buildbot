@@ -132,6 +132,10 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 	if t.TaskId != m.TaskId {
 		return fmt.Errorf("Message TaskId doesn't match TaskDriverRun TaskId (%s vs %s)", m.TaskId, t.TaskId)
 	}
+	if m.Type == td.MsgType_RunStarted {
+		t.Properties = m.Run.Copy()
+		return nil
+	}
 	if t.Steps == nil {
 		t.Steps = map[string]*Step{}
 	}
@@ -142,8 +146,6 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 	}
 
 	switch m.Type {
-	case td.MsgType_RunStarted:
-		t.Properties = m.Run.Copy()
 	case td.MsgType_StepStarted:
 		// Validation.
 		if m.Step == nil {

@@ -174,6 +174,11 @@ func TestExtractErrorMessage_TaskDriverStepsCheck(t *testing.T) {
 		mockTDDB.On("GetTaskDriver", ctx, taskID).Return(&td_db.TaskDriverRun{
 			TaskId: taskID,
 			Steps: map[string]*td_db.Step{
+				"": {
+					Properties: &td.StepProperties{
+						Id: "",
+					},
+				},
 				"step-1": {
 					Properties: &td.StepProperties{
 						Id:   "step-1",

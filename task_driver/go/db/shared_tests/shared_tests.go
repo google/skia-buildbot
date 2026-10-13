@@ -104,6 +104,7 @@ func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 	base, err := d.GetTaskDriver(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, base)
+	require.NotContains(t, base.Steps, "")
 
 	// Reverse the messages and play them back.
 	id2 := id + "2"
