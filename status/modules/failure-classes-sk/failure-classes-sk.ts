@@ -4,8 +4,8 @@
  *
  * Custom element to display active autogardener failure classes for a set of failed tasks.
  *
- * @event highlight-tasks - Dispatched when a failure class is hovered or a task belonging to a
- *   failure class is hovered. Detail has { taskIds: Array<string> }.
+ * @event highlight-tasks - Dispatched when a failure class is hovered. Detail has
+ *   { taskIds: Array<string> }.
  * @event select-failure-class - Dispatched when a failure class item is clicked. Detail is the
  *   ActiveFailureClass.
  */
@@ -241,8 +241,7 @@ export class FailureClassesSk extends ElementSk {
 
   /**
    * Called when a task in the commits grid is hovered or unhovered.
-   * Highlights the matching failure class in the sidebar and emits highlight-tasks
-   * for all sibling tasks in that class.
+   * Highlights the matching failure class in the sidebar.
    */
   setHoveredTask(taskId: string, hovered: boolean): void {
     const matched = hovered ? this.taskToClass.get(taskId) : undefined;
@@ -251,7 +250,6 @@ export class FailureClassesSk extends ElementSk {
       this.hoveredClassId = newHoveredId;
       this._render();
     }
-    this.dispatchHighlightTasks(matched ? matched.taskIds : []);
   }
 
   private onClassMouseEnter(item: ActiveFailureClass): void {

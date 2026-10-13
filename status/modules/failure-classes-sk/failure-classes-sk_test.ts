@@ -83,7 +83,7 @@ describe('failure-classes-sk', () => {
     expect(firstItem.classList.contains('hovered')).to.be.false;
   });
 
-  it('highlights matching class and dispatches highlight-tasks when setHoveredTask is called', async () => {
+  it('highlights matching class without dispatching highlight-tasks when setHoveredTask is called', async () => {
     fetchMock.postOnce('/json/failure-classes', testClasses);
     const el = newInstance();
     el.taskIds = ['task-1', 'task-2', 'task-3'];
@@ -95,12 +95,12 @@ describe('failure-classes-sk', () => {
     });
 
     el.setHoveredTask('task-2', true);
-    expect(events).to.deep.equal([['task-1', 'task-2']]);
+    expect(events).to.be.empty;
     const firstItem = $$('.failure-class-item', el) as HTMLElement;
     expect(firstItem.classList.contains('hovered')).to.be.true;
 
     el.setHoveredTask('task-2', false);
-    expect(events).to.deep.equal([['task-1', 'task-2'], []]);
+    expect(events).to.be.empty;
     expect(firstItem.classList.contains('hovered')).to.be.false;
   });
 
@@ -221,6 +221,10 @@ describe('failure-classes-sk', () => {
       events.push((e as CustomEvent).detail.taskIds);
     });
     el.setHoveredTask('task-1', true);
+    expect(items[0].classList.contains('hovered')).to.be.true;
+    expect(events).to.be.empty;
+
+    items[0].dispatchEvent(new MouseEvent('mouseenter'));
     expect(events).to.deep.equal([['task-1', 'task-2', 'task-3']]);
   });
 });
