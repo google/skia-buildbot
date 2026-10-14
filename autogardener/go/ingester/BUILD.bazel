@@ -7,6 +7,7 @@ go_library(
         "classify_error_message.go",
         "extract_error.go",
         "ingester.go",
+        "update_failure_class.go",
     ],
     importpath = "go.skia.org/infra/autogardener/go/ingester",
     visibility = ["//visibility:public"],
@@ -38,6 +39,7 @@ go_test(
         "classify_error_message_test.go",
         "extract_error_test.go",
         "ingester_test.go",
+        "update_failure_class_test.go",
     ],
     embed = [":ingester"],
     deps = [
