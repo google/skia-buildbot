@@ -1,7 +1,8 @@
 import { TaskDriverRunDisplay } from '../../../task_driver/modules/json';
 
 export const taskDriverData: TaskDriverRunDisplay = {
-  id: 'T0VWG4A2FCCBSmih2eEP',
+  id: 'root',
+  taskId: 'T0VWG4A2FCCBSmih2eEP',
   name: 'Infra-Experimental-Small',
   isInfra: false,
   properties: {

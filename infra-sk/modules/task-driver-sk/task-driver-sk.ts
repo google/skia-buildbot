@@ -119,8 +119,8 @@ export class TaskDriverSk extends HTMLElement {
                 ? propLine(
                     'Task Scheduler',
                     html`
-                      <a href="https://task-scheduler.skia.org/task/${s.id}" target="_blank"
-                        >${s.id}</a
+                      <a href="https://task-scheduler.skia.org/task/${s.taskId}" target="_blank"
+                        >${s.taskId}</a
                       >
                     `
                   )
@@ -147,10 +147,14 @@ export class TaskDriverSk extends HTMLElement {
           : ''
       }
       ${s.data ? s.data.map((d) => TaskDriverSk.stepData(ele, s, d)) : ''}
-      ${propLine(
-        'Log (combined)',
-        html` <a href="${ele.logLink(s.id!)}" target="_blank">all logs</a> `
-      )}
+      ${
+        isTaskDriverRunDisplay(s) || (s.data || []).filter((d) => d.type === 'log').length > 1
+          ? propLine(
+              'Log (combined)',
+              html` <a href="${ele.logLink(s.id!)}" target="_blank">all logs</a> `
+            )
+          : ''
+      }
       ${s.errors ? s.errors.map((e, idx) => TaskDriverSk.stepError(ele, s, e, idx)) : ''}
     </div>
   `;
@@ -195,7 +199,7 @@ export class TaskDriverSk extends HTMLElement {
           ${showLaunch
             ? html`
                 <div class="horiz">
-                  <a href="https://task-driver.skia.org/td/${s.id}" target="_blank">
+                  <a href="https://task-driver.skia.org/td/${ele._data.taskId}" target="_blank">
                     <launch-icon-sk></launch-icon-sk>
                   </a>
                 </div>
@@ -281,16 +285,16 @@ export class TaskDriverSk extends HTMLElement {
   }
 
   private errLink(stepId: string, idx: number): string {
-    let link = `/errors/${this._data.id}`;
-    if (stepId !== this._data.id) {
+    let link = `/errors/${this._data.taskId}`;
+    if (stepId && stepId !== 'root') {
       link += `/${stepId}`;
     }
     return `${link}/${idx}`;
   }
 
   private logLink(stepId: string, logId?: string): string {
-    let link = `/logs/${this._data.id}`;
-    if (stepId !== this._data.id) {
+    let link = `/logs/${this._data.taskId}`;
+    if (stepId && (stepId !== 'root' || logId)) {
       link += `/${stepId}`;
     }
     if (logId) {

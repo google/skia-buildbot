@@ -213,9 +213,9 @@ func (c *clientImpl) ExtractErrorMessage(ctx context.Context, task *ts_types.Tas
 		prunedTaskDriver, failedSteps := pruneSuccessfulTaskDriverSteps(taskSteps.TaskDriver.StepDisplay)
 		taskSteps.TaskDriver.StepDisplay = prunedTaskDriver
 		for _, s := range failedSteps {
-			// The root step has an empty ID. Its logs may contain output from
-			// any/all steps, so they aren't really useful.
-			if s.Id == "" {
+			// Skip the root step; its logs may contain output from any/all
+			// steps, so they aren't really useful.
+			if s.Id == "" || s.Id == td.StepIDRoot {
 				continue
 			}
 			failedStepNames = append(failedStepNames, s.Name)

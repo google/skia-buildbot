@@ -29,7 +29,7 @@ export interface StepDisplay {
 }
 
 export interface TaskDriverRunDisplay {
-	id: string;
+	taskId: string;
 	properties: RunProperties | null;
 	result?: StepResult;
 	errors?: string[];
@@ -37,6 +37,7 @@ export interface TaskDriverRunDisplay {
 	finished?: string;
 	data?: StepData[];
 	steps?: StepDisplay[];
+	id?: string;
 	name?: string;
 	isInfra?: boolean;
 	environment?: string[];
