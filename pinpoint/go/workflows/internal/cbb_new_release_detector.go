@@ -139,16 +139,18 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 	ctx = workflow.WithChildOptions(ctx, getBrowerVersionsWorkflowOptions)
 	var safariVersions []BuildInfo
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbGetBrowserVersions, "safari").Get(ctx, &safariVersions); err != nil {
-		// Log and ignore the error. This child workflow is expected to fail
-		// occasionally, when the browsers are in the middle of an update.
-		// Simply ignore that browser and try again next time. No need to fail
-		// the entire workflow.
+		// Log and send an alert email, but do not fail the entire workflow.
+		// Version detection can fail transiently when browsers are mid-update
+		// or persistently when STP is missing after a macOS upgrade; in either
+		// case, continue running CBB for the remaining browsers.
 		sklog.Errorf("Unable to get current Safari versions: %v", err)
+		sendCbbBrowserVersionsErrorEmail(ctx, "safari", err)
 	}
 
 	var edgeVersions []BuildInfo
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbGetBrowserVersions, "edge").Get(ctx, &edgeVersions); err != nil {
 		sklog.Errorf("Unable to get current Edge versions: %v", err)
+		sendCbbBrowserVersionsErrorEmail(ctx, "edge", err)
 	}
 
 	otherBrowsers := make([]BuildInfo, 0, len(safariVersions)+len(edgeVersions))
@@ -225,6 +227,7 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 	// being installed on test devices while we're running CBB benchmarks.
 	var stpVersion string
 	if err := workflow.ExecuteActivity(ctx, DownloadSafariTPActivity, isDev).Get(ctx, &stpVersion); err != nil {
+		sendCbbStpDownloadErrorEmail(ctx, err)
 		return nil, skerr.Wrap(err)
 	}
 

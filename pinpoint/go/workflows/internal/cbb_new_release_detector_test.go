@@ -178,3 +178,78 @@ func TestSendCbbBrowserVersionsErrorEmail_DispatchesDiagnosticAlertEmail(t *test
 	assert.Contains(t, capturedBody, "cipd create")
 	env.AssertExpectations(t)
 }
+
+func TestCbbNewReleaseDetectorWorkflow_DownloadSafariTPFails_SendsAlertEmailAndReturnsError(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	env.RegisterWorkflowWithOptions(CbbGetBrowserVersionsWorkflow, workflow.RegisterOptions{Name: workflows.CbbGetBrowserVersions})
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "safari").Return([]BuildInfo{}, nil).Once()
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "edge").Return([]BuildInfo{}, nil).Once()
+	env.OnActivity(GetChromeReleasesInfoActivity, mock.Anything, mock.Anything, false).Return(&ChromeReleaseInfo{
+		CommitPosition: "1704567",
+		CommitHash:     "ee7ef8016281439932a81bdac80a66f9a31efb62",
+		Builds:         nil,
+	}, nil).Once()
+	env.OnActivity(DownloadSafariTPActivity, mock.Anything, false).Return("", errors.New("unable to find STP download link for detected OS (macos27)")).Once()
+
+	var capturedTo []string
+	var capturedSubject, capturedBody string
+	env.OnActivity(SendEmailActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		capturedTo = args.Get(1).([]string)
+		capturedSubject = args.Get(2).(string)
+		capturedBody = args.Get(3).(string)
+	}).Return(nil).Once()
+
+	env.ExecuteWorkflow(CbbNewReleaseDetectorWorkflow)
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.Error(t, env.GetWorkflowError())
+	assert.Contains(t, env.GetWorkflowError().Error(), "unable to find STP download link for detected OS (macos27)")
+	assert.Equal(t, []string{errorNotificationEmail}, capturedTo)
+	assert.Equal(t, "CBB STP download failed", capturedSubject)
+	assert.Contains(t, capturedBody, "unable to find STP download link for detected OS (macos27)")
+	assert.Contains(t, capturedBody, "https://developer.apple.com/safari/resources/")
+	assert.Contains(t, capturedBody, "infra/chromeperf/cbb/safari_technology_preview")
+	env.AssertExpectations(t)
+}
+
+func TestCbbNewReleaseDetectorWorkflow_GetBrowserVersionsFails_SendsAlertEmailAndContinues(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	edgeBuild := BuildInfo{
+		Browser:  "edge",
+		Channel:  "stable",
+		Platform: "windows",
+		Version:  "130.0.2849.46",
+	}
+
+	env.RegisterWorkflowWithOptions(CbbGetBrowserVersionsWorkflow, workflow.RegisterOptions{Name: workflows.CbbGetBrowserVersions})
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "safari").Return(nil, errors.New("browser_versions task failed on mac-m4-mini-perf-cbb")).Once()
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "edge").Return([]BuildInfo{edgeBuild}, nil).Once()
+
+	var capturedTo []string
+	var capturedSubject, capturedBody string
+	env.OnActivity(SendEmailActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		capturedTo = args.Get(1).([]string)
+		capturedSubject = args.Get(2).(string)
+		capturedBody = args.Get(3).(string)
+	}).Return(nil).Once()
+
+	env.OnActivity(GetChromeReleasesInfoActivity, mock.Anything, []BuildInfo{edgeBuild}, false).Return(&ChromeReleaseInfo{
+		CommitPosition: "1704567",
+		CommitHash:     "ee7ef8016281439932a81bdac80a66f9a31efb62",
+		Builds:         nil,
+	}, nil).Once()
+	env.OnActivity(DownloadSafariTPActivity, mock.Anything, false).Return("254", nil).Once()
+
+	env.ExecuteWorkflow(CbbNewReleaseDetectorWorkflow)
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	assert.Equal(t, []string{errorNotificationEmail}, capturedTo)
+	assert.Equal(t, "CBB safari version detection failed", capturedSubject)
+	assert.Contains(t, capturedBody, "browser_versions task failed on mac-m4-mini-perf-cbb")
+	env.AssertExpectations(t)
+}
