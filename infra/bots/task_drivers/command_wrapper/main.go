@@ -191,6 +191,8 @@ func main() {
 		// don't generate an unnecessary step for the subprocess.
 		osCmd := osexec.CommandContext(ctx, cmd.Name, cmd.Args...)
 		osCmd.Env = exec.MergeEnv(os.Environ(), []string{fmt.Sprintf("%s=%s", td.EnvVarWrappedStepID, td.StepIDRoot)})
+		osCmd.Stdout = os.Stdout
+		osCmd.Stderr = os.Stderr
 		runErr = osCmd.Run()
 	} else {
 		_, runErr = exec.RunCommand(ctx, cmd)

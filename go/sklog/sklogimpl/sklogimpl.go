@@ -154,3 +154,30 @@ func SuppressLogs() func() {
 		SetLogger(oldLogger)
 	}
 }
+
+// MultiLogger is a Logger which logs to multiple Loggers.
+type MultiLogger []Logger
+
+// Log implements Logger.
+func (m MultiLogger) Log(depth int, severity Severity, fmt string, args ...interface{}) {
+	for i, logger := range m {
+		sev := severity
+		// Some Logger implementations (e.g. stdlogging and cloudlogging) call
+		// os.Exit on Fatal. Downgrade Fatal to Error for all but the last
+		// logger so that all loggers receive the message before the process
+		// exits.
+		if sev == Fatal && i < len(m)-1 {
+			sev = Error
+		}
+		logger.Log(depth+1, sev, fmt, args...)
+	}
+}
+
+// Flush implements Logger.
+func (m MultiLogger) Flush() {
+	for _, logger := range m {
+		logger.Flush()
+	}
+}
+
+var _ Logger = MultiLogger(nil)

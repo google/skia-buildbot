@@ -16,6 +16,8 @@ import (
 	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/cloudlogging"
+	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -209,6 +211,10 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		if err != nil {
 			return nil, err
 		}
+		sklogimpl.SetLogger(sklogimpl.MultiLogger{
+			stdlogging.New(os.Stderr),
+			logger,
+		})
 		cloudLogging, err := NewCloudLoggingReceiver(logger.Logger())
 		if err != nil {
 			return nil, err

@@ -11,7 +11,8 @@ import (
 	"sync"
 
 	"cloud.google.com/go/logging"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/sklogimpl"
+	"go.skia.org/infra/go/sklog/stdlogging"
 	"go.skia.org/infra/go/util"
 )
 
@@ -96,6 +97,8 @@ func (r MultiReceiver) Close() error {
 	return g.Wait()
 }
 
+var debugLogger = stdlogging.New(os.Stderr)
+
 // DebugReceiver just dumps the messages straight to the log (stdout/stderr, not
 // to Cloud Logging).
 type DebugReceiver struct{}
@@ -104,21 +107,21 @@ type DebugReceiver struct{}
 func (r *DebugReceiver) HandleMessage(m *Message) error {
 	switch m.Type {
 	case MsgType_RunStarted:
-		sklog.Infof("RUN_STARTED: %+v", m.Run)
+		debugLogger.Log(0, sklogimpl.Info, "RUN_STARTED: %+v", m.Run)
 	case MsgType_StepStarted:
-		sklog.Infof("STEP_STARTED: %s", m.StepId)
+		debugLogger.Log(0, sklogimpl.Info, "STEP_STARTED: %s", m.StepId)
 	case MsgType_StepFinished:
-		sklog.Infof("STEP_FINISHED: %s", m.StepId)
+		debugLogger.Log(0, sklogimpl.Info, "STEP_FINISHED: %s", m.StepId)
 	case MsgType_StepException:
-		sklog.Infof("STEP_EXCEPTION: %s", m.StepId)
+		debugLogger.Log(0, sklogimpl.Info, "STEP_EXCEPTION: %s", m.StepId)
 	case MsgType_StepFailed:
-		sklog.Infof("STEP_FAILED: %s", m.StepId)
+		debugLogger.Log(0, sklogimpl.Info, "STEP_FAILED: %s", m.StepId)
 	case MsgType_StepData:
 		b, err := json.MarshalIndent(m.Data, "", " ")
 		if err != nil {
 			return err
 		}
-		sklog.Infof("STEP_DATA: %s: %s", m.StepId, string(b))
+		debugLogger.Log(0, sklogimpl.Info, "STEP_DATA: %s: %s", m.StepId, string(b))
 	default:
 		return fmt.Errorf("Invalid message type %s", m.Type)
 	}
@@ -135,7 +138,7 @@ func (r *DebugReceiver) LogStream(stepId, logId string, severity Severity) (io.W
 
 // Close implements Receiver.
 func (r *DebugReceiver) Close() error {
-	sklog.Info("Run finished.")
+	debugLogger.Log(0, sklogimpl.Info, "", "Run finished.")
 	return nil
 }
 

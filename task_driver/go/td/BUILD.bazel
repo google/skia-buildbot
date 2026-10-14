@@ -22,6 +22,8 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/sklog/cloudlogging",
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
         "//go/sktest",
         "//go/util",
         "@com_github_google_uuid//:uuid",
