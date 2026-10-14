@@ -79,6 +79,24 @@ func (d *firestoreDB) GetUnclassifiedExtractedErrors(ctx context.Context, limit 
 	return rv, nil
 }
 
+func (d *firestoreDB) GetExtractedErrorsForFailureClass(ctx context.Context, failureClassID string) (map[string]*types.ExtractedError, error) {
+	query := d.client.Collection(collectionSummaryForTask).
+		Where("FailureClassId", "==", failureClassID)
+	rv := map[string]*types.ExtractedError{}
+	err := d.client.IterDocs(ctx, "GetExtractedErrorsForFailureClass", failureClassID, query, defaultAttempts, defaultTimeout, func(doc *fs.DocumentSnapshot) error {
+		extractedErr := new(types.ExtractedError)
+		if err := doc.DataTo(extractedErr); err != nil {
+			return err
+		}
+		rv[doc.Ref.ID] = extractedErr
+		return nil
+	})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
 func (d *firestoreDB) PutExtractedError(ctx context.Context, taskID string, extractedErr *types.ExtractedError) error {
 	_, err := d.client.Set(ctx, d.client.Collection(collectionSummaryForTask).Doc(taskID), extractedErr, defaultAttempts, defaultTimeout)
 	return skerr.Wrap(err)

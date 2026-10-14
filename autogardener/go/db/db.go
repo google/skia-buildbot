@@ -23,6 +23,10 @@ type AutoGardenerDB interface {
 	// been classified, keyed by task ID.
 	GetUnclassifiedExtractedErrors(ctx context.Context, limit int) (map[string]*types.ExtractedError, error)
 
+	// GetExtractedErrorsForFailureClass retrieves all ExtractedErrors attributed
+	// to the given FailureClass ID, keyed by task ID.
+	GetExtractedErrorsForFailureClass(ctx context.Context, failureClassID string) (map[string]*types.ExtractedError, error)
+
 	// GetReport retrieves the latest Report for the given repo and branch, if
 	// it exists. If not, it returns nil with no error.
 	GetReport(ctx context.Context, repo, branch string) (*types.Report, error)

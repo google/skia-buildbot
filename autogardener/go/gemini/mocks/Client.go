@@ -75,6 +75,62 @@ func (_m *Client) ExtractErrorMessage(ctx context.Context, task *gotypes.Task) (
 	return r0, r1
 }
 
+// GeneralizeFailureClassAnalysis provides a mock function with given fields: ctx, fc, extractedErrors
+func (_m *Client) GeneralizeFailureClassAnalysis(ctx context.Context, fc *types.FailureClass, extractedErrors map[string][]*types.ExtractedError) (string, error) {
+	ret := _m.Called(ctx, fc, extractedErrors)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GeneralizeFailureClassAnalysis")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *types.FailureClass, map[string][]*types.ExtractedError) (string, error)); ok {
+		return rf(ctx, fc, extractedErrors)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *types.FailureClass, map[string][]*types.ExtractedError) string); ok {
+		r0 = rf(ctx, fc, extractedErrors)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *types.FailureClass, map[string][]*types.ExtractedError) error); ok {
+		r1 = rf(ctx, fc, extractedErrors)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GenerateFailureTitle provides a mock function with given fields: ctx, fcID, currentTitle, errorMessage, analysis, affectedTasks
+func (_m *Client) GenerateFailureTitle(ctx context.Context, fcID string, currentTitle string, errorMessage string, analysis string, affectedTasks []string) (string, error) {
+	ret := _m.Called(ctx, fcID, currentTitle, errorMessage, analysis, affectedTasks)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateFailureTitle")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, []string) (string, error)); ok {
+		return rf(ctx, fcID, currentTitle, errorMessage, analysis, affectedTasks)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, []string) string); ok {
+		r0 = rf(ctx, fcID, currentTitle, errorMessage, analysis, affectedTasks)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, []string) error); ok {
+		r1 = rf(ctx, fcID, currentTitle, errorMessage, analysis, affectedTasks)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GenerateReport provides a mock function with given fields: ctx, repo, branch, numCommits
 func (_m *Client) GenerateReport(ctx context.Context, repo string, branch string, numCommits int) (*types.Report, error) {
 	ret := _m.Called(ctx, repo, branch, numCommits)

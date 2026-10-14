@@ -47,6 +47,36 @@ func (_m *AutoGardenerDB) GetExtractedError(ctx context.Context, taskID string) 
 	return r0, r1
 }
 
+// GetExtractedErrorsForFailureClass provides a mock function with given fields: ctx, failureClassID
+func (_m *AutoGardenerDB) GetExtractedErrorsForFailureClass(ctx context.Context, failureClassID string) (map[string]*types.ExtractedError, error) {
+	ret := _m.Called(ctx, failureClassID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExtractedErrorsForFailureClass")
+	}
+
+	var r0 map[string]*types.ExtractedError
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (map[string]*types.ExtractedError, error)); ok {
+		return rf(ctx, failureClassID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) map[string]*types.ExtractedError); ok {
+		r0 = rf(ctx, failureClassID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*types.ExtractedError)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, failureClassID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetFailureClass provides a mock function with given fields: ctx, id
 func (_m *AutoGardenerDB) GetFailureClass(ctx context.Context, id string) (*types.FailureClass, error) {
 	ret := _m.Called(ctx, id)

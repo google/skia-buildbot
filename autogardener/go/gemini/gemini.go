@@ -59,6 +59,8 @@ const (
 type Client interface {
 	ExtractErrorMessage(ctx context.Context, task *ts_types.Task) (*types.ExtractedError, error)
 	ClassifyFailure(ctx context.Context, res *types.ExtractedError, failureClasses []*types.FailureClass, repoURL string) (string, error)
+	GeneralizeFailureClassAnalysis(ctx context.Context, fc *types.FailureClass, extractedErrors map[string][]*types.ExtractedError) (string, error)
+	GenerateFailureTitle(ctx context.Context, fcID, currentTitle, errorMessage, analysis string, affectedTasks []string) (string, error)
 	GenerateReport(ctx context.Context, repo, branch string, numCommits int) (*types.Report, error)
 }
 
@@ -938,4 +940,131 @@ that the new error has the SAME root cause.
 	}
 
 	return strings.Trim(decision.Id, `"`), nil
+}
+
+func formatExtractedErrorsByTask(extractedErrors map[string][]*types.ExtractedError) string {
+	if len(extractedErrors) == 0 {
+		return ""
+	}
+	taskNames := make([]string, 0, len(extractedErrors))
+	for name := range extractedErrors {
+		taskNames = append(taskNames, name)
+	}
+	sort.Strings(taskNames)
+
+	var sb strings.Builder
+	for _, name := range taskNames {
+		errs := extractedErrors[name]
+		if len(errs) == 0 {
+			continue
+		}
+		_, _ = fmt.Fprintf(&sb, "### %s\n\n", name)
+		for _, e := range errs {
+			_, _ = fmt.Fprintf(&sb, "%s\n", e.String())
+		}
+	}
+	return sb.String()
+}
+
+func (c *clientImpl) GeneralizeFailureClassAnalysis(ctx context.Context, fc *types.FailureClass, extractedErrors map[string][]*types.ExtractedError) (string, error) {
+	ts := time.Now().UTC().Format(time.RFC3339Nano)
+	perTaskSection := formatExtractedErrorsByTask(extractedErrors)
+	if perTaskSection == "" {
+		perTaskSection = "(none)"
+	}
+
+	prompt := fmt.Sprintf(`# Task: Generalize Failure Class Analysis
+
+## Current Failure Class State
+
+**Error Message:**
+`+"```"+`
+%s
+`+"```"+`
+
+**Current Analysis:**
+%s
+
+## Individual Failure Summaries Across Affected Tasks
+
+%s
+
+## Instructions
+
+Evaluate the current analysis for this failure class and determine whether it
+accurately captures all failures across all affected tasks shown above. If so,
+set the Analysis field of your response to an empty string. Otherwise, update
+the Analysis to accurately reflect all failures across all affected tasks.
+
+Rules:
+- Err on the side of stability. The Analysis is re-evaluated occasionally, and
+  it is preferable for it to remain the same unless a change is *necessary*.
+- Do NOT reword or paraphrase existing text merely for stylistic variation.
+- Do NOT simply repeat or rephrase the error message. Your job is to *analyze*
+  the error.
+- Be concise and do not over-explain. One or two sentences should be sufficient.
+- Ensure that you do not refer to a single machine, configuration, or task, when
+  the failure has affected more than one. Be specific, but ensure that you
+  capture all of the affected tasks.
+`, fc.ErrorMessage(), fc.Analysis(), perTaskSection)
+
+	type GeneralizeResult struct {
+		Analysis string `json:"analysis"`
+	}
+	var res GeneralizeResult
+	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, nil, "GeneralizeFailureClassAnalysis", fmt.Sprintf("GeneralizeFailureClassAnalysis/%s/%s", fc.Id, ts), &res); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return strings.TrimSpace(res.Analysis), nil
+}
+
+func (c *clientImpl) GenerateFailureTitle(ctx context.Context, fcID, currentTitle, errorMessage, analysis string, affectedTasks []string) (string, error) {
+	ts := time.Now().UTC().Format(time.RFC3339Nano)
+
+	prompt := fmt.Sprintf(`# Task: Generate Title for Failure Class
+
+## Failure Class Details
+
+**Current Title:** %s
+
+**Error Message:**
+`+"```"+`
+%s
+`+"```"+`
+
+**Analysis:**
+%s
+
+**Affected Tasks:**
+- %s
+
+## Instructions
+
+Provide a brief, identifiable, human-readable single-line title for this failure
+class, ensuring that you accurately capture the failure's key characteristics. If
+**Current Title** is non-empty and already accurately captures all of the details
+above, set the title field of your response to an empty string.
+
+Rules:
+- Err on the side of stability. The title is re-evaluated occasionally, and
+  it is preferable for it to remain the same unless a change is *necessary*.
+- Do NOT reword or paraphrase existing text merely for stylistic variation.
+- Be concise! Try to keep the title to less than a sentence, under 80 characters
+  or so. The Error Message and Analysis will be shown to the user, so there's no
+  need to over-explain.
+- Be specific! A developer should be able to read the title and immediately
+  recognize the issue. They should be able to easily distinguish it from dozens
+  of other failures in a list.
+- If the failure is limited to a specific test, platform, or configuration, be
+  sure to include that in your title.
+`, currentTitle, errorMessage, analysis, strings.Join(affectedTasks, "\n- "))
+
+	type TitleResult struct {
+		Title string `json:"title"`
+	}
+	var res TitleResult
+	if err := c.generate(ctx, prompt, c.cheapModel, c.cheapModelRL, nil, "GenerateFailureTitle", fmt.Sprintf("GenerateFailureTitle/%s/%s", fcID, ts), &res); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return strings.TrimSpace(res.Title), nil
 }
