@@ -137,27 +137,74 @@ func TestMain(m *testing.M) {
 }
 
 func TestExec_RetryContext(t *testing.T) {
-	attempts := 0
-	ctx := exec.NewContext(context.Background(), func(ctx context.Context, cmd *exec.Command) error {
-		attempts++
-		if attempts >= 3 {
-			cmd.Env = []string{"TEST_RETRY=success"}
-		} else {
-			cmd.Env = []string{"TEST_RETRY=failure"}
-		}
-		return exec.DefaultRun(ctx, cmd)
-	})
-	ctx = exec.WithRetryContext(ctx, &backoff.ZeroBackOff{})
+	setup := func() context.Context {
+		attempts := 0
+		return exec.NewContext(context.Background(), func(ctx context.Context, cmd *exec.Command) error {
+			attempts++
+			if attempts >= 3 {
+				cmd.Env = []string{"TEST_RETRY=success"}
+			} else {
+				cmd.Env = []string{"TEST_RETRY=failure"}
+			}
+			return exec.DefaultRun(ctx, cmd)
+		})
+	}
 
-	_ = RunTestStepsWithContext(t, ctx, false, func(ctx context.Context) error {
-		thisBinary, err := os.Executable()
-		require.NoError(t, err)
-		output, err := exec.RunCwd(ctx, ".", thisBinary)
-		require.NoError(t, err)
-		// Ensure that we collected output for all of the executions of the command.
-		require.Equal(t, "not ok\nnot ok\nok\n", output)
-		return nil
+	t.Run("WithRetryContext after StartRun", func(t *testing.T) {
+		ctx := setup()
+
+		res := RunTestStepsWithContext(t, ctx, false, func(ctx context.Context) error {
+			ctx = exec.WithRetryContext(ctx, &backoff.ZeroBackOff{})
+			thisBinary, err := os.Executable()
+			require.NoError(t, err)
+			output, err := exec.RunCwd(ctx, ".", thisBinary)
+			require.NoError(t, err)
+			require.Equal(t, "not ok\nnot ok\nok\n", output)
+			return nil
+		})
+		require.Len(t, res.Steps, 3)
+		require.Equal(t, StepResultFailure, res.Steps[0].Result)
+		require.Equal(t, "not ok\n", getStdoutLog(t, res.Steps[0]))
+		require.Equal(t, StepResultFailure, res.Steps[1].Result)
+		require.Equal(t, "not ok\n", getStdoutLog(t, res.Steps[1]))
+		require.Equal(t, StepResultSuccess, res.Steps[2].Result)
+		require.Equal(t, "ok\n", getStdoutLog(t, res.Steps[2]))
 	})
+
+	t.Run("WithRetryContext after StartRun with child step", func(t *testing.T) {
+		ctx := setup()
+
+		res := RunTestStepsWithContext(t, ctx, false, func(ctx context.Context) error {
+			ctx = exec.WithRetryContext(ctx, &backoff.ZeroBackOff{})
+			return Do(ctx, Props("parent step"), func(ctx context.Context) error {
+				thisBinary, err := os.Executable()
+				require.NoError(t, err)
+				output, err := exec.RunCwd(ctx, ".", thisBinary)
+				require.NoError(t, err)
+				require.Equal(t, "not ok\nnot ok\nok\n", output)
+				return nil
+			})
+		})
+		require.Len(t, res.Steps, 1)
+		parentStep := res.Steps[0]
+		require.Len(t, parentStep.Steps, 3)
+		require.Equal(t, StepResultFailure, parentStep.Steps[0].Result)
+		require.Equal(t, "not ok\n", getStdoutLog(t, parentStep.Steps[0]))
+		require.Equal(t, StepResultFailure, parentStep.Steps[1].Result)
+		require.Equal(t, "not ok\n", getStdoutLog(t, parentStep.Steps[1]))
+		require.Equal(t, StepResultSuccess, parentStep.Steps[2].Result)
+		require.Equal(t, "ok\n", getStdoutLog(t, parentStep.Steps[2]))
+	})
+}
+
+func getStdoutLog(t *testing.T, s *StepReport) string {
+	for _, data := range s.Data {
+		if logData, ok := data.(*LogData); ok && logData.Name == "stdout" {
+			return s.Logs[logData.Id].String()
+		}
+	}
+	require.FailNow(t, "no stdout log found for step %s", s.Id)
+	return ""
 }
 
 func TestFatal(t *testing.T) {

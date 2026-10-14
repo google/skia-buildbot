@@ -347,6 +347,11 @@ type ExecData struct {
 // use this Context will be attached to the Step.
 func execCtx(ctx context.Context) context.Context {
 	return exec.NewContext(ctx, func(ctx context.Context, cmd *exec.Command) error {
+		// Copy the Command struct so we don't mutate the caller's instance
+		// (e.g. when a command is retried via exec.WithRetryContext).
+		cmdCopy := *cmd
+		cmd = &cmdCopy
+
 		name := strings.Join(append([]string{cmd.Name}, cmd.Args...), " ")
 
 		// Merge the command's env into that of its parent.

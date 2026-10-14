@@ -266,6 +266,7 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		run:     r,
 		execRun: execRun,
 	})
+	ctx = execCtx(ctx)
 	env := exec.MergeEnv(os.Environ(), BaseEnv)
 	if wrappedStepID, ok := os.LookupEnv(EnvVarWrappedStepID); ok {
 		// We don't send a RUN_STARTED message, or a STEP_STARTED message for

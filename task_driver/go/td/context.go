@@ -64,11 +64,7 @@ func withChildCtx(ctx context.Context, child *Context) context.Context {
 	if child.execRun == nil {
 		child.execRun = parent.execRun
 	}
-	ctx = context.WithValue(ctx, contextKey, child)
-	// Any time we set the parent step, env, or execRun, we need to set a
-	// new execCtx to ensure that exec has access to the new information.
-	ctx = execCtx(ctx)
-	return ctx
+	return context.WithValue(ctx, contextKey, child)
 }
 
 // Set the given environment on the Context. Steps which use the Context will
