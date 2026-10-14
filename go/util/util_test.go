@@ -765,3 +765,35 @@ func TestNgramOverlap(t *testing.T) {
 		})
 	}
 }
+
+func TestWaldWolfowitzRuns(t *testing.T) {
+	fromStr := func(s string) []bool {
+		out := make([]bool, len(s))
+		for i, ch := range s {
+			out[i] = ch == 'T'
+		}
+		return out
+	}
+
+	observed, expected := WaldWolfowitzRuns(nil)
+	assert.Equal(t, 0, observed)
+	assert.Equal(t, 0.0, expected)
+
+	observed, expected = WaldWolfowitzRuns(fromStr("TTTTTTTTTTTT"))
+	assert.Equal(t, 1, observed)
+	assert.InDelta(t, 1.0, expected, 0.01)
+
+	observed, expected = WaldWolfowitzRuns(fromStr("FFFFFFFFFFFF"))
+	assert.Equal(t, 1, observed)
+	assert.InDelta(t, 1.0, expected, 0.01)
+
+	observed, expected = WaldWolfowitzRuns(fromStr("TFFFFTTFFFTT"))
+	assert.Equal(t, 5, observed)
+	assert.InDelta(t, 6.8333, expected, 0.01)
+	assert.Less(t, float64(observed), expected)
+
+	observed, expected = WaldWolfowitzRuns(fromStr("TFTFTTFTTFTT"))
+	assert.Equal(t, 9, observed)
+	assert.InDelta(t, 6.3333, expected, 0.01)
+	assert.Greater(t, float64(observed), expected)
+}

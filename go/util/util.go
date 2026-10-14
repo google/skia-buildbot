@@ -1057,3 +1057,25 @@ func NgramOverlap(a, b string, n int) float64 {
 	intersection := setA.Intersect(setB)
 	return float64(len(intersection)) / float64(minLen)
 }
+
+// WaldWolfowitzRuns computes the observed number of contiguous runs and the
+// expected number of contiguous runs under independent random ordering for a
+// sequence of booleans.
+func WaldWolfowitzRuns(seq []bool) (observedRuns int, expectedRuns float64) {
+	if len(seq) == 0 {
+		return 0, 0
+	}
+	var numTrue, numFalse int
+	for i, b := range seq {
+		if b {
+			numTrue++
+		} else {
+			numFalse++
+		}
+		if i == 0 || b != seq[i-1] {
+			observedRuns++
+		}
+	}
+	expectedRuns = float64(2*numTrue*numFalse)/float64(len(seq)) + 1.0
+	return observedRuns, expectedRuns
+}
