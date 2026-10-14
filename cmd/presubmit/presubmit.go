@@ -33,9 +33,9 @@ import (
 )
 
 const (
-	golangci      = "github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8"
+	golangci      = "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0"
 	workflowCheck = "go.temporal.io/sdk/contrib/tools/workflowcheck@v0.4.0"
-	betteralign   = "github.com/dkorunic/betteralign/cmd/betteralign@v0.13.0"
+	betteralign   = "github.com/dkorunic/betteralign/cmd/betteralign@v0.15.3"
 )
 
 func main() {

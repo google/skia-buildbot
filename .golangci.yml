@@ -1,107 +1,105 @@
 # GolangCI-Lint configuration for Skia Buildbot
 
+version: "2"
+
 run:
   timeout: 5m
   # Don't modify the mod.go file.
   modules-download-mode: readonly
 
-output:
-  # Sort results by file and line instead of order of discovery.
-  sort-results: true
-
 linters:
-  disable-all: true
+  default: none
   enable:
-    # Linters
-    # Checks that you don't accidentally ignore returned errors
-    - errcheck
-    # Official Go tool; finds correctness bugs (e.g. bad Printf formats)
-    - govet
-    # The gold standard bug & performance analyzer
-    - staticcheck
     # Checks whether HTTP response bodies are closed successfully
     - bodyclose
-    # Checks if you forgot to pass context to HTTP requests
-    - noctx
     # Checks if a function uses a non-inherited context
     - contextcheck
-    # Suggests code simplifications for better readability
-    - gosimple
-    # Detects when assignments to existing variables are not used
-    - ineffassign
-    # Checks for unused constants, variables, functions, and types
-    - unused
-    # Modern drop-in replacement for golint; enforces naming conventions
-    - revive
-    # Highly opinionated stylistic checks and performance diagnostics
-    - gocritic
-    # Enforces correct error wrapping and errors.Is/As usage
-    - errorlint
-    # Checks the usage of github.com/stretchr/testify
-    - testifylint
-    # Inspects source code for security problems
-    - gosec
-    # Finds commonly misspelled words
-    - misspell
+    # Checks that you don't accidentally ignore returned errors
+    - errcheck
     # Checks the error naming convention https://go.dev/wiki/Errors#naming
     - errname
+    # Enforces correct error wrapping and errors.Is/As usage
+    - errorlint
+    # Highly opinionated stylistic checks and performance diagnostics
+    - gocritic
+    # Inspects source code for security problems
+    - gosec
+    # Official Go tool; finds correctness bugs (e.g. bad Printf formats)
+    - govet
+    # Detects when assignments to existing variables are not used
+    - ineffassign
+    # Finds commonly misspelled words
+    - misspell
     # Finds where a function returns nil instead of an actual err variable
     - nilerr
-    # Checks that errors returned from external packages are wrapped with additional context
-    - wrapcheck
+    # Checks if you forgot to pass context to HTTP requests
+    - noctx
     # Finds slice declarations that could potentially be preallocated
     - prealloc
+    # Modern drop-in replacement for golint; enforces naming conventions
+    - revive
+    # The gold standard bug & performance analyzer
+    - staticcheck
+    # Checks the usage of github.com/stretchr/testify
+    - testifylint
+    # Checks for unused constants, variables, functions, and types
+    - unused
     # Detects when you hardcode values instead of using the standard library constants
     - usestdlibvars
+    # Checks that errors returned from external packages are wrapped with additional context
+    - wrapcheck
 
-    # Formatters
-    # Stricter gofmt
-    - gofumpt
-    # Checks import formatting and ordering
-    - goimports
+  settings:
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+        - experimental
 
-linters-settings:
-  govet:
-    # Use betteralign instead
-    disable:
-      - fieldalignment
+    govet:
+      # Use betteralign instead
+      disable:
+        - fieldalignment
 
-  gofumpt:
-    # Module path which contains the source code being formatted.
-    module-path: go.skia.org/infra
-    # Use the extra strict formatting rules.
-    extra-rules: true
+    revive:
+      rules:
+        # Disable strict comment checking
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
 
-  goimports:
-    # Put imports beginning with prefix after 3rd-party packages.
-    local-prefixes: go.skia.org/infra
+    testifylint:
+      enable-all: true
 
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-      - experimental
+    wrapcheck:
+      ignore-sigs:
+        - go.skia.org/infra/go/skerr.Fmt(
+        - go.skia.org/infra/go/skerr.Wrap(
+        - go.skia.org/infra/go/skerr.Wrapf(
+      ignore-package-globs:
+        - go.skia.org/infra/go/skerr
+        - google.golang.org/grpc/status
 
-  revive:
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
     rules:
-      # Disable strict comment checking
-      - name: exported
-        disabled: true
-      - name: package-comments
-        disabled: true
-
-  testifylint:
-    enable-all: true
-
-  wrapcheck:
-    ignoreSigs:
-      - go.skia.org/infra/go/skerr.Fmt(
-      - go.skia.org/infra/go/skerr.Wrap(
-      - go.skia.org/infra/go/skerr.Wrapf(
-    ignorePackageGlobs:
-      - go.skia.org/infra/go/skerr
-      - google.golang.org/grpc/status
+      # Exclude security/pointer checks in test files since tests are not production.
+      - linters:
+          - bodyclose
+          - gosec
+          - noctx
+        path: _test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 
 issues:
   # Do not limit the number of issues per linter (default is 50).
@@ -109,10 +107,28 @@ issues:
   # Do not limit the number of the same issues (default is 3).
   max-same-issues: 0
 
-  exclude-rules:
-    # Exclude security/pointer checks in test files since tests are not production.
-    - path: _test\.go
-      linters:
-        - gosec
-        - bodyclose
-        - noctx
+formatters:
+  enable:
+    # Stricter gofmt
+    - gofumpt
+    # Checks import formatting and ordering
+    - goimports
+
+  settings:
+    gofumpt:
+      # Module path which contains the source code being formatted.
+      module-path: go.skia.org/infra
+      # Use the extra strict formatting rules.
+      extra-rules: true
+
+    goimports:
+      # Put imports beginning with prefix after 3rd-party packages.
+      local-prefixes:
+        - go.skia.org/infra
+
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
