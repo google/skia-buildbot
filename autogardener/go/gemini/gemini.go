@@ -885,7 +885,7 @@ func (c *clientImpl) ClassifyFailure(ctx context.Context, res *types.ExtractedEr
 	var candidateDescriptions []string
 	for _, cand := range failureClasses {
 		candidateDescriptions = append(candidateDescriptions, fmt.Sprintf(`
-Class %s:
+Failure Class ID: %q
 Error Message:
 `+"```"+`
 %s
@@ -919,7 +919,7 @@ failure classes.
 
 Choose the existing class only if it represents the same root cause or the same
 exact error (even if variables like hex addresses or absolute file paths differ
-slightly). If it matches one of the classes, return its EXACT, full ID in the "id" field of
+slightly). If it matches one of the classes, return its ID in the "id" field of
 the JSON without modifying or truncating it. If it does not match any of the candidates
 (it is a new type of failure), return an empty string "" in the "id" field.
 
@@ -937,5 +937,5 @@ that the new error has the SAME root cause.
 		return "", skerr.Wrap(err)
 	}
 
-	return decision.Id, nil
+	return strings.Trim(decision.Id, `"`), nil
 }
