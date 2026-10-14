@@ -121,7 +121,7 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/goldctl/${platform}": {
 		Path:    ".",
 		Name:    "skia/tools/goldctl/${platform}",
-		Version: "git_revision:9119ead6d70953d1f9a7670979431344c2cc3f10",
+		Version: "git_revision:5717e024639e344ee8d3fdbf1701b30cca6c3fc8",
 	},
 	"skia/tools/presubmit/${platform}": {
 		Path:    ".",
