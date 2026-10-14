@@ -497,7 +497,7 @@ use_repo(oci, "node_alpine")
 # Pulls the https://gcr.io/cloud-builders/kubectl container, needed by apps that use kubectl.
 oci.pull(
     name = "kubectl",
-    digest = "sha256:63553d791cbdd3aa9fc2bc0b3a6a6d33130c1b8927b2db368c756aa45c89a356",  # 25 Oct 2023
+    digest = "sha256:1ba814f1c2b8f4438a4a78cc69534abd5a5c9f3388937e0e2531678f768223ae",  # 8 Oct 2026
     image = "gcr.io/cloud-builders/kubectl",
 )
 use_repo(oci, "kubectl")
