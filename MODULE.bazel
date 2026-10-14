@@ -819,13 +819,13 @@ cipd.download_http(
     name = "kitchen",
     cipd_package = "infra/tools/luci/kitchen/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "0b29eb7c0209086896e1b98fe83ecec52cccbff5c3bef48cd833afb0974a890f",
-        "linux-arm64": "686adc55f912f653a996135b8c72c3ad53f6c91c0f33dccf23cc22c4726f3f48",
-        "mac-amd64": "fbfb59b072754d580f8eed83beb469c1eb51466e3c5cfa22a1260d9f10ed6da9",
-        "mac-arm64": "56b9ea02c645ca7aa4c7849e7ae84afacce3ef769b0caca2b6a985f9b8248906",
-        "windows-amd64": "1b30230f3250fcf7f81a8898158cf8d3463ab575f9c59685ed6ab41490e82fcd",
+        "linux-amd64": "3f9334da283b43eb5dd330d072ab63fe1f13fefeddeb01855f45f92389e84be0",
+        "linux-arm64": "9c8c1f6519a684e3eec49b4e2fe0ebf99deb48776ca496f9b25c7c138012f831",
+        "mac-amd64": "b3497bde45e38d6fdd0485259a179d9f7fb51c8270363ceb09763b616cf1d428",
+        "mac-arm64": "201676b21b53d10834b822de3e12dd1df6293e79ce04543f3e35fb21c9371da6",
+        "windows-amd64": "4ee32a24dfc3a5d2146ad904d70dd876a1b865ff552bb149ab13dee617b01512",
     },
-    tag = "git_revision:32dfffc1feff5136b522112dbc1bdef230b20c5b",
+    tag = "git_revision:5717e024639e344ee8d3fdbf1701b30cca6c3fc8",
 )
 use_repo(cipd, "bazel_build_all_linux-arm64", "bazel_build_all_mac-amd64", "bazel_build_all_mac-arm64", "bazel_build_all_windows-amd64", "bazel_test_all_linux-arm64", "bazel_test_all_mac-amd64", "bazel_test_all_mac-arm64", "bazel_test_all_windows-amd64", "cipd_linux-arm64", "cipd_mac-amd64", "cipd_mac-arm64", "cipd_windows-amd64", "command_wrapper_linux-arm64", "command_wrapper_mac-amd64", "command_wrapper_mac-arm64", "command_wrapper_windows-amd64", "cpython3_linux-arm64", "cpython3_mac-amd64", "cpython3_mac-arm64", "cpython3_windows-amd64", "docker-credential-luci_linux-arm64", "docker-credential-luci_mac-amd64", "docker-credential-luci_mac-arm64", "docker-credential-luci_windows-amd64", "git-credential-luci_linux-arm64", "git-credential-luci_mac-amd64", "git-credential-luci_mac-arm64", "git-credential-luci_windows-amd64", "git_linux-arm64", "git_mac-amd64", "git_mac-arm64", "git_wrapper_linux-arm64", "git_wrapper_mac-amd64", "git_wrapper_mac-arm64", "git_wrapper_windows-amd64", "goldctl_linux-arm64", "goldctl_mac-amd64", "goldctl_mac-arm64", "goldctl_windows-amd64", "isolate_linux-arm64", "isolate_mac-amd64", "isolate_mac-arm64", "isolate_windows-amd64", "kitchen_linux-amd64", "kitchen_linux-arm64", "kitchen_mac-amd64", "kitchen_mac-arm64", "kitchen_windows-amd64", "luci-auth_linux-arm64", "luci-auth_mac-amd64", "luci-auth_mac-arm64", "luci-auth_windows-amd64", "lucicfg_linux-arm64", "lucicfg_mac-amd64", "lucicfg_mac-arm64", "lucicfg_windows-amd64", "presubmit_linux-arm64", "presubmit_mac-amd64", "presubmit_mac-arm64", "presubmit_windows-amd64", "swarming_linux-arm64", "swarming_mac-amd64", "swarming_mac-arm64", "swarming_windows-amd64", "vpython3_linux-arm64", "vpython3_mac-amd64", "vpython3_mac-arm64", "vpython3_windows-amd64")
 
