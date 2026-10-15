@@ -51,13 +51,9 @@ setup_postgres_schema() {
     # This export might not be needed but kept the same as original version.
     export SQL_PASSWORD=${POSTGRES_PWD}
 
-    local sql_plugin="postgres"
-    if [[ ${DB} == "postgres12" ]]; then
-      POSTGRES_VERSION_DIR=v12
-      sql_plugin="postgres12"
-    else
-      POSTGRES_VERSION_DIR=v96
-    fi
+    # Temporal 1.26+ dropped the legacy v96/postgres plugin in favor of postgres12/v12.
+    local sql_plugin="postgres12"
+    POSTGRES_VERSION_DIR=v12
 
     SCHEMA_BASE_DIR=${TEMPORAL_HOME}/schema/postgresql/${POSTGRES_VERSION_DIR}
     SCHEMA_DIR=${SCHEMA_BASE_DIR}/temporal/versioned
@@ -76,7 +72,7 @@ setup_postgres_schema() {
             --tls-key-file "${POSTGRES_TLS_KEY_FILE}" \
             --tls-ca-file "${POSTGRES_TLS_CA_FILE}" \
             --tls-server-name "${POSTGRES_TLS_SERVER_NAME}" \
-            create
+            create || true
     fi
     temporal-sql-tool \
         --plugin "${sql_plugin}" \
@@ -90,7 +86,7 @@ setup_postgres_schema() {
         --tls-key-file "${POSTGRES_TLS_KEY_FILE}" \
         --tls-ca-file "${POSTGRES_TLS_CA_FILE}" \
         --tls-server-name "${POSTGRES_TLS_SERVER_NAME}" \
-        setup-schema -v 0.0
+        setup-schema -v 0.0 || true
     temporal-sql-tool \
         --plugin "${sql_plugin}" \
         --ep "${POSTGRES_SEEDS}" \
@@ -119,7 +115,7 @@ setup_postgres_schema() {
             --tls-key-file "${POSTGRES_TLS_KEY_FILE}" \
             --tls-ca-file "${POSTGRES_TLS_CA_FILE}" \
             --tls-server-name "${POSTGRES_TLS_SERVER_NAME}" \
-            create
+            create || true
     fi
     temporal-sql-tool \
         --plugin "${sql_plugin}" \
@@ -133,7 +129,7 @@ setup_postgres_schema() {
         --tls-key-file "${POSTGRES_TLS_KEY_FILE}" \
         --tls-ca-file "${POSTGRES_TLS_CA_FILE}" \
         --tls-server-name "${POSTGRES_TLS_SERVER_NAME}" \
-        setup-schema -v 0.0
+        setup-schema -v 0.0 || true
     temporal-sql-tool \
         --plugin "${sql_plugin}" \
         --ep "${POSTGRES_SEEDS}" \
@@ -205,7 +201,8 @@ start_server(){
         SERVICES="${SERVICES//,/ }"
         for i in $SERVICES; do flags="${flags} --service=$i"; done
     fi
-    dockerize -template /etc/temporal/config/config_template.yaml:/etc/temporal/config/docker.yaml
+    # Temporal 1.30+ natively renders config files containing "# enable-template".
+    cp /etc/temporal/config/config_template.yaml /etc/temporal/config/docker.yaml
 
     exec temporal-server --env docker start $flags
 }
