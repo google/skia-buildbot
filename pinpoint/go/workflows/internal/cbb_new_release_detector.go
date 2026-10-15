@@ -202,7 +202,8 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 							"cbb_runner-%s-%s-%s",
 							strings.ReplaceAll(getShortBrowserName(build.Browser, build.Channel), " ", "-"),
 							getShortBrowserVersion(build.Version, build.Browser, build.Channel),
-							getShortBotName(bot))
+							getShortBotName(bot),
+						)
 						callCbbRunner(ctx, p, workflowID)
 
 						if build.Browser == "chrome" && build.Platform != "android" {
@@ -299,6 +300,9 @@ func CbbGetBrowserVersionsWorkflow(ctx workflow.Context, browser string) ([]Buil
 func CollectBrowserVersionsActivity(ctx context.Context, browser, platform string, cr *CommitRun) ([]BuildInfo, error) {
 	var results []BuildInfo
 	for _, run := range cr.Runs {
+		if !backends.HasCAS(run.CAS) {
+			return nil, skerr.Fmt("browser_versions task %s finished with status %s and no CAS output", run.TaskID, run.Status)
+		}
 		clients, err := backends.DialRBECAS(ctx)
 		if err != nil {
 			sklog.Errorf("Failed to dial RBE CAS client due to error: %v", err)
@@ -411,7 +415,8 @@ func sendCbbRunnerErrorEmail(ctx workflow.Context, id string, p *CbbRunnerParams
 		html.EscapeString(p.Channel),
 		html.EscapeString(p.Commit.GetMainGitHash()),
 		p.SkipFinch,
-		html.EscapeString(err.Error()))
+		html.EscapeString(err.Error()),
+	)
 
 	if hasCbbErr && len(cbbErr.SwarmingLinks) > 0 {
 		if len(cbbErr.SwarmingLinks) == cbbErr.TotalBenchmarkCount {
@@ -432,7 +437,8 @@ func sendCbbRunnerErrorEmail(ctx workflow.Context, id string, p *CbbRunnerParams
 			temporalHost = "temporal-ui-dev.corp.goog"
 			monitorUrl := fmt.Sprintf(
 				"https://%s/namespaces/perf-internal/workflows?query=%%60WorkflowType%%60%%3D%%22perf.cbb_runner%%22",
-				temporalHost)
+				temporalHost,
+			)
 			monitorLink = fmt.Sprintf("<a href=%q>this page</a>", monitorUrl)
 		} else {
 			temporalHost = "skia-temporal-ui.corp.goog"
@@ -486,11 +492,115 @@ and don't delete the wrong schedule.
 		)
 	}
 
+	sendAlertEmail(ctx, []string{errorNotificationEmail}, subject, body)
+}
+
+// sendAlertEmail ignores delivery errors so that a failed notification never
+// changes the outcome of the workflow that reports the failure.
+func sendAlertEmail(ctx workflow.Context, to []string, subject, body string) {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 1 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 1,
 		},
 	})
-	_ = workflow.ExecuteActivity(ctx, SendEmailActivity, []string{errorNotificationEmail}, subject, body).Get(ctx, nil)
+	_ = workflow.ExecuteActivity(ctx, SendEmailActivity, to, subject, body).Get(ctx, nil)
+}
+
+// stpCipdPackagePath matches the package selection in downloadSafariTP, so
+// alerts from dev runs never tell the reader to change the prod package.
+func stpCipdPackagePath(isDev bool) string {
+	if isDev {
+		return cipdPathExp
+	}
+	return cipdPathProd
+}
+
+func sendCbbStpDownloadErrorEmail(ctx workflow.Context, err error) {
+	workflowID := workflow.GetInfo(ctx).WorkflowExecution.ID
+	workflowLink := getWorkflowLink(ctx)
+	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
+	cipdPath := html.EscapeString(stpCipdPackagePath(isDev))
+	subject := "CBB STP download failed"
+	body := fmt.Sprintf(`
+<p>CBB failed to download or update the Safari Technology Preview (STP) package:</p>
+<ul>
+  <li><b>Workflow ID</b>: <code>%[1]s</code></li>
+  <li><b>Workflow Details</b>: <a href=%[2]q>%[3]s</a></li>
+  <li><b>Error</b>: <code>%[4]s</code></li>
+  <li><b>Apple Safari Resources Page</b>: <a href="https://developer.apple.com/safari/resources/">https://developer.apple.com/safari/resources/</a></li>
+  <li><b>CIPD Package</b>: <a href="https://chrome-infra-packages.appspot.com/p/%[5]s">%[5]s</a></li>
+</ul>
+<p>If the target macOS STP package has already been pre-staged in CIPD, repoint the production refs manually:</p>
+<pre>
+cipd set-ref %[5]s -version &lt;release&gt;-&lt;macosXX&gt; -ref stable -ref canary -ref latest
+</pre>
+<p>If the DMG needs to be uploaded manually from Apple's Safari Resources page (saved as <code>SafariTechnologyPreview.dmg</code>):</p>
+<pre>
+cipd create -name %[5]s -in &lt;dir_with_SafariTechnologyPreview.dmg&gt; -install-mode symlink -ref &lt;release&gt;-&lt;macosXX&gt; -ref stable -ref canary -ref latest
+</pre>
+`,
+		html.EscapeString(workflowID),
+		workflowLink,
+		html.EscapeString(workflowLink),
+		html.EscapeString(err.Error()),
+		cipdPath,
+	)
+
+	sendAlertEmail(ctx, []string{errorNotificationEmail}, subject, body)
+}
+
+func sendCbbBrowserVersionsErrorEmail(ctx workflow.Context, browser string, err error) {
+	workflowID := workflow.GetInfo(ctx).WorkflowExecution.ID
+	workflowLink := getWorkflowLink(ctx)
+	isDev := strings.HasPrefix(workflow.GetActivityOptions(ctx).TaskQueue, "localhost.")
+	subject := fmt.Sprintf("CBB %s version detection failed", browser)
+	body := fmt.Sprintf(`
+<p>CBB failed to detect installed %[1]s browser versions on Swarming:</p>
+<ul>
+  <li><b>Browser</b>: <code>%[1]s</code></li>
+  <li><b>Workflow ID</b>: <code>%[2]s</code></li>
+  <li><b>Workflow Details</b>: <a href=%[3]q>%[4]s</a></li>
+  <li><b>Error</b>: <code>%[5]s</code></li>
+</ul>
+`,
+		html.EscapeString(browser),
+		html.EscapeString(workflowID),
+		workflowLink,
+		html.EscapeString(workflowLink),
+		html.EscapeString(err.Error()),
+	)
+	body += browserVersionsGuidance(browser, html.EscapeString(stpCipdPackagePath(isDev)))
+
+	sendAlertEmail(ctx, []string{errorNotificationEmail}, subject, body)
+}
+
+// browserVersionsGuidance returns the browser-specific part of the version
+// detection alert. Each browser is installed and updated differently, so
+// instructions that fix one browser are wrong for the others.
+func browserVersionsGuidance(browser, cipdPath string) string {
+	switch browser {
+	case "safari":
+		return fmt.Sprintf(`<ul>
+  <li><b>Apple Safari Resources Page</b>: <a href="https://developer.apple.com/safari/resources/">https://developer.apple.com/safari/resources/</a></li>
+  <li><b>CIPD Package</b>: <a href="https://chrome-infra-packages.appspot.com/p/%[1]s">%[1]s</a></li>
+</ul>
+<p>If Safari Technology Preview is missing on the CBB Mac fleet after a macOS upgrade, verify the CIPD refs or upload the matching macOS package:</p>
+<pre>
+cipd set-ref %[1]s -version &lt;release&gt;-&lt;macosXX&gt; -ref stable -ref canary -ref latest
+cipd create -name %[1]s -in &lt;dir_with_SafariTechnologyPreview.dmg&gt; -install-mode symlink -ref &lt;release&gt;-&lt;macosXX&gt; -ref stable -ref canary -ref latest
+</pre>
+`, cipdPath)
+	case "edge":
+		guidance := `<p>Edge updates itself on the CBB Windows bots, so a short-lived version mismatch between bots during an update is expected and usually clears by the next run.
+If this alert repeats, check the health of these bot configs on Swarming:</p>
+<ul>
+`
+		for config := range common.SortedRange(edgeConfigs) {
+			guidance += fmt.Sprintf("  <li><code>%s</code></li>\n", html.EscapeString(config))
+		}
+		return guidance + "</ul>\n"
+	default:
+		return fmt.Sprintf("<p>Check the Swarming task output of the <code>%s</code> browser_versions tasks for details.</p>\n", html.EscapeString(browser))
+	}
 }

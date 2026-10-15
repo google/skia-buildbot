@@ -89,6 +89,7 @@ go_test(
         "bisect_test.go",
         "bug_update_test.go",
         "build_workflow_test.go",
+        "cbb_new_release_detector_test.go",
         "commits_runner_test.go",
         "compare_test.go",
         "midpoint_test.go",
