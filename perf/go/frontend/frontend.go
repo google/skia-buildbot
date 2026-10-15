@@ -124,6 +124,19 @@ var (
 	//go:embed cookieconsent.html
 	cookieConsentSnippet string
 
+	// resourceHintsSnippet is rendered into the <head> of every page. It
+	// preconnects to the third-party origins all pages depend on and references
+	// the Google Fonts stylesheets directly from the HTML.
+	//
+	// The shared theme CSS (elements-sk and perf themes.scss) pulls those
+	// stylesheets in via @import, which the browser can only discover after the
+	// page CSS has been downloaded and parsed, serializing a render-blocking
+	// chain of HTML -> page CSS -> fonts CSS -> font files. Referencing the same
+	// URLs from the HTML lets the preload scanner fetch them in parallel with
+	// the page CSS; the later @import is then served from cache.
+	//go:embed resourcehints.html
+	resourceHintsSnippet string
+
 	serverStartupTime = time.Now().Unix()
 )
 
@@ -387,7 +400,7 @@ func (f *Frontend) loadTemplatesImpl() error {
 			sklog.Fatalf("Fail in Parse: %v", err)
 		}
 	}
-	for name, snippet := range map[string]string{"googleanalytics": googleAnalyticsSnippet, "cookieconsent": cookieConsentSnippet} {
+	for name, snippet := range map[string]string{"googleanalytics": googleAnalyticsSnippet, "cookieconsent": cookieConsentSnippet, "resourcehints": resourceHintsSnippet} {
 		templates = templates.New(name).Delims("{%", "%}").Option("missingkey=error")
 		_, err := templates.Parse(snippet)
 		if err != nil {

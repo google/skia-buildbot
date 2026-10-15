@@ -424,3 +424,55 @@ func TestFrontend_CSPHeaders_AllowsWASM(t *testing.T) {
 	csp2 := w2.Result().Header.Get("Content-Security-Policy")
 	require.NotContains(t, csp2, "'unsafe-eval'")
 }
+
+// renderPageTemplate loads the real template snippets (googleanalytics,
+// cookieconsent, resourcehints, ...) alongside a single synthetic page template
+// and returns the rendered HTML for it.
+func renderPageTemplate(t *testing.T, pageHTML string) string {
+	t.Helper()
+
+	f := &Frontend{
+		flags: &config.FrontendFlags{},
+	}
+	mapFS := fstest.MapFS{}
+	for _, filename := range templateFilenames {
+		mapFS[filename] = &fstest.MapFile{Data: []byte("")}
+	}
+	mapFS["regressions.html"] = &fstest.MapFile{Data: []byte(pageHTML)}
+	f.distFileSystem = http.FS(mapFS)
+
+	configFileBytes := testutils.ReadFileBytes(t, "config.json")
+	require.NoError(t, json.Unmarshal(configFileBytes, &config.Config))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/a", nil)
+	f.templateHandler("regressions.html")(w, r)
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	return w.Body.String()
+}
+
+func TestFrontend_ResourceHintsSnippet_EmitsPreconnectsAndEarlyFontStylesheets(t *testing.T) {
+	body := renderPageTemplate(t, `<html><head>{%- template "resourcehints" . -%}</head><body></body></html>`)
+
+	// Warm up connections to the third-party origins every page depends on.
+	require.Contains(t, body, `<link rel="preconnect" href="https://fonts.googleapis.com">`)
+	// Font files are fetched in CORS mode, so the preconnect must be too.
+	require.Contains(t, body, `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`)
+	require.Contains(t, body, `<link rel="preconnect" href="https://www.gstatic.com">`)
+
+	// The font stylesheets are otherwise only discovered via @import at the top
+	// of the page CSS, i.e. after the page CSS has been downloaded and parsed.
+	// Referencing them from the HTML lets the preload scanner fetch them in
+	// parallel with the page CSS. The URLs must match the @import URLs exactly
+	// so the browser dedupes the requests.
+	require.Contains(t, body, `<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400,700|Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0">`)
+	require.Contains(t, body, `<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">`)
+}
+
+func TestFrontend_CookieConsentSnippet_DefersThirdPartyScript(t *testing.T) {
+	body := renderPageTemplate(t, `<html><head></head><body></body>{%- template "cookieconsent" . -%}</html>`)
+
+	// The cookie notification bar script is a third-party, non-critical script
+	// and must not block HTML parsing.
+	require.Regexp(t, `<script[^>]*cookienotificationbar\.min\.js[^>]*\sdefer[\s>]`, body)
+}

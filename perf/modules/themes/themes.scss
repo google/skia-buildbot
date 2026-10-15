@@ -1,4 +1,11 @@
+// TODO(sergeirudenkov): Eventually inject these font links/resource hints at build time via
+// sk_page / html_insert_assets (which also covers demo pages and other apps)
+// so we can drop the CSS @imports and avoid maintaining duplicate URLs.
 @use '../../../infra-sk/themes';
+
+// Also referenced from perf/go/frontend/resourcehints.html so the browser can
+// start fetching it before this stylesheet has been downloaded and parsed. Keep
+// the two URLs identical so the requests are deduplicated.
 @import 'https://fonts.googleapis.com/icon?family=Material+Icons';
 
 /*
