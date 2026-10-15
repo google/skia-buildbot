@@ -157,6 +157,16 @@ register_default_namespace() {
     else
         echo "Default namespace ${DEFAULT_NAMESPACE} already registered."
     fi
+
+    echo "Registering perf-internal namespace."
+    if ! temporal operator namespace describe "perf-internal"; then
+        echo "Namespace perf-internal not found. Creating..."
+        temporal operator namespace create --retention "72h" \
+            --description "Perf internal namespace for Temporal Server." "perf-internal"
+        echo "Namespace perf-internal registration complete."
+    else
+        echo "Namespace perf-internal already registered."
+    fi
 }
 
 add_custom_search_attributes() {

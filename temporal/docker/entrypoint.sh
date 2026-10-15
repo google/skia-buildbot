@@ -10,6 +10,12 @@ source /etc/temporal/env-default.sh
 : "${BIND_ON_IP:=$(getent hosts "$(hostname)" | awk '{print $1;}')}"
 export BIND_ON_IP
 
+# If binding to wildcard address (0.0.0.0 or ::0), set broadcast address if not already set
+if [ "${BIND_ON_IP}" = "0.0.0.0" ] || [ "${BIND_ON_IP}" = "::0" ]; then
+    : "${TEMPORAL_BROADCAST_ADDRESS:=$(getent hosts "$(hostname)" | awk '{print $1;}')}"
+    export TEMPORAL_BROADCAST_ADDRESS
+fi
+
 # check TEMPORAL_ADDRESS is not empty
 if [[ -z "${TEMPORAL_ADDRESS:-}" ]]; then
     echo "TEMPORAL_ADDRESS is not set, setting it to ${BIND_ON_IP}:7233"
