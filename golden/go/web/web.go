@@ -2045,6 +2045,9 @@ WHERE label = 'n' OR label = 'p'`
 		}
 		byDigest[digest] = label.ToExpectation()
 	}
+	if err := rows.Err(); err != nil {
+		return frontend.BaselineV2Response{}, skerr.Wrap(err)
+	}
 
 	response := frontend.BaselineV2Response{
 		CodeReviewSystem: crs,

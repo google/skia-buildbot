@@ -579,6 +579,41 @@ func TestBaselineHandlerV2_NewCL_ReturnsPrimaryBaseline(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 }
 
+func TestBaselineHandlerV2_RowsIterationError_ReturnsInternalServerErrorAndDoesNotCache(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	_, err := db.Exec(ctx, `
+		ALTER TABLE Groupings RENAME TO Groupings_orig;
+		CREATE VIEW Groupings AS
+		SELECT grouping_id,
+		       CASE WHEN 1 / (row_number() OVER (ORDER BY grouping_id) - 2) = 1 THEN keys ELSE keys END AS keys
+		FROM Groupings_orig;
+	`)
+	require.NoError(t, err)
+	waitForSystemTime()
+
+	lc, err := local.New(100)
+	require.NoError(t, err)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB:          db,
+			CacheClient: lc,
+		},
+		cacheManager: NewCacheManager(lc),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2, nil)
+
+	wh.BaselineHandlerV2(w, r)
+	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+
+	cachedPrimaryJSON, err := lc.GetValue(ctx, "baseline__")
+	require.NoError(t, err)
+	assert.Empty(t, cachedPrimaryJSON)
+}
+
 // TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when
 // no user is logged in.
 func TestWhoami_NotLoggedIn_Success(t *testing.T) {
