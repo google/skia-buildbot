@@ -791,13 +791,13 @@ cipd.download_http(
     name = "presubmit",
     cipd_package = "skia/tools/presubmit/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "afc00ef37273fb6a98224616ce165af67727cc7f439c5b04a8593173e16de081",
-        "linux-arm64": "016cd9a9d01106d390df103ad2a49faba01021b1a13b1445d3772e83f5012ba1",
-        "mac-amd64": "56cf738cbf41e5cf65e86bbbdc62fc6d00e132e64c8d3ca3f90d8970b3ffa626",
-        "mac-arm64": "eb6c60cf8064090372a9ae2df4f6dc494403157bc3c81d06c48cb910fb156d29",
-        "windows-amd64": "1635f3050434c9e95a2cc72420e8d1a12d702f9fb45f34b2be357d032cbf643b",
+        "linux-amd64": "387c6ff1bcd61d34e98328bcebc7e878b1a4b6f77330e3e745e9c2157d793c12",
+        "linux-arm64": "6e4369cc5896684a4aa654bb0cb9617f56569be0412a30349b4dc32d6bfa9be9",
+        "mac-amd64": "4e72fefda92f624508097b25806e77646934a52794919a21f8d7f835406bd89f",
+        "mac-arm64": "6280a463de166690d49bacc496e08cf6e89a0df27e2debab362123c52dc06989",
+        "windows-amd64": "d4e891b1d047eacf08f532fbf28bdcfebb74a007676452b0f3e797236910e1e2",
     },
-    tag = "git_revision:4976c10807c2d4d6f92e6461c6e2d219344dfed8",
+    tag = "git_revision:968b70d24fc61ea8fc23838a7fb3f1435c17c591",
 )
 use_repo(cipd, "presubmit_linux-amd64")
 
