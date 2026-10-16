@@ -32,7 +32,7 @@ const (
 	cipdPathExp = "experimental/chromeperf/cbb/safari_technology_preview"
 
 	// The MacOS version currently used in CBB production.
-	macosVersion = "macos26"
+	macosVersion = "macos27"
 
 	// Name of the STP installation package file.
 	dmgFilename = "SafariTechnologyPreview.dmg"
@@ -58,9 +58,9 @@ type releaseInfo struct {
 	// The STP release number, e.g., "246" as of June 17, 2026.
 	release string
 
-	// The link to download the STP installation package for MacOS 26.
+	// The link to download the STP installation package for MacOS 27.
 	// Links for other MacOS versions can be added to this struct as needed.
-	link26 string
+	link27 string
 }
 
 // Extract releaseInfo from downloaded STP resource page.
@@ -107,13 +107,14 @@ func extractFromHtml(doc *html.Node) *releaseInfo {
 		// Find Download Links
 		if n.Type == html.ElementNode && n.Data == "a" {
 			for _, a := range n.Attr {
-				if a.Key == "href" && strings.Contains(a.Val, "SafariTechnologyPreview.dmg") {
+				if a.Key == "href" && strings.HasSuffix(a.Val, ".dmg") &&
+					(strings.Contains(a.Val, "SafariTechnologyPreview") || strings.Contains(a.Val, "SafariTechPreview")) {
 					osInfo := n.LastChild.Data
 					switch {
+					case strings.Contains(osInfo, "Golden Gate") || strings.Contains(osInfo, "27"):
+						ri.link27 = a.Val
 					case strings.Contains(osInfo, "Tahoe") || strings.Contains(osInfo, "26"):
-						ri.link26 = a.Val
-					case strings.Contains(osInfo, "27"):
-						// Ignore macOS 27 link for now.
+						// Ignore macOS 26 link for now.
 					default:
 						fmt.Fprintf(os.Stderr, "Unable to discover macOS version: %s\n", osInfo)
 					}
@@ -205,12 +206,12 @@ func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
 	if ri.release == "" {
 		return "", skerr.Fmt("unable to discover STP release number")
 	}
-	if ri.link26 == "" {
-		return "", skerr.Fmt("unable to discover STP download link for MacOS 26")
+	if ri.link27 == "" {
+		return "", skerr.Fmt("unable to discover STP download link for MacOS 27")
 	}
 
 	sklog.Infof("Release: %s\n", ri.release)
-	sklog.Infof("Download Links:\n  %s\n", ri.link26)
+	sklog.Infof("Download Links:\n  %s\n", ri.link27)
 
 	cipdClient, cipdRootPath, err := prepareCipd(ctx)
 	if err != nil {
@@ -237,10 +238,11 @@ func DownloadSafariTPActivity(ctx context.Context, isDev bool) (string, error) {
 	// point to the same version as the "stable" ref.
 	// The other refs are for informational purposes only.
 	err = createCipd(
-		ctx, cipdClient, cipdPath, ri.link26,
-		[]string{ri.release + "-macos26", "stable", "canary", "latest"})
+		ctx, cipdClient, cipdPath, ri.link27,
+		[]string{ri.release + "-" + macosVersion, "stable", "canary", "latest"},
+	)
 	if err != nil {
-		return "", skerr.Wrapf(err, "unable to create CIPD package for MacOS 26")
+		return "", skerr.Wrapf(err, "unable to create CIPD package for MacOS 27")
 	}
 
 	return ri.release, nil
