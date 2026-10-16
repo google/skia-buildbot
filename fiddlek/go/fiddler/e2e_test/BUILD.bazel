@@ -18,6 +18,7 @@ go_library(
         "test_cases/fail_readlink.cpp",
         "test_cases/success.cpp",
         "test_cases/fail_symlink.cpp",
+        "test_cases/fail_proc_self_task.cpp",
     ],
     importpath = "go.skia.org/infra/fiddlek/go/fiddler/e2e_test",
     visibility = ["//visibility:private"],

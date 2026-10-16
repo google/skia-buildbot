@@ -52,6 +52,9 @@ var (
 
 	//go:embed test_cases/fail_proc_self.cpp
 	testCaseFailProcSelf string
+
+	//go:embed test_cases/fail_proc_self_task.cpp
+	testCaseFailProcSelfTask string
 )
 
 // Files used to mock the Skia repo.
@@ -234,6 +237,7 @@ func main() {
 		{"Fail Rename", testCaseFailRename, false},
 		{"Fail Mknod", testCaseFailMknod, false},
 		{"Fail /proc/self", testCaseFailProcSelf, false},
+		{"Fail /proc/self/task", testCaseFailProcSelfTask, false},
 	}
 
 	for _, tc := range tests {

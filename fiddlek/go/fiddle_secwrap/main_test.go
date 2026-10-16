@@ -72,3 +72,66 @@ func TestIsAllowedExec(t *testing.T) {
 		})
 	}
 }
+
+func TestMatchesPrefixes(t *testing.T) {
+	testCases := []struct {
+		name     string
+		rawPath  string
+		expected bool
+	}{
+		{
+			name:     "Allowed /proc/self/maps",
+			rawPath:  "/proc/self/maps",
+			expected: true,
+		},
+		{
+			name:     "Allowed /proc/self/comm",
+			rawPath:  "/proc/self/comm",
+			expected: true,
+		},
+		{
+			name:     "Allowed /proc/self/task/<tid>/maps",
+			rawPath:  "/proc/self/task/123/maps",
+			expected: true,
+		},
+		{
+			name:     "Allowed /proc/self/task/<tid>/comm",
+			rawPath:  "/proc/self/task/123/comm",
+			expected: true,
+		},
+		{
+			name:     "Allowed /proc/self/task/<tid>/stat",
+			rawPath:  "/proc/self/task/123/stat",
+			expected: true,
+		},
+		{
+			name:     "Blocked /proc/self/root/etc/passwd",
+			rawPath:  "/proc/self/root/etc/passwd",
+			expected: false,
+		},
+		{
+			name:     "Blocked /proc/self/task/<tid>/root/etc/passwd",
+			rawPath:  "/proc/self/task/123/root/etc/passwd",
+			expected: false,
+		},
+		{
+			name:     "Blocked /proc/self/task/<tid>/../<tid>/root/etc/passwd",
+			rawPath:  "/proc/self/task/123/../456/root/etc/passwd",
+			expected: false,
+		},
+		{
+			name:     "Blocked /proc/self/task/<tid>/maps/../../root/etc/passwd",
+			rawPath:  "/proc/self/task/123/maps/../../root/etc/passwd",
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			normalized, actual := matchesPrefixes(tc.rawPath, readonlyAllowedPrefixes)
+			if actual != tc.expected {
+				t.Errorf("matchesPrefixes(%q) = (%q, %v), want %v", tc.rawPath, normalized, actual, tc.expected)
+			}
+		})
+	}
+}

@@ -121,12 +121,12 @@ var (
 		"/mnt/pd0/",
 		"/proc/self/cgroup",
 		"/proc/self/cmdline",
+		"/proc/self/comm",
 		"/proc/self/exe",
 		"/proc/self/maps",
 		"/proc/self/mountinfo",
 		"/proc/self/stat",
 		"/proc/self/status",
-		"/proc/self/task/",
 		"/sys/fs/",
 		"/sys/devices/system/cpu/",
 		"/tmp",
@@ -223,6 +223,19 @@ func isAllowedExec(name string, allowedExec string, args, envp []string, buildMo
 	return true
 }
 
+var procSelfTaskRegex = regexp.MustCompile(`^/proc/self/task/[0-9]+/`)
+
+func matchesPrefixes(rawPath string, prefixes []string) (string, bool) {
+	normalized := filepath.Clean(rawPath)
+	normalized = procSelfTaskRegex.ReplaceAllString(normalized, "/proc/self/")
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(normalized, prefix) {
+			return normalized, true
+		}
+	}
+	return normalized, false
+}
+
 // testAgainstPrefixes verifies that the given name begins with one of the given
 // prefixes. If the name is a relative path, it is resolved against the child's
 // current working directory. Exits the process with a non-zero code if the
@@ -240,13 +253,7 @@ func testAgainstPrefixes(child int, caller string, name string, prefixes []strin
 		normalized = filepath.Clean(name)
 	}
 
-	okay := false
-	for _, prefix := range prefixes {
-		if strings.HasPrefix(normalized, prefix) {
-			okay = true
-			break
-		}
-	}
+	normalized, okay := matchesPrefixes(normalized, prefixes)
 	if !okay {
 		fmt.Fprintf(os.Stderr, "Invalid filename: %s (normalized: %s)\n", name, normalized)
 		fmt.Fprintf(os.Stderr, "%s: %s\n", caller, name)
