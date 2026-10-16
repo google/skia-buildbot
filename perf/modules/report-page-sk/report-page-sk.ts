@@ -27,73 +27,6 @@ import { UNSET_TIME } from '../const/const';
 
 const weekInSeconds = 7 * 24 * 60 * 60;
 
-// Data point for anomalies tracking the actual anomaly object.
-// Inclusive of:
-// * whether it's been checked.
-// * the graph generated for it.
-// * beginning and end time ranges.
-interface AnomalyDataPoint {
-  // The anomaly object that this tracker is maintaining
-  anomaly: Anomaly;
-  // Boolean field to track whether the given anomaly has been selected
-  checked: boolean;
-  // Begin and end time ranges for the current Anomaly.
-  timerange: Timerange;
-}
-
-class AnomalyTracker {
-  // Internal map for anomalies
-  private tracker: { [key: string]: AnomalyDataPoint };
-
-  constructor() {
-    this.tracker = {};
-  }
-
-  // Load the tracker with the necessary information from the provided anomaly list.
-  // It's assumed that there's a 1:1 mapping between the information in anomalyList
-  // and timerangeMap, but there's nothing that enforces nor checks it. This means
-  // that any missing data will simply be unset.
-  load(
-    anomalyList: Anomaly[],
-    timerangeMap: { [key: string]: Timerange },
-    selectedKeys: string[]
-  ): void {
-    anomalyList.forEach((anomaly) => {
-      this.tracker[anomaly.id] = {
-        anomaly: anomaly,
-        // When selectedKeys is null, includes() returns undefined.
-        checked: Boolean(selectedKeys?.includes(anomaly.id)),
-        timerange: timerangeMap[anomaly.id],
-      };
-    });
-  }
-
-  getAnomaly(id: string): AnomalyDataPoint | null {
-    return this.tracker[id];
-  }
-
-  // toAnomalyList returns a list of all anomaly objects being tracked.
-  // This is mostly for backwards compatibility to anomalies-table-sk.
-  toAnomalyList(): Anomaly[] {
-    const ret = [];
-    for (const anomalyId in this.tracker) {
-      ret.push(this.tracker[anomalyId].anomaly);
-    }
-    return ret;
-  }
-
-  getSelectedAnomalies(): Anomaly[] {
-    const ret = [];
-    for (const anomalyId in this.tracker) {
-      if (this.tracker[anomalyId].checked) {
-        ret.push(this.tracker[anomalyId].anomaly);
-      }
-    }
-
-    return ret;
-  }
-}
-
 export class ReportPageSk extends ElementSk {
   /**
    * Factory for creating ExploreSimpleSk instances. This allows for dependency
@@ -101,8 +34,7 @@ export class ReportPageSk extends ElementSk {
    */
   public exploreSimpleSkFactory = () => new ExploreSimpleSk(false);
 
-  // An anomaly tracker for the report page.
-  private anomalyTracker = new AnomalyTracker();
+  private timerangeMap: { [key: string]: Timerange } = {};
 
   // Reference to anomalies table element.
   anomaliesTable: AnomaliesTableSk | null = null;
@@ -288,9 +220,6 @@ export class ReportPageSk extends ElementSk {
     this.addEventListener('anomalies_checked', (e) => {
       const detail = (e as CustomEvent).detail;
       const anomalies = detail.anomalies as Anomaly[];
-      anomalies.forEach((anomaly) => {
-        this.anomalyTracker.getAnomaly(anomaly.id)!.checked = detail.checked;
-      });
       if (this.isV2Enabled) {
         this.updateMultiExploreStateV2(anomalies, detail.checked);
       } else {
@@ -321,19 +250,20 @@ export class ReportPageSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then(async (json) => {
-        this.anomalyTracker.load(json.anomaly_list, json.timerange_map, json.selected_keys);
+        const anomalyList: Anomaly[] = json.anomaly_list || [];
+        this.timerangeMap = json.timerange_map || {};
         this.updatePageTitle();
         const selectedKey: string[] = json.selected_keys;
         if (selectedKey && selectedKey.length > 0) {
           this.requestAnomalies.push(...selectedKey);
         }
         this.setCurrentlyLoading('Loading anomalies details and common commits...');
-        const loadingPromises = [this.initializePage()];
+        const loadingPromises = [this.initializePage(anomalyList)];
 
         // Only attempt to fetch and list common commits if the instance is configured
         // for standard integer commit numbers.
         if (json.is_commit_number_based) {
-          loadingPromises.push(this.listAllCommits(this.anomalyTracker.toAnomalyList()));
+          loadingPromises.push(this.listAllCommits(anomalyList));
         }
 
         await Promise.all(loadingPromises);
@@ -341,12 +271,12 @@ export class ReportPageSk extends ElementSk {
         if (this.isV2Enabled) {
           this.updateMultiExploreStateV2();
         } else if (this.graphList) {
-          this.graphList.items = this.anomalyTracker
-            .getSelectedAnomalies()
-            .map((anomaly, index) => ({
+          this.graphList.items = this.anomaliesTable!.getCheckedAnomalies().map(
+            (anomaly, index) => ({
               id: anomaly.id,
               generateGraph: () => this.addGraph(anomaly, index),
-            }));
+            })
+          );
         }
         this.setCurrentlyLoading('');
       })
@@ -357,8 +287,8 @@ export class ReportPageSk extends ElementSk {
       });
   }
 
-  private async initializePage() {
-    await this.anomaliesTable!.populateTable(this.anomalyTracker.toAnomalyList());
+  private async initializePage(anomalies: Anomaly[]) {
+    await this.anomaliesTable!.populateTable(anomalies);
 
     const urlParams = new URLSearchParams(window.location.search);
     // This statement is for when anomalyIDs is set, e.g. anomalyIDs=123,124.
@@ -366,9 +296,6 @@ export class ReportPageSk extends ElementSk {
     const selected = this.findRequestedAnomalies();
     if (selected.length > 0) {
       this.anomaliesTable!.checkSelectedAnomalies(selected);
-      selected.forEach((anomaly) => {
-        this.anomalyTracker.getAnomaly(anomaly.id)!.checked = true;
-      });
     } else if (urlParams.has('sid')) {
       telemetry.increaseCounter(CountMetric.SIDRequiringActionTaken, {
         module: 'report-page-sk',
@@ -377,9 +304,6 @@ export class ReportPageSk extends ElementSk {
       // If 'sid' is requested, user has explicitly specified a set of anomalies from the
       // 'Graph Selected' button. It's okay to assume user wants all of them graphed.
       this.anomaliesTable!.initialCheckAllCheckbox();
-      this.anomalyTracker.toAnomalyList().forEach((anomaly) => {
-        this.anomalyTracker.getAnomaly(anomaly.id)!.checked = true;
-      });
     }
   }
 
@@ -493,7 +417,7 @@ export class ReportPageSk extends ElementSk {
     const query = this.getQueryFromAnomaly(anomaly);
     const state = new State();
     state.plotSummary = true;
-    const timerange = this.anomalyTracker.getAnomaly(anomaly.id)!.timerange;
+    const timerange = this.timerangeMap[anomaly.id];
     explore.state = {
       ...state,
       queries: [query],
@@ -613,7 +537,7 @@ export class ReportPageSk extends ElementSk {
   private updateMultiExploreStateV2(_toggledAnomalies?: Anomaly[], _checked?: boolean): void {
     if (!this.isV2Enabled) return;
 
-    const selectedAnomalies = this.anomalyTracker.getSelectedAnomalies();
+    const selectedAnomalies = this.anomaliesTable ? this.anomaliesTable.getCheckedAnomalies() : [];
     this._highlightAnomaliesV2 = selectedAnomalies.map((a) => a.id);
     if (selectedAnomalies.length === 0) {
       this._queriesV2 = [this.applyDefaultsToParamSet({})];
@@ -671,7 +595,7 @@ export class ReportPageSk extends ElementSk {
         if (anomaly.start_revision < minCommit) minCommit = anomaly.start_revision;
         if (anomaly.end_revision > maxCommit) maxCommit = anomaly.end_revision;
 
-        const timerange = this.anomalyTracker.getAnomaly(anomaly.id)!.timerange;
+        const timerange = this.timerangeMap[anomaly.id];
         if (timerange) {
           if (timerange.begin < minBegin) minBegin = timerange.begin;
           if (timerange.end > maxEnd) maxEnd = timerange.end;
@@ -712,13 +636,11 @@ export class ReportPageSk extends ElementSk {
   // findRequestedAnomalies returns a list of requested anomaly objects .
   // This is for only loading selected untriaged anomaly graphs in the first place.
   findRequestedAnomalies(): Anomaly[] {
-    const ret: Anomaly[] = [];
-    this.anomalyTracker.toAnomalyList().forEach((anomaly) => {
-      if (this.requestAnomalies.includes(anomaly.id)) {
-        ret.push(this.anomalyTracker.getAnomaly(anomaly.id)!.anomaly);
-      }
-    });
-    return ret;
+    return (
+      this.anomaliesTable?.anomalyList.filter((anomaly) =>
+        this.requestAnomalies.includes(anomaly.id)
+      ) || []
+    );
   }
 
   private showAllCommitsTemplate() {

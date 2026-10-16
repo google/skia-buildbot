@@ -1428,6 +1428,20 @@ describe('anomalies-table-sk', () => {
       const checked = element.getCheckedAnomalies();
       assert.deepEqual(checked, anomalies);
     });
+
+    it('preserves synchronous selection after setting anomalyList and clears when anomalyList is replaced', async () => {
+      const anomalies = [
+        dummyAnomaly('1', 12345, 100, 200, 'master/bot/suite/test1'),
+        dummyAnomaly('2', 12345, 100, 200, 'master/bot/suite/test2'),
+      ];
+      element.anomalyList = anomalies;
+      element.checkSelectedAnomalies([anomalies[0]]);
+      await element.updateComplete;
+      assert.deepEqual(element.getCheckedAnomalies(), [anomalies[0]]);
+
+      element.anomalyList = [anomalies[1]];
+      assert.deepEqual(element.getCheckedAnomalies(), []);
+    });
   });
 
   describe('initial check all checkbox', () => {
@@ -1867,12 +1881,22 @@ describe('anomalies-table-sk', () => {
       await element.updateComplete;
       assert.equal((element as any).selectionController.size, 3);
 
-      // Apply filter that excludes anomaly 3
+      const checkedEvents: CustomEvent[] = [];
+      element.addEventListener('anomalies_checked', (e) => {
+        checkedEvents.push(e as CustomEvent);
+      });
+
+      // Apply filter that excludes anomaly 2 (bot2)
       (element as any).filterBot = 'bot1';
       await element.updateComplete;
 
       assert.equal((element as any).selectionController.size, 2);
       assert.isFalse((element as any).selectionController.has(anomalies[1]));
+      assert.equal(checkedEvents.length, 1);
+      assert.deepEqual(checkedEvents[0].detail, {
+        anomalies: [anomalies[1]],
+        checked: false,
+      });
     });
 
     it('opens and closes filter popup correctly', async () => {

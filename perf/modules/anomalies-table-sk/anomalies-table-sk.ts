@@ -70,8 +70,22 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
     help.open();
   }
 
+  private _anomalyList: Anomaly[] = [];
+
   @property({ attribute: false })
-  anomalyList: Anomaly[] = [];
+  set anomalyList(val: Anomaly[]) {
+    const oldVal = this._anomalyList;
+    if (oldVal !== val) {
+      this._anomalyList = val;
+      this.initiallyRequestedAnomalyIDs.clear();
+      this.selectionController.clear();
+      this.requestUpdate('anomalyList', oldVal);
+    }
+  }
+
+  get anomalyList(): Anomaly[] {
+    return this._anomalyList;
+  }
 
   @property({ type: Boolean })
   showTriaged: boolean = false;
@@ -232,16 +246,26 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
 
     if (anomalyListChanged || showTriagedChanged || filtersChanged) {
       const filtered = this.filteredAnomalies;
-      if (anomalyListChanged) {
-        this.initiallyRequestedAnomalyIDs.clear();
-        this.selectionController.clear();
-      } else if (filtersChanged) {
+      if (filtersChanged) {
         const filteredSet = new Set(filtered);
+        const deselected: Anomaly[] = [];
         this.selectionController.items.forEach((item) => {
           if (!filteredSet.has(item)) {
             this.selectionController.deselect(item);
+            deselected.push(item);
           }
         });
+        if (deselected.length > 0) {
+          this.dispatchEvent(
+            new CustomEvent('anomalies_checked', {
+              detail: {
+                anomalies: deselected,
+                checked: false,
+              },
+              bubbles: true,
+            })
+          );
+        }
       }
       this.groupingController.setAnomalies(filtered);
 
@@ -1040,11 +1064,24 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   private onAddToBucket(bucketName: string, anomalies: Anomaly[]) {
     if (this.triagePanel) {
       this.triagePanel.addToBucket(bucketName, anomalies);
+      const deselected: Anomaly[] = [];
       anomalies.forEach((a) => {
         if (this.selectionController.has(a)) {
           this.selectionController.deselect(a);
+          deselected.push(a);
         }
       });
+      if (deselected.length > 0) {
+        this.dispatchEvent(
+          new CustomEvent('anomalies_checked', {
+            detail: {
+              anomalies: deselected,
+              checked: false,
+            },
+            bubbles: true,
+          })
+        );
+      }
       this.requestUpdate();
     }
   }
@@ -1124,6 +1161,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
    */
   async populateTable(anomalyList: Anomaly[]): Promise<void> {
     this.anomalyList = anomalyList;
+    await this.updateComplete;
   }
 
   /**
@@ -1139,7 +1177,7 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
       }
     });
 
-    this.triageMenu!.toggleButtons(this.selectionController.items.length > 0);
+    this.triageMenu?.toggleButtons(this.selectionController.items.length > 0);
     this.requestUpdate();
   }
 
@@ -1239,15 +1277,10 @@ export class AnomaliesTableSk extends LitElement implements KeyboardShortcutHand
   }
 
   initialCheckAllCheckbox() {
-    // This expects DOM to be ready.
-    // If called before render, headerCheckbox might be null.
-    // In legacy, it was called manually?
-    // It seems unused in the provided code snippet, but might be used by parent.
-    // Safe to check for null.
     if (this.headerCheckbox) {
       this.headerCheckbox.checked = true;
-      this.toggleAllCheckboxes();
     }
+    this.toggleAllCheckboxes(true);
   }
 
   /**

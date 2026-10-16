@@ -78,11 +78,11 @@ describe('ReportPageSk', () => {
       return mockInstance;
     };
 
-    // Stub methods on the child anomalies table to isolate the parent component.
+    // Spy on methods on the child anomalies table.
     const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
-    sinon.stub(table, 'populateTable').resolves();
-    sinon.stub(table, 'checkSelectedAnomalies');
-    sinon.stub(table, 'initialCheckAllCheckbox');
+    sinon.spy(table, 'populateTable');
+    sinon.spy(table, 'checkSelectedAnomalies');
+    sinon.spy(table, 'initialCheckAllCheckbox');
 
     const v2Enabled = element['isV2Enabled'];
     if (v2Enabled) {
@@ -343,7 +343,7 @@ describe('ReportPageSk', () => {
 
       assert.strictEqual(appendSpy.callCount, 0, 'Should load no graphs');
       assert.strictEqual(
-        element['anomalyTracker'].getSelectedAnomalies().length,
+        element.anomaliesTable!.getCheckedAnomalies().length,
         0,
         'Should have no selected anomalies'
       );
@@ -385,10 +385,10 @@ describe('ReportPageSk', () => {
 
       assert.strictEqual(appendSpy.callCount, anomalies.length);
       assert.isTrue(
-        (table.initialCheckAllCheckbox as sinon.SinonStub).calledOnce,
+        (table.initialCheckAllCheckbox as sinon.SinonSpy).calledOnce,
         'initialCheckAllCheckbox should be called'
       );
-      assert.strictEqual(element['anomalyTracker'].getSelectedAnomalies().length, anomalies.length);
+      assert.strictEqual(table.getCheckedAnomalies().length, anomalies.length);
 
       window.history.replaceState({}, '', originalSearch);
     });
@@ -427,10 +427,10 @@ describe('ReportPageSk', () => {
 
       assert.strictEqual(appendSpy.callCount, anomalies.length);
       assert.isTrue(
-        (table.checkSelectedAnomalies as sinon.SinonStub).calledWith(anomalies),
+        (table.checkSelectedAnomalies as sinon.SinonSpy).calledWith(anomalies),
         'checkSelectedAnomalies should be called with all anomalies'
       );
-      assert.strictEqual(element['anomalyTracker'].getSelectedAnomalies().length, anomalies.length);
+      assert.strictEqual(table.getCheckedAnomalies().length, anomalies.length);
 
       window.history.replaceState({}, '', originalSearch);
     });
@@ -541,8 +541,8 @@ describe('ReportPageSk', () => {
 
       element = factory();
       const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
-      sinon.stub(table, 'populateTable').resolves();
-      sinon.stub(table, 'checkSelectedAnomalies');
+      sinon.spy(table, 'populateTable');
+      sinon.spy(table, 'checkSelectedAnomalies');
 
       await fetchMock.flush(true);
       // Wait for async fetch anomalies promise chain to resolve and render the child
@@ -581,8 +581,8 @@ describe('ReportPageSk', () => {
 
       element = factory();
       const table = element.querySelector<AnomaliesTableSk>('#anomaly-table')!;
-      sinon.stub(table, 'populateTable').resolves();
-      sinon.stub(table, 'checkSelectedAnomalies');
+      sinon.spy(table, 'populateTable');
+      sinon.spy(table, 'checkSelectedAnomalies');
 
       await fetchMock.flush(true);
       // Wait for async fetch anomalies promise chain to resolve and render the child
@@ -615,7 +615,7 @@ describe('ReportPageSk', () => {
         sinon.stub(element as any, 'isV2Enabled').get(() => true);
       });
 
-      it('does not split by default even if keys vary', () => {
+      it('does not split by default even if keys vary', async () => {
         const anomaly1 = createMockAnomaly(0);
         anomaly1.test_path = ',master=m1,bot=b1,benchmark=bench1,test=t1,subtest_1=s1';
         const anomaly2 = createMockAnomaly(1);
@@ -626,7 +626,9 @@ describe('ReportPageSk', () => {
           '1': createMockTimerange(),
         };
 
-        element['anomalyTracker'].load([anomaly1, anomaly2], timerangeMap, ['0', '1']);
+        await element.anomaliesTable!.populateTable([anomaly1, anomaly2]);
+        element.anomaliesTable!.checkSelectedAnomalies([anomaly1, anomaly2]);
+        element['timerangeMap'] = timerangeMap;
 
         element['updateMultiExploreStateV2']();
 
@@ -665,7 +667,7 @@ describe('ReportPageSk', () => {
         ]);
       });
 
-      it('applies defaults to anomaly queries, preserving anomaly values', () => {
+      it('applies defaults to anomaly queries, preserving anomaly values', async () => {
         const anomaly = createMockAnomaly(0);
         anomaly.test_path = ',master=m1,bot=b1,stat=other_value';
 
@@ -673,7 +675,9 @@ describe('ReportPageSk', () => {
           '0': createMockTimerange(),
         };
 
-        element['anomalyTracker'].load([anomaly], timerangeMap, ['0']);
+        await element.anomaliesTable!.populateTable([anomaly]);
+        element.anomaliesTable!.checkSelectedAnomalies([anomaly]);
+        element['timerangeMap'] = timerangeMap;
 
         element['updateMultiExploreStateV2']();
 
@@ -687,7 +691,7 @@ describe('ReportPageSk', () => {
         ]);
       });
 
-      it('applies defaults when toggling anomalies', () => {
+      it('applies defaults when toggling anomalies', async () => {
         // Start with empty (which has defaults)
         element['updateMultiExploreStateV2']();
 
@@ -697,10 +701,11 @@ describe('ReportPageSk', () => {
         const timerangeMap = {
           '0': createMockTimerange(),
         };
-        element['anomalyTracker'].load([anomaly], timerangeMap, []);
+        await element.anomaliesTable!.populateTable([anomaly]);
+        element['timerangeMap'] = timerangeMap;
 
         // Toggle on
-        element['anomalyTracker'].getAnomaly(anomaly.id)!.checked = true;
+        element.anomaliesTable!.checkSelectedAnomalies([anomaly]);
         element['updateMultiExploreStateV2']([anomaly], true);
 
         assert.deepEqual(element['_queriesV2'], [
@@ -713,7 +718,7 @@ describe('ReportPageSk', () => {
         ]);
 
         // Toggle off
-        element['anomalyTracker'].getAnomaly(anomaly.id)!.checked = false;
+        element.anomaliesTable!.toggleAllCheckboxes(false);
         element['updateMultiExploreStateV2']([anomaly], false);
 
         assert.deepEqual(element['_queriesV2'], [
@@ -738,7 +743,7 @@ describe('ReportPageSk', () => {
         sinon.stub(element as any, 'isV2Enabled').get(() => true);
       });
 
-      it('calculates the correct viewport and timestamp range bounds', () => {
+      it('calculates the correct viewport and timestamp range bounds', async () => {
         const anomaly1 = createMockAnomaly(0);
         anomaly1.start_revision = 1000;
         anomaly1.end_revision = 1100;
@@ -754,7 +759,9 @@ describe('ReportPageSk', () => {
           '1': { begin: 1500, end: 3500 },
         };
 
-        element['anomalyTracker'].load([anomaly1, anomaly2], timerangeMap, ['0', '1']);
+        await element.anomaliesTable!.populateTable([anomaly1, anomaly2]);
+        element.anomaliesTable!.checkSelectedAnomalies([anomaly1, anomaly2]);
+        element['timerangeMap'] = timerangeMap;
 
         element['updateMultiExploreStateV2']();
 
@@ -776,13 +783,14 @@ describe('ReportPageSk', () => {
         assert.strictEqual(element['_endV2'], UNSET_TIME);
       });
 
-      it('sets begin and end to UNSET_TIME when no anomalies are selected', () => {
+      it('sets begin and end to UNSET_TIME when no anomalies are selected', async () => {
         // Set them to some valid values first
         element['_beginV2'] = 1000;
         element['_endV2'] = 2000;
 
         // Force update with empty selection
-        element['anomalyTracker'].load([], {}, []);
+        await element.anomaliesTable!.populateTable([]);
+        element['timerangeMap'] = {};
         element['updateMultiExploreStateV2']();
 
         assert.strictEqual(element['_beginV2'], UNSET_TIME);
