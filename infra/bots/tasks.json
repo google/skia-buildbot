@@ -1,12 +1,5 @@
 {
   "jobs": {
-    "Housekeeper-OnDemand-Presubmit": {
-      "priority": 1,
-      "tasks": [
-        "Housekeeper-OnDemand-Presubmit"
-      ],
-      "trigger": "on demand"
-    },
     "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {
       "tasks": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
@@ -31,90 +24,15 @@
       "tasks": [
         "Infra-PerCommit-Test"
       ]
+    },
+    "Infra-Presubmit": {
+      "priority": 1,
+      "tasks": [
+        "Infra-Presubmit"
+      ]
     }
   },
   "tasks": {
-    "Housekeeper-OnDemand-Presubmit": {
-      "casSpec": "empty",
-      "cipd_packages": [
-        {
-          "name": "infra/tools/luci-auth/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:5717e024639e344ee8d3fdbf1701b30cca6c3fc8"
-        },
-        {
-          "name": "skia/tools/command_wrapper/${platform}",
-          "path": "task_drivers",
-          "version": "git_revision:968b70d24fc61ea8fc23838a7fb3f1435c17c591"
-        }
-      ],
-      "command": [
-        "luci-auth",
-        "context",
-        "./task_drivers/command_wrapper",
-        "--project_id",
-        "skia-swarming-bots",
-        "--task_id",
-        "<(TASK_ID)",
-        "--task_name",
-        "Housekeeper-OnDemand-Presubmit",
-        "--workdir",
-        ".",
-        "--cipd",
-        "cipd_bin_packages:infra/3pp/tools/git/${platform}@version:3@2.56.0.chromium.11",
-        "--cipd",
-        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:5717e024639e344ee8d3fdbf1701b30cca6c3fc8",
-        "--cipd",
-        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:5717e024639e344ee8d3fdbf1701b30cca6c3fc8",
-        "--cipd",
-        "task_drivers:skia/tools/presubmit/${platform}@git_revision:968b70d24fc61ea8fc23838a7fb3f1435c17c591",
-        "--cipd",
-        "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
-        "--command-is-task-driver",
-        "--",
-        "./task_drivers/presubmit",
-        "--project_id",
-        "skia-swarming-bots",
-        "--task_id",
-        "<(TASK_ID)",
-        "--task_name",
-        "Housekeeper-OnDemand-Presubmit",
-        "--workdir",
-        ".",
-        "--repo",
-        "<(REPO)",
-        "--revision",
-        "<(REVISION)",
-        "--patch_issue",
-        "<(ISSUE)",
-        "--patch_set",
-        "<(PATCHSET)",
-        "--patch_server",
-        "<(CODEREVIEW_SERVER)",
-        "--bazel_cache_dir",
-        "/dev/shm/bazel_cache"
-      ],
-      "dimensions": [
-        "pool:Skia",
-        "os:Ubuntu-24.04",
-        "gpu:none",
-        "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16"
-      ],
-      "environment": {
-        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
-        "USE_BAZEL_FALLBACK_VERSION": "error"
-      },
-      "env_prefixes": {
-        "PATH": [
-          "bazelisk_linux_amd64",
-          "cipd_bin_packages",
-          "cipd_bin_packages/bin"
-        ]
-      },
-      "max_attempts": 1,
-      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
-    },
     "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {
       "casSpec": "whole-repo",
       "cipd_packages": [
@@ -421,6 +339,88 @@
         ]
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-Presubmit": {
+      "casSpec": "empty",
+      "cipd_packages": [
+        {
+          "name": "infra/tools/luci-auth/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:5717e024639e344ee8d3fdbf1701b30cca6c3fc8"
+        },
+        {
+          "name": "skia/tools/command_wrapper/${platform}",
+          "path": "task_drivers",
+          "version": "git_revision:968b70d24fc61ea8fc23838a7fb3f1435c17c591"
+        }
+      ],
+      "command": [
+        "luci-auth",
+        "context",
+        "./task_drivers/command_wrapper",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-Presubmit",
+        "--workdir",
+        ".",
+        "--cipd",
+        "cipd_bin_packages:infra/3pp/tools/git/${platform}@version:3@2.56.0.chromium.11",
+        "--cipd",
+        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:5717e024639e344ee8d3fdbf1701b30cca6c3fc8",
+        "--cipd",
+        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:5717e024639e344ee8d3fdbf1701b30cca6c3fc8",
+        "--cipd",
+        "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
+        "--command-is-task-driver",
+        "--",
+        "./presubmit",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-Presubmit",
+        "--workdir",
+        ".",
+        "--repo",
+        "<(REPO)",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Ubuntu-24.04",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16"
+      ],
+      "environment": {
+        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
+      "env_prefixes": {
+        "PATH": [
+          "bazelisk_linux_amd64",
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin"
+        ]
+      },
+      "max_attempts": 1,
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     }
   },
   "casSpecs": {
@@ -444,9 +444,9 @@
     }
   },
   "commit_queue": {
-    "Housekeeper-OnDemand-Presubmit": {},
     "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {},
     "Infra-PerCommit-Build": {},
-    "Infra-PerCommit-Test": {}
+    "Infra-PerCommit-Test": {},
+    "Infra-Presubmit": {}
   }
 }

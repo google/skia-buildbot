@@ -116,6 +116,10 @@ func main() {
 		}
 	}
 
+	if *commit {
+		runCheck("GoGenerate", func() bool { return runGoGenerate(ctx, changedFiles, branchBaseCommit) })
+		changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	}
 	runCheck("Buildifier", func() bool { return runBuildifier(ctx, changedFiles, branchBaseCommit) })
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	runCheck("Goimports", func() bool { return runGoimports(ctx, changedFiles, *repoDir, branchBaseCommit) })
@@ -123,6 +127,7 @@ func main() {
 	runCheck("Gofmt", func() bool { return runGofmt(ctx, changedFiles, branchBaseCommit) })
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	runCheck("GoVet", func() bool { return runGoVet(ctx, changedFiles, branchBaseCommit) })
+	runCheck("Errcheck", func() bool { return runErrcheck(ctx) })
 	if *commit {
 		runCheck("NpmCi", func() bool { return runNpmCi(ctx) })
 	}
@@ -1393,6 +1398,7 @@ func runGofmt(ctx context.Context, files []fileWithChanges, branchBaseCommit str
 	for _, f := range files {
 		if filepath.Ext(f.fileName) == ".go" {
 			args = append(args, f.fileName)
+			foundAny = true
 		}
 	}
 	if !foundAny {
@@ -1422,6 +1428,35 @@ func runGoVet(ctx context.Context, files []fileWithChanges, branchBaseCommit str
 	}
 
 	return true
+}
+
+// runErrcheck runs `errcheck` on all golang files. It returns false if errcheck fails.
+func runErrcheck(ctx context.Context) bool {
+	args := []string{"run", "--config=mayberemote", "//:errcheck", "--", "-ignore", ":Close", "go.skia.org/infra/..."}
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log(ctx, string(output))
+		log(ctx, "errcheck failed!\n")
+		return false
+	}
+
+	return true
+}
+
+// runGoGenerate runs `go generate ./...` and returns false if it fails or produces any diffs.
+func runGoGenerate(ctx context.Context, files []fileWithChanges, branchBaseCommit string) bool {
+	args := []string{"run", "--config=mayberemote", "//:go", "--", "generate", "./..."}
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log(ctx, string(output))
+		log(ctx, "go generate failed!\n")
+		return false
+	}
+
+	changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit)
+	return checkUnchanged(ctx, "go generate", files, changedFiles)
 }
 
 // runAutoreview runs the AI-powered code review tool. It returns false if autoreview fails or finds a blocker.

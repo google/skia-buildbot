@@ -40,9 +40,9 @@ const (
 var (
 	// jobsToCQStatus lists all infra Jobs and their CQ config to run at each commit.
 	jobsToCQStatus = map[string]*specs.CommitQueueJobConfig{
-		"Housekeeper-OnDemand-Presubmit":                      &cqWithDefaults,
-		"Infra-PerCommit-Build":                               &cqWithDefaults,
-		"Infra-PerCommit-Test":                                &cqWithDefaults,
+		"Infra-Presubmit":       &cqWithDefaults,
+		"Infra-PerCommit-Build": &cqWithDefaults,
+		"Infra-PerCommit-Test":  &cqWithDefaults,
 		"Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": &cqWithDefaults,
 		"Housekeeper-PerCommit-BuildTaskDrivers-Mac-x86_64":   noCQ,
 		"Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64":   noCQ,
@@ -169,7 +169,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	}
 	// To iterate on the presubmit task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	usesPreBuiltTaskDrivers(t)
+	//usesPreBuiltTaskDrivers(t)
 	usesBazelisk(b, t)
 	usesWrapperTaskDriver(b, name, true, t)
 	usesLUCIAuth(t)
@@ -339,7 +339,7 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 		deps = append(deps, bazelBuild(b, name))
 	} else if name == "Infra-PerCommit-Test" {
 		deps = append(deps, bazelTest(b, name))
-	} else if strings.Contains(name, "Presubmit") {
+	} else if name == "Infra-Presubmit" {
 		priority = 1
 		deps = append(deps, presubmit(b, name))
 	} else if strings.Contains(name, "TaskDrivers") {

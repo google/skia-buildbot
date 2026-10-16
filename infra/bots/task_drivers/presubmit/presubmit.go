@@ -83,7 +83,11 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
-	if _, err = bzl.DoOnRBE(ctx, "run", "//cmd/presubmit", "--", "--commit"); err != nil {
+	args := []string{"//cmd/presubmit", "--", "--commit"}
+	if !repoState.IsTryJob() {
+		args = append(args, "--upstream=HEAD^")
+	}
+	if _, err = bzl.DoOnRBE(ctx, "run", args...); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
