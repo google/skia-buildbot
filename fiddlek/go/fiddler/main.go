@@ -51,6 +51,7 @@ var (
 	currentState types.State = types.IDLE
 	version      string
 	srv          *http.Server
+	shutdownDone = make(chan struct{})
 )
 
 func setStateStart() error {
@@ -125,6 +126,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			util.LogErr(srv.Shutdown(ctx))
+			close(shutdownDone)
 		}()
 	}()
 
@@ -414,5 +416,6 @@ func main() {
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		sklog.Fatal(err)
 	}
+	<-shutdownDone
 	sklog.Infof("Terminated successfully.")
 }
