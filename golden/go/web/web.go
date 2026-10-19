@@ -1967,6 +1967,25 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (fronte
 
 	span.AddAttributes(trace.BoolAttribute("fromRemoteCache", false))
 
+	// Most CQ changelists have no pre-submit triage (SecondaryBranchExpectations has 0 rows), so
+	// their baseline is identical to the primary branch baseline. Checking first lets untriaged
+	// CLs share the cached primary branch baseline as-is without per-CL Redis misses, per-CL
+	// Redis duplication, or CockroachDB joins.
+	if crs != "" {
+		hasCustom, err := wh.hasCustomExpectations(ctx, crs, clID)
+		if err != nil {
+			return frontend.BaselineV2Response{}, skerr.Wrap(err)
+		}
+		if !hasCustom {
+			span.AddAttributes(
+				trace.StringAttribute("type", "changelist"),
+				trace.StringAttribute("crs", crs),
+				trace.StringAttribute("clID", clID),
+				trace.BoolAttribute("fastPathNoCustomExps", true))
+			return wh.fetchBaseline(ctx, "", "")
+		}
+	}
+
 	if wh.cacheManager != nil {
 		sklog.Info("Using the cache manager for fetching baseline.")
 		res, err := wh.cacheManager.GetBaseline(ctx, crs, clID)
@@ -2069,6 +2088,24 @@ WHERE label = 'n' OR label = 'p'`
 	}
 
 	return response, nil
+}
+
+// hasCustomExpectations returns true if the changelist has any custom expectations triaged on its
+// secondary branch in CockroachDB.
+func (wh *Handlers) hasCustomExpectations(ctx context.Context, crs, clID string) (bool, error) {
+	qCLID := sql.Qualify(crs, clID)
+	const statement = `SELECT 1 FROM SecondaryBranchExpectations
+		AS OF SYSTEM TIME '-0.1s'
+		WHERE branch_name = $1
+		LIMIT 1`
+	var dummy int
+	if err := wh.DB.QueryRow(ctx, statement, qCLID).Scan(&dummy); err != nil {
+		if err == pgx.ErrNoRows {
+			return false, nil
+		}
+		return false, skerr.Wrap(err)
+	}
+	return true, nil
 }
 
 // DigestListHandler returns a list of digests for a given test. This is used by goldctl's

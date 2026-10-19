@@ -573,7 +573,7 @@ func TestBaselineHandlerV2_NewCL_ReturnsPrimaryBaseline(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=NewCLID&crs=gerrit", nil)
 
-	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}},"cl_id":"NewCLID","crs":"gerrit"}`
+	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}}}`
 
 	wh.BaselineHandlerV2(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
@@ -3566,14 +3566,17 @@ func overwriteNow(r *http.Request, fakeNow time.Time) *http.Request {
 }
 
 func TestBaselineHandlerV2_WithCacheManager_CacheHit_ReturnsCachedBaseline(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
 	lc, err := local.New(100)
 	require.NoError(t, err)
 
 	wh := Handlers{
-		// We pass nil for the DB to ensure it's not used.
-		// A real DB connection is not necessary for this test.
 		HandlersConfig: HandlersConfig{
-			DB: nil, // Should not be called
+			DB: db,
 			ReviewSystems: []clstore.ReviewSystem{
 				{ID: dks.GerritCRS},
 			},
@@ -3582,7 +3585,6 @@ func TestBaselineHandlerV2_WithCacheManager_CacheHit_ReturnsCachedBaseline(t *te
 	}
 	wh.cacheManager = NewCacheManager(lc)
 
-	ctx := context.Background()
 	const crs = "gerrit"
 	const clID = "CL_fix_ios"
 	expectedResponse := frontend.BaselineV2Response{
@@ -3723,4 +3725,119 @@ func TestBaselineHandlerV2_WithCacheManager_ErrorOnSet_LogsErrorAndSucceeds(t *t
 	err := json.Unmarshal(respBody, &actualResponse)
 	require.NoError(t, err)
 	assert.NotEmpty(t, actualResponse.Expectations)
+}
+
+func TestHasCustomExpectations_Success(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	// CL_fix_ios has triage records in SecondaryBranchExpectations (from dks test data).
+	hasCustom, err := wh.hasCustomExpectations(ctx, dks.GerritCRS, "CL_fix_ios")
+	require.NoError(t, err)
+	assert.True(t, hasCustom)
+
+	// NewCLID has no triage records in SecondaryBranchExpectations.
+	hasCustom, err = wh.hasCustomExpectations(ctx, dks.GerritCRS, "NewCLID")
+	require.NoError(t, err)
+	assert.False(t, hasCustom)
+}
+
+func TestHasCustomExpectations_DBError_ReturnsError(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	db.Close()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	_, err := wh.hasCustomExpectations(ctx, dks.GerritCRS, "NewCLID")
+	require.Error(t, err)
+}
+
+func TestBaselineHandlerV2_HasCustomExpectationsError_ReturnsErrorWithoutFullJoin(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	// Drop SecondaryBranchExpectations while leaving Expectations and Groupings intact, and
+	// verify that a failure in hasCustomExpectations fails closed without touching Redis.
+	_, err := db.Exec(ctx, "DROP TABLE SecondaryBranchExpectations")
+	require.NoError(t, err)
+	waitForSystemTime()
+
+	mc := &mockCache.Cache{}
+	defer mc.AssertExpectations(t)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{ID: dks.GerritCRS},
+			},
+			CacheClient: mc,
+		},
+		cacheManager: NewCacheManager(mc),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=NewCLID&crs=gerrit", nil)
+
+	wh.BaselineHandlerV2(w, r)
+	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	mc.AssertNotCalled(t, "GetValue", mock.Anything, mock.Anything)
+	mc.AssertNotCalled(t, "SetValueWithExpiry", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestBaselineHandlerV2_UntriagedCL_SharesPrimaryBaselineWithoutCLCacheLookup(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	mc := &mockCache.Cache{}
+	defer mc.AssertExpectations(t)
+
+	cachedPrimary := frontend.BaselineV2Response{
+		Expectations: expectations.Baseline{
+			dks.SquareTest: {
+				dks.DigestA01Pos: expectations.Positive,
+			},
+		},
+	}
+	cachedPrimaryJSON, err := json.Marshal(cachedPrimary)
+	require.NoError(t, err)
+
+	// Untriaged CLs must skip the per-CL Redis lookup (baseline_gerrit_NewCLID) and serve
+	// the primary branch's cached baseline (baseline__) directly.
+	mc.On("GetValue", testutils.AnyContext, "baseline__").Return(string(cachedPrimaryJSON), nil).Once()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+			ReviewSystems: []clstore.ReviewSystem{
+				{ID: dks.GerritCRS},
+			},
+			CacheClient: mc,
+		},
+		cacheManager: NewCacheManager(mc),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2+"?issue=NewCLID&crs=gerrit", nil)
+
+	wh.BaselineHandlerV2(w, r)
+	var actualResponse frontend.BaselineV2Response
+	respBody := assertJSONResponseAndReturnBody(t, http.StatusOK, w)
+	require.NoError(t, json.Unmarshal(respBody, &actualResponse))
+	assert.Equal(t, cachedPrimary, actualResponse)
 }
