@@ -1853,7 +1853,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "+bM9uVn+ZyF0CUlJY4PyDYPW4vflN//94YRSEJD7cW0=",
+        "usagesDigest": "rWB1vwHckmsqC6jVQygDEhq5gO7UkweXyj9qTWILfNw=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1892,7 +1892,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "skia-public/debugger-app-final",
-              "identifier": "sha256:95599744d30a7e27bef71e1eab8103cb5c183a242b2e74979c4f9bdb5dba2729",
+              "identifier": "sha256:31c3406ba4207be9dc3ca41566bf4defab618d7948a881102c077b5ecbe43563",
               "target_name": "pinned_debugger_single",
               "bazel_tags": []
             }
@@ -1905,7 +1905,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "skia-public/debugger-app-final",
-              "identifier": "sha256:95599744d30a7e27bef71e1eab8103cb5c183a242b2e74979c4f9bdb5dba2729",
+              "identifier": "sha256:31c3406ba4207be9dc3ca41566bf4defab618d7948a881102c077b5ecbe43563",
               "platforms": {},
               "platform": "@@rules_oci+//oci:pinned_debugger_single",
               "bzlmod_repository": "pinned_debugger",
