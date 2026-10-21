@@ -92,6 +92,7 @@ func TestSkiaOrgDNSConfiguration(t *testing.T) {
 	testSkiaOrgZoneEntry(t, dns.TypeTXT, "_validation-persist.skia.org.", "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/-hp_UqbNXIyKURH60i1QDw; policy=wildcard")
 	testSkiaOrgZoneEntry(t, dns.TypeTXT, "_validation-persist.skia.org.", "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/AgqaatevDcGzoTR4waGTew; policy=wildcard")
 	testSkiaOrgZoneEntry(t, dns.TypeTXT, "_validation-persist.skia.org.", "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/LJzVN6WH3SdkuNYN_A7s4g; policy=wildcard")
+	testSkiaOrgZoneEntry(t, dns.TypeTXT, "_validation-persist.skia.org.", "pki.goog; accounturi=https://dv-allowlist-core.acme-v02.api.pki.goog/account/TN3TL95bZqMijL8K9anrKg; policy=wildcard")
 	testSkiaOrgZoneEntry(t, dns.TypeTXT, "_validation-persist.skia.org.", "pki.goog; accounturi=https://dv-allowlist.acme-v02.api.pki.goog/account/P7MdecKq0sMSdk5oqPoHOQ; policy=wildcard")
 
 	testSkiaOrgZoneEntry(t, dns.TypeA, "androidx2-perf.skia.org.", "34.110.212.89")
