@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
@@ -609,9 +610,9 @@ func TestBaselineHandlerV2_RowsIterationError_ReturnsInternalServerErrorAndDoesN
 	wh.BaselineHandlerV2(w, r)
 	assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 
-	cachedPrimaryJSON, err := lc.GetValue(ctx, "baseline__")
+	cachedPrimaryGzip, err := lc.GetValue(ctx, "baseline_gz__")
 	require.NoError(t, err)
-	assert.Empty(t, cachedPrimaryJSON)
+	assert.Empty(t, cachedPrimaryGzip)
 }
 
 // TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when
@@ -3597,9 +3598,9 @@ func TestBaselineHandlerV2_WithCacheManager_CacheHit_ReturnsCachedBaseline(t *te
 		},
 	}
 	// Manually populate the cache.
-	jsonBytes, err := json.Marshal(expectedResponse)
+	gzBytes, err := encodeBaseline(expectedResponse)
 	require.NoError(t, err)
-	err = lc.SetValue(ctx, "baseline_gerrit_CL_fix_ios", string(jsonBytes))
+	err = lc.SetValue(ctx, "baseline_gz_gerrit_CL_fix_ios", string(gzBytes))
 	require.NoError(t, err)
 
 	w := httptest.NewRecorder()
@@ -3641,17 +3642,49 @@ func TestBaselineHandlerV2_WithCacheManager_CacheMiss_FetchesFromDBAndPopulatesC
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 	// Check that the remote cache was populated.
-	cachedJSON, err := lc.GetValue(ctx, "baseline_gerrit_CL_fix_ios")
+	cachedGzip, err := lc.GetValue(ctx, "baseline_gz_gerrit_CL_fix_ios")
 	require.NoError(t, err)
-	assert.NotEmpty(t, cachedJSON)
+	assert.NotEmpty(t, cachedGzip)
 
-	var fromCache frontend.BaselineV2Response
-	err = json.Unmarshal([]byte(cachedJSON), &fromCache)
+	gzReader, err := gzip.NewReader(strings.NewReader(cachedGzip))
 	require.NoError(t, err)
+	var fromCache frontend.BaselineV2Response
+	require.NoError(t, json.NewDecoder(gzReader).Decode(&fromCache))
+	require.NoError(t, gzReader.Close())
 	assert.Equal(t, "CL_fix_ios", fromCache.ChangelistID)
 	assert.Equal(t, "gerrit", fromCache.CodeReviewSystem)
 	// from dks data, we expect some expectations here.
 	assert.NotEmpty(t, fromCache.Expectations)
+}
+
+func TestBaselineHandlerV2_WithCacheManager_AcceptEncodingGzip_ServesCachedGzipBytesAsIs(t *testing.T) {
+	lc, err := local.New(100)
+	require.NoError(t, err)
+
+	wh := Handlers{
+		cacheManager: NewCacheManager(lc),
+	}
+
+	expectedResponse := frontend.BaselineV2Response{
+		Expectations: expectations.Baseline{
+			"test1": {
+				"digest1": expectations.Positive,
+			},
+		},
+	}
+	gzBytes, err := encodeBaseline(expectedResponse)
+	require.NoError(t, err)
+	require.NoError(t, lc.SetValue(context.Background(), "baseline_gz__", string(gzBytes)))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2, nil)
+	r.Header.Set("Accept-Encoding", "gzip")
+
+	wh.BaselineHandlerV2(w, r)
+	res := w.Result()
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, "gzip", res.Header.Get("Content-Encoding"))
+	assert.Equal(t, gzBytes, w.Body.Bytes())
 }
 
 func TestBaselineHandlerV2_WithCacheManager_ErrorOnGet_FallsBackToDBAndStillSetsCache(t *testing.T) {
@@ -3663,9 +3696,9 @@ func TestBaselineHandlerV2_WithCacheManager_ErrorOnGet_FallsBackToDBAndStillSets
 	mc := &mockCache.Cache{}
 	defer mc.AssertExpectations(t)
 
-	mc.On("GetValue", testutils.AnyContext, "baseline_gerrit_CL_fix_ios").Return("", errors.New("cache machine broke")).Once()
+	mc.On("GetValue", testutils.AnyContext, "baseline_gz_gerrit_CL_fix_ios").Return("", errors.New("cache machine broke")).Once()
 	// SetValue should be called when we populate the cache after DB lookup.
-	mc.On("SetValueWithExpiry", testutils.AnyContext, "baseline_gerrit_CL_fix_ios", mock.AnythingOfType("string"), mock.AnythingOfType("time.Duration")).Return(nil).Once()
+	mc.On("SetValueWithExpiry", testutils.AnyContext, "baseline_gz_gerrit_CL_fix_ios", mock.AnythingOfType("string"), mock.AnythingOfType("time.Duration")).Return(nil).Once()
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -3700,8 +3733,8 @@ func TestBaselineHandlerV2_WithCacheManager_ErrorOnSet_LogsErrorAndSucceeds(t *t
 	mc := &mockCache.Cache{}
 	defer mc.AssertExpectations(t)
 
-	mc.On("GetValue", testutils.AnyContext, "baseline_gerrit_CL_fix_ios").Return("", nil).Once() // cache miss
-	mc.On("SetValueWithExpiry", testutils.AnyContext, "baseline_gerrit_CL_fix_ios", mock.AnythingOfType("string"), mock.AnythingOfType("time.Duration")).Return(errors.New("cache machine still broke")).Once()
+	mc.On("GetValue", testutils.AnyContext, "baseline_gz_gerrit_CL_fix_ios").Return("", nil).Once() // cache miss
+	mc.On("SetValueWithExpiry", testutils.AnyContext, "baseline_gz_gerrit_CL_fix_ios", mock.AnythingOfType("string"), mock.AnythingOfType("time.Duration")).Return(errors.New("cache machine still broke")).Once()
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -3814,12 +3847,12 @@ func TestBaselineHandlerV2_UntriagedCL_SharesPrimaryBaselineWithoutCLCacheLookup
 			},
 		},
 	}
-	cachedPrimaryJSON, err := json.Marshal(cachedPrimary)
+	cachedPrimaryGzip, err := encodeBaseline(cachedPrimary)
 	require.NoError(t, err)
 
 	// Untriaged CLs must skip the per-CL Redis lookup (baseline_gerrit_NewCLID) and serve
-	// the primary branch's cached baseline (baseline__) directly.
-	mc.On("GetValue", testutils.AnyContext, "baseline__").Return(string(cachedPrimaryJSON), nil).Once()
+	// the primary branch's cached baseline (baseline_gz__) directly.
+	mc.On("GetValue", testutils.AnyContext, "baseline_gz__").Return(string(cachedPrimaryGzip), nil).Once()
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{

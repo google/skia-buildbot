@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
@@ -9,6 +10,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -1949,60 +1951,81 @@ func (wh *Handlers) BaselineHandlerV2(w http.ResponseWriter, r *http.Request) {
 		crs = ""
 	}
 
-	bl, err := wh.fetchBaseline(ctx, crs, clID)
+	gzBaseline, err := wh.fetchBaseline(ctx, crs, clID)
 	if err != nil {
 		httputils.ReportError(w, err, "Fetching baseline failed.", http.StatusInternalServerError)
 		return
 	}
 
-	sendJSONResponse(w, bl)
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		setJSONHeaders(w)
+		w.Header().Set("Content-Encoding", "gzip")
+		if _, err := w.Write(gzBaseline); err != nil {
+			sklog.Errorf("Failed to write gzipped baseline response: %s", err)
+		}
+		return
+	}
+
+	gzReader, err := gzip.NewReader(bytes.NewReader(gzBaseline))
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to decompress baseline response.", http.StatusInternalServerError)
+		return
+	}
+	defer util.Close(gzReader)
+	setJSONHeaders(w)
+	if _, err := io.Copy(w, gzReader); err != nil {
+		sklog.Errorf("Failed to write baseline response: %s", err)
+	}
 }
 
-// fetchBaseline returns an object that contains all the positive and negatively triaged digests
-// for either the primary branch or the primary branch and the CL. As per usual, the triage status
-// on a CL overrides the triage status on the primary branch.
-func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) (frontend.BaselineV2Response, error) {
+// fetchBaseline returns the gzipped JSON representation of a BaselineV2Response containing all
+// positive and negatively triaged digests for either the primary branch or the primary branch and
+// the CL. As per usual, the triage status on a CL overrides the triage status on the primary
+// branch.
+func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) ([]byte, error) {
 	ctx, span := trace.StartSpan(ctx, "fetchBaseline")
 	defer span.End()
 
-	span.AddAttributes(trace.BoolAttribute("fromRemoteCache", false))
-
 	// Most CQ changelists have no pre-submit triage (SecondaryBranchExpectations has 0 rows), so
 	// their baseline is identical to the primary branch baseline. Checking first lets untriaged
-	// CLs share the cached primary branch baseline as-is without per-CL Redis misses, per-CL
-	// Redis duplication, or CockroachDB joins.
+	// CLs share the cached primary branch gzipped bytes as-is without per-CL Redis misses, per-CL
+	// Redis duplication, re-encoding, or CockroachDB joins.
 	if crs != "" {
 		hasCustom, err := wh.hasCustomExpectations(ctx, crs, clID)
 		if err != nil {
-			return frontend.BaselineV2Response{}, skerr.Wrap(err)
+			return nil, skerr.Wrap(err)
 		}
 		if !hasCustom {
 			span.AddAttributes(
-				trace.StringAttribute("type", "changelist"),
+				trace.BoolAttribute("sharedPrimaryBaseline", true),
 				trace.StringAttribute("crs", crs),
-				trace.StringAttribute("clID", clID),
-				trace.BoolAttribute("fastPathNoCustomExps", true))
+				trace.StringAttribute("clID", clID))
 			return wh.fetchBaseline(ctx, "", "")
 		}
 	}
 
 	if wh.cacheManager != nil {
 		sklog.Info("Using the cache manager for fetching baseline.")
-		res, err := wh.cacheManager.GetBaseline(ctx, crs, clID)
+		gzBaseline, err := wh.cacheManager.GetBaseline(ctx, crs, clID)
 		if err != nil {
 			// Log the error and let it fall back to the older method.
 			sklog.Errorf("Error fetching baseline from remote cache: %v", err)
+		} else if len(gzBaseline) > 0 {
+			span.AddAttributes(trace.BoolAttribute("fromRemoteCache", true))
+			return gzBaseline, nil
 		} else {
-			if res != nil {
-				span.AddAttributes(
-					trace.BoolAttribute("fromRemoteCache", true),
-					trace.Int64Attribute("numExpectationsReturned", int64(len(res.Expectations))))
-				return *res, nil
-			} else {
-				sklog.Infof("No baseline found in cache. Falling back to database search.")
-			}
+			sklog.Infof("No baseline found in cache. Falling back to database search.")
 		}
 	}
+
+	return wh.fetchBaselineFromDB(ctx, crs, clID)
+}
+
+// fetchBaselineFromDB queries CockroachDB for the primary or changelist baseline, encodes it as
+// gzipped JSON, and caches the result.
+func (wh *Handlers) fetchBaselineFromDB(ctx context.Context, crs, clID string) ([]byte, error) {
+	ctx, span := trace.StartSpan(ctx, "fetchBaselineFromDB")
+	defer span.End()
 
 	statement := `WITH
 PrimaryBranchExps AS (
@@ -2046,7 +2069,7 @@ WHERE label = 'n' OR label = 'p'`
 	}
 	rows, err := wh.DB.Query(ctx, statement, args...)
 	if err != nil {
-		return frontend.BaselineV2Response{}, skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 	defer rows.Close()
 	baseline := expectations.Baseline{}
@@ -2055,7 +2078,7 @@ WHERE label = 'n' OR label = 'p'`
 		var digest types.Digest
 		var label schema.ExpectationLabel
 		if err := rows.Scan(&testName, &digest, &label); err != nil {
-			return frontend.BaselineV2Response{}, skerr.Wrap(err)
+			return nil, skerr.Wrap(err)
 		}
 		byDigest, ok := baseline[testName]
 		if !ok {
@@ -2065,7 +2088,7 @@ WHERE label = 'n' OR label = 'p'`
 		byDigest[digest] = label.ToExpectation()
 	}
 	if err := rows.Err(); err != nil {
-		return frontend.BaselineV2Response{}, skerr.Wrap(err)
+		return nil, skerr.Wrap(err)
 	}
 
 	response := frontend.BaselineV2Response{
@@ -2075,19 +2098,24 @@ WHERE label = 'n' OR label = 'p'`
 	}
 	span.AddAttributes(trace.Int64Attribute("numExpectationsReturned", int64(len(response.Expectations))))
 
+	gzBaseline, err := encodeBaseline(response)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	// Cache the computed baseline.
 	baselineCacheEntryTTL := baselineCachePrimaryBranchEntryTTL
 	if clID != "" {
 		baselineCacheEntryTTL = baselineCacheSecondaryBranchEntryTTL
 	}
 	if wh.cacheManager != nil {
-		err := wh.cacheManager.SetBaseline(ctx, crs, clID, response, baselineCacheEntryTTL)
+		err := wh.cacheManager.SetBaseline(ctx, crs, clID, gzBaseline, baselineCacheEntryTTL)
 		if err != nil {
 			sklog.Errorf("Error adding the baseline to remote cache: %v", err)
 		}
 	}
 
-	return response, nil
+	return gzBaseline, nil
 }
 
 // hasCustomExpectations returns true if the changelist has any custom expectations triaged on its

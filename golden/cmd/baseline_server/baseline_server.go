@@ -176,6 +176,9 @@ func main() {
 	// Only log and compress the app routes, but not the health check.
 	router := chi.NewRouter()
 	router.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	// BaselineHandlerV2 serves pre-gzipped bytes directly; bypass LoggingGzipRequestResponse
+	// so autogzip does not compress the response a second time.
+	router.Handle(frontend.ExpectationsRouteV2, httputils.LoggingRequestResponse(appRouter))
 	router.Handle("/*", httputils.LoggingGzipRequestResponse(appRouter))
 
 	// Start the internal server on the internal port if requested.

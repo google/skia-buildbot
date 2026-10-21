@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -21,19 +20,19 @@ func TestWebCacheManager_GetBaseline_Success(t *testing.T) {
 
 	const crs = "github"
 	const clID = "12345"
-	expected := &frontend.BaselineV2Response{
+	expected := frontend.BaselineV2Response{
 		ChangelistID:     clID,
 		CodeReviewSystem: crs,
 	}
-	b, err := json.Marshal(expected)
+	b, err := encodeBaseline(expected)
 	require.NoError(t, err)
 
-	err = lc.SetValue(ctx, "baseline_github_12345", string(b))
+	err = lc.SetValue(ctx, "baseline_gz_github_12345", string(b))
 	require.NoError(t, err)
 
 	actual, err := wcm.GetBaseline(ctx, crs, clID)
 	require.NoError(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Equal(t, b, actual)
 }
 
 func TestWebCacheManager_GetBaseline_NotFound(t *testing.T) {
@@ -51,6 +50,21 @@ func TestWebCacheManager_GetBaseline_NotFound(t *testing.T) {
 	assert.Nil(t, actual)
 }
 
+func TestWebCacheManager_GetBaseline_CorruptGzip_ReturnsError(t *testing.T) {
+	ctx := context.Background()
+	lc, err := local.New(100)
+	require.NoError(t, err)
+
+	wcm := NewCacheManager(lc)
+
+	err = lc.SetValue(ctx, "baseline_gz_github_12345", "not-valid-gzip")
+	require.NoError(t, err)
+
+	actual, err := wcm.GetBaseline(ctx, "github", "12345")
+	require.Error(t, err)
+	assert.Nil(t, actual)
+}
+
 func TestWebCacheManager_SetBaseline_Success(t *testing.T) {
 	ctx := context.Background()
 	lc, err := local.New(100)
@@ -60,22 +74,18 @@ func TestWebCacheManager_SetBaseline_Success(t *testing.T) {
 
 	const crs = "github"
 	const clID = "12345"
-	expected := frontend.BaselineV2Response{
+	expected, err := encodeBaseline(frontend.BaselineV2Response{
 		ChangelistID:     clID,
 		CodeReviewSystem: crs,
-	}
+	})
+	require.NoError(t, err)
 
 	err = wcm.SetBaseline(ctx, crs, clID, expected, 2*time.Second)
 	require.NoError(t, err)
 
-	actualJSON, err := lc.GetValue(ctx, "baseline_github_12345")
+	actualGzip, err := lc.GetValue(ctx, "baseline_gz_github_12345")
 	require.NoError(t, err)
-
-	var actual frontend.BaselineV2Response
-	err = json.Unmarshal([]byte(actualJSON), &actual)
-	require.NoError(t, err)
-
-	assert.Equal(t, expected, actual)
+	assert.Equal(t, expected, []byte(actualGzip))
 }
 
 func TestWebCacheManager_GetAndSetBaseline(t *testing.T) {
@@ -93,15 +103,16 @@ func TestWebCacheManager_GetAndSetBaseline(t *testing.T) {
 	assert.Nil(t, actual)
 
 	// Set baseline.
-	expected := frontend.BaselineV2Response{
+	expected, err := encodeBaseline(frontend.BaselineV2Response{
 		ChangelistID:     clID,
 		CodeReviewSystem: crs,
-	}
+	})
+	require.NoError(t, err)
 	err = wcm.SetBaseline(ctx, crs, clID, expected, 2*time.Second)
 	require.NoError(t, err)
 
 	// Get baseline again.
 	actual, err = wcm.GetBaseline(ctx, crs, clID)
 	require.NoError(t, err)
-	assert.Equal(t, &expected, actual)
+	assert.Equal(t, expected, actual)
 }
