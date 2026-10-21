@@ -16,7 +16,7 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/cipd/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/cipd/${platform}",
-		Version: "git_revision:88c551cb4de7b8c76d05b614fc8a3921f91c5efa",
+		Version: "git_revision:abe8fd1550c6fdfaf67533efe2bf58d7972191f6",
 	},
 	"infra/tools/git/${platform}": {
 		Path:    ".",

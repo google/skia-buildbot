@@ -805,13 +805,13 @@ cipd.download_http(
     name = "cipd",
     cipd_package = "infra/tools/cipd/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "d7025c0c307126316a6355b7f61070384c07c077f0384745e68cb6ac6571adc4",
-        "linux-arm64": "75e9a7664588c68ef8cdf80ee179e9cb8c3162627f11626567542a8b2be3f1a2",
-        "mac-amd64": "375bcdf5e451ba035a5aebec5cafa81e4e969e42ae90dfbf898098a6c3c1b21e",
-        "mac-arm64": "585e1f99ed262e0099acc1706c1f1a11f71ffa72e6852e29102d790265bd9561",
-        "windows-amd64": "f40e76a5b6cf47a057837f10d622f0c8ee15f2c1663c4d8912b2a4904853a4b3",
+        "linux-amd64": "1f108967408e7b52da82fb644140238736224d683b6bd72a330722e00971c0c7",
+        "linux-arm64": "7da997f5cb4fbc752c6a6187a0fbfe1806fa3184b45178e04a094e70d26363ce",
+        "mac-amd64": "a0cff689fa13555913e960faea8bac7e5c869703ac592ac47171e471430783bd",
+        "mac-arm64": "d3d7267c60d0e5f10091725de649f73c51585ac1c225ee9503a2674c3b0cb7d1",
+        "windows-amd64": "b837094cd1be22b9166c195efa850d366c8aa88e063a855e3e2428b1a1cea1cd",
     },
-    tag = "git_revision:88c551cb4de7b8c76d05b614fc8a3921f91c5efa",
+    tag = "git_revision:abe8fd1550c6fdfaf67533efe2bf58d7972191f6",
 )
 use_repo(cipd, "cipd_linux-amd64")
 
