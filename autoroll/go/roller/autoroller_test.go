@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
+	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/roller_cleanup"
 	roller_cleanup_mocks "go.skia.org/infra/autoroll/go/roller_cleanup/mocks"
@@ -22,6 +23,7 @@ import (
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
@@ -277,4 +279,43 @@ func TestRepoManagerInitFailed(t *testing.T) {
 	gerritClient.AssertExpectations(t)
 	require.True(t, urlmock.Empty())
 	cleanupDB.AssertExpectations(t)
+}
+
+func TestUpdateModeAndBacklogMetrics(t *testing.T) {
+	const rollerName = "catapult-autoroll"
+
+	updateModeAndBacklogMetrics(rollerName, modes.ModeStopped, 5)
+	require.Equal(t, int64(1), metrics2.GetInt64Metric("autoroll_mode", map[string]string{
+		"roller": rollerName,
+		"mode":   string(modes.ModeStopped),
+	}).Get())
+	require.Equal(t, int64(0), metrics2.GetInt64Metric("autoroll_mode", map[string]string{
+		"roller": rollerName,
+		"mode":   string(modes.ModeRunning),
+	}).Get())
+	require.Equal(t, int64(0), metrics2.GetInt64Metric("autoroll_mode", map[string]string{
+		"roller": rollerName,
+		"mode":   string(modes.ModeDryRun),
+	}).Get())
+	require.Equal(t, int64(0), metrics2.GetInt64Metric("autoroll_mode", map[string]string{
+		"roller": rollerName,
+		"mode":   string(modes.ModeOffline),
+	}).Get())
+	require.Equal(t, int64(5), metrics2.GetInt64Metric("autoroll_not_rolled_revs", map[string]string{
+		"roller": rollerName,
+	}).Get())
+
+	// Transition back to running with 0 pending commits and verify old mode is zeroed.
+	updateModeAndBacklogMetrics(rollerName, modes.ModeRunning, 0)
+	require.Equal(t, int64(0), metrics2.GetInt64Metric("autoroll_mode", map[string]string{
+		"roller": rollerName,
+		"mode":   string(modes.ModeStopped),
+	}).Get())
+	require.Equal(t, int64(1), metrics2.GetInt64Metric("autoroll_mode", map[string]string{
+		"roller": rollerName,
+		"mode":   string(modes.ModeRunning),
+	}).Get())
+	require.Equal(t, int64(0), metrics2.GetInt64Metric("autoroll_not_rolled_revs", map[string]string{
+		"roller": rollerName,
+	}).Get())
 }

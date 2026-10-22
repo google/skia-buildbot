@@ -853,7 +853,24 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	}
 	// Log the current reviewers(s).
 	sklog.Infof("Current reviewers: %v", r.GetEmails())
+	updateModeAndBacklogMetrics(r.cfg.RollerName, r.GetMode(), numNotRolled)
 	return r.status.Update(ctx)
+}
+
+func updateModeAndBacklogMetrics(rollerName string, currentMode modes.Mode, numNotRolled int) {
+	for _, m := range modes.ValidModes {
+		val := int64(0)
+		if currentMode == m {
+			val = 1
+		}
+		metrics2.GetInt64Metric("autoroll_mode", map[string]string{
+			"roller": rollerName,
+			"mode":   string(m),
+		}).Update(val)
+	}
+	metrics2.GetInt64Metric("autoroll_not_rolled_revs", map[string]string{
+		"roller": rollerName,
+	}).Update(int64(numNotRolled))
 }
 
 // Tick runs one iteration of the roller.

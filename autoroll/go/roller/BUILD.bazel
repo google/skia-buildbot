@@ -55,6 +55,7 @@ go_test(
     deps = [
         "//autoroll/go/config",
         "//autoroll/go/manual",
+        "//autoroll/go/modes",
         "//autoroll/go/revision",
         "//autoroll/go/roller_cleanup",
         "//autoroll/go/roller_cleanup/mocks",
@@ -65,6 +66,7 @@ go_test(
         "//go/gerrit/mocks",
         "//go/git/git_common",
         "//go/github",
+        "//go/metrics2",
         "//go/metrics2/testutils",
         "//go/mockhttpclient",
         "//go/now",
