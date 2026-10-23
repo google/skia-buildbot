@@ -1200,7 +1200,7 @@
         "bzlTransitiveDigest": "zFQPREJgEyD5QTfHAufFaMmv8NhrkP1NqmMjt7sTzwM=",
         "usagesDigest": "8lJWz423JN234xHchwcT57zc5LLgHe6OYhzsjID63b4=",
         "recordedFileInputs": {
-          "@@//kube/basealpine/basealpine.lock.json": "78014b185297f0da5a59ad513a81a78b603faa0470fc23478fd885991a01071f"
+          "@@//kube/basealpine/basealpine.lock.json": "56d24095bcabad079429bd2828b36f1dcf61ea66b4fa9eb0a56a3ed6850f5ae4"
         },
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1219,19 +1219,19 @@
               "architecture": "x86_64"
             }
           },
-          "basealpine-apk-install_musl_x86_64_1.2.5-r12": {
+          "basealpine-apk-install_musl_x86_64_1.2.5-r13": {
             "repoRuleId": "@@rules_apko+//apko/private:apk.bzl%apk_import",
             "attributes": {
               "package_name": "musl",
-              "version": "1.2.5-r12",
+              "version": "1.2.5-r13",
               "architecture": "x86_64",
-              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/musl-1.2.5-r12.apk",
-              "signature_range": "bytes=0-720",
-              "signature_checksum": "sha1-9ScZWjF5Ls9EzwzvIdB5gg2OrTw=",
-              "control_range": "bytes=721-1242",
-              "control_checksum": "sha1-88yFTG2t/rUxNtjQPwTR/5h2m/k=",
-              "data_range": "bytes=1243-412251",
-              "data_checksum": "sha256-49NWLaNcl1V2QTfuCZbEHEyXar1KFnwX/bCaULCLpJI="
+              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/musl-1.2.5-r13.apk",
+              "signature_range": "bytes=0-723",
+              "signature_checksum": "sha1-YQeIkLpAbaaCUWKUfFlbsWr9oak=",
+              "control_range": "bytes=724-1248",
+              "control_checksum": "sha1-Kd1D3m57UuRVKkGgKHd5yKqNj0s=",
+              "data_range": "bytes=1249-412386",
+              "data_checksum": "sha256-meegZ1VhmLm72qXW+8+uEY0ongIGzCwL7ZkcXZqNvl4="
             }
           },
           "basealpine-apk-install_ncurses-terminfo-base_x86_64_6.5_p20250503-r0": {

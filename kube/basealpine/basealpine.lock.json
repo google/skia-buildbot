@@ -22,22 +22,22 @@
     "packages": [
       {
         "name": "musl",
-        "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/musl-1.2.5-r12.apk",
-        "version": "1.2.5-r12",
+        "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/musl-1.2.5-r13.apk",
+        "version": "1.2.5-r13",
         "architecture": "x86_64",
         "signature": {
-          "range": "bytes=0-720",
-          "checksum": "sha1-9ScZWjF5Ls9EzwzvIdB5gg2OrTw="
+          "range": "bytes=0-723",
+          "checksum": "sha1-YQeIkLpAbaaCUWKUfFlbsWr9oak="
         },
         "control": {
-          "range": "bytes=721-1242",
-          "checksum": "sha1-88yFTG2t/rUxNtjQPwTR/5h2m/k="
+          "range": "bytes=724-1248",
+          "checksum": "sha1-Kd1D3m57UuRVKkGgKHd5yKqNj0s="
         },
         "data": {
-          "range": "bytes=1243-412251",
-          "checksum": "sha256-49NWLaNcl1V2QTfuCZbEHEyXar1KFnwX/bCaULCLpJI="
+          "range": "bytes=1249-412386",
+          "checksum": "sha256-meegZ1VhmLm72qXW+8+uEY0ongIGzCwL7ZkcXZqNvl4="
         },
-        "checksum": "Q188yFTG2t/rUxNtjQPwTR/5h2m/k="
+        "checksum": "Q1Kd1D3m57UuRVKkGgKHd5yKqNj0s="
       },
       {
         "name": "ncurses-terminfo-base",
