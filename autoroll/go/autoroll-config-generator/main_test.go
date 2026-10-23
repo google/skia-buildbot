@@ -27,7 +27,6 @@ config {
     commit_msg:  {
         include_log:  true
         include_revision_count:  true
-        include_tbr_line:  true
         built_in:  DEFAULT
     }
     gerrit:  {

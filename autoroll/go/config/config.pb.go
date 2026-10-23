@@ -825,9 +825,6 @@ type CommitMsgConfig struct {
 	// contained in the roll should be included in the subject line of the
 	// commit message.
 	IncludeRevisionCount bool `protobuf:"varint,6,opt,name=include_revision_count,json=includeRevisionCount,proto3" json:"include_revision_count,omitempty"`
-	// include_tbr_line indicates whether the "TBR:" line should be included in
-	// the commit message. This is required for some commit queues.
-	IncludeTbrLine bool `protobuf:"varint,7,opt,name=include_tbr_line,json=includeTbrLine,proto3" json:"include_tbr_line,omitempty"`
 	// include_tests indicates whether the "Test: " lines from the revisions in
 	// the roll should be propagated through to the roll itself.
 	IncludeTests bool `protobuf:"varint,8,opt,name=include_tests,json=includeTests,proto3" json:"include_tests,omitempty"`
@@ -915,13 +912,6 @@ func (x *CommitMsgConfig) GetIncludeLog() bool {
 func (x *CommitMsgConfig) GetIncludeRevisionCount() bool {
 	if x != nil {
 		return x.IncludeRevisionCount
-	}
-	return false
-}
-
-func (x *CommitMsgConfig) GetIncludeTbrLine() bool {
-	if x != nil {
-		return x.IncludeTbrLine
 	}
 	return false
 }
@@ -4872,7 +4862,7 @@ const file_config_proto_rawDesc = "" +
 	"\x14max_roll_cq_attempts\x18! \x01(\x05R\x11maxRollCqAttempts\x12?\n" +
 	"\x1dmax_roll_cls_to_same_revision\x18\" \x01(\x05R\x18maxRollClsToSameRevisionB\r\n" +
 	"\vcode_reviewB\x0e\n" +
-	"\frepo_manager\"\xca\x04\n" +
+	"\frepo_manager\"\xa0\x04\n" +
 	"\x0fCommitMsgConfig\x12\x1f\n" +
 	"\vbug_project\x18\x01 \x01(\tR\n" +
 	"bugProject\x12+\n" +
@@ -4881,8 +4871,7 @@ const file_config_proto_rawDesc = "" +
 	"\x18cq_do_not_cancel_trybots\x18\x04 \x01(\bR\x14cqDoNotCancelTrybots\x12\x1f\n" +
 	"\vinclude_log\x18\x05 \x01(\bR\n" +
 	"includeLog\x124\n" +
-	"\x16include_revision_count\x18\x06 \x01(\bR\x14includeRevisionCount\x12(\n" +
-	"\x10include_tbr_line\x18\a \x01(\bR\x0eincludeTbrLine\x12#\n" +
+	"\x16include_revision_count\x18\x06 \x01(\bR\x14includeRevisionCount\x12#\n" +
 	"\rinclude_tests\x18\b \x01(\bR\fincludeTests\x12#\n" +
 	"\rextra_footers\x18\v \x03(\tR\fextraFooters\x12\x1b\n" +
 	"\tword_wrap\x18\f \x01(\x05R\bwordWrap\x12C\n" +

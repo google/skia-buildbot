@@ -35,7 +35,6 @@ export function GetFakeConfig(): Config {
       cqExtraTrybots: undefined,
       includeLog: true,
       includeRevisionCount: true,
-      includeTbrLine: true,
       includeTests: true,
       builtIn: CommitMsgConfig_BuiltIn.DEFAULT,
       custom: '',

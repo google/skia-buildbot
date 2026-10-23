@@ -121,9 +121,6 @@ message CommitMsgConfig {
   // contained in the roll should be included in the subject line of the
   // commit message.
   bool include_revision_count = 6;
-  // include_tbr_line indicates whether the "TBR:" line should be included in
-  // the commit message. This is required for some commit queues.
-  bool include_tbr_line = 7;
   // include_tests indicates whether the "Test: " lines from the revisions in
   // the roll should be propagated through to the roll itself.
   bool include_tests = 8;

@@ -129,7 +129,6 @@ export interface CommitMsgConfig {
   cqDoNotCancelTrybots: boolean;
   includeLog: boolean;
   includeRevisionCount: boolean;
-  includeTbrLine: boolean;
   includeTests: boolean;
   extraFooters?: string[];
   wordWrap: number;
@@ -144,7 +143,6 @@ interface CommitMsgConfigJSON {
   cq_do_not_cancel_trybots?: boolean;
   include_log?: boolean;
   include_revision_count?: boolean;
-  include_tbr_line?: boolean;
   include_tests?: boolean;
   extra_footers?: string[];
   word_wrap?: number;

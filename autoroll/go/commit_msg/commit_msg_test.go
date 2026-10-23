@@ -24,7 +24,6 @@ func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 		ExtraFooters:         []string{"My-Footer: BlahBlah", "My-Other-Footer: Blah"},
 		IncludeLog:           true,
 		IncludeRevisionCount: true,
-		IncludeTbrLine:       true,
 		IncludeTests:         true,
 		BuiltIn:              config.CommitMsgConfig_DEFAULT,
 	}
@@ -199,7 +198,6 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
-Tbr: reviewer@google.com
 Test: some-test
 My-Footer: BlahBlah
 My-Other-Footer: Blah

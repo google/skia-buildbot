@@ -37,7 +37,6 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
-Tbr: reviewer@google.com
 Test: some-test
 My-Footer: BlahBlah
 My-Other-Footer: Blah
@@ -73,7 +72,6 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
-Tbr: reviewer@google.com
 Test: some-test
 My-Footer: BlahBlah
 My-Other-Footer: Blah
@@ -111,7 +109,6 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
 Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
-Tbr: reviewer@google.com
 Test: some-test
 My-Footer: BlahBlah
 My-Other-Footer: Blah
@@ -155,7 +152,6 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: None
-Tbr: reviewer@google.com
 Test: some-test
 My-Footer: BlahBlah
 My-Other-Footer: Blah
@@ -171,7 +167,6 @@ func TestNamedTemplateDefault_Minimal(t *testing.T) {
 	b.cfg.CqDoNotCancelTrybots = false
 	b.cfg.ExtraFooters = nil
 	b.cfg.IncludeLog = false
-	b.cfg.IncludeTbrLine = false
 	b.cfg.IncludeTests = false
 	b.transitiveDeps = nil
 	result, err := b.Build(FakeCommitMsgInputs())
@@ -247,7 +242,6 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
-Tbr: reviewer@google.com
 Test: some-test
 My-Footer: BlahBlah
 My-Other-Footer: Blah
@@ -289,7 +283,6 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
-Tbr: reviewer@google.com
 Test: some-test
 My-Footer: BlahBlah
 My-Other-Footer: Blah
@@ -334,7 +327,6 @@ https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 Cq-Include-Trybots: luci.fakeproject.try:some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
-Tbr: reviewer@google.com
 Test: some-test
 My-Footer: BlahBlah
 My-Other-Footer: Blah

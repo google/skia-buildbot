@@ -84,7 +84,6 @@ commit_msg:  {
 	cq_do_not_cancel_trybots:  true
 	include_log:  true
 	include_revision_count:  true
-	include_tbr_line:  true
 	include_tests:  true
 	built_in:  DEFAULT
 }

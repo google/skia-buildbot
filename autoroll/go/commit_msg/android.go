@@ -18,9 +18,6 @@ var (
 	// into Android. It can be referenced in config files using tmplNameAndroid.
 	tmplAndroid = template.Must(parseCommitMsgTemplate(tmplCommitMsg, TmplNameAndroid,
 		`{{- define "footer" -}}
-{{ if .IncludeTbrLine -}}
-Tbr: {{ stringsJoin .Reviewers "," }}
-{{ end -}}
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 {{ if .BugProject -}}
@@ -47,9 +44,6 @@ Please enable autosubmit on changes if possible when approving them.
 {{ template "defaultBoilerplate" . }}{{ end -}}
 
 {{- define "footer" -}}
-{{ if .IncludeTbrLine -}}
-Tbr: {{ stringsJoin .Reviewers "," }}
-{{ end -}}
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 {{ if .BugProject -}}

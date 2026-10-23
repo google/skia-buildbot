@@ -90,9 +90,6 @@ Cq-Do-Not-Cancel-Tryjobs: true
 {{ if .BugProject -}}
 Bug: {{ if .Bugs }}{{ stringsJoin .Bugs "," }}{{ else }}None{{ end }}
 {{ end -}}
-{{ if .IncludeTbrLine -}}
-Tbr: {{ stringsJoin .Reviewers "," }}
-{{ end -}}
 {{ if .IncludeTests -}}
 {{ range .Tests }}Test: {{.}}
 {{ end -}}

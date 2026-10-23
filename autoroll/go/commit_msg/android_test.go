@@ -36,7 +36,6 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Tbr: reviewer@google.com
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Bug: fakebugproject:1234
@@ -74,7 +73,6 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Tbr: reviewer@google.com
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Bug: fakebugproject:1234
@@ -115,7 +113,6 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Tbr: reviewer@google.com
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Test: some-test
@@ -132,7 +129,6 @@ func TestNamedTemplateAndroid_Minimal(t *testing.T) {
 	b.cfg.ChildLogUrlTmpl = ""
 	b.cfg.CqExtraTrybots = nil
 	b.cfg.IncludeLog = false
-	b.cfg.IncludeTbrLine = false
 	b.cfg.IncludeTests = false
 	b.cfg.ExtraFooters = nil
 	b.transitiveDeps = nil
@@ -188,7 +184,6 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Tbr: reviewer@google.com
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Bug: fakebugproject:1234
@@ -230,7 +225,6 @@ https://issues.skia.org/issues/new?component=1389291&template=1850622
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md
 
-Tbr: reviewer@google.com
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 Bug: fakebugproject:1234
