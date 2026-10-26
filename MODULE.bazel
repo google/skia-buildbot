@@ -637,13 +637,13 @@ cipd.download_http(
     name = "docker-credential-luci",
     cipd_package = "infra/tools/luci/docker-credential-luci/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "bf9bf96f258de54ba792e24f9a491de550adb4ca715d1c9ec9be66ca5efb3334",
-        "linux-arm64": "2ca418a758a77a98c730604c574aaf79f1e97a851df110d5925314b33c915ab7",
-        "mac-amd64": "4c10469d6538e04d1dcd942b356fd6ce6f69b6d17eda981fcb1a4e435fee88df",
-        "mac-arm64": "4d634f9b0f2baebedc152bb23e5c4868f244a8eb3c6ea4112f41881a3be37a65",
-        "windows-amd64": "d8a78bcb12f066920cc128efd64584ea3790aeb57cc4ef5e93a3f4b1dac23124",
+        "linux-amd64": "ac74b04f8564dc932fe9ce25f3bf72cd341a35192e7952e65917d5a92dd1015e",
+        "linux-arm64": "732b3f0c7286009c76428735e8bc89db87d653b86d5bca2f7e5353590377f247",
+        "mac-amd64": "98147e608bd2e8aeeba73890ce5e721c7a4b022167e695b45e9d724ede0726c9",
+        "mac-arm64": "c0b86bd621ccc819a10ba768424bf8cd3ec3ab0e470632040b77c1d61c803ef4",
+        "windows-amd64": "28b6c7f69f7646a27860a58e7014297a70c208189cf06b852d90dbcf5333103b",
     },
-    tag = "git_revision:abe8fd1550c6fdfaf67533efe2bf58d7972191f6",
+    tag = "git_revision:5698508b873fe67ac5a8d6afe391368ad083597b",
 )
 use_repo(cipd, "docker-credential-luci_linux-amd64")
 
