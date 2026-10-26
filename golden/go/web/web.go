@@ -30,6 +30,7 @@ import (
 	infra_cache "go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/roles"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/singleflight"
 	"golang.org/x/time/rate"
 
 	"go.skia.org/infra/go/alogin"
@@ -83,6 +84,8 @@ const (
 	baselineCachePrimaryBranchEntryTTL   = 10 * time.Second
 	baselineCacheSecondaryBranchEntryTTL = time.Minute
 	baselineCacheCleanupInterval         = 10 * time.Minute
+	// Matches goldctl's total retry budget for a baseline download (GetWithRetriesMaxElapsedTime).
+	baselineFetchTimeout = time.Minute
 )
 
 type validateFields int
@@ -117,7 +120,8 @@ type Handlers struct {
 
 	clSummaryCache *lru.Cache
 
-	cacheManager *webCacheManager
+	cacheManager       *webCacheManager
+	baselineFetchGroup singleflight.Group
 
 	statusCache      frontend.GUIStatus
 	statusCacheMutex sync.RWMutex
@@ -2018,7 +2022,19 @@ func (wh *Handlers) fetchBaseline(ctx context.Context, crs, clID string) ([]byte
 		}
 	}
 
-	return wh.fetchBaselineFromDB(ctx, crs, clID)
+	val, err, shared := wh.baselineFetchGroup.Do(baselineCacheKey(crs, clID), func() (interface{}, error) {
+		// Detach from the caller's request cancellation so a single client timing out
+		// (e.g. goldctl's 10s per-attempt timeout) does not abort the in-flight DB query
+		// for all other coalesced waiters or prevent populating the cache.
+		queryCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), baselineFetchTimeout)
+		defer cancel()
+		return wh.fetchBaselineFromDB(queryCtx, crs, clID)
+	})
+	span.AddAttributes(trace.BoolAttribute("coalescedBaselineFetch", shared))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return val.([]byte), nil
 }
 
 // fetchBaselineFromDB queries CockroachDB for the primary or changelist baseline, encodes it as

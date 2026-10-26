@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -613,6 +615,101 @@ func TestBaselineHandlerV2_RowsIterationError_ReturnsInternalServerErrorAndDoesN
 	cachedPrimaryGzip, err := lc.GetValue(ctx, "baseline_gz__")
 	require.NoError(t, err)
 	assert.Empty(t, cachedPrimaryGzip)
+}
+
+func TestBaselineHandlerV2_ConcurrentCacheMisses_CoalescesDatabaseQueries(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	const numConcurrentRequests = 8
+	var cacheMissCount, dbFetchCount atomic.Int32
+	allMissed := make(chan struct{})
+
+	mc := &mockCache.Cache{}
+	defer mc.AssertExpectations(t)
+
+	mc.On("GetValue", testutils.AnyContext, baselineCacheKey("", "")).Run(func(args mock.Arguments) {
+		if cacheMissCount.Add(1) == numConcurrentRequests {
+			close(allMissed)
+		}
+	}).Return("", nil).Times(numConcurrentRequests)
+
+	// Every DB fetch caches its result, so counting cache writes counts DB fetches. The first fetch
+	// stays in flight until all requests have missed the cache, giving the others time to join it.
+	mc.On("SetValueWithExpiry", testutils.AnyContext, baselineCacheKey("", ""), mock.AnythingOfType("string"), baselineCachePrimaryBranchEntryTTL).Run(func(args mock.Arguments) {
+		if dbFetchCount.Add(1) == 1 {
+			<-allMissed
+			time.Sleep(100 * time.Millisecond)
+		}
+	}).Return(nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB:          db,
+			CacheClient: mc,
+		},
+		cacheManager: NewCacheManager(mc),
+	}
+
+	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}}}`
+
+	recorders := make([]*httptest.ResponseRecorder, numConcurrentRequests)
+	var wg sync.WaitGroup
+	wg.Add(numConcurrentRequests)
+	for i := 0; i < numConcurrentRequests; i++ {
+		recorders[i] = httptest.NewRecorder()
+		go func(w *httptest.ResponseRecorder) {
+			defer wg.Done()
+			r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2, nil)
+			wh.BaselineHandlerV2(w, r)
+		}(recorders[i])
+	}
+	wg.Wait()
+
+	for i := 0; i < numConcurrentRequests; i++ {
+		assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, recorders[i])
+	}
+	// Like x/sync's own TestDoDupSuppress, assert sharing rather than exactly one fetch: singleflight
+	// can't tell us when every caller has joined. Without coalescing, every request fetches.
+	assert.Less(t, dbFetchCount.Load(), int32(numConcurrentRequests))
+}
+
+func TestBaselineHandlerV2_CanceledCallerContext_StillCompletesAndPopulatesCache(t *testing.T) {
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+	waitForSystemTime()
+
+	reqCtx, cancelReq := context.WithCancel(ctx)
+	defer cancelReq()
+
+	mc := &mockCache.Cache{}
+	defer mc.AssertExpectations(t)
+
+	mc.On("GetValue", testutils.AnyContext, baselineCacheKey("", "")).Run(func(args mock.Arguments) {
+		// Simulate the caller's HTTP context timing out right before the DB fallback begins.
+		cancelReq()
+	}).Return("", nil).Once()
+
+	mc.On("SetValueWithExpiry", testutils.AnyContext, baselineCacheKey("", ""), mock.AnythingOfType("string"), baselineCachePrimaryBranchEntryTTL).Return(nil).Once()
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB:          db,
+			CacheClient: mc,
+		},
+		cacheManager: NewCacheManager(mc),
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, frontend.ExpectationsRouteV2, nil).WithContext(reqCtx)
+
+	expectedJSONResponse := `{"primary":{"circle":{"00000000000000000000000000000000":"negative","c01c01c01c01c01c01c01c01c01c01c0":"positive","c02c02c02c02c02c02c02c02c02c02c0":"positive"},"square":{"a01a01a01a01a01a01a01a01a01a01a0":"positive","a02a02a02a02a02a02a02a02a02a02a0":"positive","a03a03a03a03a03a03a03a03a03a03a0":"positive","a07a07a07a07a07a07a07a07a07a07a0":"positive","a08a08a08a08a08a08a08a08a08a08a0":"positive","a09a09a09a09a09a09a09a09a09a09a0":"negative"},"triangle":{"b01b01b01b01b01b01b01b01b01b01b0":"positive","b02b02b02b02b02b02b02b02b02b02b0":"positive","b03b03b03b03b03b03b03b03b03b03b0":"negative","b04b04b04b04b04b04b04b04b04b04b0":"negative"}}}`
+
+	wh.BaselineHandlerV2(w, r)
+	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 }
 
 // TestWhoami_NotLoggedIn_Success tests that /json/whoami returns the expected empty response when
