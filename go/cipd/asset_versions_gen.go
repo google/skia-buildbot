@@ -46,7 +46,7 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/luci/kitchen/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/luci/kitchen/${platform}",
-		Version: "git_revision:b2324e42f77961aa31b1edf840216ed56f590c0a",
+		Version: "git_revision:5698508b873fe67ac5a8d6afe391368ad083597b",
 	},
 	"infra/tools/luci/lucicfg/${platform}": {
 		Path:    ".",
