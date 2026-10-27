@@ -123,7 +123,7 @@ func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark
 	if botID != nil {
 		dims = append(dims, botID)
 	}
-	swarmingRequest := createSwarmingRequest(jobID, bt.GetCommand(), buildArtifact, dims)
+	swarmingRequest := createSwarmingRequest(jobID, bot, benchmark, bt.GetCommand(), buildArtifact, dims)
 
 	resp := make([]*apipb.TaskRequestMetadataResponse, 0)
 	for i := 0; i < iter; i++ {

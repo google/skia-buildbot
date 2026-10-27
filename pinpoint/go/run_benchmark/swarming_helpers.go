@@ -42,15 +42,28 @@ func generateProperties(command []string, casRef *apipb.CASReference, dim []*api
 	}
 }
 
-func generateTags(jobID, hash string, sizeBytes int64) []string {
+// generateTags returns the Swarming tags for a run benchmark task.
+//
+// The configuration and benchmark tags mirror the tags set by the legacy
+// Pinpoint and the perf waterfall, so that tasks can be attributed to a tester
+// configuration (e.g. "android-pixel10-perf-cbb") and benchmark by Swarming
+// queries and fleet health dashboards. They are omitted when empty.
+func generateTags(jobID, botConfig, benchmark, hash string, sizeBytes int64) []string {
 	// TODO(b/318863812): update swarming task tags to more appropriate tags.
-	return []string{
+	tags := []string{
 		fmt.Sprintf("pinpoint_job_id:%s", jobID),
 		fmt.Sprintf("build_cas:%s/%d", hash, sizeBytes),
 	}
+	if botConfig != "" {
+		tags = append(tags, fmt.Sprintf("configuration:%s", botConfig))
+	}
+	if benchmark != "" {
+		tags = append(tags, fmt.Sprintf("benchmark:%s", benchmark))
+	}
+	return tags
 }
 
-func createSwarmingRequest(jobID string, command []string, casRef *apipb.CASReference, dimensions []map[string]string) *apipb.NewTaskRequest {
+func createSwarmingRequest(jobID, botConfig, benchmark string, command []string, casRef *apipb.CASReference, dimensions []map[string]string) *apipb.NewTaskRequest {
 	taskName := "Pinpoint bisection run benchmark task"
 	if strings.HasPrefix(jobID, "CBB ") {
 		taskName = jobID
@@ -81,6 +94,6 @@ func createSwarmingRequest(jobID string, command []string, casRef *apipb.CASRefe
 				Properties:     generateProperties(command, casRef, convertDimensions(dimensions)),
 			},
 		},
-		Tags: generateTags(jobID, casRef.Digest.Hash, casRef.Digest.SizeBytes),
+		Tags: generateTags(jobID, botConfig, benchmark, casRef.Digest.Hash, casRef.Digest.SizeBytes),
 	}
 }

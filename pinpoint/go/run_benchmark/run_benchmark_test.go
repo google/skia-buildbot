@@ -45,6 +45,29 @@ func TestRun_TelemetryTest_ValidExecution(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, taskIds, 1)
 	assert.Equal(t, "123", taskIds[0].TaskId)
+
+	req := mockClient.Calls[0].Arguments.Get(1).(*apipb.NewTaskRequest)
+	assert.Contains(t, req.Tags, "pinpoint_job_id:fake-id")
+	assert.Contains(t, req.Tags, "configuration:android-pixel4_webview-perf")
+	assert.Contains(t, req.Tags, "benchmark:performance_browser_tests")
+}
+
+func TestGenerateTags_WithConfigurationAndBenchmark_IncludesTags(t *testing.T) {
+	tags := generateTags("CBB chr 156.0.8078.47 p10 LL2", "android-pixel10-perf-cbb", "speedometer3", "hash", 1009)
+	assert.Equal(t, []string{
+		"pinpoint_job_id:CBB chr 156.0.8078.47 p10 LL2",
+		"build_cas:hash/1009",
+		"configuration:android-pixel10-perf-cbb",
+		"benchmark:speedometer3",
+	}, tags)
+}
+
+func TestGenerateTags_EmptyConfigurationAndBenchmark_OmitsTags(t *testing.T) {
+	tags := generateTags("fake-id", "", "", "hash", 0)
+	assert.Equal(t, []string{
+		"pinpoint_job_id:fake-id",
+		"build_cas:hash/0",
+	}, tags)
 }
 
 func TestIsTaskFinished_GivenCompleteStates_ReturnsTrue(t *testing.T) {
