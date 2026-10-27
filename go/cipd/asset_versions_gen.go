@@ -126,6 +126,6 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/presubmit/${platform}": {
 		Path:    ".",
 		Name:    "skia/tools/presubmit/${platform}",
-		Version: "git_revision:25dedc08bb87cbd46a3bd4d8d2f57a2b5ca0e7ea",
+		Version: "git_revision:299783d611aeeca9e5a0e363584330f1a01e6f53",
 	},
 }
