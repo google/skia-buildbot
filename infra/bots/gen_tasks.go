@@ -40,9 +40,10 @@ const (
 var (
 	// jobsToCQStatus lists all infra Jobs and their CQ config to run at each commit.
 	jobsToCQStatus = map[string]*specs.CommitQueueJobConfig{
-		"Infra-Presubmit":       &cqWithDefaults,
-		"Infra-PerCommit-Build": &cqWithDefaults,
-		"Infra-PerCommit-Test":  &cqWithDefaults,
+		"Infra-Presubmit":                                     &cqWithDefaults,
+		"Infra-PerCommit-Build":                               &cqWithDefaults,
+		"Infra-PerCommit-Build-Clean":                         noCQ,
+		"Infra-PerCommit-Test":                                &cqWithDefaults,
 		"Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": &cqWithDefaults,
 		"Housekeeper-PerCommit-BuildTaskDrivers-Mac-x86_64":   noCQ,
 		"Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64":   noCQ,
@@ -263,6 +264,9 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
 		"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
 		"--bazel_cache_dir", bazelCacheDir,
 	}
+	if strings.Contains(name, "Clean") {
+		cmd = append(cmd, "--clean")
+	}
 
 	t := &specs.TaskSpec{
 		CasSpec:      casEmpty,
@@ -335,7 +339,7 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	var priority float64 // Leave as default for most jobs.
 	var deps []string
 
-	if name == "Infra-PerCommit-Build" {
+	if name == "Infra-PerCommit-Build" || name == "Infra-PerCommit-Build-Clean" {
 		deps = append(deps, bazelBuild(b, name))
 	} else if name == "Infra-PerCommit-Test" {
 		deps = append(deps, bazelTest(b, name))

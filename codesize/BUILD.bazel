@@ -3,7 +3,7 @@ load("//codesize/pages:all_pages.bzl", "ALL_PAGES")
 
 skia_app_container(
     name = "codesizeserver",
-    base_image = "//kube/basealpine:basealpine",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin/codesizeserver": [
             [

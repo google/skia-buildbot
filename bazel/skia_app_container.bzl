@@ -18,9 +18,9 @@ def skia_app_container(
         name,
         repository,
         dirs,
+        base_image,
         empty_dirs = None,
         entrypoint = "",
-        base_image = "@basealpine",
         env = None,
         create_skia_user = False,
         default_user = "skia",
@@ -95,11 +95,11 @@ def skia_app_container(
         within the container (e.g. "/usr/local/share/myapp"), and the values are an array of
         [Bazel label, mode] tuples indicating which files should be copied into the directory (e.g.
         ["//myapp/go:mybinary", "755"]).
+      base_image: The image to base the oci_image on.
       empty_dirs: Mapping of directory paths to file modes of empty directories to create.
       entrypoint: The entrypoint of the container, which can be a string or an array (e.g.
         "/usr/local/share/myapp/mybinary", or ["/usr/local/share/myapp/mybinary", "--someflag"]).
         Optional.
-      base_image: The image to base the oci_image on. Optional.
       env: A {"var": "val"} dictionary with the environment variables to use when building the
         container. Optional.
       create_skia_user: Whether or not to create the "skia" user with uid 2000 and gid 2000.

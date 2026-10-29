@@ -4,7 +4,7 @@ load(":gold_launcher.bzl", "gold_launcher")
 
 skia_app_container(
     name = "gold_frontend_container",
-    base_image = "//kube/basealpine:basealpine",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
@@ -42,7 +42,7 @@ skia_app_container(
 
 skia_app_container(
     name = "baseline_server_container",
-    base_image = "//kube/basealpine:basealpine",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
@@ -63,7 +63,7 @@ skia_app_container(
 
 skia_app_container(
     name = "diffcalculator_container",
-    base_image = "//kube/basealpine:basealpine",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
@@ -84,7 +84,7 @@ skia_app_container(
 
 skia_app_container(
     name = "gitilesfollower_container",
-    base_image = "//kube/basealpine:basealpine",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
@@ -105,7 +105,7 @@ skia_app_container(
 
 skia_app_container(
     name = "gold_ingestion_container",
-    base_image = "//kube/basealpine:basealpine",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
@@ -126,7 +126,7 @@ skia_app_container(
 
 skia_app_container(
     name = "periodictasks_container",
-    base_image = "//kube/basealpine:basealpine",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
@@ -147,7 +147,7 @@ skia_app_container(
 
 skia_app_container(
     name = "db_migrator",
-    base_image = "//kube/basealpine:basealpine",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"path"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
@@ -24,6 +25,7 @@ var (
 	checkoutFlags = checkout.SetupFlags(nil)
 
 	// Optional flags.
+	clean  = flag.Bool("clean", false, "If true, use a temporary directory for the Bazel cache and clean it up after building.")
 	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
 	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 )
@@ -51,14 +53,42 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
-	// Set up Bazel.
+	// Use a temporary cache directory if --clean is specified. This prevents us
+	// from clobbering the global cache for other tasks.
+	cacheDir := *bazelCacheDir
+	repoCacheDir := *bazelRepoCacheDir
+	if *clean {
+		cacheDir, err = os_steps.TempDir(ctx, "", "bazel_cache_*")
+		if err != nil {
+			td.Fatal(ctx, err)
+		}
+		repoCacheDir = ""
+		defer func() {
+			if err := os_steps.RemoveAll(ctx, cacheDir); err != nil {
+				sklog.Errorf("Failed to remove temporary Bazel cache directory: %s", err)
+			}
+		}()
+	}
+
 	opts := bazel.BazelOptions{
-		CachePath:           *bazelCacheDir,
-		RepositoryCachePath: *bazelRepoCacheDir,
+		CachePath:           cacheDir,
+		RepositoryCachePath: repoCacheDir,
 	}
 	bzl, err := bazel.New(ctx, gitDir.Dir(), *rbeKey, opts)
 	if err != nil {
 		td.Fatal(ctx, err)
+	}
+	defer bzl.Cleanup()
+
+	// The Bazel server writes files into the cache directory which we may not
+	// have permission to remove. Have Bazel itself clean the cache before we
+	// attempt to remove it.
+	if *clean {
+		defer func() {
+			if _, err := bzl.Do(ctx, "clean", "--expunge"); err != nil {
+				sklog.Errorf("Failed to clean Bazel cache: %s", err)
+			}
+		}()
 	}
 
 	// Print out the Bazel version for debugging purposes.

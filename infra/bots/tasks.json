@@ -20,6 +20,11 @@
         "Infra-PerCommit-Build"
       ]
     },
+    "Infra-PerCommit-Build-Clean": {
+      "tasks": [
+        "Infra-PerCommit-Build-Clean"
+      ]
+    },
     "Infra-PerCommit-Test": {
       "tasks": [
         "Infra-PerCommit-Test"
@@ -230,6 +235,90 @@
         "<(CODEREVIEW_SERVER)",
         "--bazel_cache_dir",
         "/dev/shm/bazel_cache"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Ubuntu-24.04",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64"
+      ],
+      "environment": {
+        "ASPECT_RULES_JS_DISABLE_UPDATE_PNPM_LOCK": "1",
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
+      "env_prefixes": {
+        "PATH": [
+          "bazelisk_linux_amd64",
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin"
+        ]
+      },
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-Build-Clean": {
+      "casSpec": "empty",
+      "cipd_packages": [
+        {
+          "name": "infra/tools/luci-auth/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:5698508b873fe67ac5a8d6afe391368ad083597b"
+        },
+        {
+          "name": "skia/tools/command_wrapper/${platform}",
+          "path": "task_drivers",
+          "version": "git_revision:16e8d73ad1f70609b23902132a0b28ce6af05d0c"
+        }
+      ],
+      "command": [
+        "luci-auth",
+        "context",
+        "./task_drivers/command_wrapper",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-PerCommit-Build-Clean",
+        "--workdir",
+        ".",
+        "--cipd",
+        "cipd_bin_packages:infra/3pp/tools/git/${platform}@version:3@2.56.0.chromium.11",
+        "--cipd",
+        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:8bb9eb866c4be66adc79abac43e8f8029e870de6",
+        "--cipd",
+        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:5698508b873fe67ac5a8d6afe391368ad083597b",
+        "--cipd",
+        "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
+        "--cipd",
+        "cipd_bin_packages:infra/tools/luci/docker-credential-luci/${platform}@git_revision:5698508b873fe67ac5a8d6afe391368ad083597b",
+        "--command-is-task-driver",
+        "--",
+        "./bazel_build_all",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-PerCommit-Build-Clean",
+        "--workdir",
+        ".",
+        "--repo",
+        "<(REPO)",
+        "--revision",
+        "<(REVISION)",
+        "--patch_issue",
+        "<(ISSUE)",
+        "--patch_set",
+        "<(PATCHSET)",
+        "--patch_server",
+        "<(CODEREVIEW_SERVER)",
+        "--bazel_cache_dir",
+        "/dev/shm/bazel_cache",
+        "--clean"
       ],
       "dependencies": [
         "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"

@@ -23,7 +23,7 @@ go_binary(
 
 skia_app_container(
     name = "perf_upload_worker",
-    base_image = "//kube/basealpine:basealpine",
+    base_image = "@basealpine",
     dirs = {
         "/usr/local/bin": [
             [
