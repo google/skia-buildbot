@@ -56,6 +56,7 @@ const (
 	CHECK_STATE_ACTION_REQUIRED = "action_required"
 	CHECK_STATE_ERROR           = "error"
 	CHECK_STATE_PENDING         = "pending"
+	CHECK_STATE_SKIPPED         = "skipped"
 
 	// Known checks.
 	CLA_CHECK             = "cla/google"

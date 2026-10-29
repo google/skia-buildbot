@@ -382,8 +382,8 @@ func TryResultsFromGithubChecks(checks []*github.Check, checksWaitFor []string) 
 			case github.CHECK_STATE_SUCCESS:
 				testStatus = TRYBOT_STATUS_COMPLETED
 				testResult = TRYBOT_RESULT_SUCCESS
-			case github.CHECK_STATE_NEUTRAL:
-				// Skipped tests show up as neutral so we can consider them successful.
+			case github.CHECK_STATE_NEUTRAL, github.CHECK_STATE_SKIPPED:
+				// Skipped tests show up as neutral or skipped so we can consider them successful.
 				testStatus = TRYBOT_STATUS_COMPLETED
 				testResult = TRYBOT_RESULT_SUCCESS
 			}
