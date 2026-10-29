@@ -83,6 +83,7 @@ func TestRunInfoFoTask(t *testing.T) {
 		if diff != "" {
 			t.Errorf("[%d] %q results didn't match expected value. Diff:\n%s", i, test.name, diff)
 		}
+		_ = got.String()
 	}
 }
 

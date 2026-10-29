@@ -179,6 +179,9 @@ type runInfo struct {
 }
 
 func (r *runInfo) String() string {
+	if r == nil {
+		return ""
+	}
 	return fmt.Sprintf("%s,%s", r.os, r.cpu)
 }
 
