@@ -446,7 +446,7 @@ use_repo(oci, "empty_container")
 # Pulls the gcr.io/skia-public/basealpine container, needed by the skia_app_container macro.
 oci.pull(
     name = "basealpine",
-    digest = "sha256:5474db9668fb91cbf71b160e41047ca48a7686a25b7e3d38da9f1c720683e2c7",
+    digest = "sha256:d32779ee655c9879c85ca22fee69f2c0d9ecc63df24fe269794d5a8abdcf0b6a",
     image = "gcr.io/skia-public/basealpine",
 )
 use_repo(oci, "basealpine")
