@@ -1853,7 +1853,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "uAZfEHfBOAcJWfFfNEXGnZz2KBu7xFd/4SYt/Q5R8kA=",
+        "usagesDigest": "ydwvhL3L34r2Tfu8y6fPNZLjlPDIx5+qo3jHIe4snpo=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -2083,7 +2083,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/node",
-              "identifier": "sha256:7b6a85d8b6e3c3d931431979884a97b99bad974cc686097915cec3c07d462ad7",
+              "identifier": "sha256:65fb44a19eb983bc475aebef8ca3416da172e5b7b0e52418cca100997959ca6e",
               "target_name": "node_alpine_single",
               "bazel_tags": []
             }
@@ -2096,7 +2096,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "library/node",
-              "identifier": "sha256:7b6a85d8b6e3c3d931431979884a97b99bad974cc686097915cec3c07d462ad7",
+              "identifier": "sha256:65fb44a19eb983bc475aebef8ca3416da172e5b7b0e52418cca100997959ca6e",
               "platforms": {},
               "platform": "@@rules_oci+//oci:node_alpine_single",
               "bzlmod_repository": "node_alpine",
@@ -2110,7 +2110,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "cloud-builders/kubectl",
-              "identifier": "sha256:1ba814f1c2b8f4438a4a78cc69534abd5a5c9f3388937e0e2531678f768223ae",
+              "identifier": "sha256:91b5e70a175811782e7a1b09e64b2a376879cbc3bd8fe2a9234e6051561aab13",
               "target_name": "kubectl_single",
               "bazel_tags": []
             }
@@ -2123,7 +2123,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "cloud-builders/kubectl",
-              "identifier": "sha256:1ba814f1c2b8f4438a4a78cc69534abd5a5c9f3388937e0e2531678f768223ae",
+              "identifier": "sha256:91b5e70a175811782e7a1b09e64b2a376879cbc3bd8fe2a9234e6051561aab13",
               "platforms": {},
               "platform": "@@rules_oci+//oci:kubectl_single",
               "bzlmod_repository": "kubectl",
@@ -2191,7 +2191,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/server",
-              "identifier": "sha256:ca47d4de249b9cc28137628dba77ae5e75e8b313ebb5c801c64615c1c99cbb09",
+              "identifier": "sha256:acecbab5b0b8ae9cf4012b508866ca97feda3709577bf157b537239f40029049",
               "platform": "linux/amd64",
               "target_name": "temporal-server_linux_amd64",
               "bazel_tags": []
@@ -2205,7 +2205,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/server",
-              "identifier": "sha256:ca47d4de249b9cc28137628dba77ae5e75e8b313ebb5c801c64615c1c99cbb09",
+              "identifier": "sha256:acecbab5b0b8ae9cf4012b508866ca97feda3709577bf157b537239f40029049",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@temporal-server_linux_amd64"
               },
@@ -2220,7 +2220,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/admin-tools",
-              "identifier": "sha256:8bb84e24db4336de48031a66dbda25a7477d300736fe825893e467042135da1f",
+              "identifier": "sha256:9ef0dc5b063bf4ffd5c1512de72e0e73e225bd2c7006a18ce69bd592a8862a83",
               "platform": "linux/amd64",
               "target_name": "temporal-admin-tools_linux_amd64",
               "bazel_tags": []
@@ -2234,7 +2234,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/admin-tools",
-              "identifier": "sha256:8bb84e24db4336de48031a66dbda25a7477d300736fe825893e467042135da1f",
+              "identifier": "sha256:9ef0dc5b063bf4ffd5c1512de72e0e73e225bd2c7006a18ce69bd592a8862a83",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@temporal-admin-tools_linux_amd64"
               },
@@ -2249,7 +2249,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/ui",
-              "identifier": "sha256:8b2375a7d0beefe5771398c625fddc3eac3e908bda7e6625ed24a94b275acb83",
+              "identifier": "sha256:d944f959d0923c35cd991a17a0edbe087770eff843724b181933e0cfdd563ab2",
               "platform": "linux/amd64",
               "target_name": "temporal-ui_linux_amd64",
               "bazel_tags": []
@@ -2263,7 +2263,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "temporalio/ui",
-              "identifier": "sha256:8b2375a7d0beefe5771398c625fddc3eac3e908bda7e6625ed24a94b275acb83",
+              "identifier": "sha256:d944f959d0923c35cd991a17a0edbe087770eff843724b181933e0cfdd563ab2",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@temporal-ui_linux_amd64"
               },

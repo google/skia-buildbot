@@ -1,7 +1,9 @@
 version: 1
 sources:
   - channel: trixie main
-    url: https://snapshot-cloudflare.debian.org/archive/debian/20261012T143321Z
+    url: https://snapshot-cloudflare.debian.org/archive/debian/20261028T143257Z
+  - channel: trixie-security main
+    url: https://snapshot-cloudflare.debian.org/archive/debian-security/20261028T064808Z
 archs:
   - amd64
 packages:

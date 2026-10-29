@@ -399,8 +399,8 @@ http_file(
     name = "bazelisk",
     downloaded_file_path = "bazelisk",
     executable = True,
-    sha256 = "e1508323f347ad1465a887bc5d2bfb91cffc232d11e8e997b623227c6b32fb76",
-    url = "https://github.com/bazelbuild/bazelisk/releases/download/v1.27.0/bazelisk-linux-amd64",
+    sha256 = "a248ae2b2b62b5baebb748f6fba7203bff1a27e5d01b55399a8406744cb539e8",
+    url = "https://github.com/bazelbuild/bazelisk/releases/download/v1.30.0/bazelisk-linux-amd64",
 )
 
 ######################
@@ -489,7 +489,7 @@ use_repo(oci, "envoy_alpine")
 # Pulls the node alpine container, needed by npm-audit-mirror.
 oci.pull(
     name = "node_alpine",
-    digest = "sha256:7b6a85d8b6e3c3d931431979884a97b99bad974cc686097915cec3c07d462ad7",  # index.docker.io/node:current-alpine3.24 as of Oct 9, 2026.
+    digest = "sha256:65fb44a19eb983bc475aebef8ca3416da172e5b7b0e52418cca100997959ca6e",  # index.docker.io/node:current-alpine3.24 as of Oct 28, 2026.
     image = "docker.io/library/node",
 )
 use_repo(oci, "node_alpine")
@@ -497,7 +497,7 @@ use_repo(oci, "node_alpine")
 # Pulls the https://gcr.io/cloud-builders/kubectl container, needed by apps that use kubectl.
 oci.pull(
     name = "kubectl",
-    digest = "sha256:1ba814f1c2b8f4438a4a78cc69534abd5a5c9f3388937e0e2531678f768223ae",  # 8 Oct 2026
+    digest = "sha256:91b5e70a175811782e7a1b09e64b2a376879cbc3bd8fe2a9234e6051561aab13",  # 28 Oct 2026 (linux/amd64)
     image = "gcr.io/cloud-builders/kubectl",
 )
 use_repo(oci, "kubectl")
@@ -518,27 +518,27 @@ oci.pull(
 )
 use_repo(oci, "golang")
 
-# docker.io/temporalio/server:1.32.0 as of 10/08/2026.
+# docker.io/temporalio/server:1.32.1 as of 10/28/2026.
 oci.pull(
     name = "temporal-server",
-    digest = "sha256:ca47d4de249b9cc28137628dba77ae5e75e8b313ebb5c801c64615c1c99cbb09",
+    digest = "sha256:acecbab5b0b8ae9cf4012b508866ca97feda3709577bf157b537239f40029049",
     image = "docker.io/temporalio/server",
     platforms = ["linux/amd64"],
 )
 use_repo(oci, "temporal-server")
 
-# docker.io/temporalio/admin-tools:1.32.0 as of 10/08/2026.
+# docker.io/temporalio/admin-tools:1.32.1 as of 10/28/2026.
 oci.pull(
     name = "temporal-admin-tools",
-    digest = "sha256:8bb84e24db4336de48031a66dbda25a7477d300736fe825893e467042135da1f",
+    digest = "sha256:9ef0dc5b063bf4ffd5c1512de72e0e73e225bd2c7006a18ce69bd592a8862a83",
     image = "docker.io/temporalio/admin-tools",
     platforms = ["linux/amd64"],
 )
 
-# docker.io/temporalio/ui:2.55.0 (compatible with 1.32.0) as of 10/08/2026.
+# docker.io/temporalio/ui:2.57.0 (compatible with 1.32.1) as of 10/28/2026.
 oci.pull(
     name = "temporal-ui",
-    digest = "sha256:8b2375a7d0beefe5771398c625fddc3eac3e908bda7e6625ed24a94b275acb83",
+    digest = "sha256:d944f959d0923c35cd991a17a0edbe087770eff843724b181933e0cfdd563ab2",
     image = "docker.io/temporalio/ui",
     platforms = ["linux/amd64"],
 )
@@ -713,6 +713,9 @@ cipd.download_http(
         "mac-arm64": "b6d1aad1859f092e8a2319ddd1f753f160bef0b4cdfd24c4c6dee70accdc3a68",
         "windows-amd64": "78017207509136e671a7e942146abb73f60fc87ba317fc72d4d7436f2113b4f0",
     },
+    postinstall_cmds_posix = [
+        "rm -rf 3.8 3.11/lib/python3.11/ensurepip",
+    ],
     tag = "git_revision:61bedfac6b5402e601bac6d1adb037e7c320d68a",
 )
 use_repo(cipd, "vpython3_linux-amd64")

@@ -21,7 +21,7 @@ pkg_tar(
     ],
 )
 
-# Docker image with Temporal server (1.32.0) and tools to admin the server.
+# Docker image with Temporal server (1.32.1) and tools to admin the server.
 skia_app_container(
     name = "temporal-server",
     base_image = "@temporal-server",
@@ -76,7 +76,7 @@ pkg_tar(
     ],
 )
 
-# Docker image with Temporal UI (2.55.0).
+# Docker image with Temporal UI (2.57.0).
 skia_app_container(
     name = "temporal-ui",
     base_image = "@temporal-ui",
