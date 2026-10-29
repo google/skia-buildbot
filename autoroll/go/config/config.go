@@ -27,7 +27,7 @@ const (
 	// suffixes which are automatically added by our tooling, eg. the
 	// "autoroll-be-" prefix and "-storage" suffix for disks, controller hashes,
 	// etc.
-	MaxRollerNameLength = 41
+	MaxRollerNameLength = 40
 
 	// DefaultSafetyThrottleAttemptCount is the default attempt count for
 	// safety throttling.
