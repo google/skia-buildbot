@@ -770,7 +770,7 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 		}
 	} else {
 		if tipRev.Id != lastRollRev.Id {
-			return skerr.Fmt("No revisions to roll, but tip rev %s does not equal last-rolled rev %s", tipRev.Id, lastRollRev.Id)
+			sklog.Warningf("No revisions to roll, but tip rev %s does not equal last-rolled rev %s", tipRev.Id, lastRollRev.Id)
 		}
 		if nextRollRev.Id != lastRollRev.Id {
 			return skerr.Fmt("No revisions to roll, but next roll rev is: %s", nextRollRev.Id)
