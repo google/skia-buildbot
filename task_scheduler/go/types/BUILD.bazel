@@ -17,6 +17,7 @@ go_library(
     deps = [
         "//go/cipd",
         "//go/common",
+        "//go/gerrit",
         "//go/git",
         "//go/git/repograph",
         "//go/gitiles",

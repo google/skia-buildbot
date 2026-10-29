@@ -71,6 +71,24 @@ func (_m *GerritInterface) AddComment(_a0 context.Context, _a1 *gerrit.ChangeInf
 	return r0
 }
 
+// AddInlineComments provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *GerritInterface) AddInlineComments(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 map[string][]*gerrit.CommentInfo) error {
+	ret := _m.Called(_a0, _a1, _a2, _a3)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddInlineComments")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gerrit.ChangeInfo, string, map[string][]*gerrit.CommentInfo) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Approve provides a mock function with given fields: _a0, _a1, _a2
 func (_m *GerritInterface) Approve(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string) error {
 	ret := _m.Called(_a0, _a1, _a2)
@@ -921,6 +939,24 @@ func (_m *GerritInterface) SetReview(_a0 context.Context, _a1 *gerrit.ChangeInfo
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *gerrit.ChangeInfo, string, map[string]int, []string, gerrit.NotifyOption, gerrit.NotifyDetails, string, int, []*gerrit.AttentionSetInput) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SetReviewWithComments provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9, _a10
+func (_m *GerritInterface) SetReviewWithComments(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 map[string]int, _a4 []string, _a5 gerrit.NotifyOption, _a6 gerrit.NotifyDetails, _a7 string, _a8 int, _a9 []*gerrit.AttentionSetInput, _a10 map[string][]*gerrit.CommentInfo) error {
+	ret := _m.Called(_a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9, _a10)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetReviewWithComments")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gerrit.ChangeInfo, string, map[string]int, []string, gerrit.NotifyOption, gerrit.NotifyDetails, string, int, []*gerrit.AttentionSetInput, map[string][]*gerrit.CommentInfo) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9, _a10)
 	} else {
 		r0 = ret.Error(0)
 	}

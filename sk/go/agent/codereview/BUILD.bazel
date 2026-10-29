@@ -1,0 +1,34 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "codereview",
+    srcs = [
+        "codereview.go",
+        "comments.go",
+        "gemini.go",
+        "source.go",
+    ],
+    importpath = "go.skia.org/infra/sk/go/agent/codereview",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gerrit",
+        "//go/httputils",
+        "//go/skerr",
+        "@com_github_cenkalti_backoff//:backoff",
+        "@com_github_invopop_jsonschema//:jsonschema",
+        "@com_github_urfave_cli_v2//:cli",
+        "@org_golang_google_genai//:genai",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "codereview_test",
+    srcs = ["codereview_test.go"],
+    embed = [":codereview"],
+    deps = [
+        "//go/gerrit",
+        "@com_github_stretchr_testify//require",
+    ],
+)

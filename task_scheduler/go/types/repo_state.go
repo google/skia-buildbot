@@ -2,8 +2,10 @@ package types
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
@@ -59,7 +61,17 @@ func (p Patch) patchIdentifier() []string {
 // a patch, and "" otherwise.
 func (p Patch) GetPatchRef() string {
 	if p.Full() {
-		return fmt.Sprintf("refs/changes/%s", strings.Join(p.patchIdentifier(), "/"))
+		issue, err := strconv.ParseInt(p.Issue, 10, 64)
+		if err != nil {
+			sklog.Errorf("Failed to parse issue %q: %s", p.Issue, err)
+			return ""
+		}
+		patchset, err := strconv.ParseInt(p.Patchset, 10, 64)
+		if err != nil {
+			sklog.Errorf("Failed to parse patchset %q: %s", p.Patchset, err)
+			return ""
+		}
+		return gerrit.ChangeRefForParams(issue, patchset)
 	}
 	return ""
 }

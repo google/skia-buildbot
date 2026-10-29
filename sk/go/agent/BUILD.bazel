@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/sk/go/agent",
     visibility = ["//visibility:public"],
     deps = [
+        "//sk/go/agent/codereview",
         "//sk/go/agent/tool",
         "//sk/go/agent/workflow",
         "@com_github_urfave_cli_v2//:cli",

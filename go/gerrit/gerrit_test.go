@@ -871,3 +871,61 @@ func TestCreateCherryPickChange(t *testing.T) {
 	require.Equal(t, "myProject~release~I8473b95934b5732ac55d26311a706c9c2bde9941", ci.Id)
 	require.Equal(t, "I8473b95934b5732ac55d26311a706c9c2bde9941", ci.ChangeId)
 }
+
+func TestParseChangeURL(t *testing.T) {
+	tests := []struct {
+		name      string
+		url       string
+		wantHost  string
+		wantIssue int64
+		wantErr   bool
+	}{
+		{
+			name:      "standard Gerrit URL",
+			url:       "https://skia-review.googlesource.com/c/skia/+/1394436",
+			wantHost:  "https://skia-review.googlesource.com",
+			wantIssue: 1394436,
+		},
+		{
+			name:      "Gerrit URL with patchset",
+			url:       "https://skia-review.googlesource.com/c/skia/+/1394436/3",
+			wantHost:  "https://skia-review.googlesource.com",
+			wantIssue: 1394436,
+		},
+		{
+			name:      "short Gerrit URL",
+			url:       "https://skia-review.googlesource.com/1394436",
+			wantHost:  "https://skia-review.googlesource.com",
+			wantIssue: 1394436,
+		},
+		{
+			name:      "corp redirected Gerrit URL",
+			url:       "https://skia-review.git.corp.google.com/c/skia/+/1394436",
+			wantHost:  "https://skia-review.googlesource.com",
+			wantIssue: 1394436,
+		},
+		{
+			name:    "missing scheme",
+			url:     "skia-review.googlesource.com/c/skia/+/1394436",
+			wantErr: true,
+		},
+		{
+			name:    "invalid URL",
+			url:     "not-a-url",
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			gotHost, gotIssue, err := ParseChangeURL(tc.url)
+			if tc.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.wantHost, gotHost)
+			require.Equal(t, tc.wantIssue, gotIssue)
+		})
+	}
+}

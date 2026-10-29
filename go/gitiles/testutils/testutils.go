@@ -117,7 +117,7 @@ func MockBranches(t sktest.TestingT, c *mockhttpclient.URLMock, repoUrl string, 
 	b = append([]byte(XSSLine), b...)
 	repoUrl, err = gitiles.GetAuthenticatedURL(repoUrl)
 	require.NoError(t, err)
-	url := fmt.Sprintf(gitiles.RefsURL, repoUrl)
+	url := fmt.Sprintf(gitiles.RefsURL, repoUrl, gitiles.RefsHeads)
 	c.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
 

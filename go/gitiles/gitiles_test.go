@@ -695,7 +695,7 @@ func TestParseURL(t *testing.T) {
 
 func TestTags(t *testing.T) {
 	urlMock := mockhttpclient.NewURLMock()
-	url := fmt.Sprintf(TagsURL, "https://fake.googlesource.com/a/repo")
+	url := fmt.Sprintf(RefsURL, "https://fake.googlesource.com/a/repo", RefsTags)
 	resp := `)]}'
 {
   "upstream/v1.4.5": {

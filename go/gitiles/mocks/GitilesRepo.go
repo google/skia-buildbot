@@ -524,6 +524,36 @@ func (_m *GitilesRepo) ReadObject(ctx context.Context, path string, ref string) 
 	return r0, r1, r2
 }
 
+// Refs provides a mock function with given fields: ctx, prefix
+func (_m *GitilesRepo) Refs(ctx context.Context, prefix string) (map[string]string, error) {
+	ret := _m.Called(ctx, prefix)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Refs")
+	}
+
+	var r0 map[string]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (map[string]string, error)); ok {
+		return rf(ctx, prefix)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) map[string]string); ok {
+		r0 = rf(ctx, prefix)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, prefix)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ResolveRef provides a mock function with given fields: ctx, ref
 func (_m *GitilesRepo) ResolveRef(ctx context.Context, ref string) (string, error) {
 	ret := _m.Called(ctx, ref)

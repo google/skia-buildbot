@@ -300,6 +300,10 @@ type ChangeInfo struct {
 	CherrypickOfPatchSet int                    `json:"cherry_pick_of_patch_set"`
 }
 
+func IsTrivialPatchSet(rev *Revision) bool {
+	return util.In(rev.Kind, TrivialPatchSetKinds)
+}
+
 // GetNonTrivialPatchSets finds the set of non-trivial patchsets. Returns the
 // Revisions in order of patchset number. Note that this is only correct for
 // Chromium Gerrit instances because it makes Chromium-specific assumptions.
@@ -319,7 +323,7 @@ func (ci *ChangeInfo) GetNonTrivialPatchSets() []*Revision {
 		if ci.Status == ChangeStatusMerged && idx == len(allPatchSets)-1 {
 			continue
 		}
-		if !util.In(rev.Kind, TrivialPatchSetKinds) {
+		if !IsTrivialPatchSet(rev) {
 			rv = append(rv, rev)
 		}
 	}
@@ -455,6 +459,7 @@ type MergeableInfo struct {
 type GerritInterface interface {
 	Abandon(context.Context, *ChangeInfo, string) error
 	AddComment(context.Context, *ChangeInfo, string) error
+	AddInlineComments(context.Context, *ChangeInfo, string, map[string][]*CommentInfo) error
 	AddCC(context.Context, *ChangeInfo, []string) error
 	Approve(context.Context, *ChangeInfo, string) error
 	Config() *Config
@@ -493,6 +498,7 @@ type GerritInterface interface {
 	SetCommitMessage(context.Context, *ChangeInfo, string) error
 	SetReadyForReview(context.Context, *ChangeInfo) error
 	SetReview(context.Context, *ChangeInfo, string, map[string]int, []string, NotifyOption, NotifyDetails, string, int, []*AttentionSetInput) error
+	SetReviewWithComments(context.Context, *ChangeInfo, string, map[string]int, []string, NotifyOption, NotifyDetails, string, int, []*AttentionSetInput, map[string][]*CommentInfo) error
 	SetTopic(context.Context, string, int64) error
 	SetTraceIDPrefix(traceIdPrefix string)
 	Submit(context.Context, *ChangeInfo) error
@@ -513,6 +519,63 @@ type Gerrit struct {
 	traceIdPrefix     string
 }
 
+func parseAndNormalizeURL(rawURL string) (*url.URL, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if u.Scheme == "" || u.Host == "" {
+		return nil, skerr.Fmt("invalid URL %q: missing scheme or host", rawURL)
+	}
+	u.Host = strings.ReplaceAll(u.Host, "git.corp.google.com", "googlesource.com")
+	return u, nil
+}
+
+// GerritURLFromRepoURL converts a googlesource.com repository URL (e.g.
+// "https://skia.googlesource.com/skia.git") into its associated Gerrit host URL
+// (e.g. "https://skia-review.googlesource.com").
+func GerritURLFromRepoURL(repoURL string) (string, error) {
+	u, err := parseAndNormalizeURL(repoURL)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to parse repo URL %q", repoURL)
+	}
+	if !strings.HasSuffix(u.Host, ".googlesource.com") {
+		return "", skerr.Fmt("repo URL %q is not a googlesource.com URL", repoURL)
+	}
+	host := strings.TrimSuffix(u.Host, ".googlesource.com")
+	if !strings.HasSuffix(host, "-review") {
+		host += "-review"
+	}
+	return fmt.Sprintf("%s://%s.googlesource.com", u.Scheme, host), nil
+}
+
+// ParseChangeURL parses a Gerrit change URL (e.g.
+// "https://skia-review.googlesource.com/c/skia/+/1394436" or
+// "https://skia-review.git.corp.google.com/c/skia/+/1394436/3") and returns
+// the Gerrit host URL (e.g. "https://skia-review.googlesource.com") and the
+// issue number.
+func ParseChangeURL(changeURL string) (string, int64, error) {
+	u, err := parseAndNormalizeURL(changeURL)
+	if err != nil {
+		return "", 0, skerr.Wrapf(err, "invalid Gerrit change URL %q", changeURL)
+	}
+	gerritURL := fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+
+	path := strings.Trim(u.Path, "/")
+	var issueStr string
+	if idx := strings.Index(path, "+/"); idx >= 0 {
+		rest := path[idx+2:]
+		issueStr = strings.SplitN(rest, "/", 2)[0]
+	} else {
+		issueStr = strings.SplitN(path, "/", 2)[0]
+	}
+	issueID, err := strconv.ParseInt(issueStr, 10, 64)
+	if err != nil || issueID <= 0 {
+		return "", 0, skerr.Fmt("failed to parse issue ID from URL %q", changeURL)
+	}
+	return gerritURL, issueID, nil
+}
+
 // NewGerrit returns a new Gerrit instance.
 func NewGerrit(gerritUrl string, client *http.Client) (*Gerrit, error) {
 	return NewGerritWithConfig(ConfigChromium, gerritUrl, client)
@@ -527,7 +590,7 @@ func NewGerritWithConfig(cfg *Config, gerritUrl string, client *http.Client) (*G
 // NewGerritWithConfigAndRateLimits returns a new Gerrit instance which uses the given
 // Config and rate limit options.
 func NewGerritWithConfigAndRateLimits(cfg *Config, gerritUrl string, client *http.Client, maxQPS float64, maxBurst int) (*Gerrit, error) {
-	parsedUrl, err := url.Parse(gerritUrl)
+	parsedUrl, err := parseAndNormalizeURL(gerritUrl)
 	if err != nil {
 		return nil, skerr.Fmt("Unable to parse gerrit URL: %s", err)
 	}
@@ -541,7 +604,7 @@ func NewGerritWithConfigAndRateLimits(cfg *Config, gerritUrl string, client *htt
 	if client == nil {
 		return nil, skerr.Fmt("Gerrit requires a non-nil authenticated http.Client with the Gerrit scope.")
 	}
-	baseUrl := strings.TrimSuffix(gerritUrl, "/")
+	baseUrl := strings.TrimSuffix(parsedUrl.String(), "/")
 	return &Gerrit{
 		cfg:               cfg,
 		apiUrl:            baseUrl + authSuffix,
@@ -846,6 +909,46 @@ type AttentionSetInput struct {
 	Reason string `json:"reason"`
 }
 
+// CommentRange represents the range of an inline comment in Gerrit.
+// See https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#comment-range
+type CommentRange struct {
+	StartLine      int `json:"start_line"`
+	StartCharacter int `json:"start_character"`
+	EndLine        int `json:"end_line"`
+	EndCharacter   int `json:"end_character"`
+}
+
+// CommentInfo contains information for creating an inline comment in Gerrit.
+// See https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#comment-input
+type CommentInfo struct {
+	ID             string               `json:"id,omitempty"`
+	Path           string               `json:"path,omitempty"`
+	Side           string               `json:"side,omitempty"`
+	Line           int                  `json:"line,omitempty"`
+	Range          CommentRange         `json:"range,omitempty"`
+	InReplyTo      string               `json:"in_reply_to,omitempty"`
+	Updated        string               `json:"updated,omitempty"`
+	Message        string               `json:"message"`
+	Unresolved     bool                 `json:"unresolved"`
+	FixSuggestions []*FixSuggestionInfo `json:"fix_suggestions,omitempty"`
+}
+
+// FixReplacementInfo describes how the content of a file should be replaced by
+// another content.
+// See https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#fix-replacement-info
+type FixReplacementInfo struct {
+	Path        string       `json:"path"`
+	Range       CommentRange `json:"range"`
+	Replacement string       `json:"replacement"`
+}
+
+// FixSuggestionInfo represents a suggested fix.
+type FixSuggestionInfo struct {
+	ID           string                `json:"fix_id,omitempty"`
+	Description  string                `json:"description"`
+	Replacements []*FixReplacementInfo `json:"replacements"`
+}
+
 // SetReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
@@ -856,6 +959,12 @@ type AttentionSetInput struct {
 // attentionSetInputs contains details for adding users to the attension set. See details in
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#attention-set-input
 func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string, notify NotifyOption, notifyDetails NotifyDetails, tag string, onBehalfOf int, attentionSetInputs []*AttentionSetInput) error {
+	return g.SetReviewWithComments(ctx, issue, message, labels, reviewers, notify, notifyDetails, tag, onBehalfOf, attentionSetInputs, nil)
+}
+
+// SetReviewWithComments calls the Set Review endpoint of the Gerrit API to add messages, inline
+// comments, and/or set labels for the latest patchset.
+func (g *Gerrit) SetReviewWithComments(ctx context.Context, issue *ChangeInfo, message string, labels map[string]int, reviewers []string, notify NotifyOption, notifyDetails NotifyDetails, tag string, onBehalfOf int, attentionSetInputs []*AttentionSetInput, comments map[string][]*CommentInfo) error {
 	postData := map[string]interface{}{
 		"message": message,
 		"labels":  labels,
@@ -874,6 +983,9 @@ func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message strin
 	}
 	if len(attentionSetInputs) > 0 {
 		postData["add_to_attention_set"] = attentionSetInputs
+	}
+	if len(comments) > 0 {
+		postData["comments"] = comments
 	}
 
 	if len(reviewers) > 0 {
@@ -911,6 +1023,11 @@ func (g *Gerrit) AddCC(ctx context.Context, issue *ChangeInfo, ccList []string) 
 // AddComment adds a message to the issue.
 func (g *Gerrit) AddComment(ctx context.Context, issue *ChangeInfo, message string) error {
 	return g.SetReview(ctx, issue, message, map[string]int{}, nil, "", nil, "", 0, nil)
+}
+
+// AddInlineComments adds inline comments (and an optional top-level message) to the issue.
+func (g *Gerrit) AddInlineComments(ctx context.Context, issue *ChangeInfo, message string, comments map[string][]*CommentInfo) error {
+	return g.SetReviewWithComments(ctx, issue, message, map[string]int{}, nil, "", nil, "", 0, nil, comments)
 }
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
@@ -1787,4 +1904,29 @@ func (g *Gerrit) GetMergeable(ctx context.Context, issue int64, revision string)
 		return nil, skerr.Wrapf(err, "failed to retrieve MergeableInfo")
 	}
 	return &mergeableInfo, nil
+}
+
+// ChangeRefForParams returns the Gerrit change ref (e.g.
+// "refs/changes/46/4546/1") for the given issue and patchset numbers.
+func ChangeRefForParams(issue, patchset int64) string {
+	return fmt.Sprintf("%s%02d/%d/%d", ChangeRefPrefix, issue%100, issue, patchset)
+}
+
+// ParseChangeRef parses the issue and patchset numbers from a Gerrit change ref
+// (e.g. "refs/changes/46/4546/1" or "46/4546/1").
+func ParseChangeRef(ref string) (int64, int64, error) {
+	trimmed := strings.TrimPrefix(ref, ChangeRefPrefix)
+	parts := strings.Split(trimmed, "/")
+	if len(parts) != 3 {
+		return 0, 0, skerr.Fmt("invalid change ref %q", ref)
+	}
+	issue, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return 0, 0, skerr.Wrapf(err, "invalid issue in change ref %q", ref)
+	}
+	patchset, err := strconv.ParseInt(parts[2], 10, 64)
+	if err != nil {
+		return 0, 0, skerr.Wrapf(err, "invalid patchset in change ref %q", ref)
+	}
+	return issue, patchset, nil
 }

@@ -41,9 +41,11 @@ const (
 	// LogURL is the format of the URL used to view the git log.
 	LogURL = "%s/+log/%s?format=JSON"
 	// RefsURL is the format of the URL used to retrieve refs.
-	RefsURL = "%s/+refs%%2Fheads?format=JSON"
-	// TagsURL is the format of the URL used to retrieve tags.
-	TagsURL = "%s/+refs%%2Ftags?format=JSON"
+	RefsURL = "%s/+%s?format=JSON"
+	// RefsHeads is the prefix for branches.
+	RefsHeads = "refs/heads"
+	// RefsTags is the prefix for tags.
+	RefsTags = "refs/tags"
 
 	DateFormatNoTZ = "Mon Jan 02 15:04:05 2006"
 	dateFormatTZ   = "Mon Jan 02 15:04:05 2006 -0700"
@@ -135,6 +137,9 @@ type GitilesRepo interface {
 	LogFnBatch(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error
 	// Branches returns the list of branches in the repo.
 	Branches(ctx context.Context) ([]*git.Branch, error)
+	// Refs returns the refs under the given prefix (e.g. "refs/heads" or
+	// "refs/changes"), mapping ref name (relative to the prefix) to commit hash.
+	Refs(ctx context.Context, prefix string) (map[string]string, error)
 	// Tags returns the list of tags in the repo. The returned map has tag names as
 	// keys and commit hashes as values.
 	Tags(ctx context.Context) (map[string]string, error)
@@ -828,23 +833,54 @@ func (r *Repo) LogFnBatch(ctx context.Context, logExpr string, fn func(context.C
 
 // Ref represents a single ref, as returned by the API.
 type Ref struct {
-	Value string `json:"value"`
+	Value  string `json:"value"`
+	Peeled string `json:"peeled"`
 }
 
 // RefsMap is the result of a request to REFS_URL.
 type RefsMap map[string]Ref
 
+// Refs returns the refs under the given prefix (e.g. "refs/heads" or
+// "refs/changes"), mapping ref name (relative to the prefix) to commit hash.
+func (r *Repo) Refs(ctx context.Context, prefix string) (map[string]string, error) {
+	refsMap := RefsMap{}
+	prefix = strings.TrimSuffix(prefix, "/")
+	u := fmt.Sprintf(RefsURL, r.url, prefix)
+	if err := r.getJSON(ctx, u, &refsMap); err != nil {
+		return nil, err
+	}
+	rv := make(map[string]string, len(refsMap))
+	for ref, v := range refsMap {
+		// We're looking for the hash of the commit that the ref points to. In
+		// the case of annotated tags, the tag is its own object; v.Value is
+		// is the hash of that object, and v.Peeled is the hash of the commit.
+		// In the case of lightweight tags or branches, v.Peeled is empty and
+		// v.Value is the commit hash.
+		//
+		// Note: it's not totally unreasonable to think that we might want to
+		// retrieve the information about the tags themselves, but the gitiles
+		// API seems to return the commit information even when the tag hash is
+		// used.
+		if v.Peeled != "" {
+			rv[ref] = v.Peeled
+		} else {
+			rv[ref] = v.Value
+		}
+	}
+	return rv, nil
+}
+
 // Branches returns the list of branches in the repo.
 func (r *Repo) Branches(ctx context.Context) ([]*git.Branch, error) {
-	branchMap := RefsMap{}
-	if err := r.getJSON(ctx, fmt.Sprintf(RefsURL, r.url), &branchMap); err != nil {
+	branchMap, err := r.Refs(ctx, RefsHeads)
+	if err != nil {
 		return nil, err
 	}
 	rv := make([]*git.Branch, 0, len(branchMap))
-	for branch, v := range branchMap {
+	for branch, head := range branchMap {
 		rv = append(rv, &git.Branch{
 			Name: branch,
-			Head: v.Value,
+			Head: head,
 		})
 	}
 	sort.Sort(git.BranchList(rv))
@@ -854,32 +890,7 @@ func (r *Repo) Branches(ctx context.Context) ([]*git.Branch, error) {
 // Tags returns the list of tags in the repo. The returned map has tag names as
 // keys and commit hashes as values.
 func (r *Repo) Tags(ctx context.Context) (map[string]string, error) {
-	tags := map[string]struct {
-		Value  string `json:"value"`
-		Peeled string `json:"peeled"`
-	}{}
-	if err := r.getJSON(ctx, fmt.Sprintf(TagsURL, r.url), &tags); err != nil {
-		return nil, err
-	}
-	rv := make(map[string]string, len(tags))
-	for k, tag := range tags {
-		// We're looking for the hash of the commit that the tag points to. In
-		// the case of annotated tags, the tag is its own object; tag.Value is
-		// is the hash of that object, and tag.Peeled is the hash of the commit.
-		// In the case of lightweight tags, tag.Peeled is empty and tag.Value is
-		// the commit hash.
-		//
-		// Note: it's not totally unreasonable to think that we might want to
-		// retrieve the information about the tags themselves, but the gitiles
-		// API seems to return the commit information even when the tag hash is
-		// used.
-		if tag.Peeled != "" {
-			rv[k] = tag.Peeled
-		} else {
-			rv[k] = tag.Value
-		}
-	}
-	return rv, nil
+	return r.Refs(ctx, RefsTags)
 }
 
 // URL returns the repo URL.
