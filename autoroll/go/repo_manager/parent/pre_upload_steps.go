@@ -166,7 +166,7 @@ func RunPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env []st
 		output, err := exec.RunCommand(ctx, cmd)
 		if err != nil {
 			if cfg.Command[idx].IgnoreFailure {
-				sklog.Errorf("%s", err)
+				sklog.Warningf("%s", err)
 			} else {
 				return skerr.Wrap(err)
 			}
