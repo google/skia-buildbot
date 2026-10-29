@@ -35,6 +35,26 @@ var (
 		regexp.MustCompile(`Warning: resource namespaces/gmp-public is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply.`),
 		regexp.MustCompile(`Warning: resource namespaces/gmp-system is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply.`),
 	}
+
+	// Default kubectl apply --prune allowlist, excluding core/v1/Endpoints
+	// which is deprecated in Kubernetes v1.33+ and triggers API server warnings.
+	pruneAllowlist = []string{
+		"core/v1/ConfigMap",
+		"core/v1/Namespace",
+		"core/v1/PersistentVolumeClaim",
+		"core/v1/PersistentVolume",
+		"core/v1/Pod",
+		"core/v1/ReplicationController",
+		"core/v1/Secret",
+		"core/v1/Service",
+		"batch/v1/Job",
+		"batch/v1/CronJob",
+		"networking.k8s.io/v1/Ingress",
+		"apps/v1/DaemonSet",
+		"apps/v1/Deployment",
+		"apps/v1/ReplicaSet",
+		"apps/v1/StatefulSet",
+	}
 )
 
 func main() {
@@ -213,6 +233,9 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	}
 	if prune {
 		cmd = append(cmd, "--prune", "--all")
+		for _, gvk := range pruneAllowlist {
+			cmd = append(cmd, "--prune-allowlist="+gvk)
+		}
 	}
 	cmd = append(cmd, "-f", ".")
 	output, err := exec.RunCwd(ctx, tmp, cmd...)
