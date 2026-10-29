@@ -9,6 +9,27 @@ node_module_tar(
     package_dir = "/usr/local/lib/node_modules/verdaccio",
 )
 
+node_module_tar(
+    name = "npm_undici_tar",
+    mode = "a+rx",
+    package = "node-gyp/node_modules/undici",
+    package_dir = "/usr/local/lib/node_modules/npm/node_modules/undici",
+)
+
+node_module_tar(
+    name = "npm_brace_expansion_tar",
+    mode = "a+rx",
+    package = "@npmcli/package-json/node_modules/brace-expansion",
+    package_dir = "/usr/local/lib/node_modules/npm/node_modules/brace-expansion",
+)
+
+node_module_tar(
+    name = "npm_ip_address_tar",
+    mode = "a+rx",
+    package = "ip-address",
+    package_dir = "/usr/local/lib/node_modules/npm/node_modules/ip-address",
+)
+
 pkg_tar(
     name = "verdaccio_symlink",
     symlinks = {"/usr/local/bin/verdaccio": "/usr/local/lib/node_modules/verdaccio/bin/verdaccio"},
@@ -29,6 +50,9 @@ skia_app_container(
     entrypoint = "/usr/local/bin/npm-audit-mirror",
     extra_tars = [
         ":verdaccio_tar",
+        ":npm_undici_tar",
+        ":npm_brace_expansion_tar",
+        ":npm_ip_address_tar",
         ":verdaccio_symlink",
     ],
     repository = "skia-public/npm-audit-mirror",

@@ -10,14 +10,24 @@ import os
 
 
 def strip_package_json(input, output, package_name, include_dev=False,
-                       include_optional=False):
+                       include_optional=False, lockfile_input=None):
     with open(input, "r", encoding="utf-8") as f:
         package_json = json.load(f)
 
     old_deps = package_json["dependencies"]
-    new_deps = {
-        package_name: old_deps[package_name]
-    }
+    if package_name in old_deps:
+        new_deps = {
+            package_name: old_deps[package_name]
+        }
+    elif lockfile_input:
+        with open(lockfile_input, "r", encoding="utf-8") as lf:
+            lockfile = json.load(lf)
+        short_name = package_name.split("node_modules/")[-1]
+        new_deps = {
+            short_name: lockfile["packages"]["node_modules/" + package_name]["version"]
+        }
+    else:
+        raise KeyError(package_name)
     package_json["dependencies"] = new_deps
     if not include_dev and package_json.get("devDependencies"):
         del package_json["devDependencies"]
@@ -65,7 +75,7 @@ def strip_package_lock(input, output, package_name,
         return find_package_key(package_name, components=components)
 
 
-    def collect_packages(package_name, parent_key=None):
+    def collect_packages(package_name, parent_key=None, is_root=False):
         # Find the package in the "packages" dictionary.
         key = find_package_key(package_name, parent_key=parent_key)
         if key is None:  # An empty string is valid for key.
@@ -74,8 +84,9 @@ def strip_package_lock(input, output, package_name,
             return
 
         # Copy the package information.
-        package_spec = old_packages[key]
-        if parent_key is None and package_spec.get("bin"):
+        package_spec = dict(old_packages[key])
+        package_spec.pop("dev", None)
+        if (parent_key is None or is_root) and package_spec.get("bin"):
             # This results in a symlink that becomes broken after moving the
             # pacakge directory.
             del package_spec["bin"]
@@ -91,7 +102,20 @@ def strip_package_lock(input, output, package_name,
             for dep in package_spec.get("optionalDependencies", []):
                 collect_packages(dep, parent_key=key)
 
-    collect_packages(package_name)
+    if "/node_modules/" in package_name:
+        parent_prefix, short_name = package_name.rsplit("/node_modules/", 1)
+        parent_key = "node_modules/" + parent_prefix
+        collect_packages(short_name, parent_key=parent_key, is_root=True)
+        hoisted_packages = {}
+        prefix_to_strip = parent_key + "/"
+        for k, v in new_packages.items():
+            if k.startswith(prefix_to_strip):
+                hoisted_packages[k[len(prefix_to_strip):]] = v
+            else:
+                hoisted_packages[k] = v
+        new_packages = hoisted_packages
+    else:
+        collect_packages(package_name, is_root=True)
 
     lockfile["packages"] = new_packages
     with open(output, "w", encoding="utf-8") as f:
@@ -108,7 +132,8 @@ def main():
     parser.add_argument("--include-optional", action="store_true")
     args = parser.parse_args()
 
-    strip_package_lock(os.path.join(args.input, "package-lock.json"),
+    lockfile_in = os.path.join(args.input, "package-lock.json")
+    strip_package_lock(lockfile_in,
                        os.path.join(args.output, "package-lock.json"),
                        args.package,
                        args.include_dev,
@@ -117,7 +142,8 @@ def main():
                        os.path.join(args.output, "package.json"),
                        args.package,
                        args.include_dev,
-                       args.include_optional)
+                       args.include_optional,
+                       lockfile_input=lockfile_in)
 
 
 if __name__ == "__main__":
