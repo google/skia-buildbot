@@ -192,7 +192,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 			request.Options.Duration = types.DefaultAnimationDuration
 		}
 
-		var g errgroup.Group
+		g, gCtx := errgroup.WithContext(ctx)
 		// If this is an animated fiddle then:
 		//   - Create tmpdir to store PNGs.
 		//   - Loop over the following code to generate each frame of the animation.
@@ -233,7 +233,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 				for frameIndex := range frameCh {
 					sklog.Infof("Parallel render: %d", frameIndex)
 					frame := float64(frameIndex) / float64(numFrames)
-					oneStep(ctx, *checkout, res, frame, request.Options.Duration)
+					oneStep(gCtx, *checkout, res, frame, request.Options.Duration)
 					// Check for errors.
 					if res.Execute.Errors != "" {
 						return fmt.Errorf("Failed to render: %s", res.Execute.Errors)
@@ -256,8 +256,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Feed all the frame indices to the channel.
+	frameLoop:
 		for i := 0; i <= numFrames; i++ {
-			frameCh <- i
+			select {
+			case frameCh <- i:
+			case <-gCtx.Done():
+				break frameLoop
+			}
 		}
 		close(frameCh)
 

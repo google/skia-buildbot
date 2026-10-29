@@ -495,9 +495,6 @@ func buildSeccompFilter() []unix.SockFilter {
 }
 
 func doTrace(child int, allowedExec string) int {
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
-
 	var status unix.WaitStatus
 	_, err := unix.Wait4(child, &status, 0, nil)
 	if err != nil {
@@ -670,6 +667,9 @@ func doTrace(child int, allowedExec string) int {
 }
 
 func main() {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	if len(os.Args) > 1 && os.Args[1] == "--child" {
 		if err := doChild(os.Args[2:]); err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
