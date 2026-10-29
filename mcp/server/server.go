@@ -138,6 +138,8 @@ func main() {
 				Flags:       (&mcpFlags).AsCliFlags(),
 				Action: func(c *cli.Context) error {
 					urfavecli.LogFlags(c)
+					promPortSpec := fmt.Sprintf(":%d", mcpFlags.PromPort)
+					infraCommon.InitWithMust("mcpserver", infraCommon.PrometheusOpt(&promPortSpec))
 					sseServer, err := createMcpSSEServer(&mcpFlags)
 					if err != nil {
 						return err
@@ -161,8 +163,6 @@ func main() {
 		},
 	}
 
-	promPortSpec := fmt.Sprintf(":%d", mcpFlags.PromPort)
-	infraCommon.InitWithMust("mcpserver", infraCommon.PrometheusOpt(&promPortSpec))
 	defer infraCommon.Defer()
 	err := cliApp.Run(os.Args)
 	if err != nil {
