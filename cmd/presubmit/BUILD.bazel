@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//bazel/external/buildifier",
         "//bazel/external/rules_go",
+        "//go/copyright_headers",
         "//go/deepequal",
         "//go/util",
     ],
@@ -24,5 +25,8 @@ go_test(
     name = "presubmit_test",
     srcs = ["presubmit_test.go"],
     embed = [":presubmit_lib"],
-    deps = ["@com_github_stretchr_testify//assert"],
+    deps = [
+        "//go/git/git_common",
+        "@com_github_stretchr_testify//assert",
+    ],
 )

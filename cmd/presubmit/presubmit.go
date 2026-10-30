@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The presubmit binary runs many checks on the differences between the current commit and its
 // parent branch. This is usually origin/main. If there is a chain of CLs (i.e. branches), this
 // will only consider the diffs between the current commit and the parent branch.
@@ -28,6 +33,7 @@ import (
 
 	"go.skia.org/infra/bazel/external/buildifier"
 	"go.skia.org/infra/bazel/external/rules_go"
+	"go.skia.org/infra/go/copyright_headers"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/util"
 )
@@ -121,6 +127,8 @@ func main() {
 		changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	}
 	runCheck("Buildifier", func() bool { return runBuildifier(ctx, changedFiles, branchBaseCommit) })
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	runCheck("CopyrightHeaders", func() bool { return runCopyrightHeaders(ctx, changedFiles, *repoDir, branchBaseCommit) })
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	runCheck("Goimports", func() bool { return runGoimports(ctx, changedFiles, *repoDir, branchBaseCommit) })
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
@@ -1169,6 +1177,27 @@ func checkNonASCII(ctx context.Context, files []fileWithChanges) bool {
 		}
 	}
 	return ok
+}
+
+// runCopyrightHeaders adds missing copyright headers to any changed golang files. It
+// returns false if adding headers fails or produces any diffs.
+func runCopyrightHeaders(ctx context.Context, files []fileWithChanges, workspaceRoot, branchBaseCommit string) bool {
+	var goFiles []string
+	for _, f := range files {
+		if filepath.Ext(f.fileName) == ".go" {
+			goFiles = append(goFiles, f.fileName)
+		}
+	}
+	if len(goFiles) == 0 {
+		return true
+	}
+	if _, err := copyright_headers.AddCopyrightHeadersToGoFiles(ctx, workspaceRoot, goFiles, false); err != nil {
+		logf(ctx, "Failed to add copyright headers: %s\n", err)
+		return false
+	}
+
+	changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit)
+	return checkUnchanged(ctx, "CopyrightHeaders", files, changedFiles)
 }
 
 // runBuildifier uses a provided buildifier path to reformat our BUILD.bazel and .bzl files as

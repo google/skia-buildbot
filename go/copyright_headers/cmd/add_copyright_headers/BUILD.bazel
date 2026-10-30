@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "add_copyright_headers_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/go/copyright_headers/cmd/add_copyright_headers",
+    visibility = ["//visibility:private"],
+    deps = ["//go/copyright_headers"],
+)
+
+go_binary(
+    name = "add_copyright_headers",
+    embed = [":add_copyright_headers_lib"],
+    visibility = ["//visibility:public"],
+)

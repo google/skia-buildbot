@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package main
 
 import (
@@ -9,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/git/git_common"
 )
 
 func TestExtractFilesWithDiffs(t *testing.T) {
@@ -1410,4 +1416,130 @@ ALTER TABLE test DROP COLUMN mix_bad, DROP CONSTRAINT some_constraint3;
 	assert.Contains(t, out, "DROP INDEX must use IF EXISTS. Statement: DROP INDEX test_idx")
 	assert.Contains(t, out, "CREATE SEQUENCE must use IF NOT EXISTS. Statement: CREATE SEQUENCE test_seq")
 	assert.Contains(t, out, "DROP SEQUENCE must use IF EXISTS. Statement: DROP SEQUENCE test_seq")
+}
+
+func TestRunCopyrightHeaders(t *testing.T) {
+	t.Run("No Go files - skips execution", func(t *testing.T) {
+		ctx, _ := captureLogs()
+		files := []fileWithChanges{
+			{fileName: "pinpoint/README.md"},
+			{fileName: "app/styles.scss"},
+		}
+
+		ok := runCopyrightHeaders(ctx, files, "/path/to/repo", "HEAD~1")
+		assert.True(t, ok)
+	})
+
+	t.Run("Go files already have headers - succeeds", func(t *testing.T) {
+		tempDir := t.TempDir()
+		goFile := filepath.Join(tempDir, "perf/go/main.go")
+		assert.NoError(t, os.MkdirAll(filepath.Dir(goFile), 0755))
+		assert.NoError(t, os.WriteFile(goFile, []byte(`// Copyright 2026 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+package main
+`), 0644))
+
+		mockGit := filepath.Join(tempDir, "git")
+		const gitScript = `#!/bin/sh
+if [ "$1" = "--version" ]; then
+  echo "git version 2.40.0"
+  exit 0
+elif [ "$1" = "ls-files" ]; then
+  echo "perf/go/main.go"
+  exit 0
+elif [ "$1" = "citc" ]; then
+  cat << 'EOF'
+--- a/perf/go/main.go
++++ b/perf/go/main.go
+--- a/pinpoint/README.md
++++ b/pinpoint/README.md
+EOF
+else
+  cat << 'EOF'
+diff --git a/perf/go/main.go b/perf/go/main.go
+diff --git a/pinpoint/README.md b/pinpoint/README.md
+EOF
+fi
+exit 0
+`
+		assert.NoError(t, os.WriteFile(mockGit, []byte(gitScript), 0755))
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, _ := captureLogs()
+		ctx = git_common.WithGitFinder(ctx, func() (string, error) {
+			return mockGit, nil
+		})
+		files := []fileWithChanges{
+			{fileName: "perf/go/main.go"},
+			{fileName: "pinpoint/README.md"},
+		}
+
+		ok := runCopyrightHeaders(ctx, files, tempDir, "HEAD~1")
+		assert.True(t, ok)
+	})
+
+	t.Run("Missing header modifies file - fails with checkUnchanged message", func(t *testing.T) {
+		tempDir := t.TempDir()
+		goFile := filepath.Join(tempDir, "perf/go/main.go")
+		assert.NoError(t, os.MkdirAll(filepath.Dir(goFile), 0755))
+		assert.NoError(t, os.WriteFile(goFile, []byte("package main\n"), 0644))
+
+		mockGit := filepath.Join(tempDir, "git")
+		const gitScript = `#!/bin/sh
+if [ "$1" = "--version" ]; then
+  echo "git version 2.40.0"
+  exit 0
+elif [ "$1" = "ls-files" ]; then
+  echo "perf/go/main.go"
+  exit 0
+elif [ "$1" = "log" ]; then
+  echo "2026"
+  exit 0
+elif [ "$1" = "citc" ]; then
+  cat << 'EOF'
+--- a/perf/go/main.go
++++ b/perf/go/main.go
+@@ -1,1 +1,2 @@
++// Copyright 2026 Google LLC
++package main
+EOF
+else
+  cat << 'EOF'
+diff --git a/perf/go/main.go b/perf/go/main.go
+@@ -1,1 +1,2 @@
++// Copyright 2026 Google LLC
++package main
+EOF
+fi
+exit 0
+`
+		assert.NoError(t, os.WriteFile(mockGit, []byte(gitScript), 0755))
+
+		oldPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
+
+		ctx, logs := captureLogs()
+		ctx = git_common.WithGitFinder(ctx, func() (string, error) {
+			return mockGit, nil
+		})
+		files := []fileWithChanges{
+			{
+				fileName:     "perf/go/main.go",
+				touchedLines: []lineOfCode{{contents: "package main", num: 1}},
+			},
+		}
+
+		ok := runCopyrightHeaders(ctx, files, tempDir, "HEAD~1")
+		assert.False(t, ok)
+		assert.Contains(t, logs.String(), "CopyrightHeaders caused additional changes in: perf/go/main.go. Please inspect them (git diff) and commit if ok.\n")
+
+		content, err := os.ReadFile(goFile)
+		assert.NoError(t, err)
+		assert.Contains(t, string(content), "// Copyright 2026 Google LLC")
+	})
 }

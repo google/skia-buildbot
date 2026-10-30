@@ -1,0 +1,28 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "copyright_headers",
+    srcs = ["copyright_headers.go"],
+    importpath = "go.skia.org/infra/go/copyright_headers",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git",
+        "//go/skerr",
+        "//go/vfs",
+    ],
+)
+
+go_test(
+    name = "copyright_headers_test",
+    srcs = ["copyright_headers_test.go"],
+    embed = [":copyright_headers"],
+    deps = [
+        "//go/exec",
+        "//go/git/git_common",
+        "//go/testutils",
+        "//go/vfs/mocks",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
