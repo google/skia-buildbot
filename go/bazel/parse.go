@@ -298,12 +298,14 @@ func parseCall(call *ast.Call) (Dependency, error) {
 		funcName = string(obj.Id) + "." + string(attr.Attr)
 	}
 	parseFn := map[string]func(*ast.Call, string) (Dependency, error){
-		"cipd_install":       parseCIPDPackage,
-		"cipd.package":       parseCIPDPackage,
-		"cipd.download_http": parseCIPDPackage,
-		"cipd.download_cipd": parseCIPDPackage,
-		"container_pull":     parseContainerPull,
-		"oci.pull":           parseOCIPull,
+		"cipd_install":            parseCIPDPackage,
+		"cipd.package":            parseCIPDPackage,
+		"cipd.download_http":      parseCIPDPackage,
+		"cipd.download_cipd":      parseCIPDPackage,
+		"container_pull":          parseContainerPull,
+		"oci.pull":                parseOCIPull,
+		"gcs_mirror.http_archive": parseGCSMirror,
+		"gcs_mirror.http_file":    parseGCSMirror,
 	}[funcName]
 	if parseFn != nil {
 		dep, err := parseFn(call, funcName)
@@ -395,6 +397,32 @@ func parseOCIPull(call *ast.Call, funcName string) (Dependency, error) {
 		versionPos: digestPos,
 		SHA256:     digest,
 		sha256Pos:  digestPos,
+		Function:   funcName,
+	}, nil
+}
+
+// parseGCSMirror parses a call to gcs_mirror.http_archive or
+// gcs_mirror.http_file to return a dependency and the position where the
+// version is defined.
+func parseGCSMirror(call *ast.Call, funcName string) (Dependency, error) {
+	id, _, err := getCallArgValueString(call, "name")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	url, urlPos, err := getCallArgValueString(call, "url")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	sha256, sha256Pos, err := getCallArgValueString(call, "sha256")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &SingleDependency{
+		ID:         DependencyID(id),
+		Version:    url,
+		versionPos: urlPos,
+		SHA256:     sha256,
+		sha256Pos:  sha256Pos,
 		Function:   funcName,
 	}, nil
 }

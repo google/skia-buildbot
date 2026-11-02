@@ -157,6 +157,24 @@ cipd.download_cipd(
     tag = "version:2.2.1",
 )
 use_repo(cipd, "via-cipd")
+
+gcs_mirror.http_archive(
+    name = "ca-certificates",
+    build_file_content = "exports_files([\"data.tar.xz\"])",
+    sha256 = "0b5970c26e74d254bb2a59100d7b9d0612ea0b60bd78987cd71e0aebae5221d7",
+    url = "https://snapshot-cloudflare.debian.org/archive/debian/20260421T143351Z/pool/main/c/ca-certificates/ca-certificates_20260223_all.deb",
+)
+use_repo(gcs_mirror, "ca-certificates")
+
+gcs_mirror.http_file(
+    name = "rbe_configs_gen_linux_amd64",
+    downloaded_file_path = "rbe_configs_gen",
+    executable = True,
+    no_extension = True,
+    sha256 = "1206e8a79b41cb22524f73afa4f4ee648478f46ef6990d78e7cc953665a1db89",
+    url = "https://github.com/bazelbuild/bazel-toolchains/releases/download/v5.1.2/rbe_configs_gen_linux_amd64",
+)
+use_repo(gcs_mirror, "rbe_configs_gen_linux_amd64")
 `
 
 func TestParseDeps_ReturnsMapOfAllDependencies_WORKSPACE(t *testing.T) {
@@ -326,6 +344,34 @@ func TestParseDeps_ReturnsMapOfAllDependencies_MODULE2(t *testing.T) {
 				ColOffset: 13,
 			},
 			Function: "cipd.download_cipd",
+		},
+		"ca-certificates": &SingleDependency{
+			ID:      "ca-certificates",
+			Version: "https://snapshot-cloudflare.debian.org/archive/debian/20260421T143351Z/pool/main/c/ca-certificates/ca-certificates_20260223_all.deb",
+			versionPos: &ast.Pos{
+				Lineno:    36,
+				ColOffset: 10,
+			},
+			SHA256: "0b5970c26e74d254bb2a59100d7b9d0612ea0b60bd78987cd71e0aebae5221d7",
+			sha256Pos: &ast.Pos{
+				Lineno:    35,
+				ColOffset: 13,
+			},
+			Function: "gcs_mirror.http_archive",
+		},
+		"rbe_configs_gen_linux_amd64": &SingleDependency{
+			ID:      "rbe_configs_gen_linux_amd64",
+			Version: "https://github.com/bazelbuild/bazel-toolchains/releases/download/v5.1.2/rbe_configs_gen_linux_amd64",
+			versionPos: &ast.Pos{
+				Lineno:    46,
+				ColOffset: 10,
+			},
+			SHA256: "1206e8a79b41cb22524f73afa4f4ee648478f46ef6990d78e7cc953665a1db89",
+			sha256Pos: &ast.Pos{
+				Lineno:    45,
+				ColOffset: 13,
+			},
+			Function: "gcs_mirror.http_file",
 		},
 	}, actual)
 }

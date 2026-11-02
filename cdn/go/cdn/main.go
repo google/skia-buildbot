@@ -9,11 +9,14 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"cloud.google.com/go/storage"
 	"github.com/rs/cors"
+	"go.skia.org/infra/go/bazel"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -33,10 +36,8 @@ var (
 	// Global GCS client.
 	gcsClient *storage.Client
 
-	// These URLs get backed up to GCS on startup, if they aren't already present.
-	backupUrlToSha256 = map[string]string{
-		"https://snapshot-cloudflare.debian.org/archive/debian/20260201T022025Z/pool/main/c/ca-certificates/ca-certificates_20250419_all.deb": "ef590f89563aa4b46c8260d49d1cea0fc1b181d19e8df3782694706adf05c184",
-	}
+	// Keep in sync with //bazel/gcs_mirror.bzl.
+	supportedSuffixes = []string{".tar.gz", ".tgz", ".tar.xz", ".deb", ".zip"}
 )
 
 func validatePath(path string) error {
@@ -55,7 +56,6 @@ func validatePath(path string) error {
 func storageHandler(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/")
 	if err := validatePath(path); err != nil {
-		sklog.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -63,7 +63,7 @@ func storageHandler(w http.ResponseWriter, r *http.Request) {
 
 	obj := gcsClient.Bucket(*bucket).Object(path)
 	reader, err := obj.NewReader(r.Context())
-	if err == storage.ErrObjectNotExist {
+	if skerr.Unwrap(err) == storage.ErrObjectNotExist {
 		http.Error(w, "object not found", http.StatusNotFound)
 		return
 	} else if err != nil {
@@ -91,7 +91,7 @@ func storageHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	common.InitWithMust(
-		"autoroll-fe",
+		"cdn",
 		common.PrometheusOpt(promPort),
 	)
 	defer common.Defer()
@@ -103,26 +103,32 @@ func main() {
 
 	ctx := context.Background()
 	// Note: storage.NewClient() will use Application Default Credentials by
-	// default if option.WithHTTPClient is not provided, but doing to results in
+	// default if option.WithHTTPClient is not provided, but doing so results in
 	// the caller needing to have the serviceusage.services.use permission for
 	// the project in question, which our developer accounts do not seem to
 	// have by default.
-	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadOnly)
+	ts, err := google.DefaultTokenSource(ctx, storage.ScopeReadWrite)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	gcsClient, err = storage.NewClient(ctx, option.WithScopes(storage.ScopeReadOnly), storage.WithJSONReads(), option.WithHTTPClient(httpClient))
+	gcsHttpClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	gcsClient, err = storage.NewClient(ctx, option.WithScopes(storage.ScopeReadWrite), storage.WithJSONReads(), option.WithHTTPClient(gcsHttpClient))
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
+	gitilesRepo, err := gitiles.NewRepo(ctx, common.REPO_SKIA_INFRA)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	backupHttpClient := httputils.DefaultClientConfig().With2xxOnly().Client()
+
 	// Run file backup in a separate goroutine to avoid downtime if it fails.
-	go func() {
-		if err := ensureBackups(ctx, httpClient, backupUrlToSha256); err != nil {
+	go util.RepeatCtx(ctx, 15*time.Minute, func(ctx context.Context) {
+		if err := ensureBackups(ctx, gitilesRepo, backupHttpClient); err != nil {
 			sklog.Errorf("Failed backups: %s", err)
 		}
-	}()
+	})
 
 	serverURL := "https://" + *host
 	if *local {
@@ -142,14 +148,40 @@ func main() {
 	sklog.Fatal(http.ListenAndServe(*port, h))
 }
 
-func ensureBackups(ctx context.Context, httpClient *http.Client, urlToSha256 map[string]string) error {
-	sklog.Infof("Backing up specified URLs...")
-	for url, sha256 := range urlToSha256 {
-		if err := maybeBackupURL(ctx, httpClient, url, sha256); err != nil {
-			return skerr.Wrapf(err, "failed to back up %q", url)
+func gcsMirrorObjectPath(url, sha256 string) string {
+	var ext string
+	for _, suffix := range supportedSuffixes {
+		if strings.HasSuffix(url, suffix) {
+			ext = suffix
+			break
 		}
 	}
-	sklog.Infof("Done backing up specified URLs.")
+	return fmt.Sprintf("bazel/%s%s", sha256, ext)
+}
+
+func ensureBackups(ctx context.Context, repo gitiles.GitilesRepo, httpClient *http.Client) error {
+	sklog.Infof("Backing up URLs from MODULE.bazel...")
+	contents, err := repo.ReadFile(ctx, "MODULE.bazel")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	deps, err := bazel.ParseDeps(string(contents))
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	for _, dep := range deps {
+		if dep.GetFunction() != "gcs_mirror.http_archive" && dep.GetFunction() != "gcs_mirror.http_file" {
+			continue
+		}
+		singleDep, ok := dep.(*bazel.SingleDependency)
+		if !ok {
+			return skerr.Fmt("expected SingleDependency for %s (%s)", dep.GetID(), dep.GetFunction())
+		}
+		if err := maybeBackupURL(ctx, httpClient, singleDep.Version, singleDep.SHA256); err != nil {
+			return skerr.Wrapf(err, "failed to back up %q (%s)", singleDep.ID, singleDep.Version)
+		}
+	}
+	sklog.Infof("Done backing up URLs from MODULE.bazel.")
 	return nil
 }
 
@@ -161,10 +193,13 @@ func maybeBackupURL(ctx context.Context, httpClient *http.Client, url, expectSha
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	obj := gcsClient.Bucket(*bucket).Object(expectSha256)
+	objectPath := gcsMirrorObjectPath(url, expectSha256)
+	obj := gcsClient.Bucket(*bucket).Object(objectPath)
 	if _, err := obj.Attrs(ctx); err == nil {
 		// The object already exists; nothing to do.
 		return nil
+	} else if !errors.Is(err, storage.ErrObjectNotExist) {
+		return skerr.Wrapf(err, "failed checking attributes of %s", objectPath)
 	}
 
 	// We'll write the object while computing the digest.
@@ -192,7 +227,7 @@ func maybeBackupURL(ctx context.Context, httpClient *http.Client, url, expectSha
 	if actualSha256 != expectSha256 {
 		return skerr.Fmt("incorrect sha256 digest for %q: expected %s but got %s", url, expectSha256, actualSha256)
 	}
-	sklog.Infof("Backed up %s with digest %s", url, expectSha256)
+	sklog.Infof("Backed up %s to %s", url, objectPath)
 
 	return skerr.Wrap(objWriter.Close())
 }

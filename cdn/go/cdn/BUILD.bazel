@@ -6,7 +6,9 @@ go_library(
     importpath = "go.skia.org/infra/cdn/go/cdn",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/bazel",
         "//go/common",
+        "//go/gitiles",
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
