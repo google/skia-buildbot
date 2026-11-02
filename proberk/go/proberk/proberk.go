@@ -57,7 +57,7 @@ var (
 
 const (
 	dialTimeout             = 5 * time.Second
-	requestTimeout          = 30 * time.Second
+	requestTimeout          = 60 * time.Second
 	defaultSSLValidDuration = 10 * 24 * time.Hour // cert should be valid for at least 10 days
 )
 

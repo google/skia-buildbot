@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/limitwriter"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -114,6 +115,20 @@ func (r *Runner) Start(ctx context.Context) error {
 	return nil
 }
 
+// isPodReady returns true if the pod is running, not terminating, and its
+// PodReady condition is True.
+func isPodReady(p v1.Pod) bool {
+	if p.Status.Phase != v1.PodRunning || p.DeletionTimestamp != nil {
+		return false
+	}
+	for _, c := range p.Status.Conditions {
+		if c.Type == v1.PodReady {
+			return c.Status == v1.ConditionTrue
+		}
+	}
+	return false
+}
+
 // fiddlerIPsOneStep refreshes a list of fiddler pod IP addresses just once.
 func (r *Runner) fiddlerIPsOneStep(ctx context.Context) error {
 	var ips []string
@@ -129,7 +144,7 @@ func (r *Runner) fiddlerIPsOneStep(ctx context.Context) error {
 		ips = make([]string, 0, len(pods.Items))
 		for _, p := range pods.Items {
 			// Note that the PodIP can be the empty string. Who knew?
-			if p.Status.PodIP != "" {
+			if p.Status.PodIP != "" && isPodReady(p) {
 				ips = append(ips, p.Status.PodIP)
 			}
 		}
@@ -330,6 +345,9 @@ func (r *Runner) randPodIPs() []string {
 	ret := []string{}
 	ips := r.podIPs()
 	n := len(ips)
+	if n == 0 {
+		return ret
+	}
 	for i := 0; i < 10; i++ {
 		ret = append(ret, ips[rand.Intn(n)])
 	}

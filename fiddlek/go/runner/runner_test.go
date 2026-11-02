@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/fiddlek/go/types"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const fakeNamespace = "fake_namespace"
@@ -176,4 +178,43 @@ func TestValidateOptions_InValidOptionsReturnError(t *testing.T) {
 		OffScreenWidth:       64,
 		OffScreenHeight:      64,
 	})
+}
+
+func TestIsPodReady(t *testing.T) {
+	now := metav1.Now()
+	assert.True(t, isPodReady(v1.Pod{
+		Status: v1.PodStatus{
+			Phase: v1.PodRunning,
+			Conditions: []v1.PodCondition{
+				{Type: v1.PodReady, Status: v1.ConditionTrue},
+			},
+		},
+	}))
+	assert.False(t, isPodReady(v1.Pod{
+		Status: v1.PodStatus{
+			Phase: v1.PodRunning,
+			Conditions: []v1.PodCondition{
+				{Type: v1.PodReady, Status: v1.ConditionFalse},
+			},
+		},
+	}))
+	assert.False(t, isPodReady(v1.Pod{
+		Status: v1.PodStatus{
+			Phase: v1.PodPending,
+			Conditions: []v1.PodCondition{
+				{Type: v1.PodReady, Status: v1.ConditionTrue},
+			},
+		},
+	}))
+	assert.False(t, isPodReady(v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			DeletionTimestamp: &now,
+		},
+		Status: v1.PodStatus{
+			Phase: v1.PodRunning,
+			Conditions: []v1.PodCondition{
+				{Type: v1.PodReady, Status: v1.ConditionTrue},
+			},
+		},
+	}))
 }
