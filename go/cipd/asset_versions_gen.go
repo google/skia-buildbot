@@ -21,7 +21,7 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/git/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/git/${platform}",
-		Version: "git_revision:8bb9eb866c4be66adc79abac43e8f8029e870de6",
+		Version: "git_revision:fcf75df72c29e9da611beb93d48e2b046c11adc0",
 	},
 	"infra/tools/luci-auth/${platform}": {
 		Path:    ".",
