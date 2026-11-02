@@ -86,8 +86,7 @@ func TestGetSkCQCfg_UpdatedInChange_NotAllowed(t *testing.T) {
 	cfg, err := configReader.GetSkCQCfg(context.Background())
 	require.Nil(t, cfg)
 	require.NotNil(t, err)
-	_, ok := err.(*CannotModifyCfgsOnTheFlyError)
-	require.True(t, ok)
+	require.True(t, IsCannotModifyCfgsOnTheFly(err))
 }
 
 func TestGetSkCQCfg_NotUpdatedInChange(t *testing.T) {
@@ -113,6 +112,7 @@ func TestGetSkCQCfg_NotFound(t *testing.T) {
 	cfg, err := configReader.GetSkCQCfg(context.Background())
 	require.Nil(t, cfg)
 	require.NotNil(t, err)
+	require.True(t, IsNotFound(err))
 	_, ok := skerr.Unwrap(err).(*ConfigNotFoundError)
 	require.True(t, ok)
 }

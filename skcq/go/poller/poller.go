@@ -91,7 +91,13 @@ func Start(ctx context.Context, pollInterval time.Duration, cr codereview.CodeRe
 			if _, ok := clsInThisRound[changeEquivalentPatchset]; !ok {
 
 				ci, err := cr.GetIssueProperties(ctx, cqRecord.ChangeID)
-				if err != nil {
+				if skerr.Unwrap(err) == gerrit.ErrNotFound || (err != nil && strings.Contains(err.Error(), "status code 404")) {
+					sklog.Warningf("[%d] Change not found in Gerrit during cleanup; removing from cache without cleaning up verifiers: %s", cqRecord.ChangeID, err)
+					if err := markCLAbandoned(ctx, changeEquivalentPatchset, currentChangesCache, dbClient, cqRecord); err != nil {
+						sklog.Errorf("[%d] Error when marking deleted CL %s as abandoned: %s", cqRecord.ChangeID, changeEquivalentPatchset, err)
+					}
+					continue
+				} else if err != nil {
 					sklog.Errorf("[%d] Could not get issue properties during cleanup: %s", cqRecord.ChangeID, err)
 					continue
 				}
@@ -290,9 +296,7 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 	}
 }
 
-func cleanupCL(ctx context.Context, changeEquivalentPatchset string, currentChangesCache caches.CurrentChangesCache, dbClient db.DB, cqRecord *types.CurrentlyProcessingChange, ci *gerrit.ChangeInfo, configReader config.ConfigReader, cr codereview.CodeReview, httpClient *http.Client, vm types.VerifiersManager) error {
-	sklog.Infof("[%d] %s is no longer processed by SkCQ. It was processed in the last cycle and was still running. Going to mark it as abandoned and cleanup it's verifiers.", cqRecord.ChangeID, changeEquivalentPatchset)
-
+func markCLAbandoned(ctx context.Context, changeEquivalentPatchset string, currentChangesCache caches.CurrentChangesCache, dbClient db.DB, cqRecord *types.CurrentlyProcessingChange) error {
 	// Remove the change from the changes cache.
 	if err := currentChangesCache.Remove(ctx, changeEquivalentPatchset); err != nil {
 		return skerr.Wrapf(err, "[%d] could not update the currentChangesCache during cleanup", cqRecord.ChangeID)
@@ -302,6 +306,15 @@ func cleanupCL(ctx context.Context, changeEquivalentPatchset string, currentChan
 	// the change.
 	if err := dbClient.UpdateChangeAttemptAsAbandoned(ctx, cqRecord.ChangeID, cqRecord.LatestPatchsetID, db.GetChangesCol(cqRecord.Internal), cqRecord.StartTs); err != nil {
 		return skerr.Wrapf(err, "[%d] Could not mark change %s as abandoned during cleanup", cqRecord.ChangeID, changeEquivalentPatchset)
+	}
+	return nil
+}
+
+func cleanupCL(ctx context.Context, changeEquivalentPatchset string, currentChangesCache caches.CurrentChangesCache, dbClient db.DB, cqRecord *types.CurrentlyProcessingChange, ci *gerrit.ChangeInfo, configReader config.ConfigReader, cr codereview.CodeReview, httpClient *http.Client, vm types.VerifiersManager) error {
+	sklog.Infof("[%d] %s is no longer processed by SkCQ. It was processed in the last cycle and was still running. Going to mark it as abandoned and cleanup it's verifiers.", cqRecord.ChangeID, changeEquivalentPatchset)
+
+	if err := markCLAbandoned(ctx, changeEquivalentPatchset, currentChangesCache, dbClient, cqRecord); err != nil {
+		return skerr.Wrap(err)
 	}
 
 	// Instantiate all objs needed to get verifiers.

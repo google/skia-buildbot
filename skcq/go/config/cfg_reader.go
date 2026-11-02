@@ -31,7 +31,7 @@ func (e *ConfigNotFoundError) Error() string {
 }
 
 func IsNotFound(err error) bool {
-	_, ok := err.(*ConfigNotFoundError)
+	_, ok := skerr.Unwrap(err).(*ConfigNotFoundError)
 	return ok
 }
 
@@ -47,7 +47,7 @@ func (e *CannotModifyCfgsOnTheFlyError) Error() string {
 }
 
 func IsCannotModifyCfgsOnTheFly(err error) bool {
-	_, ok := err.(*CannotModifyCfgsOnTheFlyError)
+	_, ok := skerr.Unwrap(err).(*CannotModifyCfgsOnTheFlyError)
 	return ok
 }
 

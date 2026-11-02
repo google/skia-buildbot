@@ -199,3 +199,25 @@ func TestCleanupCL(t *testing.T) {
 	err := cleanupCL(context.Background(), changePatchsetID, cc, dbClient, cqRecord, ci, cfgReader, cr, httpClient, vm)
 	require.Nil(t, err)
 }
+
+func TestMarkCLAbandoned(t *testing.T) {
+	changeID := int64(123)
+	equivalentPatchsetID := int64(5)
+	changePatchsetID := fmt.Sprintf("%d/%d", changeID, equivalentPatchsetID)
+	latestPatchsetID := int64(7)
+	startTime := int64(444)
+	cqRecord := &types.CurrentlyProcessingChange{
+		ChangeID:         changeID,
+		LatestPatchsetID: latestPatchsetID,
+		StartTs:          startTime,
+	}
+
+	cc := caches_mocks.NewCurrentChangesCache(t)
+	cc.On("Remove", testutils.AnyContext, changePatchsetID).Return(nil).Once()
+
+	dbClient := db_mocks.NewDB(t)
+	dbClient.On("UpdateChangeAttemptAsAbandoned", testutils.AnyContext, changeID, latestPatchsetID, db.GetChangesCol(false), startTime).Return(nil).Once()
+
+	err := markCLAbandoned(context.Background(), changePatchsetID, cc, dbClient, cqRecord)
+	require.NoError(t, err)
+}
