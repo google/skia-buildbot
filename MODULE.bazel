@@ -841,12 +841,19 @@ http_archive(
     build_file_content = """
 filegroup(
     name = "all_files",
-    srcs = glob(["**/*"]),
+    srcs = glob(
+        ["**/*"],
+        exclude = [
+            "**/ensurepip/**",
+            "**/Cargo.lock",
+            "**/bin/gcloud-crc32c",
+        ],
+    ),
     visibility = ["//visibility:public"]
 )
 """,
-    sha256 = "2ab0f75435a9ada0b7400500adbfbdfeceab2a6330c4043f68c543fc5c5c14da",
-    url = "https://storage.googleapis.com/cloud-sdk-release/google-cloud-cli-564.0.0-linux-x86_64.tar.gz",
+    sha256 = "78c570f5fcfe58a9311bd98c06b75530595e3cae6277aad75a676a39e6ee7b63",
+    url = "https://storage.googleapis.com/cloud-sdk-release/google-cloud-cli-591.0.0-linux-x86_64.tar.gz",
 )
 
 ####################################################################################################
