@@ -55,9 +55,13 @@ func step(ctx context.Context, storageClient *storage.Client) {
 		stdErr := bytes.Buffer{}
 		// This only works if the remote file's host has the source's SSH public key in
 		// $HOME/.ssh/authorized_key
+		args := []string{*remoteFilePath, *localFilePath}
+		if *remoteCopyCommand == "scp" {
+			args = []string{"-o", "StrictHostKeyChecking=accept-new", *remoteFilePath, *localFilePath}
+		}
 		err = exec.Run(ctx, &exec.Command{
 			Name:   *remoteCopyCommand,
-			Args:   []string{*remoteFilePath, *localFilePath},
+			Args:   args,
 			Stdout: &stdOut,
 			Stderr: &stdErr,
 		})
