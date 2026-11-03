@@ -84,7 +84,7 @@ func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch
 			return skerr.Wrapf(err, "failed to retrieve issue properties")
 		}
 		if len(ci2.Revisions) < 2 {
-			sklog.Errorf("Change is missing second patchset; reloading.")
+			sklog.Warningf("Change is missing second patchset; reloading.")
 			return skerr.Fmt("change is missing second patchset")
 		}
 		sklog.Info("Retrieved issue properties successfully.")
