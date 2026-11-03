@@ -149,7 +149,7 @@ func tryParsingAsAnimatedFiddle(body string) (*types.FiddleContext, error) {
 			Source:   source,
 			TextOnly: textonly,
 			Duration: duration,
-			Animated: true,
+			Animated: duration > 0,
 		},
 	}, nil
 }

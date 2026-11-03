@@ -199,6 +199,15 @@ func TestParse_AnimatedSample_InformationExtracted(t *testing.T) {
 	assert.False(t, fc.Options.TextOnly)
 	assert.True(t, fc.Options.Animated)
 	assert.Equal(t, 10.5, fc.Options.Duration)
+
+	fc, err = ParseCpp(`REG_FIDDLE_ANIMATED(shapes, 256, 256, false, 0, 0) {
+void draw(SkCanvas* canvas) {
+}
+}  // END FIDDLE`)
+	assert.NoError(t, err)
+	assert.Equal(t, "shapes", fc.Name)
+	assert.False(t, fc.Options.Animated)
+	assert.Equal(t, 0.0, fc.Options.Duration)
 }
 
 func TestParse_SRGBSample_InformationExtracted(t *testing.T) {
