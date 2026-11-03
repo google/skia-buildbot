@@ -233,7 +233,11 @@ func (c *AtomicMissCache) Cleanup(ctx context.Context, shouldDelete func(context
 	// Determine which entries need to be deleted.
 	delete := map[string]*cacheEntry{}
 	for key, entry := range cache {
-		entry.mtx.Lock()
+		if !entry.mtx.TryLock() {
+			// If the entry is currently locked by an in-flight Get or Set,
+			// skip it rather than blocking Cleanup.
+			continue
+		}
 		if entry.val == nil || shouldDelete(ctx, key, entry.val) {
 			// If there is no Value for this entry, then it's left
 			// over from a previous incomplete Get or Set.
@@ -247,7 +251,9 @@ func (c *AtomicMissCache) Cleanup(ctx context.Context, shouldDelete func(context
 		c.mtx.Lock()
 		defer c.mtx.Unlock()
 		for key, entry := range delete {
-			entry.mtx.Lock()
+			if !entry.mtx.TryLock() {
+				continue
+			}
 			if err := c.deleteLocked(ctx, key); err != nil {
 				entry.mtx.Unlock()
 				return err

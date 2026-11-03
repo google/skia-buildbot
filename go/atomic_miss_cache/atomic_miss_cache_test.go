@@ -198,3 +198,38 @@ func TestAtomicMissCacheForEach(t *testing.T) {
 	})
 	require.Equal(t, 5, len(got))
 }
+
+func TestAtomicMissCacheCleanupDoesNotBlockOnLockedEntry(t *testing.T) {
+	ctx := context.Background()
+	c := New(nil)
+	require.NoError(t, c.Set(ctx, "keep", &miniEntry{val: 1}))
+	require.NoError(t, c.Set(ctx, "delete", &miniEntry{val: 2}))
+
+	started := make(chan struct{})
+	unblock := make(chan struct{})
+	done := make(chan error, 1)
+
+	go func() {
+		_, err := c.SetIfUnset(ctx, "inflight", func(ctx context.Context) (Value, error) {
+			close(started)
+			<-unblock
+			return &miniEntry{val: 3}, nil
+		})
+		done <- err
+	}()
+
+	<-started
+	// Cleanup should complete immediately without blocking on "inflight".
+	require.NoError(t, c.Cleanup(ctx, func(ctx context.Context, key string, value Value) bool {
+		return key == "delete"
+	}))
+	close(unblock)
+	require.NoError(t, <-done)
+
+	_, err := c.Get(ctx, "delete")
+	require.Equal(t, ErrNoSuchEntry, err)
+	_, err = c.Get(ctx, "keep")
+	require.NoError(t, err)
+	_, err = c.Get(ctx, "inflight")
+	require.NoError(t, err)
+}
