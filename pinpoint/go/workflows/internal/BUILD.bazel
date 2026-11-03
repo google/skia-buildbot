@@ -96,6 +96,7 @@ go_test(
         "pairwise_runner_test.go",
         "pairwise_test.go",
         "run_benchmark_test.go",
+        "stp_downloader_test.go",
     ],
     data = glob(["testdata/**"]),
     embed = [":internal"],
@@ -113,6 +114,7 @@ go_test(
         "//go/testutils",
         "//go/vcsinfo",
         "//pinpoint/go/backends",
+        "//pinpoint/go/backends/mocks",
         "//pinpoint/go/bot_configs",
         "//pinpoint/go/common",
         "//pinpoint/go/compare",
@@ -130,5 +132,6 @@ go_test(
         "@io_temporal_go_sdk//workflow",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//swarming/proto/api_v2",
+        "@org_golang_x_net//html",
     ],
 )
