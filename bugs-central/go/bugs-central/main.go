@@ -347,18 +347,13 @@ func (srv *Server) getChartsData(w http.ResponseWriter, r *http.Request) {
 
 // getDateToCountsData returns counts data for the specified client, source and
 // query.
-func (srv *Server) getDateToCountsData(ctx context.Context, c types.RecognizedClient, s types.IssueSource, q string) (map[string]*types.IssueCountsData, error) {
-	qds, err := srv.dbClient.GetQueryDataFromDB(context.Background(), c, s, q)
+func (srv *Server) getDateToCountsData(ctx context.Context, c types.RecognizedClient, s types.IssueSource, q string, validRunIds map[string]bool) (map[string]*types.IssueCountsData, error) {
+	qds, err := srv.dbClient.GetQueryDataFromDB(ctx, c, s, q)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	dateToCountsData := map[string]*types.IssueCountsData{}
-	validRunIds, err := srv.dbClient.GetAllRecognizedRunIds(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get valid runIds from DB")
-	}
-
 	for _, qd := range qds {
 		if _, ok := validRunIds[qd.RunId]; !ok {
 			// Ignore this query data since runId was not found.
@@ -374,6 +369,15 @@ func (srv *Server) getDateToCountsData(ctx context.Context, c types.RecognizedCl
 	return dateToCountsData, nil
 }
 
+func mergeDateToCountsData(dst, src map[string]*types.IssueCountsData) {
+	for d, counts := range src {
+		if _, ok := dst[d]; !ok {
+			dst[d] = &types.IssueCountsData{}
+		}
+		dst[d].Merge(counts)
+	}
+}
+
 // populateChartsDataCache populates the charts data cache for
 // all supported clients + sources + queries. Also includes data
 // for empty-client, empty-source, empty-query.
@@ -386,36 +390,35 @@ func (srv *Server) populateChartsDataCache(ctx context.Context) error {
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to get clients")
 	}
+	validRunIds, err := srv.dbClient.GetAllRecognizedRunIds(ctx)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to get valid runIds from DB")
+	}
+
+	allCounts := map[string]*types.IssueCountsData{}
 	for c, sources := range clientsData {
+		clientCounts := map[string]*types.IssueCountsData{}
 		for s, queries := range sources {
+			sourceCounts := map[string]*types.IssueCountsData{}
 			for q := range queries {
 				// Add data for client + source + query.
-				dateToCountsData, err := srv.getDateToCountsData(ctx, c, s, q)
+				dateToCountsData, err := srv.getDateToCountsData(ctx, c, s, q, validRunIds)
 				if err != nil {
 					return skerr.Wrap(err)
 				}
 				clientsToChartsDataCache[getClientsKey(c, s, q)] = dateToCountsData
+				mergeDateToCountsData(sourceCounts, dateToCountsData)
 			}
 			// Add data for client + source + empty-query.
-			dateToCountsData, err := srv.getDateToCountsData(ctx, c, s, "")
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			clientsToChartsDataCache[getClientsKey(c, s, "")] = dateToCountsData
+			clientsToChartsDataCache[getClientsKey(c, s, "")] = sourceCounts
+			mergeDateToCountsData(clientCounts, sourceCounts)
 		}
 		// Add data for client + empty-source + empty-query.
-		dateToCountsData, err := srv.getDateToCountsData(ctx, c, "", "")
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		clientsToChartsDataCache[getClientsKey(c, "", "")] = dateToCountsData
+		clientsToChartsDataCache[getClientsKey(c, "", "")] = clientCounts
+		mergeDateToCountsData(allCounts, clientCounts)
 	}
 	// Add data for empty-client + empty-source + empty-query.
-	dateToCountsData, err := srv.getDateToCountsData(ctx, "", "", "")
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	clientsToChartsDataCache[getClientsKey("", "", "")] = dateToCountsData
+	clientsToChartsDataCache[getClientsKey("", "", "")] = allCounts
 
 	sklog.Info("Done populating charts data cache")
 	return nil
