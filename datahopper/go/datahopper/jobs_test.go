@@ -504,12 +504,16 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	// Jobs have not completed, so same as above.
 	check(c1age, c1age, c2age)
 
-	// One job is complete.
+	// One job is complete; MISHAP and CANCELED jobs do not count as tested.
 	j2.Status = types.JOB_STATUS_SUCCESS
 	j2.Finished = time.Now()
-	require.NoError(t, d.PutJob(ctx, j2))
+	j4.Status = types.JOB_STATUS_MISHAP
+	j4.Finished = time.Now()
+	j5.Status = types.JOB_STATUS_CANCELED
+	j5.Finished = time.Now()
+	require.NoError(t, d.PutJobs(ctx, []*types.Job{j2, j4, j5}))
 
-	// Expect Build to be up-to-date.
+	// Expect Build to be up-to-date, while Test (MISHAP) and Perf (CANCELED) remain overdue.
 	check("0", c1age, c2age)
 
 	// Revert back to c1 (no Perf task) and check that Perf job disappears.

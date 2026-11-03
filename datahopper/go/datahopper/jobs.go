@@ -685,7 +685,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 					return skerr.Fmt("GetJobsByRepoState: %s", err)
 				}
 				for _, j := range jobs {
-					if j.Done() {
+					if j.Done() && j.Status != types.JOB_STATUS_MISHAP && j.Status != types.JOB_STATUS_CANCELED {
 						delete(todo, name)
 						break
 					}
