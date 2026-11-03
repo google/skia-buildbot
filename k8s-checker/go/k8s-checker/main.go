@@ -382,7 +382,11 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 	}
 
 	// Read files from the repo using gitiles.
-	fileInfos, err := g.ListDirAtRef(ctx, cluster, git.MainBranch)
+	commitHash, err := g.ResolveRef(ctx, git.MainBranch)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "resolving %s in %s", git.MainBranch, repo)
+	}
+	fileInfos, err := g.ListDirAtRef(ctx, cluster, commitHash)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "listing files from %s", repo)
 	}
@@ -398,7 +402,7 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 			// Only interested in YAML configs.
 			continue
 		}
-		yamlContents, err := g.ReadFileAtRef(ctx, filepath.Join(cluster, f), git.MainBranch)
+		yamlContents, err := g.ReadFileAtRef(ctx, filepath.Join(cluster, f), commitHash)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "reading file %s from %s in cluster %s", f, repo, cluster)
 		}
