@@ -165,10 +165,26 @@ func main() {
 	w.RegisterActivity(internal.CollectBrowserVersionsActivity)
 	w.RegisterActivity(internal.DownloadSafariTPActivity)
 	w.RegisterActivity(internal.UploadCbbResultsActivity)
-	w.RegisterWorkflowWithOptions(internal.CbbRunnerWorkflow, workflow.RegisterOptions{Name: workflows.CbbRunner})
-	w.RegisterWorkflowWithOptions(internal.CbbNewReleaseDetectorWorkflow, workflow.RegisterOptions{Name: workflows.CbbNewReleaseDetector})
-	w.RegisterWorkflowWithOptions(internal.CbbGetBrowserVersionsWorkflow, workflow.RegisterOptions{Name: workflows.CbbGetBrowserVersions})
-	w.RegisterWorkflowWithOptions(internal.DownloadSafariTPWorkflow, workflow.RegisterOptions{Name: workflows.CbbDownloadSafariTP})
+	// A CBB run can last up to 16 hours. Pinned runs finish on the build they
+	// started on, so a deploy during a run can't hand it workflow code that no
+	// longer matches its recorded history, which is how a detector run got
+	// stuck in October 2026 (b/573390802).
+	w.RegisterWorkflowWithOptions(internal.CbbRunnerWorkflow, workflow.RegisterOptions{
+		Name:               workflows.CbbRunner,
+		VersioningBehavior: workflow.VersioningBehaviorPinned,
+	})
+	w.RegisterWorkflowWithOptions(internal.CbbNewReleaseDetectorWorkflow, workflow.RegisterOptions{
+		Name:               workflows.CbbNewReleaseDetector,
+		VersioningBehavior: workflow.VersioningBehaviorPinned,
+	})
+	w.RegisterWorkflowWithOptions(internal.CbbGetBrowserVersionsWorkflow, workflow.RegisterOptions{
+		Name:               workflows.CbbGetBrowserVersions,
+		VersioningBehavior: workflow.VersioningBehaviorPinned,
+	})
+	w.RegisterWorkflowWithOptions(internal.DownloadSafariTPWorkflow, workflow.RegisterOptions{
+		Name:               workflows.CbbDownloadSafariTP,
+		VersioningBehavior: workflow.VersioningBehaviorPinned,
+	})
 
 	// TODO(b/322203189) - Remove Catapult workflows and activities once the backwards
 	// UI compatibility is no longer needed and thus the catapult package is deprecated.
