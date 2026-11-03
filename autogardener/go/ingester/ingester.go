@@ -88,7 +88,7 @@ func (i *Ingester) periodicTaskPollingFallback(ctx context.Context, repoURL stri
 	lv := metrics2.NewLiveness("liveness_autogardener_task_ingestion_fallback", map[string]string{
 		"repo": repoURL,
 	})
-	util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
+	util.RepeatCtx(ctx, 10*time.Minute, func(ctx context.Context) {
 		tasks, err := i.getFailedTasks(ctx, repoURL, period)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve tasks: %s", err)
@@ -102,7 +102,7 @@ func (i *Ingester) periodicTaskPollingFallback(ctx context.Context, repoURL stri
 }
 
 func (i *Ingester) periodicUnclassifiedExtractedErrorPollingFallback(ctx context.Context, classifyCh chan<- *types.TaskAndError) {
-	util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
+	util.RepeatCtx(ctx, 10*time.Minute, func(ctx context.Context) {
 		// TODO(borenet): This retrieves extracted errors for ALL repos.
 		unclassified, err := i.db.GetUnclassifiedExtractedErrors(ctx, getUnclassifiedExtractedErrorsBatchSize)
 		if err != nil {
@@ -150,20 +150,17 @@ func (i *Ingester) StartIngestingForRepo(ctx context.Context, repoURL string, pe
 
 func (i *Ingester) getFailedTasks(ctx context.Context, repoURL string, period time.Duration) ([]*ts_types.Task, error) {
 	// Retrieve tasks for all commits.
-	var allTasks []*ts_types.Task
 	end := time.Now()
 	start := end.Add(-period)
-	for _, status := range []ts_types.TaskStatus{ts_types.TASK_STATUS_FAILURE, ts_types.TASK_STATUS_MISHAP} {
-		tasks, err := i.tsDB.SearchTasks(ctx, &ts_db.TaskSearchParams{
-			TimeStart: &start,
-			TimeEnd:   &end,
-			Repo:      &repoURL,
-			Status:    &status,
-		})
-		if err != nil {
-			return nil, skerr.Wrap(err)
+	tasks, err := i.tsDB.GetTasksFromDateRange(ctx, start, end, repoURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	var allTasks []*ts_types.Task
+	for _, task := range tasks {
+		if task.Done() && !task.Success() {
+			allTasks = append(allTasks, task)
 		}
-		allTasks = append(allTasks, tasks...)
 	}
 	sklog.Infof("Found %d failing tasks for %s in last %s.", len(allTasks), repoURL, period)
 	return allTasks, nil

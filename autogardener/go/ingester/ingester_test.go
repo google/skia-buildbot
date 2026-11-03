@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/mcp/services/skia/task_details"
 	task_details_mocks "go.skia.org/infra/mcp/services/skia/task_details/mocks"
 	td_mocks "go.skia.org/infra/task_driver/go/db/mocks"
-	ts_db "go.skia.org/infra/task_scheduler/go/db"
 	ts_mocks "go.skia.org/infra/task_scheduler/go/mocks"
 	ts_types "go.skia.org/infra/task_scheduler/go/types"
 )
@@ -103,24 +102,33 @@ func TestPeriodicTaskPollingFallback(t *testing.T) {
 		tsDB:   mockTSDB,
 	}
 
-	task := &ts_types.Task{
+	failedTask := &ts_types.Task{
 		Id:     "failed-task",
 		Status: ts_types.TASK_STATUS_FAILURE,
 	}
+	mishapTask := &ts_types.Task{
+		Id:     "mishap-task",
+		Status: ts_types.TASK_STATUS_MISHAP,
+	}
+	successTask := &ts_types.Task{
+		Id:     "success-task",
+		Status: ts_types.TASK_STATUS_SUCCESS,
+	}
+	runningTask := &ts_types.Task{
+		Id:     "running-task",
+		Status: ts_types.TASK_STATUS_RUNNING,
+	}
 
-	mockTSDB.On("SearchTasks", mock.Anything, mock.MatchedBy(func(p *ts_db.TaskSearchParams) bool {
-		return *p.Status == ts_types.TASK_STATUS_FAILURE
-	})).Return([]*ts_types.Task{task}, nil).Once()
-	mockTSDB.On("SearchTasks", mock.Anything, mock.MatchedBy(func(p *ts_db.TaskSearchParams) bool {
-		return *p.Status == ts_types.TASK_STATUS_MISHAP
-	})).Return([]*ts_types.Task{}, nil).Once()
+	mockTSDB.On("GetTasksFromDateRange", mock.Anything, mock.Anything, mock.Anything, repoURL).Return([]*ts_types.Task{successTask, runningTask, failedTask, mishapTask}, nil).Once()
 
 	taskCh := make(chan *ts_types.Task)
 
 	go i.periodicTaskPollingFallback(ctx, repoURL, period, taskCh)
 
-	popped := <-taskCh
-	require.Equal(t, task.Id, popped.Id)
+	popped1 := <-taskCh
+	require.Equal(t, failedTask.Id, popped1.Id)
+	popped2 := <-taskCh
+	require.Equal(t, mishapTask.Id, popped2.Id)
 }
 
 func TestPeriodicUnclassifiedExtractedErrorPollingFallback(t *testing.T) {
@@ -193,7 +201,7 @@ func TestStartIngestingForRepo(t *testing.T) {
 
 	modCh := make(chan []*ts_types.Task)
 	mockTSDB.On("ModifiedTasksCh", mock.Anything).Return((<-chan []*ts_types.Task)(modCh))
-	mockTSDB.On("SearchTasks", mock.Anything, mock.Anything).Return([]*ts_types.Task{}, nil).Maybe()
+	mockTSDB.On("GetTasksFromDateRange", mock.Anything, mock.Anything, mock.Anything, repoURL).Return([]*ts_types.Task{}, nil).Maybe()
 	mockDB.On("GetUnclassifiedExtractedErrors", mock.Anything, getUnclassifiedExtractedErrorsBatchSize).Return(map[string]*types.ExtractedError{}, nil).Maybe()
 
 	mockTDDB := td_mocks.NewDB(t)
