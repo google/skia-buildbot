@@ -3,6 +3,8 @@ package buildbucket
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -247,8 +249,9 @@ func contextWithTokenMetadata(ctx context.Context, token string) context.Context
 
 // StartBuild implements BuildbucketInterface.
 func (c *Client) StartBuild(ctx context.Context, buildId int64, taskId, token string) (string, error) {
+	requestId := uuid.NewHash(sha256.New(), uuid.NameSpaceOID, []byte(fmt.Sprintf("%d-%s", buildId, taskId)), 5).String()
 	resp, err := c.builds.StartBuild(contextWithTokenMetadata(ctx, token), &buildbucketpb.StartBuildRequest{
-		RequestId: uuid.New().String(),
+		RequestId: requestId,
 		BuildId:   buildId,
 		TaskId:    taskId,
 	})

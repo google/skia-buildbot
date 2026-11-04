@@ -2,12 +2,15 @@ package bb_testutils
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
@@ -120,8 +123,9 @@ func (c *MockClient) MockGetTrybotsForCL(issueID, patchsetID int64, gerritUrl st
 }
 
 func (c *MockClient) MockStartBuild(buildId int64, taskId string, rv *buildbucketpb.StartBuildResponse, rvErr error) {
+	expectedRequestId := uuid.NewHash(sha256.New(), uuid.NameSpaceOID, []byte(fmt.Sprintf("%d-%s", buildId, taskId)), 5).String()
 	call := c.mock.EXPECT().StartBuild(testutils.AnyContext, mock.MatchedBy(func(req *buildbucketpb.StartBuildRequest) bool {
-		return req.BuildId == buildId && req.TaskId == taskId
+		return req.BuildId == buildId && req.TaskId == taskId && req.RequestId == expectedRequestId
 	}))
 	call.Return(rv, rvErr)
 }

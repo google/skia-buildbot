@@ -234,3 +234,22 @@ func TestStartBuild_ErrorForMissingUpdateToken(t *testing.T) {
 	require.ErrorContains(t, err, "StartBuild returned an empty UpdateBuildToken")
 	require.Empty(t, updateToken)
 }
+
+func TestStartBuild_DeterministicRequestId(t *testing.T) {
+	c := bb_testutils.NewMockClient(t)
+	const buildId = int64(12345)
+	taskId := "fake-task-id"
+	token := "fake-token"
+	c.MockStartBuild(buildId, taskId, &buildbucketpb.StartBuildResponse{
+		UpdateBuildToken: "update-token",
+	}, nil)
+	c.MockStartBuild(buildId, taskId, &buildbucketpb.StartBuildResponse{
+		UpdateBuildToken: "update-token",
+	}, nil)
+	tok1, err := c.StartBuild(context.Background(), buildId, taskId, token)
+	require.NoError(t, err)
+	require.Equal(t, "update-token", tok1)
+	tok2, err := c.StartBuild(context.Background(), buildId, taskId, token)
+	require.NoError(t, err)
+	require.Equal(t, "update-token", tok2)
+}

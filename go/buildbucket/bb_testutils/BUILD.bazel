@@ -14,6 +14,7 @@ go_library(
         "@com_github_golang_protobuf//ptypes",
         "@com_github_golang_protobuf//ptypes/struct",
         "@com_github_golang_protobuf//ptypes/timestamp",
+        "@com_github_google_uuid//:uuid",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//buildbucket/proto",
