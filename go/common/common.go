@@ -1,3 +1,8 @@
+// Copyright 2014 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Common tool initialization.
 // import only from package main.
 package common

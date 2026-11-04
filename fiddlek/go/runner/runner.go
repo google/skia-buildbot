@@ -1,3 +1,8 @@
+// Copyright 2016 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Functions for the last mile of a fiddle, i.e. formatting the draw.cpp and
 // then compiling and executing the code by dispatching a request to a fiddler.
 package runner

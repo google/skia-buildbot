@@ -1,3 +1,8 @@
+// Copyright 2015 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Runs "gcloud compute project-info describe --format=json" and parses the output to find the
 // 'jwt_service_account' metadata, which is then written to a local file "service-account.json".
 package main

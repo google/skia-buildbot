@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Codereview Watcher checks for open cherrypicks in source repos+branches and
 // adds reminder comments about considering cherrypicks into target
 // repos+branches.

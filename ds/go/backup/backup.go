@@ -1,3 +1,8 @@
+// Copyright 2017 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Common code for backing up datastore entities.
 //
 // At the time of this writing there is a cloud golang client, but it is ugly,

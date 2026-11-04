@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This program generates custom elements for various SVG icons found in the material-design-icons
 // NPM package (https://github.com/google/material-design-icons). All generated custom elements
 // will be placed in directories following the //elements-sk/modules/icons/<icon-name>-sk naming

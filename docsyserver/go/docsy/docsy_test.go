@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package docsy transforms raw documents via Hugo and a Docsy template into
 // final documentation.
 package docsy

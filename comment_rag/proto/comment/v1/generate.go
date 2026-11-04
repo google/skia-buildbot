@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Generate the go code from the protocol buffer definitions.
 //go:generate bazelisk run --config=mayberemote //:protoc -- -I . -I ../../../.. --descriptor_set_in=../../../../_bazel_bin/external/googleapis+/google/api/annotations_proto-descriptor-set.proto.bin:../../../../_bazel_bin/external/googleapis+/google/api/http_proto-descriptor-set.proto.bin --grpc-gateway_opt=logtostderr=true,paths=source_relative --grpc-gateway_out=. --go_out=paths=source_relative:./ --go-grpc_out=paths=source_relative:./ comment_api.proto
 //go:generate bazelisk run --config=mayberemote //:goimports "--run_under=cd $PWD &&" -- -w comment_api.pb.go

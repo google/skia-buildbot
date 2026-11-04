@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This executable generates a go file that contains the SQL schema for
 // the comment rag service defined as a string.
 package main

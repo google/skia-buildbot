@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package replaybackends provides in-memory implementations of backend dependencies
 // for testing. These implementations re-play backend responses recorded during calls
 // to live production services.

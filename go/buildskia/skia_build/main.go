@@ -1,3 +1,8 @@
+// Copyright 2016 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // skia_build is a command line application to trigger or force builds
 // of Skia that are done using go/buildskia.
 //

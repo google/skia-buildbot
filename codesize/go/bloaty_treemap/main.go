@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package main
 
 // This program is a Golang port of bloaty_treemap.py[1]. It reads the output of Bloaty[2] via stdin
