@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package jsonschema has utility functions for creating JSON Schema files from
 // structs, and also for validating a JSON file against a schema.
 //

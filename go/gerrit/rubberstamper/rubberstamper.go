@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package rubberstamper contains some utilities for having the RubberStamper bot automatically
 // submit a CL. See skbug.com/12124 for more details.
 // These utilities are not in the gerrit package to avoid adding the heavy dependencies of that

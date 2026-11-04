@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package grpclogging provides client and server interceptors to log grpc requests, responses,
 // errors and other metadata which is helpful for debugging and analysis.  This package assumes
 // the caller is running in a skia-infra managed GKE cluster, such that stdout is parsed as

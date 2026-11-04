@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Roles are part of the Skia Infra Authorization system.
 //
 // See go/proxy-auth-skia.

@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package executil provides a mostly transparent way to make os/exec testable. It is inspired by
 // https://npf.io/2015/06/testing-exec-command/ (which was inspired by the standard library's tests
 // of os/exec). Basically, the helpers in this package replace a call to an arbitrary executable

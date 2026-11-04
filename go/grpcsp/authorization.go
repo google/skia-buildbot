@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package grpcsp implements grpc server interceptors to apply role-based
 // access control to a grpc service. It is intended to work with headers
 // set by [go.skia.org/infra/kube/go/authproxy] on incoming requests.

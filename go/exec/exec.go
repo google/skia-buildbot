@@ -1,3 +1,8 @@
+// Copyright 2015 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package exec is a wrapper around the os/exec package that supports timeouts and testing.
 //
 // Example usage:

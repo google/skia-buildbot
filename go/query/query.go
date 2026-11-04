@@ -1,3 +1,8 @@
+// Copyright 2016 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package query provides tools for searching over structured keys.
 //
 // One example of such a structured key is a Trace id. A key is simply a

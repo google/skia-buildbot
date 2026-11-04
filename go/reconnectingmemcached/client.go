@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package reconnectingmemcached contains a wrapper around a general memcache client. It provides
 // the ability to automatically reconnect after a certain number of failures. While the connection
 // is down, its APIs quickly return, allowing clients to fallback to some other mechanism.

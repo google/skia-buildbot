@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package typescript provides primitives to represent TypeScript types, and type declarations.
 //
 // This package is completely decoupled from Go's reflect package. It provides a set of very simple

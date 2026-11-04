@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package emulators contains functions to start and stop emulators, and utilities to work with the
 // various *_EMULATOR_HOST environment variables.
 //

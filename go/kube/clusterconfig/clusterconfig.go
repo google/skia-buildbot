@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package clusterconfig contains helper functions for dealing with the
 // configuration of all Skia Infra k8s clusters. See /infra/kube/README.md for
 // an overview of how clusters are managed.

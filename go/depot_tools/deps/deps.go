@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Parse the DEPS file and generate Go code with its contents.
 //
 //go:generate bazelisk run --config=mayberemote //:go -- run ./generate.go

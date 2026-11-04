@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package bt_gitstore
 
 // The bt_gitstore package implements a way to store Git metadata in BigTable for faster retrieval

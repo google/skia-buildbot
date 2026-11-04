@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package go2ts is an extremely simple and powerful Go to TypeScript generator.
 // It can handle all JSON serializable Go types and also has the ability to
 // define TypeScript union types for your enum-like types.

@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // We intentionally use the _test package here so that the tests import executil like client code
 // would, making this demo of the API more realistic.
 package executil_test

@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package gpus provides a table of GPU vendor information, ported from Swarming:
 // https://github.com/luci/luci-py/blob/887c873be30051f382da8b6aa8076a7467c80388/appengine/swarming/swarming_bot/api/platforms/gpu.py
 // https://github.com/luci/luci-py/blob/887c873be30051f382da8b6aa8076a7467c80388/appengine/swarming/swarming_bot/api/platforms/win.py#L405
