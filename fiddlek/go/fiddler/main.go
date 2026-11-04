@@ -14,7 +14,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path"
@@ -40,6 +39,13 @@ import (
 const (
 	// FPS is the Frames Per Second when generating an animation.
 	FPS = 60
+
+	// readTimeout is the maximum duration for reading the incoming request.
+	readTimeout = time.Minute
+
+	// writeTimeout is the duration reserved at the end of a run for writing the
+	// HTTP response before apoptosis terminates the pod.
+	writeTimeout = time.Minute
 )
 
 // flags
@@ -82,11 +88,14 @@ func getState() types.State {
 	return currentState
 }
 
-func serializeOutput(ctx context.Context, w io.Writer, res *types.Result) {
+func serializeOutput(ctx context.Context, w http.ResponseWriter, res *types.Result) {
 	ctx, span := trace.StartSpan(ctx, "serializeOutput")
 	defer span.End()
-	w = limitwriter.New(w, types.MAX_JSON_SIZE)
-	if err := json.NewEncoder(w).Encode(res); err != nil {
+	if err := http.NewResponseController(w).SetWriteDeadline(time.Now().Add(writeTimeout)); err != nil {
+		sklog.Warningf("Failed to set write deadline: %s", err)
+	}
+	lw := limitwriter.New(w, types.MAX_JSON_SIZE)
+	if err := json.NewEncoder(lw).Encode(res); err != nil {
 		sklog.Errorf("Failed to encode: %s", err)
 	}
 }
@@ -167,6 +176,15 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	// Bound the compile and execution steps to leave writeTimeout for serializing
+	// the HTTP response before apoptosis terminates the pod.
+	runTimeout := *apoptosis - writeTimeout
+	if runTimeout <= 0 {
+		runTimeout = *apoptosis
+	}
+	runCtx, runCancel := context.WithTimeout(ctx, runTimeout)
+	defer runCancel()
+
 	// Compile draw.cpp into 'fiddle'.
 	if err := os.WriteFile(filepath.Join(*checkout, "tools", "fiddle", "draw.cpp"), []byte(request.Code), 0644); err != nil {
 		res.Execute.Errors = fmt.Sprintf("Failed to write draw.cpp: %s", err)
@@ -178,7 +196,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	ninjaPath := "/usr/bin/ninja"
 	// Build just the fiddle binary
 	args := []string{"/usr/local/bin/fiddle_secwrap", "--build", ninjaPath, *checkout, ninjaPath, "-v", "-C", "out/Static", "fiddle"}
-	buildLogs, err := build(ctx, *checkout, args...)
+	buildLogs, err := build(runCtx, *checkout, args...)
 	sklog.Infof("BuildLog:\n%s", buildLogs)
 	if err != nil {
 		res.Compile.Errors = err.Error()
@@ -190,14 +208,14 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	setState(types.RUNNING)
 
 	if !request.Options.Animated {
-		oneStep(ctx, *checkout, res, 0.0, request.Options.Duration)
+		oneStep(runCtx, *checkout, res, 0.0, request.Options.Duration)
 		serializeOutput(ctx, w, res)
 	} else {
 		if request.Options.Duration == 0 {
 			request.Options.Duration = types.DefaultAnimationDuration
 		}
 
-		g, gCtx := errgroup.WithContext(ctx)
+		g, gCtx := errgroup.WithContext(runCtx)
 		// If this is an animated fiddle then:
 		//   - Create tmpdir to store PNGs.
 		//   - Loop over the following code to generate each frame of the animation.
@@ -278,14 +296,14 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Run ffmpeg for CPU and GPU.
-		if err := createWebm(ctx, "CPU", tmpDir); err != nil {
+		if err := createWebm(runCtx, "CPU", tmpDir); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
 			serializeOutput(ctx, w, res)
 			return
 		}
 		res.Execute.Output.AnimatedRaster = encodeWebm("CPU", tmpDir, res)
 
-		if err := createWebm(ctx, "GPU", tmpDir); err != nil {
+		if err := createWebm(runCtx, "GPU", tmpDir); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
 			serializeOutput(ctx, w, res)
 			return
@@ -420,8 +438,8 @@ func main() {
 	srv = &http.Server{
 		Handler:      h,
 		Addr:         *port,
-		WriteTimeout: 120 * time.Second,
-		ReadTimeout:  120 * time.Second,
+		WriteTimeout: *apoptosis,
+		ReadTimeout:  readTimeout,
 	}
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		sklog.Fatal(err)
