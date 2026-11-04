@@ -21,6 +21,12 @@ var workflowTaskFailureAnalysis string
 //go:embed docs/task_drilldown.md
 var workflowTaskDrilldown string
 
+//go:embed docs/alert_report.md
+var workflowAlertReport string
+
+//go:embed docs/alert_drilldown.md
+var workflowAlertDrilldown string
+
 type workflow struct {
 	name        string
 	description string
@@ -44,6 +50,16 @@ var workflows = []workflow{
 		name:        "task_drilldown",
 		description: "Deeply investigate a failing task to determine its root cause.",
 		content:     workflowTaskDrilldown,
+	},
+	{
+		name:        "alert_report",
+		description: "Retrieve active alerts, bundle correlated signals, and generate a surface-level report without deep-diving into logs or root causes.",
+		content:     workflowAlertReport,
+	},
+	{
+		name:        "alert_drilldown",
+		description: "Deeply investigate a specific alert or bundle of alerts to determine its root cause.",
+		content:     workflowAlertDrilldown,
 	},
 }
 

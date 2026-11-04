@@ -13,12 +13,13 @@ to do so.
 
 ## Workflows
 
-Depending on your task, read details for the corresponding workflow, either by
-running `sk agent workflow <name>` or by finding it in the `docs/` directory:
+Depending on your task, read details for the corresponding workflow by running
+`sk agent workflow <name>`:
 
 ### task_failure_analysis
 
-**File:** `docs/task_failure_analysis.md`
+**Command:** `sk agent workflow task_failure_analysis`
+**File:** `sk/go/agent/workflow/docs/task_failure_analysis.md`
 **Trigger:** Use this workflow when asked to:
 
 - Summarize recent task failures.
@@ -28,12 +29,31 @@ running `sk agent workflow <name>` or by finding it in the `docs/` directory:
 
 ### task_drilldown
 
-**File:** `docs/task_drilldown.md`
+**Command:** `sk agent workflow task_drilldown`
+**File:** `sk/go/agent/workflow/docs/task_drilldown.md`
 **Trigger:** Use this workflow when asked to:
 
 - Provide detailed analysis of a single task.
 - Find actual build or test failure(s), error messages, etc.
 - Investigate flaky tasks.
+
+### alert_report
+
+**Command:** `sk agent workflow alert_report`
+**File:** `sk/go/agent/workflow/docs/alert_report.md`
+**Trigger:** Use this workflow when asked to:
+
+- Quickly summarize or list active alerts on `am.skia.org` without deep-diving into logs or root causes.
+- Generate a fast surface-level alert overview (overall, by category, or for a specific owner/assignee).
+
+### alert_drilldown
+
+**Command:** `sk agent workflow alert_drilldown`
+**File:** `sk/go/agent/workflow/docs/alert_drilldown.md`
+**Trigger:** Use this workflow when asked to:
+
+- Deeply investigate a specific alert or bundle of related alerts.
+- Determine the root cause of a firing alert by inspecting logs, cluster state, source code, or repository refs.
 
 ---
 

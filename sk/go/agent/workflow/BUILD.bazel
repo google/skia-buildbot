@@ -7,6 +7,8 @@ go_library(
         "docs/index.md",
         "docs/task_failure_analysis.md",
         "docs/task_drilldown.md",
+        "docs/alert_report.md",
+        "docs/alert_drilldown.md",
     ],
     importpath = "go.skia.org/infra/sk/go/agent/workflow",
     visibility = ["//visibility:public"],
