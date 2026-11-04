@@ -127,6 +127,7 @@ go_test(
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@io_temporal_go_sdk//activity",
+        "@io_temporal_go_sdk//client",
         "@io_temporal_go_sdk//testsuite",
         "@io_temporal_go_sdk//worker",
         "@io_temporal_go_sdk//workflow",

@@ -3,11 +3,13 @@ package internal
 import (
 	"context"
 	"errors"
+	"maps"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
 
@@ -251,5 +253,137 @@ func TestCbbNewReleaseDetectorWorkflow_GetBrowserVersionsFails_SendsAlertEmailAn
 	assert.Equal(t, []string{errorNotificationEmail}, capturedTo)
 	assert.Equal(t, "CBB safari version detection failed", capturedSubject)
 	assert.Contains(t, capturedBody, "browser_versions task failed on mac-m4-mini-perf-cbb")
+	env.AssertExpectations(t)
+}
+
+// checkRecorder is a Temporal metrics handler that keeps the CBB checks that
+// recordCbbSuccess reports.
+type checkRecorder struct {
+	client.MetricsHandler
+	tags   map[string]string
+	passed map[string]bool
+}
+
+func newCheckRecorder() *checkRecorder {
+	return &checkRecorder{MetricsHandler: client.MetricsNopHandler, passed: map[string]bool{}}
+}
+
+func (r *checkRecorder) WithTags(tags map[string]string) client.MetricsHandler {
+	merged := map[string]string{}
+	maps.Copy(merged, r.tags)
+	maps.Copy(merged, tags)
+	return &checkRecorder{MetricsHandler: r.MetricsHandler, tags: merged, passed: r.passed}
+}
+
+func (r *checkRecorder) Gauge(name string) client.MetricsGauge {
+	if name != "cbb_last_success_timestamp_seconds" {
+		return r.MetricsHandler.Gauge(name)
+	}
+	return gaugeFunc(func(float64) { r.passed[r.tags["check"]] = true })
+}
+
+type gaugeFunc func(float64)
+
+func (f gaugeFunc) Update(v float64) { f(v) }
+
+var (
+	safariWithStp255 = []BuildInfo{
+		{Browser: "safari", Channel: "stable", Platform: "mac", Version: "27.0.1 (22625.1.29.11.28)"},
+		{Browser: "safari", Channel: "technology-preview", Platform: "mac", Version: "27.0 (Release 255, 22627.1.4.19.1)"},
+	}
+	edgeStable = BuildInfo{Browser: "edge", Channel: "stable", Platform: "windows", Version: "130.0.2849.46"}
+)
+
+func newDetectorTestEnv(recorder *checkRecorder) *testsuite.TestWorkflowEnvironment {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	testSuite.SetMetricsHandler(recorder)
+	env := testSuite.NewTestWorkflowEnvironment()
+	env.RegisterWorkflowWithOptions(CbbGetBrowserVersionsWorkflow, workflow.RegisterOptions{Name: workflows.CbbGetBrowserVersions})
+	env.OnActivity(GetChromeReleasesInfoActivity, mock.Anything, mock.Anything, false).Return(&ChromeReleaseInfo{
+		CommitPosition: "1704567",
+		CommitHash:     "ee7ef8016281439932a81bdac80a66f9a31efb62",
+		Builds:         nil,
+	}, nil).Once()
+	return env
+}
+
+func TestCbbNewReleaseDetectorWorkflow_FleetRunsLatestStp_RecordsEveryCheck(t *testing.T) {
+	recorder := newCheckRecorder()
+	env := newDetectorTestEnv(recorder)
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "safari").Return(safariWithStp255, nil).Once()
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "edge").Return([]BuildInfo{edgeStable}, nil).Once()
+	env.OnActivity(DownloadSafariTPActivity, mock.Anything, false).Return("255", nil).Once()
+
+	env.ExecuteWorkflow(CbbNewReleaseDetectorWorkflow)
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	assert.Equal(t, map[string]bool{
+		"browser_versions_safari": true,
+		"browser_versions_edge":   true,
+		"daily_run":               true,
+		"stp_on_fleet":            true,
+	}, recorder.passed)
+	env.AssertExpectations(t)
+}
+
+func TestCbbNewReleaseDetectorWorkflow_FleetBehindApple_SkipsStpOnFleet(t *testing.T) {
+	recorder := newCheckRecorder()
+	env := newDetectorTestEnv(recorder)
+	safariWithStp254 := []BuildInfo{
+		{Browser: "safari", Channel: "stable", Platform: "mac", Version: "27.0.1 (22625.1.29.11.28)"},
+		{Browser: "safari", Channel: "technology-preview", Platform: "mac", Version: "27.0 (Release 254, 21626.1.8.19.2)"},
+	}
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "safari").Return(safariWithStp254, nil).Once()
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "edge").Return([]BuildInfo{edgeStable}, nil).Once()
+	env.OnActivity(DownloadSafariTPActivity, mock.Anything, false).Return("255", nil).Once()
+
+	env.ExecuteWorkflow(CbbNewReleaseDetectorWorkflow)
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	assert.Equal(t, map[string]bool{
+		"browser_versions_safari": true,
+		"browser_versions_edge":   true,
+		"daily_run":               true,
+	}, recorder.passed)
+	env.AssertExpectations(t)
+}
+
+func TestCbbNewReleaseDetectorWorkflow_SafariVersionsFail_SkipsSafariChecks(t *testing.T) {
+	recorder := newCheckRecorder()
+	env := newDetectorTestEnv(recorder)
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "safari").Return(nil, errors.New("browser_versions task failed on mac-m4-mini-perf-cbb")).Once()
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "edge").Return([]BuildInfo{edgeStable}, nil).Once()
+	env.OnActivity(SendEmailActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+	env.OnActivity(DownloadSafariTPActivity, mock.Anything, false).Return("255", nil).Once()
+
+	env.ExecuteWorkflow(CbbNewReleaseDetectorWorkflow)
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	assert.Equal(t, map[string]bool{
+		"browser_versions_edge": true,
+		"daily_run":             true,
+	}, recorder.passed)
+	env.AssertExpectations(t)
+}
+
+func TestCbbNewReleaseDetectorWorkflow_DownloadSafariTPFails_SkipsDailyRun(t *testing.T) {
+	recorder := newCheckRecorder()
+	env := newDetectorTestEnv(recorder)
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "safari").Return(safariWithStp255, nil).Once()
+	env.OnWorkflow(workflows.CbbGetBrowserVersions, mock.Anything, "edge").Return([]BuildInfo{edgeStable}, nil).Once()
+	env.OnActivity(DownloadSafariTPActivity, mock.Anything, false).Return("", errors.New("want one macOS major version on the live CBB Mac bots, got [26 27]")).Once()
+	env.OnActivity(SendEmailActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+
+	env.ExecuteWorkflow(CbbNewReleaseDetectorWorkflow)
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.Error(t, env.GetWorkflowError())
+	assert.Equal(t, map[string]bool{
+		"browser_versions_safari": true,
+		"browser_versions_edge":   true,
+	}, recorder.passed)
 	env.AssertExpectations(t)
 }

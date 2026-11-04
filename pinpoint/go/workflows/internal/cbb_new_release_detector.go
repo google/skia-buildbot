@@ -145,12 +145,16 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 		// case, continue running CBB for the remaining browsers.
 		sklog.Errorf("Unable to get current Safari versions: %v", err)
 		sendCbbBrowserVersionsErrorEmail(ctx, "safari", err)
+	} else {
+		recordCbbSuccess(ctx, "browser_versions_safari")
 	}
 
 	var edgeVersions []BuildInfo
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CbbGetBrowserVersions, "edge").Get(ctx, &edgeVersions); err != nil {
 		sklog.Errorf("Unable to get current Edge versions: %v", err)
 		sendCbbBrowserVersionsErrorEmail(ctx, "edge", err)
+	} else {
+		recordCbbSuccess(ctx, "browser_versions_edge")
 	}
 
 	otherBrowsers := make([]BuildInfo, 0, len(safariVersions)+len(edgeVersions))
@@ -230,8 +234,27 @@ func CbbNewReleaseDetectorWorkflow(ctx workflow.Context) (*ChromeReleaseInfo, er
 		sendCbbStpDownloadErrorEmail(ctx, err)
 		return nil, skerr.Wrap(err)
 	}
+	recordCbbSuccess(ctx, "daily_run")
+	for _, bi := range safariVersions {
+		// browser_versions ran at the start of this run, so an STP uploaded
+		// above is counted on a later run, after Puppet installs it.
+		if bi.Channel == "technology-preview" && getShortBrowserVersion(bi.Version, bi.Browser, bi.Channel) == stpVersion {
+			recordCbbSuccess(ctx, "stp_on_fleet")
+			break
+		}
+	}
 
 	return &commitInfo, nil
+}
+
+// recordCbbSuccess exports when a CBB check last passed. The alert rules in
+// k8s-config (monitoring/appgroups/perf.yml) compare this time with time(), so
+// a check that stops running alerts the same way as one that fails.
+func recordCbbSuccess(ctx workflow.Context, check string) {
+	workflow.GetMetricsHandler(ctx).
+		WithTags(map[string]string{"check": check}).
+		Gauge("cbb_last_success_timestamp_seconds").
+		Update(float64(workflow.Now(ctx).Unix()))
 }
 
 // Verify that two BuildInfo slices have the same contents, ignoring ordering.
