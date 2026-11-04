@@ -1,3 +1,8 @@
+// Copyright 2016 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package parser parses incoming JSON files from Android Testing and converts them
 // into a format acceptable to Skia Perf.
 package parser

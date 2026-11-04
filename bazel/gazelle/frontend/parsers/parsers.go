@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package parsers defines parsers for the paths of "import" statements found in TypeScript and Sass
 // files.
 //

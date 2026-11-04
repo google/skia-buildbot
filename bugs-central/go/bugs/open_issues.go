@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package bugs
 
 // Defines an interface used by the different issue frameworks to add open issues to an in-memory object.

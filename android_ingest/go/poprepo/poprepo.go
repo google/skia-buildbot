@@ -1,3 +1,8 @@
+// Copyright 2016 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // poprepo is a package for populating a git repo with commits that associate
 // a git commit with a buildid, a monotonically increasing number maintained
 // by a external build system. This is needed because Perf only knows how

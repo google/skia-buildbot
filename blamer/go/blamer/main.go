@@ -1,3 +1,8 @@
+// Copyright 2016 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // blamer searches through git history and does text searches on the full patch
 // text and the commit message. If any matches are found then the commit
 // message is displayed.

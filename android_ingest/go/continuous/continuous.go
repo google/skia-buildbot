@@ -1,3 +1,8 @@
+// Copyright 2016 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package continuous periodically queries the android build api and looks for
 // new buildids against a given list of branches and then updates poprepo with
 // those new buildids.

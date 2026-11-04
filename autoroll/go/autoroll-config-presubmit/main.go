@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The presubmit binary runs many checks on the differences between the current commit and its
 // parent branch. This is usually origin/main. If there is a chain of CLs (i.e. branches), this
 // will only consider the diffs between the current commit and the parent branch.

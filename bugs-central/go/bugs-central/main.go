@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 /*
 	Server that collects and displays bug data for Skia's clients from different issue frameworks
 */
