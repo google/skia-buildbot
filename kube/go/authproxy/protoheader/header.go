@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package header supports extracting the email of an authorized user from a
 // protobuf in an HTTP Header.
 package protoheader

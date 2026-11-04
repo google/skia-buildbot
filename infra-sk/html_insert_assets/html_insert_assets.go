@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This program takes an HTML page and inserts <link> and <script> tags to load CSS and JavaScript
 // files at the specified locations, with an optional "nonce" attribute with the specified value.
 package main

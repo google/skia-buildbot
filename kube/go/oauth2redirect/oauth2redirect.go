@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package oauth2redirect is a reverse proxy that runs in front of applications
 // and takes care of handling the oauth2 redirect leg of the OAuth 3-legged
 // flow. It passes all other traffic to the application it is running in front

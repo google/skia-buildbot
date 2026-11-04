@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This binary can be used to serve demo pages during development. It also serves as the test_on_env
 // environment for Puppeteer tests.
 package main

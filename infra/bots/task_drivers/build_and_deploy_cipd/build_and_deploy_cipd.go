@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // build_and_deploy_cipd performs a Bazel build of the given targets and uploads
 // a CIPD package including the given build products.
 package main

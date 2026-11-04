@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // k8s_checker is an application that checks for the following and alerts if necessary:
 // * Dirty images checked into K8s config files.
 // * Dirty configs running in K8s.

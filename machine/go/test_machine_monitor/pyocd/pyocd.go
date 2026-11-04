@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package pyocd exposes routines for communicating with locally attached devices via
 // the pyocd CLI tool.
 package pyocd

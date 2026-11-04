@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package processor does the work of taking incoming events from machines and
 // updating the machine state using that information. The goal is to move all
 // the logic out of `skia_mobile.py` and into processor.

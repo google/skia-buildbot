@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package chromiumbuilder
 
 // Code related to running commands that can be cancelled mid-run by the

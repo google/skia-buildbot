@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package httpsource implements event.Source by accepting incoming HTTP
 // requests that contain a machine.Event serialized as JSON.
 package httpsource

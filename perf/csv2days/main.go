@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Command line application to filter the output of a CSV file downloaded from
 // Perf. This application strips out duplicated columns from the same day,
 // keeping only the first column to appear for each day, and then emits the

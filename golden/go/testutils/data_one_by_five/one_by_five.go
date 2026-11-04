@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package data_one_by_five contains some sample images that are in the text format and are (mostly) one
 // pixel wide by five pixels tall. It should be used for testing only.
 package data_one_by_five

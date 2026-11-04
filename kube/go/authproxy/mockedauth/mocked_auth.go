@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // package mockedauth is intended for use with local development use cases. It tells auth-proxy
 // to always set the same user identity when passing authentication information to
 // the proxied service.

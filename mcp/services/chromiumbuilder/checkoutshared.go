@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package chromiumbuilder
 
 // Git checkout-related code that is used in multiple places in the package.

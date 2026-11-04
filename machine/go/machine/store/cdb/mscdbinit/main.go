@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Command line tool to set up the CockroachDB database for machineserver.
 //
 // Before running this command you must run:
