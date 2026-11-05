@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This program serves a web application that displays screnshots captured by Puppeteer tests. It
 // is meant to be used exclusively as a local development tool.
 //

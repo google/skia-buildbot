@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Environment Monitor reports ambient environment sensor values
 // to be recorded in metrics2.
 package main

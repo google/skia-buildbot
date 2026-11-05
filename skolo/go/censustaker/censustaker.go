@@ -1,3 +1,8 @@
+// Copyright 2017 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The censustaker executable combines data from multiple sources to generate a list of devices
 // which are attached to a given Ubiquiti EdgeSwitch. The switch can only tell us which mac
 // addresses are attached to which ports, so we need another source of data to give us a list of

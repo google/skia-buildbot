@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // merge_envoy takes two Envoy config files, adds all the Virtual Hosts and
 // Clusters from the second file to the first file and then serializes the
 // results of the merge as JSON to stdout.

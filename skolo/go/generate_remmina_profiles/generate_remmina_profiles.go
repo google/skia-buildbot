@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This program generates passwordless Remmina[1] RDP/VNC connection profiles to connect to Skolo
 // Windows machines from a gLinux workstation (physical or cloudtop). It asks the user to type the
 // chrome-bot password and passes it to Remmina via a stdin pipe. Remmina securely stores this

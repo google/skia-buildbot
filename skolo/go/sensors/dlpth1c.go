@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package to interact with various sensor modules.
 //
 // A sensor module is a device that measures one or more aspects

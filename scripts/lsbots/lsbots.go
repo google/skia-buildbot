@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package main
 
 // lsbots lists the Swarming bots that match the given dimensions or regular expressions.

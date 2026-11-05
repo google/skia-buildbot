@@ -1,3 +1,8 @@
+// Copyright 2014 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Proberk is an HTTP prober that periodically sends out HTTP requests to specified
 // endpoints and reports if the returned results match the expectations. The results
 // of the probe, including latency, are recorded in metrics2.

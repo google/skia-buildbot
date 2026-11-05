@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // backup-to-gcs backs up files to GCS on a daily basis, putting the files
 // in a directory structure by the day, i.e. /foo/2006/01/02/somefile.db.
 package main

@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This executable was helpful when trying to run commands across all of our k8s nodes.
 // When dealing with "failed to garbage collect required amount of images" logs and
 // FreeDiskSpaceFailed, ImageGCFailed events, we found it helpful to run

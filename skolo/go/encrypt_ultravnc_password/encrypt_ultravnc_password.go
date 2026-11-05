@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This program is used to populate the passwd and passwd2 fields in UltraVNC's ultravnc.ini file.
 // UltraVNC's password encryption algorithm is based on DES, but Ansible's password_hash function
 // does not support DES encryption. This program fills that gap.

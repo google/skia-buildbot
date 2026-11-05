@@ -1,3 +1,8 @@
+// Copyright 2016 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package capacity
 
 // This package makes multiple queries to InfluxDB to get metrics that allow

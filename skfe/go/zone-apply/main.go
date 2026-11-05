@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This zone-apply application checks out the zone files from the buildbot repo
 // and applies them using the `gcloud` command line application every five
 // minutes.

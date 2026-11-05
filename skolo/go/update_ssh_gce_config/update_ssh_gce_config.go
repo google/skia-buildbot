@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This program updates the GCE machine definitions in //skolo/ansible/ssh.cfg based on machine
 // descriptions returned by the "gcloud" command. It assumes that the gcloud command is installed
 // and that the user has the necessary credentials.

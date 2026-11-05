@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // update_probers is a command line application that updates the
 // "envoy-redirects" section of probersk.json5 with all the redirects in
 // envoy-starter.json.

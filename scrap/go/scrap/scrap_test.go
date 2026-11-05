@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package scrap defines the scrap types and functions on them.
 package scrap
 

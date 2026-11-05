@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package api implements the REST API for the scrap exchange service.
 //
 // See also the Scrap Exchange Design Doc http://go/scrap-exchange.

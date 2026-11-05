@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package genpromcrd implements all the functionality for the genpromcrd
 // command line application.
 package genpromcrd

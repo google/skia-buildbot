@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package fakeclient offers a fake implementation of scrap.ScrapExchange. The scraps
 // can be loaded into memory, but are not persisted anywhere. Such an implementation
 // does not require internet access or authentication.

@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Use to check that a string (i.e. email address) is present in the
 // committer, author, or reviewer.
 

@@ -1,3 +1,8 @@
+// Copyright 2026 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The cert-apply application periodically reads TLS PEM bundles from GCP Secret
 // Manager, splits them into certificate chains (tls.crt) and private keys
 // (tls.key), and upserts kubernetes.io/tls Secrets in the target GKE namespace.

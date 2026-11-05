@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Generate the go code from the protocol buffer definitions.
 // To re-generate definitions run the command below from the `buildbot` directory:
 // BUILD_WORKSPACE_DIRECTORY=$PWD go generate ./pinpoint/proto/v1/...

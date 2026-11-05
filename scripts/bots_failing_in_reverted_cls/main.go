@@ -1,3 +1,8 @@
+// Copyright 2017 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // For a given time period, find all the bots that failed when a CL, that was
 // later reverted, first landed. The count of failed bots does not include bots
 // that failed at both the initial commit and at the revert. Note that "-All"

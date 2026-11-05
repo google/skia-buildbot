@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Program to generate TypeScript definition files for Golang structs that are
 // serialized to JSON for the web UI.
 //

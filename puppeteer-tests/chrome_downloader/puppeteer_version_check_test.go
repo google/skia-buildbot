@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This package defines a test that ensures the "puppeteer" and "puppeteer-core" NPM packages have
 // the same exact version. This ensures that chrome_downloader.ts faithfully reproduces Puppeteer's
 // post-install hook. See //.puppeteerrc.js for additional context.

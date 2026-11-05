@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This executable is a very simple web server that serves static HTML/CSS/JS content from GCS.
 // The GCS content can be created via another process, e.g. from a CI job. There is a file that
 // controls which directory should be the root of the served content, called the latest_file.
