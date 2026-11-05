@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package internal
 
 import (
@@ -54,7 +59,7 @@ func createShortCommit(gitHash string) *vcsinfo.ShortCommit {
 }
 
 func createResponse(commit ...*vcsinfo.ShortCommit) []*vcsinfo.LongCommit {
-	resp := make([]*vcsinfo.LongCommit, 0)
+	resp := make([]*vcsinfo.LongCommit, 0, len(commit))
 	for _, c := range commit {
 		resp = append(resp, &vcsinfo.LongCommit{
 			ShortCommit: c,

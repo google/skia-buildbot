@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package compare
 
 import (
@@ -85,7 +90,7 @@ func TestComparePerformance_GivenValidInputs_ReturnsCorrectResult(t *testing.T) 
 			case Different:
 				assert.LessOrEqual(t, result.PValue, result.LowThreshold)
 			default:
-				assert.Fail(t, "Unsupported verdict found %s", result.Verdict)
+				assert.Failf(t, "Unsupported verdict found", "%s", result.Verdict)
 			}
 		})
 	}
@@ -165,13 +170,13 @@ func TestComparePairwise_GivenImprovement_ReturnsSame(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result, err := ComparePairwise(x, y, dir)
 			require.NoError(t, err)
-			require.LessOrEqual(t, result.PairwiseWilcoxonSignedRankedTestResult.PValue, thresholds.LowThreshold)
+			require.LessOrEqual(t, result.PValue, thresholds.LowThreshold)
 			assert.Equal(t, Same, result.Verdict)
 			switch dir {
 			case Up:
-				assert.Positive(t, result.PairwiseWilcoxonSignedRankedTestResult.UpperCi)
+				assert.Positive(t, result.UpperCi)
 			case Down:
-				assert.Negative(t, result.PairwiseWilcoxonSignedRankedTestResult.LowerCi)
+				assert.Negative(t, result.LowerCi)
 			}
 		})
 	}
@@ -189,14 +194,14 @@ func TestComparePairwise_GivenRegression_ReturnsDifferent(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result, err := ComparePairwise(x, y, dir)
 			require.NoError(t, err)
-			require.LessOrEqual(t, result.PairwiseWilcoxonSignedRankedTestResult.PValue, thresholds.LowThreshold)
+			require.LessOrEqual(t, result.PValue, thresholds.LowThreshold)
 			assert.Equal(t, Different, result.Verdict)
-			assert.Positive(t, result.PairwiseWilcoxonSignedRankedTestResult.LowerCi*result.PairwiseWilcoxonSignedRankedTestResult.UpperCi)
+			assert.Positive(t, result.LowerCi*result.UpperCi)
 			switch dir {
 			case Up:
-				assert.Negative(t, result.PairwiseWilcoxonSignedRankedTestResult.UpperCi)
+				assert.Negative(t, result.UpperCi)
 			case Down:
-				assert.Positive(t, result.PairwiseWilcoxonSignedRankedTestResult.LowerCi)
+				assert.Positive(t, result.LowerCi)
 			}
 		})
 	}
@@ -215,9 +220,9 @@ func TestComparePairwise_GivenNoRegression_ReturnsSame(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result, err := ComparePairwise(x, y, dir)
 			require.NoError(t, err)
-			require.GreaterOrEqual(t, result.PairwiseWilcoxonSignedRankedTestResult.PValue, thresholds.LowThreshold)
+			require.GreaterOrEqual(t, result.PValue, thresholds.LowThreshold)
 			assert.Equal(t, Same, result.Verdict)
-			assert.Negative(t, result.PairwiseWilcoxonSignedRankedTestResult.LowerCi*result.PairwiseWilcoxonSignedRankedTestResult.UpperCi)
+			assert.Negative(t, result.LowerCi*result.UpperCi)
 		})
 	}
 	x := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}

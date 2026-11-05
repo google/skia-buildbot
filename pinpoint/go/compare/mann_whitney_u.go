@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Golang implementation of the Mann-Whitney U test.
 //
 // This code is adapted from [SciPy].
@@ -31,7 +36,7 @@ func MannWhitneyU(a, b []float64) float64 {
 
 	// copy a and b so that the original arrays are not affected by
 	// future manipulations
-	x := make([]float64, len(a))
+	x := make([]float64, len(a), len(a)+len(b))
 	y := make([]float64, len(b))
 	copy(x, a)
 	copy(y, b)
@@ -129,7 +134,7 @@ func tieCorrectionFactor(rankvals []float64) float64 {
 	}
 	sum := 0.0
 	for _, x := range cnt {
-		sum += math.Pow(x, 3) - x
+		sum += x*x*x - x
 	}
 	return 1.0 - sum/float64(size*size*size-size)
 }

@@ -20,8 +20,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"go/build"
 	"io"
 	"os"
 	"os/exec"
@@ -706,6 +708,11 @@ func runWorkflowCheck(ctx context.Context, changedFiles []fileWithChanges, repoR
 		ext := filepath.Ext(f.fileName)
 		dir := "./" + filepath.Dir(f.fileName)
 		if strings.ToLower(ext) == ".go" && !contains(dirs, dir) {
+			// Skip directories where build constraints exclude all Go files on the current platform.
+			var noGoErr *build.NoGoError
+			if _, err := build.Default.ImportDir(filepath.Join(repoRoot, filepath.Dir(f.fileName)), 0); errors.As(err, &noGoErr) {
+				continue
+			}
 			dirs = append(dirs, dir)
 		}
 	}

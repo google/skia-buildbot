@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Activities to access Chromium git repositories.
 
 package internal
@@ -57,7 +62,7 @@ func NewGitClient(ctx context.Context, repoUrl, gerritUrl string) (*gitClient, e
 		return nil, skerr.Wrap(err)
 	}
 
-	git, err := git.Executable(ctx)
+	gitExec, err := git.Executable(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -67,7 +72,7 @@ func NewGitClient(ctx context.Context, repoUrl, gerritUrl string) (*gitClient, e
 		repo:         repo,
 		repoUrl:      repoUrl,
 		gerritClient: gerritClient,
-		gitExec:      git,
+		gitExec:      gitExec,
 	}, nil
 }
 
@@ -126,7 +131,8 @@ func (client *gitClient) ShallowClone(branchName string, isDev bool) error {
 	}
 	if _, err := exec.RunCwd(
 		client.ctx, checkoutDir, client.gitExec, "checkout", "-b",
-		branchName, "-t", "origin/main"); err != nil {
+		branchName, "-t", "origin/main",
+	); err != nil {
 		return skerr.Wrapf(err, "Failed to create a new branch")
 	}
 

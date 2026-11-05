@@ -1,3 +1,8 @@
+// Copyright 2014 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package login
 
 import (
@@ -143,11 +148,12 @@ func TestIsAuthorized(t *testing.T) {
 func TestTryLoadingFromGCPSecret_Success(t *testing.T) {
 	ctx := context.Background()
 	client := &mocks.Client{}
-	secretValue := `{
-  "client_id": "fake-client-id",
-  "client_secret": "fake-client-secret"
-}`
-	client.On("Get", ctx, loginSecretProject, clientIDandSecretName, secret.VersionLatest).Return(secretValue, nil)
+	secretValue, err := json.Marshal(loginInfo{
+		ClientID:     "fake-client-id",
+		ClientSecret: "fake-client-secret",
+	})
+	require.NoError(t, err)
+	client.On("Get", ctx, loginSecretProject, clientIDandSecretName, secret.VersionLatest).Return(string(secretValue), nil)
 	client.On("Get", ctx, loginSecretProject, saltSecretName, secret.VersionLatest).Return("fake-salt", nil)
 	cookieSalt, clientID, clientSecret, err := tryLoadingFromGCPSecret(ctx, client)
 	require.NoError(t, err)

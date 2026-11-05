@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // A command-line tool to download Safari Technology Preview (STP) for CBB use.
 //
 // Already implemented:
@@ -12,6 +17,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -125,7 +131,7 @@ func extractFromHtml(doc *html.Node) *releaseInfo {
 
 // Check if an existing CIPD package with the right reference already exists.
 func findCipd(ref string) bool {
-	cmd := exec.Command("cipd", "resolve", cipdPath, "-version", ref)
+	cmd := exec.CommandContext(context.Background(), "cipd", "resolve", cipdPath, "-version", ref)
 	err := cmd.Run()
 
 	if err == nil {
@@ -134,7 +140,7 @@ func findCipd(ref string) bool {
 	}
 
 	var exitError *exec.ExitError
-	if errors.As(err, &exitError) && exitError.ProcessState.ExitCode() == 1 {
+	if errors.As(err, &exitError) && exitError.ExitCode() == 1 {
 		// Exit code 1 means "cipd resolve" did not find an existing package.
 		return false
 	}
@@ -181,7 +187,7 @@ func createCipd(url string, refs []string) error {
 	for _, ref := range refs {
 		args = append(args, "-ref", ref)
 	}
-	cmd := exec.Command("cipd", args...)
+	cmd := exec.CommandContext(context.Background(), "cipd", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {

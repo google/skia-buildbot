@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package midpoint
 
 import (
@@ -44,23 +49,23 @@ func New(ctx context.Context, c *http.Client) *MidpointHandler {
 }
 
 // WithRepo returns a MidpointHandler with the repository url mapped to a GitilesRepo object.
-func (m *MidpointHandler) WithRepo(url string, r gitiles.GitilesRepo) *MidpointHandler {
-	m.repos[url] = r
+func (m *MidpointHandler) WithRepo(repoURL string, r gitiles.GitilesRepo) *MidpointHandler {
+	m.repos[repoURL] = r
 	return m
 }
 
 // getOrCreateRepo fetches the gitiles.GitilesRepo object for the repository url.
 // If not present, it'll create an authenticated Repo client.
-func (m *MidpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
-	gr, ok := m.repos[url]
+func (m *MidpointHandler) getOrCreateRepo(repoURL string) gitiles.GitilesRepo {
+	gr, ok := m.repos[repoURL]
 	if !ok {
 		var err error
-		gr, err = gitiles.NewRepoWithClient(url, m.c)
+		gr, err = gitiles.NewRepoWithClient(repoURL, m.c)
 		if err != nil {
-			sklog.Errorf("failed to create repo for url %q: %s", url, err)
+			sklog.Errorf("failed to create repo for url %q: %s", repoURL, err)
 			return nil
 		}
-		m.repos[url] = gr
+		m.repos[repoURL] = gr
 	}
 	return gr
 }
@@ -68,13 +73,13 @@ func (m *MidpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
 // findMidpoint finds the median commit between two commits.
 func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
 	startGitHash, endGitHash := startCommit.GetGitHash(), endCommit.GetGitHash()
-	url := startCommit.Repository
+	repoURL := startCommit.Repository
 
 	if startGitHash == endGitHash {
 		return nil, skerr.Fmt("Both git hashes are the same; Start: %s, End: %s", startGitHash, endGitHash)
 	}
 
-	gc := m.getOrCreateRepo(url)
+	gc := m.getOrCreateRepo(repoURL)
 
 	// Find the midpoint between the provided commit hashes. Take the lower bound
 	// if the list is an odd count. If the gitiles response is == endGitHash, it
@@ -92,7 +97,7 @@ func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endComm
 	}
 
 	// Two adjacent commits returns one commit equivalent to the end git hash.
-	if len(lc) == 1 && lc[0].ShortCommit.Hash == endGitHash {
+	if len(lc) == 1 && lc[0].Hash == endGitHash {
 		return startCommit, nil
 	}
 
@@ -104,10 +109,10 @@ func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endComm
 	// becomes index 2 (which = 2))
 	mlc := lc[len(lc)/2]
 
-	nextHash := mlc.ShortCommit.Hash
+	nextHash := mlc.Hash
 	sklog.Debugf("Next midpoint commit: %s", nextHash)
 	return &pb.Commit{
-		Repository: url,
+		Repository: repoURL,
 		GitHash:    nextHash,
 	}, nil
 }

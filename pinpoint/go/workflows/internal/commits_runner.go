@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package internal
 
 import (
@@ -89,7 +94,7 @@ func (cr *CommitRun) AllValues(chart string) []float64 {
 }
 
 func (cr *CommitRun) AllErrorValues(chart string) []float64 {
-	vs := []float64{}
+	vs := make([]float64, 0, len(cr.Runs))
 	for _, r := range cr.Runs {
 		var v float64
 		// Task succeeded but benchmark run failed
@@ -107,7 +112,7 @@ func (cr *CommitRun) AllErrorValues(chart string) []float64 {
 }
 
 func (cr *CommitRun) GetSwarmingStatus() []*pinpoint_proto.SwarmingTaskStatus {
-	status := []*pinpoint_proto.SwarmingTaskStatus{}
+	status := make([]*pinpoint_proto.SwarmingTaskStatus, 0, len(cr.Runs))
 	for _, tr := range cr.Runs {
 		s := &pinpoint_proto.SwarmingTaskStatus{
 			TaskId: tr.TaskID,

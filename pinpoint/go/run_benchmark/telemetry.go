@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package run_benchmark
 
 import (
@@ -153,14 +158,13 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 }
 
 func (t *telemetryTest) GetCrossbenchExtraArgs(benchmark string) []string {
-	cmd := []string{
+	cmd := append([]string{
 		"--benchmark-display-name", t.benchmark,
 		"--benchmarks", benchmark,
 		"--browser=" + t.browser,
 		"-v",
 		"--isolated-script-test-output", "${ISOLATED_OUTDIR}/output.json",
-	}
-	cmd = append(cmd, formatExtraArgs(t.extraArgs)...)
+	}, formatExtraArgs(t.extraArgs)...)
 
 	return cmd
 }

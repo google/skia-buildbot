@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package main
 
 import (
@@ -24,7 +29,7 @@ var (
 func webAppHandler(dir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := filepath.Join(dir, r.URL.Path)
-		fi, err := os.Stat(path)
+		fi, err := os.Stat(path) //nolint:gosec // Static resources directory.
 		if os.IsNotExist(err) || fi.IsDir() {
 			http.ServeFile(w, r, filepath.Join(dir, "index.html"))
 			return
@@ -32,7 +37,7 @@ func webAppHandler(dir string) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.ServeFile(w, r, path)
+		http.ServeFile(w, r, path) //nolint:gosec // Static resources directory.
 	}
 }
 

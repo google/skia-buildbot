@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package internal
 
 import (
@@ -107,7 +112,7 @@ func TestGeneratePairIndices_GenerateRandomPair(t *testing.T) {
 			for i := range generated {
 				ct += int(generated[i])
 			}
-			assert.EqualValues(t, len(generated)/2, ct, "pairs don't have equal 0's and 1's.")
+			assert.Equal(t, len(generated)/2, ct, "pairs don't have equal 0's and 1's.")
 		})
 	}
 
@@ -222,8 +227,8 @@ func TestPairwiseRun_balanceData_GivenValidInput_WAI(t *testing.T) {
 			workflows.RightThenLeft,
 		},
 	}
-	require.Equal(t, len(pr.Left.Runs), len(pr.Right.Runs), "test case not set up correctly. Number of left runs needs to equal number of right runs")
-	require.Equal(t, len(pr.Left.Runs), len(pr.Order), "test case not set up correctly. Number of orders needs to equal number of runs")
+	require.Len(t, pr.Right.Runs, len(pr.Left.Runs), "test case not set up correctly. Number of left runs needs to equal number of right runs")
+	require.Len(t, pr.Order, len(pr.Left.Runs), "test case not set up correctly. Number of orders needs to equal number of runs")
 	equalOrder := 0
 	for _, order := range pr.Order {
 		switch order {
@@ -233,7 +238,7 @@ func TestPairwiseRun_balanceData_GivenValidInput_WAI(t *testing.T) {
 			equalOrder -= 1
 		}
 	}
-	require.Zero(t, equalOrder, 0, "test case is not set up correctly. pr.Order must be balanced")
+	require.Zero(t, equalOrder, "test case is not set up correctly. pr.Order must be balanced")
 	pr.removeMissingDataFromPairs(mockChart)
 	require.Equal(t, 1, pr.calcOrderBalance(mockChart), "require test case has imbalance on LeftThenRight by 1")
 	pr.removeDataUntilBalanced(mockChart)
@@ -277,8 +282,8 @@ func TestPairwiseRun_balanceData_GivenValidInput_WAI(t *testing.T) {
 			workflows.RightThenLeft,
 		},
 	}
-	require.Equal(t, len(pr.Left.Runs), len(pr.Right.Runs), "test case not set up correctly. Number of left runs needs to equal number of right runs")
-	require.Equal(t, len(pr.Left.Runs), len(pr.Order), "test case not set up correctly. Number of orders needs to equal number of runs")
+	require.Len(t, pr.Right.Runs, len(pr.Left.Runs), "test case not set up correctly. Number of left runs needs to equal number of right runs")
+	require.Len(t, pr.Order, len(pr.Left.Runs), "test case not set up correctly. Number of orders needs to equal number of runs")
 	equalOrder = 0
 	for _, order := range pr.Order {
 		switch order {
@@ -288,7 +293,7 @@ func TestPairwiseRun_balanceData_GivenValidInput_WAI(t *testing.T) {
 			equalOrder -= 1
 		}
 	}
-	require.Zero(t, equalOrder, 0, "test case is not set up correctly. pr.Order must be balanced")
+	require.Zero(t, equalOrder, "test case is not set up correctly. pr.Order must be balanced")
 	pr.removeMissingDataFromPairs(mockChart)
 	require.Equal(t, -2, pr.calcOrderBalance(mockChart), "require test case has imbalance on RightThenLeft by 2")
 	pr.removeDataUntilBalanced(mockChart)
@@ -486,7 +491,7 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 
 	fakeChartValues := &workflows.TestResults{
 		Values: map[string][]float64{
-			p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+			p.Chart: {1, 2, 3, 4},
 		},
 	}
 	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
@@ -527,11 +532,11 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	assert.Equal(t, pr.Order, pairwiseOrder)
 	for i, first := range pr.Order {
 		if first == 0 { // left is first
-			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Left.Runs[i], "[%v], left first", i)
-			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Right.Runs[i], "[%v], left first", i)
+			assert.Equal(t, ptrs[i].FirstTestRun, pr.Left.Runs[i], "[%v], left first", i)
+			assert.Equal(t, ptrs[i].SecondTestRun, pr.Right.Runs[i], "[%v], left first", i)
 		} else { // right is first
-			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Right.Runs[i], "[%v], right first", i)
-			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Left.Runs[i], "[%v], right first", i)
+			assert.Equal(t, ptrs[i].FirstTestRun, pr.Right.Runs[i], "[%v], right first", i)
+			assert.Equal(t, ptrs[i].SecondTestRun, pr.Left.Runs[i], "[%v], right first", i)
 		}
 	}
 	env.AssertExpectations(t)
@@ -577,7 +582,7 @@ func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
 
 	fakeChartValues := &workflows.TestResults{
 		Values: map[string][]float64{
-			p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+			p.Chart: {1, 2, 3, 4},
 		},
 	}
 	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
@@ -605,11 +610,11 @@ func TestPairwiseCommitRunner_GivenCASInputs_ShouldSkipBuildStep(t *testing.T) {
 	assert.Equal(t, pr.Order, pairwiseOrder)
 	for i, first := range pr.Order {
 		if first == 0 { // left is first
-			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Left.Runs[i], "[%v], left first", i)
-			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Right.Runs[i], "[%v], left first", i)
+			assert.Equal(t, ptrs[i].FirstTestRun, pr.Left.Runs[i], "[%v], left first", i)
+			assert.Equal(t, ptrs[i].SecondTestRun, pr.Right.Runs[i], "[%v], left first", i)
 		} else { // right is first
-			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Right.Runs[i], "[%v], right first", i)
-			assert.EqualValues(t, ptrs[i].SecondTestRun, pr.Left.Runs[i], "[%v], right first", i)
+			assert.Equal(t, ptrs[i].FirstTestRun, pr.Right.Runs[i], "[%v], right first", i)
+			assert.Equal(t, ptrs[i].SecondTestRun, pr.Left.Runs[i], "[%v], right first", i)
 		}
 	}
 	env.AssertExpectations(t)
@@ -655,7 +660,7 @@ func TestPairwiseCommitRunner_GivenMismatchedValueLengths_ShouldTruncateArrays(t
 
 	fakeChartValues := &workflows.TestResults{
 		Values: map[string][]float64{
-			p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+			p.Chart: {1, 2, 3, 4},
 		},
 	}
 	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
@@ -698,8 +703,8 @@ func TestPairwiseCommitRunner_GivenMismatchedValueLengths_ShouldTruncateArrays(t
 		if !pr.Left.Runs[i].SucceededWithCAS() || !pr.Right.Runs[i].SucceededWithCAS() {
 			continue
 		}
-		assert.Len(t, pr.Left.Runs[i].Values[p.SingleCommitRunnerParams.Chart], 3)
-		assert.Len(t, pr.Right.Runs[i].Values[p.SingleCommitRunnerParams.Chart], 3)
+		assert.Len(t, pr.Left.Runs[i].Values[p.Chart], 3)
+		assert.Len(t, pr.Right.Runs[i].Values[p.Chart], 3)
 	}
 	env.AssertExpectations(t)
 }
@@ -744,7 +749,7 @@ func TestPairwiseCommitRunner_GivenEdgeCaseValues_ShouldHandleGracefully(t *test
 
 	fakeChartValues := &workflows.TestResults{
 		Values: map[string][]float64{
-			p.SingleCommitRunnerParams.Chart: {1, 2, 3, 4},
+			p.Chart: {1, 2, 3, 4},
 		},
 	}
 	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
@@ -789,9 +794,9 @@ func TestPairwiseCommitRunner_GivenEdgeCaseValues_ShouldHandleGracefully(t *test
 		}
 		// Verify that we handled the edge cases gracefully and did not crash
 		if pr.Left.Runs[i].Values == nil {
-			assert.Nil(t, pr.Left.Runs[i].Values[p.SingleCommitRunnerParams.Chart])
+			assert.Nil(t, pr.Left.Runs[i].Values[p.Chart])
 		} else {
-			assert.Empty(t, pr.Left.Runs[i].Values[p.SingleCommitRunnerParams.Chart])
+			assert.Empty(t, pr.Left.Runs[i].Values[p.Chart])
 		}
 	}
 	env.AssertExpectations(t)

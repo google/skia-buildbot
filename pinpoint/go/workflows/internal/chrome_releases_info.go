@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package internal
 
 import (
@@ -76,7 +81,7 @@ func GetChromeReleasesInfoActivity(ctx context.Context, otherBrowsers []BuildInf
 		return nil, skerr.Wrap(err)
 	}
 
-	var builds []BuildInfo
+	builds := make([]BuildInfo, 0, len(chromeBuilds)+len(otherBrowsers))
 	builds = append(builds, chromeBuilds...)
 	builds = append(builds, otherBrowsers...)
 
@@ -107,7 +112,7 @@ func getChromeBuilds(ctx context.Context) ([]BuildInfo, error) {
 
 	// A map to store the latest build for each supported channel/platform.
 	// Its keys have the format "stable,mac".
-	var latestBuilds map[string]buildInfoEx = make(map[string]buildInfoEx)
+	latestBuilds := make(map[string]buildInfoEx)
 	for _, build := range builds {
 		if _, found := cbbChannels[build.Channel]; !found {
 			continue

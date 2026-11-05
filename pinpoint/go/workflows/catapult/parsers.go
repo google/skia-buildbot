@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package catapult
 
 import (
@@ -109,7 +114,7 @@ func createBuildQuestDetail(commitRun *internal.BisectRun) *pinpoint_proto.Legac
 		Details: []*pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
 			{
 				Key:   "builder",
-				Value: commitRun.Build.BuildParams.Device,
+				Value: commitRun.Build.Device,
 			},
 			{
 				Key:   "isolate",
@@ -121,6 +126,13 @@ func createBuildQuestDetail(commitRun *internal.BisectRun) *pinpoint_proto.Legac
 }
 
 func createTestQuestDetail(task *apipb.TaskResultResponse, benchmarkRun *workflows.TestRun) *pinpoint_proto.LegacyJobResponse_State_Attempt_Execution {
+	iso_details := &pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
+		Key: "isolate",
+	}
+	if benchmarkRun.HasCAS() {
+		iso_details.Value = fmt.Sprintf(casIsolateHashTemplate, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes)
+		iso_details.Url = fmt.Sprintf(casUrlTemplate, benchmarkRun.CAS.CasInstance, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes)
+	}
 	details := []*pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
 		{
 			Key:   "bot",
@@ -131,15 +143,8 @@ func createTestQuestDetail(task *apipb.TaskResultResponse, benchmarkRun *workflo
 			Value: task.TaskId,
 			Url:   fmt.Sprintf(swarmingTaskUrlTemplate, task.TaskId),
 		},
+		iso_details,
 	}
-	iso_details := &pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
-		Key: "isolate",
-	}
-	if benchmarkRun.HasCAS() {
-		iso_details.Value = fmt.Sprintf(casIsolateHashTemplate, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes)
-		iso_details.Url = fmt.Sprintf(casUrlTemplate, benchmarkRun.CAS.CasInstance, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes)
-	}
-	details = append(details, iso_details)
 	resp := &pinpoint_proto.LegacyJobResponse_State_Attempt_Execution{
 		Completed: benchmarkRun.Status == skia_swarming.TASK_STATE_COMPLETED,
 		Details:   details,
@@ -288,9 +293,9 @@ func parseFooters(commitBody string) (*commitFooters, error) {
 // appendCommitData modifies the commit with information from gitiles
 func appendCommitData(commit *pinpoint_proto.Commit, longCommit *vcsinfo.LongCommit) (*pinpoint_proto.Commit, error) {
 	commit.Url = fmt.Sprintf(repositoryUrlTemplate, commit.Repository, commit.GitHash)
-	commit.Author = parseEmail(longCommit.ShortCommit.Author)
+	commit.Author = parseEmail(longCommit.Author)
 	commit.Created = timestamppb.New(longCommit.Timestamp)
-	commit.Subject = longCommit.ShortCommit.Subject
+	commit.Subject = longCommit.Subject
 	commit.Message = longCommit.Body
 
 	footers, err := parseFooters(longCommit.Body)

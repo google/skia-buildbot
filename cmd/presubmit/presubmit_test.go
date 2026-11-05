@@ -1024,6 +1024,18 @@ func TestRunWorkflowCheck(t *testing.T) {
 		assert.True(t, ok)
 	})
 
+	t.Run("Build constraints exclude all Go files - skips execution", func(t *testing.T) {
+		tempDir := t.TempDir()
+		goFile := filepath.Join(tempDir, "tools.go")
+		err := os.WriteFile(goFile, []byte("//go:build tools\n\npackage main\n"), 0644)
+		assert.NoError(t, err)
+
+		ctx, _ := captureLogs()
+		files := []fileWithChanges{{fileName: "tools.go"}}
+		ok := runWorkflowCheck(ctx, files, tempDir)
+		assert.True(t, ok)
+	})
+
 	t.Run("Success - no issues", func(t *testing.T) {
 		tempDir := t.TempDir()
 		mockBazelisk := filepath.Join(tempDir, "bazelisk")

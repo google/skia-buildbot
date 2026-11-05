@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package internal
 
 import (
@@ -511,13 +516,13 @@ func (pc *LegacyClient) readResponseBody(
 
 		// A response must contain a request with a URL. Condition is just to make
 		// sure we never panic here.
-		url := "Unknown URL"
+		reqURL := "Unknown URL"
 		if resp.Request != nil && resp.Request.URL != nil {
-			url = resp.Request.URL.String()
+			reqURL = resp.Request.URL.String()
 		}
 		sklog.Errorf(
 			"Request to %s failed with status code %d and error: %s",
-			url,
+			reqURL,
 			resp.StatusCode,
 			requestErrorMessage,
 		)
@@ -698,7 +703,7 @@ func (pc *LegacyClient) ListBenchmarks(ctx context.Context) (resp []string, err 
 		return nil, skerr.Wrap(err)
 	}
 
-	var benchmarks []string
+	var benchmarks []string //nolint:prealloc // Allocated by json.Unmarshal.
 	if err = json.Unmarshal(body, &benchmarks); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to parse benchmarks response body.")
 	}

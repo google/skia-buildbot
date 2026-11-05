@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package internal
 
 import (
@@ -74,7 +79,7 @@ type TestAndExportParams struct {
 // processInsertData takes the task IDs and serializes them into TestResult objects,
 // which can be used to upload to BQ.
 func processInsertData(ctx workflow.Context, req *TestAndExportParams, taskIds []string) []*TestResult {
-	res := []*TestResult{}
+	res := make([]*TestResult, 0, len(taskIds))
 	currentTime := workflow.Now(ctx).UTC()
 	for _, taskId := range taskIds {
 		res = append(res, &TestResult{
