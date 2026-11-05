@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package compare compares two arrays of data and determines if the two arrays
 // are statistically different, the same, or unknown
 //

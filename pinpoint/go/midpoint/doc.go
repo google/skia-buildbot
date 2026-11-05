@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package midpoint encapsulates all logic pertaining to determining the next candidate for bisection.
 //
 // Bisection finds a culprit for some performance regression by continuously comparing two commits.

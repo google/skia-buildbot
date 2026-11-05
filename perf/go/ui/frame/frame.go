@@ -1,3 +1,8 @@
+// Copyright 2016 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package frame takes frontend requests for dataframes (FrameRequest), and
 // turns them into FrameResponses.
 package frame

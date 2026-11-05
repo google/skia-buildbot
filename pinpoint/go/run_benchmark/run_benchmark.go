@@ -1,3 +1,8 @@
+// Copyright 2023 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package run_benchmark runs the benchmark, story, metric as a
 // on a build of chrome via swarming tasks.
 //

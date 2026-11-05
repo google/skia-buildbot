@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 /*
 Package sqltracestore implements a tracestore.TraceStore on top of SQL. We'll
 look that the SQL schema used to explain how SQLTraceStore maps traces into an

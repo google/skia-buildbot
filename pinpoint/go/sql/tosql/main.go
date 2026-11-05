@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This executable generates a go file that contains the SQL schema for
 // Jobs defined as a string. By doing this, we have the source of truth
 // as a documented go struct, which can be used in a more flexible way than

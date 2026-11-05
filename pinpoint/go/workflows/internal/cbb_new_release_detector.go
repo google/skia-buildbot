@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This file defines CBB New Release Detector workflow, which is the top-level
 // workflow used by CBB. This workflow is intended to be scheduled to run
 // regularly on the perf infra Temporal server. Currently, the schdule runs
