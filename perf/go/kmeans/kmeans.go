@@ -1,3 +1,8 @@
+// Copyright 2014 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // kmeans implements a generic k-means clustering algorithm.
 //
 // To use this code create types that implements Clusterable, Centroid, and

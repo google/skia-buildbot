@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package progress is for tracking the progress of long running tasks on the
 // backend in a way that can be reflected in the UI.
 //

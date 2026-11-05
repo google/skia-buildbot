@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package ingestevents is a package with helper functions for ingestion PubSub
 // events, the ones that are sent when a file in done ingesting and received by
 // a clusterer to trigger regression detection. See

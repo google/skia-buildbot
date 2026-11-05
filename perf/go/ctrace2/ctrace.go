@@ -1,3 +1,8 @@
+// Copyright 2014 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // ctrace makes Traces into ClusterableTraces which can then be used in kmeans.
 package ctrace2
 

@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package builders builds objects from config.InstanceConfig objects.
 //
 // These are functions separate from config.InstanceConfig so that we don't end

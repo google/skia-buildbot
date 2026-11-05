@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 /*
 Package redis implements the redis related operations to support Skia perf, specifically
 for the query UI. It includes two types of methods:

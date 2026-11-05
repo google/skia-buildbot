@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // perfserver is the single executable that contains the sub-commands that make
 // up a running Perf system, including the web ui, the ingestion process, and
 // the regression detection process.
