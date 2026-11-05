@@ -131,6 +131,22 @@ func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (strin
 	return dest, nil
 }
 
+// newShallowGitDir creates a shallow (--depth=1) GitDir instance based in the
+// given directory.
+func newShallowGitDir(ctx context.Context, repoUrl, workdir string) (string, error) {
+	dest := path.Join(workdir, strings.TrimSuffix(path.Base(repoUrl), ".git"))
+	if _, err := os.Stat(dest); err != nil {
+		if os.IsNotExist(err) {
+			if err := ShallowClone(ctx, repoUrl, dest); err != nil {
+				return "", skerr.Wrap(err)
+			}
+		} else {
+			return "", skerr.Wrapf(err, "there is a problem with the git directory")
+		}
+	}
+	return dest, nil
+}
+
 // Details returns a vcsinfo.LongCommit instance representing the given commit.
 func gitRunner_Details(ctx context.Context, g gitRunner, name string) (*vcsinfo.LongCommit, error) {
 	output, err := g.Git(ctx, "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%ct%n%b", name)

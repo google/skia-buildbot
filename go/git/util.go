@@ -104,6 +104,19 @@ func Clone(ctx context.Context, repoUrl, dest string, mirror bool) error {
 	return nil
 }
 
+// ShallowClone runs "git clone --depth=1" into the given destination directory.
+// Most callers should use NewShallowCheckout instead.
+func ShallowClone(ctx context.Context, repoUrl, dest string) error {
+	git, err := Executable(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if _, err := exec.RunCwd(ctx, ".", git, "clone", "--depth=1", repoUrl, dest); err != nil {
+		return skerr.Fmt("failed to clone repo: %s", err)
+	}
+	return nil
+}
+
 // LogFromTo returns a string which is used to log from one commit to another.
 // It is important to note that:
 //   - The results may include the second commit but will not include the first.

@@ -165,3 +165,30 @@ func TestTempCheckout(t *testing.T) {
 	_, err = os.Stat(c.Dir())
 	require.True(t, os.IsNotExist(err))
 }
+
+func TestShallowCheckout(t *testing.T) {
+	ctx, gb, commits := setup(t)
+	defer gb.Cleanup()
+	require.Greater(t, len(commits), 1)
+
+	tmp, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+
+	// Use file:// so git honors --depth=1 on a local repository.
+	c, err := NewShallowCheckout(ctx, "file://"+gb.Dir(), tmp)
+	require.NoError(t, err)
+
+	// Verify that only 1 commit was cloned.
+	gotCommits, err := c.RevList(ctx, DefaultRemoteBranch)
+	require.NoError(t, err)
+	assertdeep.Equal(t, commits[:1], gotCommits)
+
+	// Add a commit on the remote and verify that Update() fetches it.
+	commit := gb.CommitGen(ctx, "somefile")
+	require.NoError(t, c.Update(ctx))
+
+	got, err := c.RevParse(ctx, "HEAD")
+	require.NoError(t, err)
+	require.Equal(t, commit, got)
+}

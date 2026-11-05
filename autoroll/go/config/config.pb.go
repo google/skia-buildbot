@@ -4101,8 +4101,11 @@ type GitCheckoutConfig struct {
 	// default_bug_project indicates the Monorail project used when no project
 	// is specified in "Bug: 123" lines in commit messages.
 	DefaultBugProject string `protobuf:"bytes,5,opt,name=default_bug_project,json=defaultBugProject,proto3" json:"default_bug_project,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// shallow_clone indicates that the repo should be cloned with --depth=1 (or
+	// --no-history for gclient).
+	ShallowClone  bool `protobuf:"varint,6,opt,name=shallow_clone,json=shallowClone,proto3" json:"shallow_clone,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GitCheckoutConfig) Reset() {
@@ -4168,6 +4171,13 @@ func (x *GitCheckoutConfig) GetDefaultBugProject() string {
 		return x.DefaultBugProject
 	}
 	return ""
+}
+
+func (x *GitCheckoutConfig) GetShallowClone() bool {
+	if x != nil {
+		return x.ShallowClone
+	}
+	return false
 }
 
 // BuildbucketRevisionFilterConfig provides configuration for a revision filter
@@ -5145,13 +5155,14 @@ const file_config_proto_rawDesc = "" +
 	"\aprimary\x18\x01 \x01(\v2\".autoroll.config.VersionFileConfigR\aprimary\x12D\n" +
 	"\n" +
 	"transitive\x18\x02 \x03(\v2$.autoroll.config.TransitiveDepConfigR\n" +
-	"transitive\"\xe2\x01\n" +
+	"transitive\"\x87\x02\n" +
 	"\x11GitCheckoutConfig\x12\x16\n" +
 	"\x06branch\x18\x01 \x01(\tR\x06branch\x12\x19\n" +
 	"\brepo_url\x18\x02 \x01(\tR\arepoUrl\x12\"\n" +
 	"\rrev_link_tmpl\x18\x03 \x01(\tR\vrevLinkTmpl\x12F\n" +
 	"\fdependencies\x18\x04 \x03(\v2\".autoroll.config.VersionFileConfigR\fdependencies\x12.\n" +
-	"\x13default_bug_project\x18\x05 \x01(\tR\x11defaultBugProject\"\x9f\x01\n" +
+	"\x13default_bug_project\x18\x05 \x01(\tR\x11defaultBugProject\x12#\n" +
+	"\rshallow_clone\x18\x06 \x01(\bR\fshallowClone\"\x9f\x01\n" +
 	"\x1fBuildbucketRevisionFilterConfig\x12\x18\n" +
 	"\aproject\x18\x01 \x01(\tR\aproject\x12\x16\n" +
 	"\x06bucket\x18\x02 \x01(\tR\x06bucket\x120\n" +

@@ -740,6 +740,7 @@ export interface GitCheckoutConfig {
   revLinkTmpl: string;
   dependencies?: VersionFileConfig[];
   defaultBugProject: string;
+  shallowClone: boolean;
 }
 
 interface GitCheckoutConfigJSON {
@@ -748,6 +749,7 @@ interface GitCheckoutConfigJSON {
   rev_link_tmpl?: string;
   dependencies?: VersionFileConfigJSON[];
   default_bug_project?: string;
+  shallow_clone?: boolean;
 }
 
 export interface BuildbucketRevisionFilterConfig {

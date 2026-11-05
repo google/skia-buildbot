@@ -787,6 +787,9 @@ message GitCheckoutConfig {
   // default_bug_project indicates the Monorail project used when no project
   // is specified in "Bug: 123" lines in commit messages.
   string default_bug_project = 5;
+  // shallow_clone indicates that the repo should be cloned with --depth=1 (or
+  // --no-history for gclient).
+  bool shallow_clone = 6;
 }
 
 // BuildbucketRevisionFilterConfig provides configuration for a revision filter

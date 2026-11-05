@@ -82,6 +82,17 @@ func NewCheckout(ctx context.Context, repoUrl, workdir string) (CheckoutDir, err
 	return CheckoutDir(g), nil
 }
 
+// NewShallowCheckout returns a shallow (--depth=1) Checkout instance based in
+// the given working directory. Uses any existing checkout in the given
+// directory, or clones one if necessary.
+func NewShallowCheckout(ctx context.Context, repoUrl, workdir string) (CheckoutDir, error) {
+	g, err := newShallowGitDir(ctx, repoUrl, workdir)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return CheckoutDir(g), nil
+}
+
 // Dir returns the working directory of the GitDir.
 func (c CheckoutDir) Dir() string {
 	return string(c)

@@ -93,6 +93,9 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, client *
 		if !c.RunHooks {
 			args = append(args, "--nohooks")
 		}
+		if c.GitCheckout.GitCheckout.ShallowClone {
+			args = append(args, "--no-history")
+		}
 		if len(extraArgs) > 0 {
 			args = append(args, extraArgs...)
 		}

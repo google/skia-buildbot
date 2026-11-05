@@ -45,7 +45,11 @@ func NewCheckout(ctx context.Context, c *config.GitCheckoutConfig, workdir, user
 	// Create the local checkout.
 	if co == nil {
 		var err error
-		co, err = git.NewCheckout(ctx, c.RepoUrl, workdir)
+		if c.ShallowClone {
+			co, err = git.NewShallowCheckout(ctx, c.RepoUrl, workdir)
+		} else {
+			co, err = git.NewCheckout(ctx, c.RepoUrl, workdir)
+		}
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
