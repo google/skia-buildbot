@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The gitilesfollower executable monitors the repo we are tracking using gitiles. It fills in
 // the GitCommits table, specifically making a mapping between a GitHash and CommitID. The CommitID
 // is based on the "index" of the commit (i.e. how many commits since the initial commit).

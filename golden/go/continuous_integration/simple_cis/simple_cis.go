@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package simple_cis is a simple implementation of CIS that
 // pretends every TryJob exists. It can be used as a placeholder.
 package simple_cis

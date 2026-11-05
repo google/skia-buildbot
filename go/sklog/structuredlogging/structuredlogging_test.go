@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package structuredlogging
 
 import (
@@ -109,7 +114,7 @@ func TestLogCtx_WithTemplate(t *testing.T) {
 		// TODO(borenet): This will be very brittle.
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File:     "structuredlogging_test.go",
-			Line:     120,
+			Line:     125,
 			Function: "",
 		},
 		Labels: map[string]string{
@@ -143,7 +148,7 @@ func TestLogCtx_NoTemplate_SingleArg(t *testing.T) {
 		// TODO(borenet): This will be very brittle.
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File:     "structuredlogging_test.go",
-			Line:     154,
+			Line:     159,
 			Function: "",
 		},
 		Labels: map[string]string{
@@ -170,7 +175,7 @@ func TestLogCtx_NoTemplate_MultiArg(t *testing.T) {
 		// TODO(borenet): This will be very brittle.
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File:     "structuredlogging_test.go",
-			Line:     181,
+			Line:     186,
 			Function: "",
 		},
 		Labels: map[string]string{
@@ -194,7 +199,7 @@ func TestLogCtx_NoTemplate_NamedString(t *testing.T) {
 		Severity: logging.Info,
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File: "structuredlogging_test.go",
-			Line: 201,
+			Line: 206,
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
@@ -212,7 +217,7 @@ func TestLogCtx_NoTemplate_Int(t *testing.T) {
 		Severity: logging.Info,
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File: "structuredlogging_test.go",
-			Line: 219,
+			Line: 224,
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
@@ -231,7 +236,7 @@ func TestLogCtx_NoTemplate_Error(t *testing.T) {
 		Severity: logging.Info,
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File: "structuredlogging_test.go",
-			Line: 238,
+			Line: 243,
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()
@@ -256,7 +261,7 @@ func TestLogCtx_NoTemplate_Stringer(t *testing.T) {
 		Severity: logging.Info,
 		SourceLocation: &loggingpb.LogEntrySourceLocation{
 			File: "structuredlogging_test.go",
-			Line: 263,
+			Line: 268,
 		},
 	}
 	cloudLogger.On("Log", expectedLogEntry).Return()

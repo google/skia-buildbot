@@ -1,3 +1,8 @@
+// Copyright 2015 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package text contains an image plain text file format encoder and decoder.
 //
 // A super simple format of the form:

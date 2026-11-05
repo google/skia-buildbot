@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package tracing consolidates the setup logic for using opencensus tracing and exporting the
 // metrics to https://cloud.google.com/trace. In order to authenticate to the correct API, any
 // service account that uses this package must have the Cloud Trace Agent Role in gcp.

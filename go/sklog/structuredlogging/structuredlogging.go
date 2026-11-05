@@ -1,3 +1,8 @@
+// Copyright 2025 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package structuredlogging implements sklogimpl.Logger and logs to either
 // stderr or stdout using structured logging. It is intended to be used inside
 // of GKE, where logs to stdout/stderr are automatically ingested to Cloud

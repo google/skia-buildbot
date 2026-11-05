@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The pubsubtool executable is a convenient way to create PubSub topics and subscriptions.
 // It also allows for manual injection of messages to test systems end-to-end.
 package main

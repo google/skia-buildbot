@@ -1,3 +1,8 @@
+// Copyright 2020 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package databuilder provides a tool for generating test data in a way that is easy for
 // a human to update and understand.
 package databuilder

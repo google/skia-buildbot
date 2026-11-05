@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package util_generics houses utility function which make us of generics. Chrome Infra
 // is locked to Go 1.17 to support Mac 10.11, so we cannot ship code to CIPD that uses generics.
 // Thus, we partition our common utilities (for now) until they are able to update.

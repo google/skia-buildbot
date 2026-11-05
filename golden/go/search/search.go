@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package search2 encapsulates various queries we make against Gold's data. It is backed
 // by the SQL database and aims to replace the current search package.
 package search

@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Executable file_reingester will scan through all the files in a GCS bucket and create synthetic
 // pubsub events to cause the files to be re-ingested.
 package main

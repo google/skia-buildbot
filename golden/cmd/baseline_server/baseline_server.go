@@ -1,3 +1,8 @@
+// Copyright 2018 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This program serves content that is mostly static and needs to be highly
 // available. The content comes from highly available backend services like
 // GCS. It needs to be deployed in a redundant way to ensure high uptime.

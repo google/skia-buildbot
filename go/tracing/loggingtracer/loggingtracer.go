@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package loggingtracer provides a trace.Tracer that wraps trace.DefaultTracer and logs span
 // starts/ends and durations. It is intended for local debugging only, as usage in production might
 // cause noisy and/or verbose logs.

@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package sser allows handling Server-Sent Events (SSE) connections from across
 // kubernetes Pod replicas, for example a Deployment or a StatefulSet, and also
 // allows sending events from any of those Pods to all clients listening on a

@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package clstore defines an interface for storing Changelist-related data
 // as needed for operating Gold.
 package clstore

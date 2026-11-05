@@ -1,3 +1,8 @@
+// Copyright 2018 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // This file contains helper functions for TestCallStack in skerr_test.go. Modifying this file may
 // cause the test assertions to be incorrect.
 

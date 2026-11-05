@@ -1,3 +1,8 @@
+// Copyright 2022 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package loggingtracer
 
 import (
@@ -36,20 +41,20 @@ func TestLoggingTracer(t *testing.T) {
 	// break this test case), but it is important to test that we are reporting the correct line
 	// numbers.
 	expectedLogPatterns := []string{
-		`^Starting span: a \[.*/loggingtracer_test.go:69]$`,
-		`^Starting span: b \[.*/loggingtracer_test.go:77]$`,
-		`^Starting span: c \[.*/loggingtracer_test.go:85]$`,
-		`^Starting span: d \[.*/loggingtracer_test.go:92]$`,
-		`^Ending span: d \[.*/loggingtracer_test.go:94] \(1s\)$`,
-		`^Ending span: c \[.*/loggingtracer_test.go:88] \(3s\)$`,
-		`^Starting span: c \[.*/loggingtracer_test.go:85]$`,
-		`^Starting span: d \[.*/loggingtracer_test.go:92]$`,
-		`^Ending span: d \[.*/loggingtracer_test.go:94] \(1s\)$`,
-		`^Ending span: c \[.*/loggingtracer_test.go:88] \(3s\)$`,
-		`^Ending span: b \[.*/loggingtracer_test.go:81] \(11s\)$`,
-		`^Starting span: e \[.*/loggingtracer_test.go:98]$`,
-		`^Ending span: e \[.*/loggingtracer_test.go:100] \(500ms\)$`,
-		`^Ending span: a \[.*/loggingtracer_test.go:73] \(21.5s\)$`,
+		`^Starting span: a \[.*/loggingtracer_test.go:74]$`,
+		`^Starting span: b \[.*/loggingtracer_test.go:82]$`,
+		`^Starting span: c \[.*/loggingtracer_test.go:90]$`,
+		`^Starting span: d \[.*/loggingtracer_test.go:97]$`,
+		`^Ending span: d \[.*/loggingtracer_test.go:99] \(1s\)$`,
+		`^Ending span: c \[.*/loggingtracer_test.go:93] \(3s\)$`,
+		`^Starting span: c \[.*/loggingtracer_test.go:90]$`,
+		`^Starting span: d \[.*/loggingtracer_test.go:97]$`,
+		`^Ending span: d \[.*/loggingtracer_test.go:99] \(1s\)$`,
+		`^Ending span: c \[.*/loggingtracer_test.go:93] \(3s\)$`,
+		`^Ending span: b \[.*/loggingtracer_test.go:86] \(11s\)$`,
+		`^Starting span: e \[.*/loggingtracer_test.go:103]$`,
+		`^Ending span: e \[.*/loggingtracer_test.go:105] \(500ms\)$`,
+		`^Ending span: a \[.*/loggingtracer_test.go:78] \(21.5s\)$`,
 	}
 
 	require.Len(t, logs, len(expectedLogPatterns))

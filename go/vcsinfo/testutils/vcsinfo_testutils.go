@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package vcsinfo/testutils contains a set of tests to test vcsinfo.VCS implementations.
 package testutils
 

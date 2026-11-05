@@ -1,3 +1,8 @@
+// Copyright 2015 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // gold_ingestion is the server process that runs an arbitrary number of
 // ingesters and stores them to the appropriate backends.
 package main

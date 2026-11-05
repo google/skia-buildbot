@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The diffcalculator executable listens to the Pub/Sub topic and processes diffs based on the
 // messages passed in. For an overview of Pub/Sub, see https://cloud.google.com/pubsub/docs
 package main

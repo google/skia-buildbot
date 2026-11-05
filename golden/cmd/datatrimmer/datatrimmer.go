@@ -1,3 +1,8 @@
+// Copyright 2024 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The datatrimmer executable trims old data that is no longer relevant.
 // Example to run:
 // `go run ./cmd/datatrimmer --db_name=skiainfra --table_name=tiledtracedigests1 --batch_size=10`

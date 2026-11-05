@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The sqlinit executable creates a database on the production SQL cluster with the appropriate
 // schema. It will not modify any tables (e.g. add missing indexes or change columns).
 // This executable will schedule new automatic backups, so if there are existing ones, one may have

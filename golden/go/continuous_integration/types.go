@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package continuous_integration defines some types for getting tryjob-related data
 // into and out of Continuous Integration Systems (e.g. BuildBucket, CirrusCI).
 package continuous_integration

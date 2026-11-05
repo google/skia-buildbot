@@ -1,3 +1,8 @@
+// Copyright 2021 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package sqlingestionstore contains a SQL-backed implementation of Store, which
 // is meant as a quick "yes/no" to the question "Did we already ingest this file?" when polling
 // for files missed during Pub/Sub ingestion.

@@ -1,3 +1,8 @@
+// Copyright 2018 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // package travisci provides a library for interacting with the Github app
 // Travis CI via it's API: https://docs.travis-ci.com/api/#api-v3
 //

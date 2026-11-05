@@ -1,3 +1,8 @@
+// Copyright 2019 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // Package code_review defines some types for getting data into and out of
 // Code Review Systems (e.g. Gerrit, GitHub).
 package code_review

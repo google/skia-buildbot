@@ -1,3 +1,8 @@
+// Copyright 2014 Google LLC
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // The goldfrontend executable is the process that exposes a RESTful API used by the JS frontend.
 package main
 
