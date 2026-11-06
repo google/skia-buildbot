@@ -11,23 +11,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 
-const urls = [
-  'https://android-15-debugger.skia.org',
-  'https://android-14-debugger.skia.org',
-  'https://android-13-debugger.skia.org',
-  'https://android-12-debugger.skia.org',
-  'https://chrome-m100-debugger.skia.org',
-  'https://chrome-m99-debugger.skia.org',
-  'https://chrome-m98-debugger.skia.org',
-  'https://chrome-m97-debugger.skia.org',
-  'https://chrome-m96-debugger.skia.org',
-  'https://chrome-m95-debugger.skia.org',
-  'https://chrome-m94-debugger.skia.org',
-  'https://chrome-m93-debugger.skia.org',
-  'https://chrome-m92-debugger.skia.org',
-  'https://chrome-m91-debugger.skia.org',
-  'https://chrome-m90-debugger.skia.org',
-];
+const urls: string[] = [];
 
 const debuggerVersion = (url: string) =>
   html`<li>
@@ -39,7 +23,7 @@ export class VersionPageSk extends ElementSk {
     super(VersionPageSk.template);
   }
 
-  private static template = (ele: VersionPageSk) =>
+  private static template = () =>
     html` <app-sk>
       <header>
         <h2>Skia WASM Debugger Versions</h2>
