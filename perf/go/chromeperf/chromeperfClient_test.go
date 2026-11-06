@@ -511,7 +511,7 @@ func TestSendPostRequest(t *testing.T) {
 				t.Fatal("Server should not be called if marshalling fails")
 			},
 			expectError:      true,
-			expectedErrorMsg: "json: error calling MarshalJSON for type *chromeperf.marshalErrorType: simulated marshal error",
+			expectedErrorMsg: "simulated marshal error",
 		},
 		{
 			name:         "HTTP Post error (server down)",
@@ -527,7 +527,7 @@ func TestSendPostRequest(t *testing.T) {
 				// Server handler won't be called as we close the server immediately
 			},
 			expectError:      true,
-			expectedErrorMsg: "connect: connection refused", // Error from httputils.PostWithContext
+			expectedErrorMsg: "connection refused", // Error from httputils.PostWithContext
 		},
 		{
 			name:         "Unexpected status code",

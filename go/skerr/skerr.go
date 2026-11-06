@@ -8,6 +8,7 @@
 package skerr
 
 import (
+	"errors"
 	"fmt"
 	"runtime"
 	"strings"
@@ -132,8 +133,14 @@ func Wrap(err error) error {
 
 // Unwrap returns the original error if err is ErrWithContext, otherwise just returns err.
 func Unwrap(err error) error {
-	if wrapper, ok := tryCast(err); ok {
-		return wrapper.Wrapped
+	for err != nil {
+		if wrapper, ok := tryCast(err); ok {
+			err = wrapper.Wrapped
+		} else if unwrapped := errors.Unwrap(err); unwrapped != nil {
+			err = unwrapped
+		} else {
+			break
+		}
 	}
 	return err
 }

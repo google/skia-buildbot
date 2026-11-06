@@ -126,7 +126,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	backupHttpClient := httputils.DefaultClientConfig().With2xxOnly().Client()
+	backupHttpClient := httputils.DefaultClientConfig().With2xxAnd3xx().Client()
 
 	// Run file backup in a separate goroutine to avoid downtime if it fails.
 	go util.RepeatCtx(ctx, 15*time.Minute, func(ctx context.Context) {
@@ -203,7 +203,7 @@ func maybeBackupURL(ctx context.Context, httpClient *http.Client, url, expectSha
 	if _, err := obj.Attrs(ctx); err == nil {
 		// The object already exists; nothing to do.
 		return nil
-	} else if !errors.Is(err, storage.ErrObjectNotExist) {
+	} else if skerr.Unwrap(err) != storage.ErrObjectNotExist {
 		return skerr.Wrapf(err, "failed checking attributes of %s", objectPath)
 	}
 

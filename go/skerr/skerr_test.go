@@ -49,6 +49,10 @@ func TestWrap(t *testing.T) {
 func TestUnwrapOtherErr(t *testing.T) {
 	err := beta_test.GenericError
 	require.Equal(t, err, skerr.Unwrap(err))
+
+	fmtWrapped := fmt.Errorf("outer: %w", fmt.Errorf("inner: %w", err))
+	require.Equal(t, err, skerr.Unwrap(fmtWrapped))
+	require.Equal(t, err, skerr.Unwrap(skerr.Wrap(fmtWrapped)))
 }
 
 func TestFmt(t *testing.T) {
