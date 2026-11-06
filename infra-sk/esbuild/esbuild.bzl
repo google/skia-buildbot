@@ -107,10 +107,16 @@ def esbuild_node_bundle(
       visibility: Visibility of the rule.
       **kwargs: Any other arguments to be passed to the esbuild rule.
     """
+
+    # Keep playwright-core external so its runtime require.resolve calls for
+    # relative assets and optional drivers resolve against node_modules. This is
+    # a no-op for bundles that do not import playwright-core.
+    external = kwargs.pop("external", []) + ["playwright-core"]
     esbuild(
         name = name,
         tsconfig = "//:ts_config",
         entry_point = entry_point,
+        external = external,
         deps = deps,
         sourcemap = "inline",
         sources_content = True,

@@ -371,6 +371,73 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
                 forward_test_filter_as_grep = True,
             )
 
+def sk_element_playwright_test(name, src, sk_demo_page_server, deps = []):
+    """Defines a Playwright test for the demo page served by an sk_demo_page_server.
+
+    Generates four test_on_env variants: "<name>" (headless, runs in CQ), "<name>_debug"
+    (waits for a Node.js debugger), "<name>_headful" (sets PLAYWRIGHT_TEST_SHOW_BROWSER=true),
+    and "<name>_debug_headful". The debug and headful variants are tagged "manual" and
+    "no-remote".
+
+    Environment hooks read by //puppeteer-tests/playwright_util.ts:
+      CHROME_BIN_OVERRIDE: Path to a local Chromium binary instead of Bazel's CHROME_BIN.
+      SLOW_MO: Delay in milliseconds between Playwright operations.
+      PLAYWRIGHT_TEST_SHOW_BROWSER: Set to "true" to launch Chromium in headful mode
+        (PUPPETEER_TEST_SHOW_BROWSER is also accepted for compatibility).
+      SAVE_TRACE: Set to "1" to save trace.zip and screenshot.png for passing tests.
+
+    Args:
+      name: Name of the rule.
+      src: A single TypeScript source file ending with "_playwright_test.ts".
+      sk_demo_page_server: Label for the sk_demo_page_server target.
+      deps: Any ts_library dependencies.
+    """
+
+    if not src.endswith("_playwright_test.ts"):
+        fail("Playwright tests must end with \"_playwright_test.ts\".")
+
+    # Define a single shared ts_library so debug and headful variants do not
+    # emit duplicate .js outputs for the same TypeScript source file.
+    ts_library(
+        name = name + "_ts_lib",
+        srcs = [src],
+        deps = deps,
+    )
+
+    for debug in [False, True]:
+        for headful in [False, True]:
+            suffix = ""
+            if debug:
+                suffix += "_debug"
+            if headful:
+                suffix += "_headful"
+
+            nodejs_test(
+                name = name + "_test_only" + suffix,
+                src = src,
+                src_lib = name + "_ts_lib",
+                tags = ["manual"],
+                deps = deps,
+                wait_for_debugger = debug,
+                env = {
+                    "PLAYWRIGHT_TEST_SHOW_BROWSER": "true",
+                    "PUPPETEER_TEST_SHOW_BROWSER": "true",
+                } if headful else {},
+                _internal_skip_naming_convention_enforcement = True,
+            )
+
+            test_on_env(
+                name = name + suffix,
+                env = sk_demo_page_server,
+                test = name + "_test_only" + suffix,
+                timeout_secs = 60 * 60 * 24 * 365 if debug else 10,
+                tags = ([
+                    "manual",
+                    "no-remote",
+                ] if debug or headful else []),
+                forward_test_filter_as_grep = True,
+            )
+
 def copy_file(name, src, dst, visibility = None):
     """Copies a single file to a destination path, making parent directories as needed."""
     native.genrule(

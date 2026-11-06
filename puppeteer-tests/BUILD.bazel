@@ -1,6 +1,18 @@
 load("//infra-sk:index.bzl", "nodejs_test", "ts_library")
 
 nodejs_test(
+    name = "playwright_util_nodejs_test",
+    src = "playwright_util_nodejs_test.ts",
+    deps = [
+        ":playwright_util_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/express",
+        "//:node_modules/chai",
+        "//:node_modules/express",
+    ],
+)
+
+nodejs_test(
     name = "util_nodejs_test",
     src = "util_nodejs_test.ts",
     deps = [
@@ -23,6 +35,13 @@ ts_library(
         ":screencast_ts_lib",
         "//:node_modules/puppeteer",
     ],
+)
+
+ts_library(
+    name = "playwright_util_ts_lib",
+    srcs = ["playwright_util.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//:node_modules/playwright-core"],
 )
 
 ts_library(
