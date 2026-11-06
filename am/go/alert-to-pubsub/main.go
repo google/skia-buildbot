@@ -140,22 +140,6 @@ func sendPubSub(ctx context.Context, m map[string]string, topic *pubsub.Topic) {
 	}
 }
 
-func singleStep(ctx context.Context, client *http.Client, topic *pubsub.Topic) error {
-	if *simulate {
-		sendPubSub(ctx, sim1, topic)
-		sendPubSub(ctx, sim2, topic)
-	}
-
-	// Send a healthz alert to be used as a marker that pubsub is still working.
-	m := map[string]string{
-		"__name__": "HEALTHZ",
-	}
-	sklog.Info("healthz")
-	sendPubSub(ctx, m, topic)
-
-	return nil
-}
-
 type Server struct {
 	topic *pubsub.Topic
 }
@@ -194,6 +178,13 @@ func (s *Server) alertHandler(w http.ResponseWriter, r *http.Request) {
 		// Do not use r.Context() here because we could run into "context deadline exceeded".
 		sendPubSub(context.Background(), m, s.topic)
 	}
+
+	// Send a healthz alert to be used as a marker that pubsub is still working.
+	m := map[string]string{
+		"__name__": "HEALTHZ",
+	}
+	sklog.Info("healthz")
+	sendPubSub(context.Background(), m, s.topic)
 }
 
 func main() {
@@ -224,14 +215,14 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}
-	httpClient := httputils.NewTimeoutClient()
-	go func() {
-		for range time.Tick(*period) {
-			if err := singleStep(ctx, httpClient, topic); err != nil {
-				sklog.Errorf("Failed step: %s", err)
+	if *simulate {
+		go func() {
+			for range time.Tick(*period) {
+				sendPubSub(ctx, sim1, topic)
+				sendPubSub(ctx, sim2, topic)
 			}
-		}
-	}()
+		}()
+	}
 
 	server := NewServer(topic)
 
