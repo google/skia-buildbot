@@ -62,6 +62,14 @@ pkg_tar(
     package_dir = "/usr/local/lib",
 )
 
+pkg_tar(
+    name = "fiddler_symlinks",
+    symlinks = {
+        "/usr/lib/x86_64-linux-gnu/libblas.so.3": "/usr/lib/x86_64-linux-gnu/blas/libblas.so.3",
+        "/usr/lib/x86_64-linux-gnu/liblapack.so.3": "/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3",
+    },
+)
+
 skia_app_container(
     name = "fiddler_container-base",
     base_image = "@debian-testing-slim",
@@ -100,6 +108,7 @@ skia_app_container(
     },
     extra_tars = [
         "@fiddler-base-apt-install//:flat",
+        ":fiddler_symlinks",
         ":swiftshader_include_tar",
         ":swiftshader_libs_tar",
     ],
