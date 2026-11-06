@@ -26,6 +26,7 @@ spec:
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000 # aka skia
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: autoroll-be-{{.rollerName}}
           image: {{.kubernetes.image}}
