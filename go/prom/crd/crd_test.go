@@ -214,3 +214,49 @@ func TestRuleSkip_OnlyInClusterAnnotationAbsent_ReturnsTrue(t *testing.T) {
 
 	require.True(t, rule.Include("skia-public"))
 }
+
+func TestRules_AddAbsentRules_EmptyAbsentGroupIsOmitted(t *testing.T) {
+	rules := Rules{
+		Spec: Spec{
+			Groups: []Group{
+				{
+					Name:     "example",
+					Interval: "15s",
+					Rules: []Rule{
+						{
+							Alert: "ThisWillNotGetAnAbsentAlertOutSideOfSkiaPublic",
+							Expr:  "go_goroutines > 100",
+							Annotations: map[string]string{
+								onlyInClustersAnnotationKey: "skia-public",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	rules.AddAbsentRules("skia-infra-public-dev")
+
+	expected := Rules{
+		Spec: Spec{
+			Groups: []Group{
+				{
+					Name:     "example",
+					Interval: "15s",
+					Rules: []Rule{
+						{
+							Alert: "ThisWillNotGetAnAbsentAlertOutSideOfSkiaPublic",
+							Expr:  "go_goroutines > 100",
+							Annotations: map[string]string{
+								onlyInClustersAnnotationKey: "skia-public",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.Equal(t, expected, rules)
+}

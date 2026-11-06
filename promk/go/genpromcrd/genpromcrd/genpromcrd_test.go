@@ -164,9 +164,6 @@ spec:
       expr: vector(1)
       labels: {}
       annotations: {}
-  - name: absent-perf
-    interval: 30s
-    rules: []
 `
 	require.Equal(t, expected, string(b))
 }

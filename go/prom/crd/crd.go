@@ -109,11 +109,13 @@ func (r *Rules) AddAbsentRules(cluster string) {
 				},
 			})
 		}
-		absentGroups = append(absentGroups, Group{
-			Name:     fmt.Sprintf("absent-%s", g.Name),
-			Interval: g.Interval,
-			Rules:    rules,
-		})
+		if len(rules) > 0 {
+			absentGroups = append(absentGroups, Group{
+				Name:     fmt.Sprintf("absent-%s", g.Name),
+				Interval: g.Interval,
+				Rules:    rules,
+			})
+		}
 	}
 	r.Spec.Groups = append(r.Spec.Groups, absentGroups...)
 }
