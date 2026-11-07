@@ -68,7 +68,7 @@ func storageHandler(w http.ResponseWriter, r *http.Request) {
 
 	obj := gcsClient.Bucket(*bucket).Object(path)
 	reader, err := obj.NewReader(r.Context())
-	if skerr.Unwrap(err) == storage.ErrObjectNotExist {
+	if errors.Is(err, storage.ErrObjectNotExist) {
 		http.Error(w, "object not found", http.StatusNotFound)
 		return
 	} else if err != nil {
@@ -203,7 +203,7 @@ func maybeBackupURL(ctx context.Context, httpClient *http.Client, url, expectSha
 	if _, err := obj.Attrs(ctx); err == nil {
 		// The object already exists; nothing to do.
 		return nil
-	} else if skerr.Unwrap(err) != storage.ErrObjectNotExist {
+	} else if !errors.Is(err, storage.ErrObjectNotExist) {
 		return skerr.Wrapf(err, "failed checking attributes of %s", objectPath)
 	}
 
