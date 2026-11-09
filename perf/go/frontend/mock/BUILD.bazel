@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 filegroup(
     name = "mock_dist_files",
@@ -55,6 +56,10 @@ go_library(
     srcs = [
         "frontend_mock_api_impl.go",
         "frontend_mock_for_demo.go",
+        "persona.go",
+        "recorder.go",
+        "state.go",
+        "testdata.go",
     ],
     importpath = "go.skia.org/infra/perf/go/frontend/mock",
     visibility = ["//visibility:private"],
@@ -64,5 +69,16 @@ go_library(
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_go_chi_chi_v5//middleware",
         "@com_github_unrolled_secure//:secure",
+    ],
+)
+
+go_test(
+    name = "mock_test",
+    srcs = ["frontend_mock_test.go"],
+    embed = [":mock_lib"],
+    deps = [
+        "@com_github_go_chi_chi_v5//:chi",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )
