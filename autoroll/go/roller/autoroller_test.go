@@ -8,6 +8,7 @@ package roller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -323,4 +324,34 @@ func TestUpdateModeAndBacklogMetrics(t *testing.T) {
 	require.Equal(t, int64(0), metrics2.GetInt64Metric("autoroll_not_rolled_revs", map[string]string{
 		"roller": rollerName,
 	}).Get())
+}
+
+func TestTruncateError(t *testing.T) {
+	makeLines := func(n int) []string {
+		lines := make([]string, n)
+		for i := 0; i < n; i++ {
+			lines[i] = fmt.Sprintf("line %d", i+1)
+		}
+		return lines
+	}
+
+	// Short errors (<= maxErrorLines+1) are not truncated.
+	require.Equal(t, "", truncateError(""))
+	short := strings.Join(makeLines(100), "\n")
+	require.Equal(t, short, truncateError(short))
+	exact101 := strings.Join(makeLines(101), "\n")
+	require.Equal(t, exact101, truncateError(exact101))
+
+	// Longer errors keep the first 50 and last 50 lines and replace the middle.
+	longLines := makeLines(150)
+	longStr := strings.Join(longLines, "\n")
+	got := truncateError(longStr)
+	gotLines := strings.Split(got, "\n")
+	require.Len(t, gotLines, 101)
+	require.Equal(t, longLines[:50], gotLines[:50])
+	require.Equal(t, "[...truncated 50 lines...]", gotLines[50])
+	require.Equal(t, longLines[100:], gotLines[51:])
+
+	// Calling truncateError again on an already-truncated error is a no-op.
+	require.Equal(t, got, truncateError(got))
 }

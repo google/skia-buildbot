@@ -59,6 +59,11 @@ const (
 	// store in the DB.
 	maxNotRolledRevs = 50
 
+	// maxErrorLines is the maximum number of lines allowed in an error message;
+	// longer error messages are truncated in the middle, keeping the first and
+	// last maxErrorLines/2 lines.
+	maxErrorLines = 100
+
 	// We'll send a notification if this many rolls fail in a row.
 	notifyIfLastNFailed = 3
 
@@ -594,7 +599,7 @@ func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revis
 	sklog.Infof("Creating new roll with commit message: \n%s", commitMsg)
 	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, revs, emails, dryRun, canary, commitMsg)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Fmt("%s", truncateError(err.Error()))
 	}
 	issue := &autoroll.AutoRollIssue{
 		AttemptStart: time.Now(),
@@ -803,6 +808,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	if !replaceLastError {
 		lastError = r.status.Get().Error
 	}
+	lastError = truncateError(lastError)
 
 	failureThrottledUntil := r.failureThrottle.ThrottledUntil().Unix()
 	safetyThrottledUntil := r.safetyThrottle.ThrottledUntil().Unix()
@@ -876,6 +882,19 @@ func updateModeAndBacklogMetrics(rollerName string, currentMode modes.Mode, numN
 	metrics2.GetInt64Metric("autoroll_not_rolled_revs", map[string]string{
 		"roller": rollerName,
 	}).Update(int64(numNotRolled))
+}
+
+func truncateError(errStr string) string {
+	lines := strings.Split(errStr, "\n")
+	if len(lines) <= maxErrorLines+1 {
+		return errStr
+	}
+	half := maxErrorLines / 2
+	truncated := make([]string, 0, maxErrorLines+1)
+	truncated = append(truncated, lines[:half]...)
+	truncated = append(truncated, fmt.Sprintf("[...truncated %d lines...]", len(lines)-maxErrorLines))
+	truncated = append(truncated, lines[len(lines)-half:]...)
+	return strings.Join(truncated, "\n")
 }
 
 // Tick runs one iteration of the roller.
@@ -1043,7 +1062,7 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 	failManualRoll := func(req *manual.ManualRollRequest, err error) error {
 		req.Status = manual.STATUS_COMPLETE
 		req.Result = manual.RESULT_FAILURE
-		req.ResultDetails = err.Error()
+		req.ResultDetails = truncateError(err.Error())
 		sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
 		r.notifier.SendManualRollCreationFailed(ctx, req.Requester, req.Revision, err)
 		if err := r.manualRollDB.Put(req); err != nil {
