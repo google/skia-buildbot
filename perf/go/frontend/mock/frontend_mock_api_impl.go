@@ -301,6 +301,78 @@ func (s *Server) FrameStartHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+type TraceRow struct {
+	CommitNumber int     `json:"commit_number"`
+	CreatedAt    int64   `json:"createdat"`
+	Val          float32 `json:"val"`
+}
+
+func (s *Server) TraceValuesHandler(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		IDs       []string `json:"ids"`
+		MinCommit int      `json:"min_commit"`
+		MaxCommit int      `json:"max_commit"`
+		Begin     int64    `json:"begin"`
+		End       int64    `json:"end"`
+	}
+	if r.Body != nil {
+		_ = json.NewDecoder(r.Body).Decode(&req)
+	}
+
+	headers := s.state.GetCommitHeaders()
+	matched := s.state.MatchTraces(nil, req.IDs)
+	results := make(map[string][]TraceRow, len(matched))
+	if len(headers) == 0 {
+		for _, tr := range matched {
+			results[tr.Key] = []TraceRow{}
+		}
+		writeJSON(w, map[string]interface{}{
+			"results":    results,
+			"anomalymap": s.state.AnomalyMapForTraces(matched),
+		})
+		return
+	}
+
+	outOfBoundsLeft := (req.MaxCommit > 0 && req.MaxCommit < headers[0].Offset) ||
+		(req.End > 0 && req.End < headers[0].Timestamp)
+	outOfBoundsRight := (req.MinCommit > headers[len(headers)-1].Offset) ||
+		(req.Begin > headers[len(headers)-1].Timestamp)
+
+	for _, tr := range matched {
+		if outOfBoundsLeft || outOfBoundsRight {
+			results[tr.Key] = []TraceRow{}
+			continue
+		}
+		rows := make([]TraceRow, 0, len(headers))
+		for i, h := range headers {
+			if i >= len(tr.Values) {
+				break
+			}
+			if (req.MinCommit > 0 && h.Offset < req.MinCommit) ||
+				(req.MaxCommit > 0 && h.Offset > req.MaxCommit) ||
+				(req.Begin > 0 && h.Timestamp < req.Begin) ||
+				(req.End > 0 && h.Timestamp > req.End) {
+				continue
+			}
+			val := tr.Values[i]
+			if val >= MissingDataSentinel*0.99 {
+				continue
+			}
+			rows = append(rows, TraceRow{
+				CommitNumber: h.Offset,
+				CreatedAt:    h.Timestamp,
+				Val:          val,
+			})
+		}
+		results[tr.Key] = rows
+	}
+
+	writeJSON(w, map[string]interface{}{
+		"results":    results,
+		"anomalymap": s.state.AnomalyMapForTraces(matched),
+	})
+}
+
 func (s *Server) CidRangeHandler(w http.ResponseWriter, _ *http.Request) {
 	headers := s.state.GetCommitHeaders()
 	slice := make([]map[string]interface{}, len(headers))

@@ -7,7 +7,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -185,4 +187,105 @@ func TestDatasetAndQueryMatching(t *testing.T) {
 
 	// Querying non-existent trace IDs with no queries should return empty rather than all traces.
 	assert.Empty(t, srv.State().MatchTraces(nil, []string{",nonexistent=1,"}))
+}
+
+func TestWasmCacheAndTraceValues(t *testing.T) {
+	ts, srv := setupTestServer(t)
+
+	metaResp, err := ts.Client().Get(ts.URL + "/_/wasm/meta.json")
+	require.NoError(t, err)
+	defer metaResp.Body.Close()
+	var meta WasmMeta
+	require.NoError(t, json.NewDecoder(metaResp.Body).Decode(&meta))
+	assert.Equal(t, 24, meta.Count)
+	assert.Equal(t, 8, meta.Stride)
+	assert.Equal(t, "value", meta.CommonParams["stat"])
+
+	paramsResp, err := ts.Client().Get(ts.URL + "/_/wasm/params.json")
+	require.NoError(t, err)
+	defer paramsResp.Body.Close()
+	var params []WasmParamEntry
+	require.NoError(t, json.NewDecoder(paramsResp.Body).Decode(&params))
+	require.NotEmpty(t, params)
+	for i, p := range params {
+		assert.Equal(t, uint16(i+1), p.ID)
+	}
+
+	tracesResp, err := ts.Client().Get(ts.URL + "/_/wasm/traces.bin")
+	require.NoError(t, err)
+	defer tracesResp.Body.Close()
+	rawBin, err := io.ReadAll(tracesResp.Body)
+	require.NoError(t, err)
+	require.Len(t, rawBin, meta.Count*meta.Stride*2)
+
+	// Reconstruct every trace key from traces.bin + params.json + commonParams,
+	// matching the algorithm in filter.worker.ts.
+	expectedTraces := srv.State().GetTraces()
+	for tIdx := 0; tIdx < meta.Count; tIdx++ {
+		reconstructed := make(map[string]string)
+		for k, v := range meta.CommonParams {
+			reconstructed[k] = v
+		}
+		for col := 0; col < meta.Stride; col++ {
+			offset := (tIdx*meta.Stride + col) * 2
+			pid := binary.LittleEndian.Uint16(rawBin[offset : offset+2])
+			if pid == 0 {
+				break
+			}
+			require.LessOrEqual(t, int(pid), len(params))
+			entry := params[pid-1]
+			reconstructed[entry.Key] = entry.Value
+		}
+		assert.Equal(t, expectedTraces[tIdx].Key, MakeStructuredKey(reconstructed))
+	}
+
+	// Verify /_/trace_values filters out missing data sentinels and returns anomalymap.
+	primaryKey := expectedTraces[0].Key
+	sentinelKey := expectedTraces[8].Key
+	tvPayload, err := json.Marshal(map[string]interface{}{
+		"ids":        []string{primaryKey, sentinelKey},
+		"min_commit": 67120,
+		"max_commit": 67139,
+	})
+	require.NoError(t, err)
+	tvResp, err := ts.Client().Post(ts.URL+"/_/trace_values", "application/json", bytes.NewReader(tvPayload))
+	require.NoError(t, err)
+	defer tvResp.Body.Close()
+	var tvData struct {
+		Results    map[string][]TraceRow             `json:"results"`
+		AnomalyMap map[string]map[string]MockAnomaly `json:"anomalymap"`
+	}
+	require.NoError(t, json.NewDecoder(tvResp.Body).Decode(&tvData))
+	assert.Len(t, tvData.Results[primaryKey], 20)
+	assert.Len(t, tvData.Results[sentinelKey], 18)
+	assert.Contains(t, tvData.AnomalyMap, primaryKey)
+
+	// Verify /_/trace_values filters rows to the requested commit sub-range.
+	subRangePayload, err := json.Marshal(map[string]interface{}{
+		"ids":        []string{primaryKey},
+		"min_commit": 67125,
+		"max_commit": 67130,
+	})
+	require.NoError(t, err)
+	subRangeResp, err := ts.Client().Post(ts.URL+"/_/trace_values", "application/json", bytes.NewReader(subRangePayload))
+	require.NoError(t, err)
+	defer subRangeResp.Body.Close()
+	var subRangeData struct {
+		Results map[string][]TraceRow `json:"results"`
+	}
+	require.NoError(t, json.NewDecoder(subRangeResp.Body).Decode(&subRangeData))
+	require.Len(t, subRangeData.Results[primaryKey], 6)
+	assert.Equal(t, 67125, subRangeData.Results[primaryKey][0].CommitNumber)
+	assert.Equal(t, 67130, subRangeData.Results[primaryKey][5].CommitNumber)
+
+	// Verify WasmCache is cached across calls and invalidated on Reset.
+	cache1, err := srv.State().GetWasmCache()
+	require.NoError(t, err)
+	cache2, err := srv.State().GetWasmCache()
+	require.NoError(t, err)
+	assert.Same(t, cache1, cache2)
+	srv.State().Reset()
+	cacheAfterReset, err := srv.State().GetWasmCache()
+	require.NoError(t, err)
+	assert.NotSame(t, cache1, cacheAfterReset)
 }

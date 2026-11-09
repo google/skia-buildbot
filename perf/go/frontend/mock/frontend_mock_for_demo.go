@@ -68,6 +68,8 @@ func RegisterHandlers(r *chi.Mux, mockApi *Server, f *frontend.Frontend) {
 			if strings.HasSuffix(req.URL.Path, ".js.map") {
 				w.Header().Set("Content-Type", "application/json")
 				w.Header().Set("Access-Control-Allow-Origin", "*")
+			} else if strings.HasSuffix(req.URL.Path, ".wasm") {
+				w.Header().Set("Content-Type", "application/wasm")
 			}
 			next.ServeHTTP(w, req)
 		})
@@ -106,6 +108,12 @@ func RegisterHandlers(r *chi.Mux, mockApi *Server, f *frontend.Frontend) {
 	r.Get("/_/mock/mutations", mockApi.MutationsHandler)
 	r.Post("/_/test/reset", mockApi.ResetHandler)
 	r.Get("/_/test/recorded", mockApi.TestRecordedHandler)
+
+	// /e2 Wasm worker endpoints.
+	r.Get("/_/wasm/meta.json", mockApi.WasmMetaHandler)
+	r.Get("/_/wasm/params.json", mockApi.WasmParamsHandler)
+	r.Get("/_/wasm/traces.bin", mockApi.WasmTracesHandler)
+	r.Post("/_/trace_values", mockApi.TraceValuesHandler)
 
 	// Perf JSON API endpoints.
 	r.Get("/_/login/status", mockApi.LoginStatusHandler)

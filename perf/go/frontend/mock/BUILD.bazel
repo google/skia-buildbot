@@ -41,6 +41,8 @@ filegroup(
         "//perf/images:v8.svg",
         "//perf/images:webrtc.png",
         "//perf/images:widevine.svg",
+        "//perf/pages:production/explore-multi-v2-sk/filter.wasm",
+        "//perf/pages:production/explore-multi-v2-sk/filter.worker.js",
     ],
 )
 
@@ -60,6 +62,7 @@ go_library(
         "recorder.go",
         "state.go",
         "testdata.go",
+        "wasm.go",
     ],
     importpath = "go.skia.org/infra/perf/go/frontend/mock",
     visibility = ["//visibility:private"],

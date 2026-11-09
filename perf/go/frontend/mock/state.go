@@ -59,6 +59,7 @@ type State struct {
 	anomalies       map[string]*MockAnomaly
 	shortcuts       map[string]GraphsShortcut
 	nextShortcutSeq int
+	wasmCache       *WasmCache
 	recorder        *MutationRecorder
 }
 
@@ -111,6 +112,7 @@ func (s *State) Reset() {
 		},
 	}
 	s.nextShortcutSeq = 2
+	s.wasmCache = nil
 	s.recorder.Reset()
 }
 
@@ -140,6 +142,27 @@ func (s *State) GetTraces() []TraceDefinition {
 	out := make([]TraceDefinition, len(s.traces))
 	copy(out, s.traces)
 	return out
+}
+
+func (s *State) GetWasmCache() (*WasmCache, error) {
+	s.mu.RLock()
+	cached := s.wasmCache
+	s.mu.RUnlock()
+	if cached != nil {
+		return cached, nil
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.wasmCache != nil {
+		return s.wasmCache, nil
+	}
+	built, err := BuildWasmCache(s.traces)
+	if err != nil {
+		return nil, err
+	}
+	s.wasmCache = built
+	return s.wasmCache, nil
 }
 
 func (s *State) GetParamSet() map[string][]string {
