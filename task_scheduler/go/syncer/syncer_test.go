@@ -48,17 +48,19 @@ func tempGitRepoGclientTests(ctx context.Context, t *testing.T, cases map[types.
 	// Skip download-topics in gclient calls to avoid that network call.
 	ctx = context.WithValue(ctx, SkipDownloadTopicsKey, true)
 	cacheDir := path.Join(tmp, "cache")
+	checkoutDir := path.Join(tmp, "checkout")
+	require.NoError(t, os.MkdirAll(checkoutDir, os.ModePerm))
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	for rs, expectErr := range cases {
-		c, err := tempGitRepoGclient(ctx, rs, depotTools, cacheDir, tmp)
+		c, err := tempGitRepoGclient(ctx, rs, depotTools, cacheDir, checkoutDir)
 		if expectErr != nil {
 			require.Error(t, err)
 			if expectErr != ERR_DONT_CARE {
 				require.EqualError(t, err, expectErr.Error())
 			}
 		} else {
-			defer c.Delete()
 			require.NoError(t, err)
+			defer c.Delete()
 			output, err := c.Git(ctx, "remote", "-v")
 			gotRepo := "COULD NOT FIND REPO"
 			for _, s := range strings.Split(output, "\n") {
