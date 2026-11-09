@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -237,8 +236,9 @@ func useFakeCheckout(t *testing.T) commandMatcher {
 
 func gitHasDiffs() commandMatcher {
 	return gitMatcher(func(cmd *exec.Command) error {
-		if len(cmd.Args) == 3 && cmd.Args[0] == "diff" { // git diff HEAD --exit-code
-			return errors.New("This is an arbitrary error to signal git detected diffs")
+		if len(cmd.Args) == 3 && cmd.Args[0] == "diff" { // git diff --name-only HEAD
+			_, err := cmd.CombinedOutput.Write([]byte("modified_file.txt\n"))
+			return err
 		}
 		return nil
 	})
@@ -293,7 +293,7 @@ func TestUpdateRefs_NoStageFileNoGitilesNoPubsub_ReplacementsMadeCLUploaded(t *t
 			{fakeGitPath, "--version"},
 			{fakeGitPath, "checkout", "-b", "update", "-t", "origin/main"},
 			{fakeGitPath, "--version"},
-			{fakeGitPath, "diff", "HEAD", "--exit-code"},
+			{fakeGitPath, "diff", "--name-only", "HEAD"},
 			{fakeGitPath, "commit", "-a", "-m", `Update envoy_skia_org
 
 Change-Id: Ib5e0a9a6f10910d8514b800252f106edd314dec3`}, // fakeChangeID
@@ -384,7 +384,7 @@ func TestUpdateRefs_NoDiffs_NoCLUploaded(t *testing.T) {
 			{fakeGitPath, "--version"},
 			{fakeGitPath, "checkout", "-b", "update", "-t", "origin/main"},
 			{fakeGitPath, "--version"},
-			{fakeGitPath, "diff", "HEAD", "--exit-code"},
+			{fakeGitPath, "diff", "--name-only", "HEAD"},
 		}, executedCommands)
 		return nil
 	})

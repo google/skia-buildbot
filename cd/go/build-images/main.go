@@ -246,6 +246,7 @@ func main() {
 		Multiplier:          2,
 		MaxInterval:         time.Minute,
 		MaxElapsedTime:      15 * time.Minute,
+		Stop:                backoff.Stop,
 		Clock:               backoff.SystemClock,
 	})
 

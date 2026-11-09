@@ -87,7 +87,11 @@ func updateRefs(ctx context.Context, dockerClient docker.Client, repo, workspace
 			if _, ok := stageFile.Images[image.Image]; ok {
 				// Use the stagemanager to update the image references.
 				sm := stages.NewStageManager(ctx, vfs.Local(checkoutDir), dockerClient, stages.GitilesCommitResolver(httpClient))
-				if err := sm.SetStage(ctx, image.Image, "latest", image.Tag); err != nil {
+				ref := image.Tag
+				if srcCommit != "" {
+					ref = srcCommit
+				}
+				if err := sm.SetStage(ctx, image.Image, "latest", ref); err != nil {
 					return err
 				}
 			} else {

@@ -41,7 +41,11 @@ func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, srcRepo, src
 	}
 
 	// Did we change anything?
-	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "diff", "HEAD", "--exit-code"); err == nil {
+	diffOutput, err := exec.RunCwd(ctx, checkoutDir, gitExec, "diff", "--name-only", "HEAD")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if strings.TrimSpace(diffOutput) == "" {
 		return nil // No diffs, no CL
 	}
 	// There were diffs, so create a CL.

@@ -61,6 +61,7 @@ var exponentialBackoffSettings = &backoff.ExponentialBackOff{
 	Multiplier:          2,
 	MaxInterval:         time.Minute,
 	MaxElapsedTime:      5 * time.Minute,
+	Stop:                backoff.Stop,
 	Clock:               backoff.SystemClock,
 }
 
