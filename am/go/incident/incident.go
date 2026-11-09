@@ -47,6 +47,11 @@ const (
 	TX_RETRIES                   = 5
 	NUM_RECENTLY_RESOLVED        = 20
 	NUM_RECENTLY_RESOLVED_FOR_ID = 20
+
+	// Constants for determining whether an incident is flaky.
+	FlakyNumThreshold       = 10
+	FlakyDurationThreshold  = 600
+	FlakyDurationPercentage = 0.60
 )
 
 // Well known alert names.
@@ -135,22 +140,69 @@ func (in *Incident) IsSilenced(silences []silence.Silence, matchOnlyActiveSilenc
 	return false
 }
 
-// Store and retrieve Incidents from Cloud Datastore.
-type Store struct {
+// Store is used to store and retrieve Incidents.
+type Store interface {
+	// AlertArrival turns alerts into Incidents, or archives Incidents if
+	// the arriving state is resolved.
+	//
+	// Note that it is possible for the returned incident to be nil even if the
+	// returned error is non-nil. An example of when this could happen: If we
+	// receive an alert for an incident that is no longer active.
+	AlertArrival(m map[string]string) (*Incident, error)
+
+	// AddNote adds a note to the Incident with the given encoded Datastore key.
+	AddNote(encodedKey string, note note.Note) (*Incident, error)
+
+	// DeleteNote deletes the note at the given index from the Incident with the
+	// given encoded Datastore key.
+	DeleteNote(encodedKey string, index int) (*Incident, error)
+
+	// Assign assigns the Incident with the given encoded Datastore key to the
+	// specified user.
+	Assign(encodedKey string, user string) (*Incident, error)
+
+	// Archive marks the Incident with the given encoded Datastore key as inactive.
+	Archive(encodedKey string) (*Incident, error)
+
+	// GetAll returns a list of all active Incidents.
+	GetAll() ([]Incident, error)
+
+	// GetRecentlyResolved returns the N most recently archived Incidents.
+	GetRecentlyResolved() ([]Incident, error)
+
+	// GetRecentlyResolvedForID returns a list of the most recent archived Incidents
+	// that don't match the given key, up to the given limit (or NUM_RECENTLY_RESOLVED_FOR_ID
+	// if limit <= 0).
+	GetRecentlyResolvedForID(id, excludeKey string, limit int) ([]Incident, error)
+
+	// GetRecentlyResolvedInRange returns the most recently archived Incidents in the given range.
+	//
+	// d - The range in human units, e.g. "1w".
+	GetRecentlyResolvedInRange(d string) ([]Incident, error)
+
+	// GetRecentlyResolvedInRangeWithID returns the most recently archived Incidents in the given range.
+	//
+	// d - The range in human units, e.g. "1w".
+	// id - The id of the incidents to return.
+	GetRecentlyResolvedInRangeWithID(d, id string) ([]Incident, error)
+}
+
+// StoreImpl stores and retrieves Incidents from Cloud Datastore.
+type StoreImpl struct {
 	ignoredAttr         []string // key-value pairs to ignore when computing IDs, such as kubernetes_pod_name, instance, and pod_template_hash.
 	ds                  *datastore.Client
 	alertArrivalLatency metrics2.Float64SummaryMetric
 }
 
-// NewStore creates a new Store.
+// NewStore creates a new StoreImpl.
 //
 // ds - Datastore client.
 // ignoredAttr - A list of keys to ignore when calculating an Incidents ID.
-func NewStore(ds *datastore.Client, ignoredAttr []string) *Store {
+func NewStore(ds *datastore.Client, ignoredAttr []string) *StoreImpl {
 	ignored := []string{}
 	ignored = append(ignored, ignoredAttr...)
 	ignored = append(ignored, alerts.STATE, ID, ASSIGNED_TO)
-	return &Store{
+	return &StoreImpl{
 		ignoredAttr:         ignored,
 		ds:                  ds,
 		alertArrivalLatency: metrics2.GetFloat64SummaryMetric("alert_manager_store_alert_arrival_latency"),
@@ -159,7 +211,7 @@ func NewStore(ds *datastore.Client, ignoredAttr []string) *Store {
 
 // idForAlert calculates the ID for an Incident, which is the md5 sum of all
 // the sorted non-ignored keys and values.
-func (s *Store) idForAlert(m map[string]string) (string, error) {
+func (s *StoreImpl) idForAlert(m map[string]string) (string, error) {
 	if m[ID] != "" {
 		return m[ID], nil
 	}
@@ -232,7 +284,7 @@ func getOwnerFromDockerImage(dockerImage string) string {
 }
 
 // inFromAlert creates an Incident from an alert.
-func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
+func (s *StoreImpl) inFromAlert(m map[string]string, id string) *Incident {
 	m[ID] = id
 
 	// The following attempts to determine an owner from the alert's parameters.
@@ -283,13 +335,7 @@ func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
 	}
 }
 
-// AlertArrival turns alerts into Incidents, or archives Incidents if
-// the arriving state is resolved.
-//
-// Note that it is possible for the returned incident to be nil even if the
-// returned error is non-nil. An example of when this could happen: If we
-// receive an alert for an incident that is no longer active.
-func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
+func (s *StoreImpl) AlertArrival(m map[string]string) (*Incident, error) {
 	defer timer.NewWithSummaryOnly(s.alertArrivalLatency).Stop()
 	// If there is a matching active alert then just update its LastUpdated
 	// value, otherwise create a new Incident and store it.
@@ -376,7 +422,7 @@ func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
 }
 
 // _mutateIncident utility function to update an Incident in a transaction.
-func (s *Store) _mutateIncident(encodedKey string, mutator func(in *Incident) error) (*Incident, error) {
+func (s *StoreImpl) _mutateIncident(encodedKey string, mutator func(in *Incident) error) (*Incident, error) {
 	key, err := datastore.DecodeKey(encodedKey)
 	if err != nil {
 		return nil, err
@@ -398,14 +444,14 @@ func (s *Store) _mutateIncident(encodedKey string, mutator func(in *Incident) er
 	return &in, err
 }
 
-func (s *Store) AddNote(encodedKey string, note note.Note) (*Incident, error) {
+func (s *StoreImpl) AddNote(encodedKey string, note note.Note) (*Incident, error) {
 	return s._mutateIncident(encodedKey, func(in *Incident) error {
 		in.Notes = append(in.Notes, note)
 		return nil
 	})
 }
 
-func (s *Store) DeleteNote(encodedKey string, index int) (*Incident, error) {
+func (s *StoreImpl) DeleteNote(encodedKey string, index int) (*Incident, error) {
 	return s._mutateIncident(encodedKey, func(in *Incident) error {
 		if index < 0 || index > len(in.Notes)-1 {
 			return fmt.Errorf("Index for delete out of range.")
@@ -415,22 +461,21 @@ func (s *Store) DeleteNote(encodedKey string, index int) (*Incident, error) {
 	})
 }
 
-func (s *Store) Assign(encodedKey string, user string) (*Incident, error) {
+func (s *StoreImpl) Assign(encodedKey string, user string) (*Incident, error) {
 	return s._mutateIncident(encodedKey, func(in *Incident) error {
 		in.Params[ASSIGNED_TO] = user
 		return nil
 	})
 }
 
-func (s *Store) Archive(encodedKey string) (*Incident, error) {
+func (s *StoreImpl) Archive(encodedKey string) (*Incident, error) {
 	return s._mutateIncident(encodedKey, func(in *Incident) error {
 		in.Active = false
 		return nil
 	})
 }
 
-// GetAll returns a list of all active Incidents.
-func (s *Store) GetAll() ([]Incident, error) {
+func (s *StoreImpl) GetAll() ([]Incident, error) {
 	var active []Incident
 	q := ds.NewQuery(ds.INCIDENT_AM).Filter("active=", true)
 	keys, err := s.ds.GetAll(context.Background(), q, &active)
@@ -442,8 +487,7 @@ func (s *Store) GetAll() ([]Incident, error) {
 	return active, err
 }
 
-// GetRecentlyResolved returns the N most recently archived Incidents.
-func (s *Store) GetRecentlyResolved() ([]Incident, error) {
+func (s *StoreImpl) GetRecentlyResolved() ([]Incident, error) {
 	var resolved []Incident
 	q := ds.NewQuery(ds.INCIDENT_AM).Filter("active=", false).Order("-last_seen").Limit(NUM_RECENTLY_RESOLVED)
 	keys, err := s.ds.GetAll(context.Background(), q, &resolved)
@@ -455,13 +499,18 @@ func (s *Store) GetRecentlyResolved() ([]Incident, error) {
 	return resolved, err
 }
 
-// GetRecentlyResolvedForID returns a list of the N most recent archived Incidents
-// that don't match the given key.
-func (s *Store) GetRecentlyResolvedForID(id, excludeKey string) ([]Incident, error) {
+func (s *StoreImpl) GetRecentlyResolvedForID(id, excludeKey string, limit int) ([]Incident, error) {
+	if limit <= 0 {
+		limit = NUM_RECENTLY_RESOLVED_FOR_ID
+	}
+	queryLimit := limit
+	if excludeKey != "" && limit > 0 {
+		queryLimit = limit + 1
+	}
 	ancestor := ds.NewKey(ds.INCIDENT_ACTIVE_PARENT_AM)
 	ancestor.Name = id
 	var resolved []Incident
-	q := ds.NewQuery(ds.INCIDENT_AM).Ancestor(ancestor).Filter("active=", false).Order("-last_seen").Limit(NUM_RECENTLY_RESOLVED_FOR_ID)
+	q := ds.NewQuery(ds.INCIDENT_AM).Ancestor(ancestor).Filter("active=", false).Order("-last_seen").Limit(queryLimit)
 	keys, err := s.ds.GetAll(context.Background(), q, &resolved)
 	toDelete := -1
 	for i, key := range keys {
@@ -475,13 +524,13 @@ func (s *Store) GetRecentlyResolvedForID(id, excludeKey string) ([]Incident, err
 	if toDelete != -1 {
 		resolved = append(resolved[:toDelete], resolved[toDelete+1:]...)
 	}
+	if len(resolved) > limit {
+		resolved = resolved[:limit]
+	}
 	return resolved, err
 }
 
-// GetRecentlyResolvedInRange returns the most recently archived Incidents in the given range.
-//
-// d - The range in human units, e.g. "1w".
-func (s *Store) GetRecentlyResolvedInRange(d string) ([]Incident, error) {
+func (s *StoreImpl) GetRecentlyResolvedInRange(d string) ([]Incident, error) {
 	duration, err := human.ParseDuration(d)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid range: %s", err)
@@ -498,11 +547,7 @@ func (s *Store) GetRecentlyResolvedInRange(d string) ([]Incident, error) {
 	return resolved, err
 }
 
-// GetRecentlyResolvedInRangeWithID returns the most recently archived Incidents in the given range.
-//
-// d - The range in human units, e.g. "1w".
-// id - The id of the incidents to return.
-func (s *Store) GetRecentlyResolvedInRangeWithID(d, id string) ([]Incident, error) {
+func (s *StoreImpl) GetRecentlyResolvedInRangeWithID(d, id string) ([]Incident, error) {
 	duration, err := human.ParseDuration(d)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid range: %s", err)
@@ -555,3 +600,5 @@ func AreIncidentsFlaky(incidents []Incident, numThreshold int, durationThreshold
 	}
 	return float32(durationLessThanThreshold)/float32(len(incidents)) >= durationPercentage
 }
+
+var _ Store = (*StoreImpl)(nil)

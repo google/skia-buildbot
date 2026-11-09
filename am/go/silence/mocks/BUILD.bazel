@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = ["Store.go"],
+    importpath = "go.skia.org/infra/am/go/silence/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//am/go/note",
+        "//am/go/silence",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

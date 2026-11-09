@@ -14,11 +14,13 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/mcp/common"
+	"go.skia.org/infra/mcp/services/skia/alerts"
 	"go.skia.org/infra/mcp/services/skia/task_details"
 	"go.skia.org/infra/mcp/services/skia/task_scheduler"
 )
 
 type SkiaService struct {
+	alertsClient      *alerts.AlertsClient
 	tsClient          *task_scheduler.TaskSchedulerClient
 	taskDetailsClient *task_details.TaskDetailsClient
 }
@@ -43,6 +45,12 @@ func (s *SkiaService) Init(serviceArgs string) error {
 		return skerr.Wrap(err)
 	}
 
+	alertsClient, err := alerts.NewClient(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	s.alertsClient = alertsClient
+
 	tsClient, err := task_scheduler.NewClient(ctx, *firestoreInstance)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -60,6 +68,8 @@ func (s *SkiaService) Init(serviceArgs string) error {
 // GetTools returns the supported tools by the service.
 func (s SkiaService) GetTools() []common.Tool {
 	var tools []common.Tool
+	// Alerts via Alert Manager DB.
+	tools = append(tools, alerts.GetTools(s.alertsClient)...)
 	// Task results via Task Scheduler DB.
 	tools = append(tools, task_scheduler.GetTools(s.tsClient)...)
 	// Task steps and logs.

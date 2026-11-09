@@ -12,6 +12,7 @@ go_library(
         "//go/human",
         "//go/paramtools",
         "//go/sklog",
+        "//go/util",
         "@com_google_cloud_go_datastore//:datastore",
     ],
 )

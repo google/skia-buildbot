@@ -94,11 +94,11 @@ func TestAlertArrival(t *testing.T) {
 	b, err = st.Archive(b.Key)
 	assert.NoError(t, err)
 
-	recent, err := st.GetRecentlyResolvedForID(b.ID, "")
+	recent, err := st.GetRecentlyResolvedForID(b.ID, "", NUM_RECENTLY_RESOLVED_FOR_ID)
 	assert.NoError(t, err)
 	assert.Len(t, recent, 1)
 
-	recent, err = st.GetRecentlyResolvedForID(b.ID, b.Key)
+	recent, err = st.GetRecentlyResolvedForID(b.ID, b.Key, NUM_RECENTLY_RESOLVED_FOR_ID)
 	assert.NoError(t, err)
 	assert.Len(t, recent, 0)
 }

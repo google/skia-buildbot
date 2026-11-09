@@ -1,0 +1,42 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "alerts",
+    srcs = [
+        "client.go",
+        "tools.go",
+    ],
+    importpath = "go.skia.org/infra/mcp/services/skia/alerts",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//am/go/incident",
+        "//am/go/note",
+        "//am/go/silence",
+        "//go/ds",
+        "//go/skerr",
+        "//go/timer",
+        "//mcp/common",
+        "//mcp/services/skia/format",
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "alerts_test",
+    srcs = ["client_test.go"],
+    embed = [":alerts"],
+    deps = [
+        "//am/go/incident",
+        "//am/go/incident/mocks",
+        "//am/go/note",
+        "//am/go/silence",
+        "//am/go/silence/mocks",
+        "//go/paramtools",
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_github_stretchr_testify//require",
+    ],
+)

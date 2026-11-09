@@ -51,27 +51,22 @@ var (
 	host         = flag.String("host", "am.skia.org", "HTTP service host")
 	namespace    = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'alert-manager'.")
 	internalPort = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
-	project      = flag.String("project", "skia-public", "The Google Cloud project name.")
+	project      = flag.String("project", ds.ALERT_MANAGER_PROJECT, "The Google Cloud project name.")
 
-	silenceRecentlyExpiredDuration = flag.Duration("recently_expired_duration", 2*time.Hour, "Incidents with silences that recently expired within this duration are shown with an icon.")
+	silenceRecentlyExpiredDuration = flag.Duration("recently_expired_duration", silence.RECENTLY_EXPIRED_DURATION, "Incidents with silences that recently expired within this duration are shown with an icon.")
 )
 
 const (
 	// expireDuration is the time to wait before expiring an incident.
 	expireDuration = 5 * time.Minute
 
-	// Constants for sending reminder emails.
-	reminderNumThreshold       = 10
-	reminderDurationThreshold  = 600
-	reminderDurationPercentage = 0.60
-
 	numPubSubReceiverGoRoutines = 10
 )
 
 // server is the state of the server.
 type server struct {
-	incidentStore *incident.Store
-	silenceStore  *silence.Store
+	incidentStore incident.Store
+	silenceStore  silence.Store
 	templates     *template.Template
 	assign        allowed.Allow // A list of people that incidents can be assigned to.
 	alogin        *proxylogin.ProxyLogin
@@ -112,9 +107,11 @@ func New() (baseapp.App, error) {
 		return nil, skerr.Wrapf(err, "Failed to create subscription.")
 	}
 
+	silenceStore := silence.NewStore(ds.DS)
+	silenceStore.StartExpirer(ctx)
 	srv := &server{
 		incidentStore: incident.NewStore(ds.DS, []string{"kubernetes_pod_name", "instance", "pod_template_hash", "pod", "exported_pod", "uid"}),
-		silenceStore:  silence.NewStore(ds.DS),
+		silenceStore:  silenceStore,
 		assign:        assign,
 		alogin:        proxylogin.NewWithDefaults(),
 	}
@@ -525,7 +522,7 @@ func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	id := r.FormValue("id")
 	key := r.FormValue("key")
-	ins, err := srv.incidentStore.GetRecentlyResolvedForID(id, key)
+	ins, err := srv.incidentStore.GetRecentlyResolvedForID(id, key, incident.NUM_RECENTLY_RESOLVED_FOR_ID)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load incidents.", http.StatusInternalServerError)
 		return
@@ -544,7 +541,7 @@ func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 
 	resp := types.RecentIncidentsResponse{
 		Incidents:              ins,
-		Flaky:                  incident.AreIncidentsFlaky(ins, reminderNumThreshold, reminderDurationThreshold, reminderDurationPercentage),
+		Flaky:                  incident.AreIncidentsFlaky(ins, incident.FlakyNumThreshold, incident.FlakyDurationThreshold, incident.FlakyDurationPercentage),
 		RecentlyExpiredSilence: recentlyExpired,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

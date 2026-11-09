@@ -60,8 +60,8 @@ type Reminder struct {
 
 type emailTicker struct {
 	t      *time.Timer
-	iStore *incident.Store
-	sStore *silence.Store
+	iStore incident.Store
+	sStore silence.Store
 	email  email.Client
 }
 
@@ -166,7 +166,7 @@ func (et emailTicker) remindAlertOwners() error {
 }
 
 // StartReminderTicker sends reminders on a periodic basis.
-func StartReminderTicker(iStore *incident.Store, sStore *silence.Store, email email.Client) {
+func StartReminderTicker(iStore incident.Store, sStore silence.Store, email email.Client) {
 	et := emailTicker{
 		t:      time.NewTimer(getDailyNextTickDuration(time.Now().UTC(), reminderHourUTC)),
 		iStore: iStore,

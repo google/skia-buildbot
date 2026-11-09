@@ -97,7 +97,8 @@ const (
 	AUTOROLL_INTERNAL_NS = "autoroll-internal"
 
 	// AlertManager
-	ALERT_MANAGER_NS = "alert-manager"
+	ALERT_MANAGER_NS      = "alert-manager"
+	ALERT_MANAGER_PROJECT = "skia-public"
 )
 
 var (

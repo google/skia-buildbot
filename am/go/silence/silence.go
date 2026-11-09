@@ -18,12 +18,17 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
 	SILENCE_PARENT_KEY = "-silence-"
 
 	NUM_RECENTLY_ARCHIVED = 500
+
+	// RECENTLY_EXPIRED_DURATION is the default duration within which archived silences
+	// are considered recently expired.
+	RECENTLY_EXPIRED_DURATION = 2 * time.Hour
 )
 
 // Silence is a filter that matches Incidents and is used to silence them.
@@ -89,41 +94,74 @@ func (silence *Silence) ValidateRegexes() error {
 }
 
 // Store saves and updates silences in Cloud Datastore.
-type Store struct {
+type Store interface {
+	// Put writes a Silence to the store, creating a new Silence if its Key is
+	// empty or updating the existing Silence, and marks it active.
+	Put(silence *Silence) (*Silence, error)
+
+	// Archive marks the Silence with the given encoded Datastore key as inactive.
+	Archive(encodedKey string) (*Silence, error)
+
+	// Reactivate marks the Silence with the given encoded Datastore key as
+	// active with a new duration and records the user who reactivated it.
+	Reactivate(encodedKey, duration, user string) (*Silence, error)
+
+	// Delete removes the Silence with the given encoded Datastore key from the store.
+	Delete(encodedKey string) error
+
+	// AddNote adds a note to the Silence with the given encoded Datastore key.
+	AddNote(encodedKey string, note note.Note) (*Silence, error)
+
+	// DeleteNote deletes the note at the given index from the Silence with the
+	// given encoded Datastore key.
+	DeleteNote(encodedKey string, index int) (*Silence, error)
+
+	// GetAll returns a list of all active Silences.
+	GetAll() ([]Silence, error)
+
+	// GetRecentlyArchived returns N most recently archived Silences that were
+	// updated within the specified duration. updatedWithin can be 0 if we want
+	// all recently archived silences.
+	GetRecentlyArchived(updatedWithin time.Duration) ([]Silence, error)
+}
+
+// StoreImpl implements Store using Cloud Datastore.
+type StoreImpl struct {
 	ds *datastore.Client
 }
 
-// NewStore creates a new Store from the given Datastore client.
-func NewStore(ds *datastore.Client) *Store {
-	store := &Store{
+// NewStore creates a new StoreImpl from the given Datastore client.
+func NewStore(ds *datastore.Client) *StoreImpl {
+	return &StoreImpl{
 		ds: ds,
 	}
-	// Start a go routine that expires old silences.
-	go func(store *Store) {
-		for range time.Tick(15 * time.Second) {
-			now := time.Now()
-			silences, err := store.GetAll()
+}
+
+// StartExpirer starts a goroutine that periodically archives expired silences
+// until the given context is canceled.
+func (s *StoreImpl) StartExpirer(ctx context.Context) {
+	go util.RepeatCtx(ctx, 15*time.Second, func(ctx context.Context) {
+		now := time.Now()
+		silences, err := s.GetAll()
+		if err != nil {
+			sklog.Errorf("Silence expirer failed to retrieve silences: %s", err)
+		}
+		for _, silence := range silences {
+			d, err := human.ParseDuration(silence.Duration)
 			if err != nil {
-				sklog.Errorf("Silence expirer failed to retrieve silences: %s", err)
+				sklog.Errorf("Silence has invalid duration: %s", err)
+				continue
 			}
-			for _, s := range silences {
-				d, err := human.ParseDuration(s.Duration)
-				if err != nil {
-					sklog.Errorf("Silence has invalid duration: %s", err)
-					continue
-				}
-				if time.Unix(s.Created, 0).Add(d).Before(now) {
-					if _, err := store.Archive(s.Key); err != nil {
-						sklog.Errorf("Failed to archive expired silence: %s", err)
-					}
+			if time.Unix(silence.Created, 0).Add(d).Before(now) {
+				if _, err := s.Archive(silence.Key); err != nil {
+					sklog.Errorf("Failed to archive expired silence: %s", err)
 				}
 			}
 		}
-	}(store)
-	return store
+	})
 }
 
-func (s *Store) Put(silence *Silence) (*Silence, error) {
+func (s *StoreImpl) Put(silence *Silence) (*Silence, error) {
 	_, err := human.ParseDuration(silence.Duration)
 	if err != nil {
 		return nil, fmt.Errorf("Silence has invalid duration: %s", err)
@@ -164,7 +202,7 @@ func (s *Store) Put(silence *Silence) (*Silence, error) {
 }
 
 // _mutate is a helper function for updating Silences inside a transaction.
-func (s *Store) _mutate(encodedKey string, mutator func(silence *Silence) error) (*Silence, error) {
+func (s *StoreImpl) _mutate(encodedKey string, mutator func(silence *Silence) error) (*Silence, error) {
 	key, err := datastore.DecodeKey(encodedKey)
 	if err != nil {
 		return nil, err
@@ -186,7 +224,7 @@ func (s *Store) _mutate(encodedKey string, mutator func(silence *Silence) error)
 	return &silence, err
 }
 
-func (s *Store) Archive(encodedKey string) (*Silence, error) {
+func (s *StoreImpl) Archive(encodedKey string) (*Silence, error) {
 	return s._mutate(encodedKey, func(silence *Silence) error {
 		silence.Active = false
 		silence.Updated = time.Now().Unix()
@@ -194,7 +232,7 @@ func (s *Store) Archive(encodedKey string) (*Silence, error) {
 	})
 }
 
-func (s *Store) Reactivate(encodedKey, duration, user string) (*Silence, error) {
+func (s *StoreImpl) Reactivate(encodedKey, duration, user string) (*Silence, error) {
 	_, err := human.ParseDuration(duration)
 	if err != nil {
 		return nil, fmt.Errorf("Silence has invalid duration: %s", err)
@@ -216,7 +254,7 @@ func (s *Store) Reactivate(encodedKey, duration, user string) (*Silence, error) 
 	})
 }
 
-func (s *Store) Delete(encodedKey string) error {
+func (s *StoreImpl) Delete(encodedKey string) error {
 	key, err := datastore.DecodeKey(encodedKey)
 	if err != nil {
 		return err
@@ -228,7 +266,7 @@ func (s *Store) Delete(encodedKey string) error {
 	return nil
 }
 
-func (s *Store) AddNote(encodedKey string, note note.Note) (*Silence, error) {
+func (s *StoreImpl) AddNote(encodedKey string, note note.Note) (*Silence, error) {
 	return s._mutate(encodedKey, func(silence *Silence) error {
 		silence.Updated = time.Now().Unix()
 		silence.Notes = append(silence.Notes, note)
@@ -236,7 +274,7 @@ func (s *Store) AddNote(encodedKey string, note note.Note) (*Silence, error) {
 	})
 }
 
-func (s *Store) DeleteNote(encodedKey string, index int) (*Silence, error) {
+func (s *StoreImpl) DeleteNote(encodedKey string, index int) (*Silence, error) {
 	return s._mutate(encodedKey, func(silence *Silence) error {
 		if index < 0 || index > len(silence.Notes)-1 {
 			return fmt.Errorf("Index for delete out of range.")
@@ -247,8 +285,7 @@ func (s *Store) DeleteNote(encodedKey string, index int) (*Silence, error) {
 	})
 }
 
-// GetAll returns a list of all active Silences.
-func (s *Store) GetAll() ([]Silence, error) {
+func (s *StoreImpl) GetAll() ([]Silence, error) {
 	var active []Silence
 	ancestor := ds.NewKey(ds.SILENCE_ACTIVE_PARENT_AM)
 	ancestor.Name = SILENCE_PARENT_KEY
@@ -262,10 +299,7 @@ func (s *Store) GetAll() ([]Silence, error) {
 	return active, err
 }
 
-// GetRecentlyArchived returns N most recently archived Silences that were
-// updated within the specified duration. updatedWithin can be 0 if we want
-// all recently archived silences.
-func (s *Store) GetRecentlyArchived(updatedWithin time.Duration) ([]Silence, error) {
+func (s *StoreImpl) GetRecentlyArchived(updatedWithin time.Duration) ([]Silence, error) {
 	var archived []Silence
 	ancestor := ds.NewKey(ds.SILENCE_ACTIVE_PARENT_AM)
 	ancestor.Name = SILENCE_PARENT_KEY
@@ -285,3 +319,5 @@ func (s *Store) GetRecentlyArchived(updatedWithin time.Duration) ([]Silence, err
 	}
 	return archived, err
 }
+
+var _ Store = (*StoreImpl)(nil)
