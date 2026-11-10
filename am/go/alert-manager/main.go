@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"sort"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -34,6 +35,7 @@ import (
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
@@ -49,6 +51,7 @@ import (
 var (
 	assignGroup  = flag.String("assign_group", "google/skia-root@google.com", "The chrome infra auth group to use for users incidents can be assigned to.")
 	host         = flag.String("host", "am.skia.org", "HTTP service host")
+	locations    = common.NewMultiStringFlag("location", nil, "Locations expected to send healthz messages via alert-to-pubsub.")
 	namespace    = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'alert-manager'.")
 	internalPort = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
 	project      = flag.String("project", ds.ALERT_MANAGER_PROJECT, "The Google Cloud project name.")
@@ -124,8 +127,12 @@ func New() (baseapp.App, error) {
 	}
 	reminder.StartReminderTicker(srv.incidentStore, srv.silenceStore, emailer)
 
-	// livenesses gets populated as notifications arrive.
+	// Pre-populate livenesses for configured locations, and populate any others as notifications arrive.
+	var livenessesMtx sync.Mutex
 	livenesses := map[string]metrics2.Liveness{}
+	for _, location := range *locations {
+		livenesses[location] = metrics2.NewLiveness("alert_to_pubsub_alive", map[string]string{alerts.LOCATION: location})
+	}
 
 	// Process all incoming PubSub requests.
 	go func() {
@@ -140,11 +147,13 @@ func New() (baseapp.App, error) {
 				if m[alerts.TYPE] == alerts.TYPE_HEALTHZ {
 					location := m[alerts.LOCATION]
 					sklog.Infof("healthz received: %q", location)
-					if l, ok := livenesses[m[alerts.LOCATION]]; ok {
+					livenessesMtx.Lock()
+					if l, ok := livenesses[location]; ok {
 						l.Reset()
 					} else {
 						livenesses[location] = metrics2.NewLiveness("alert_to_pubsub_alive", map[string]string{alerts.LOCATION: location})
 					}
+					livenessesMtx.Unlock()
 				} else {
 					if _, err := srv.incidentStore.AlertArrival(m); err != nil {
 						sklog.Errorf("Error processing alert: %s", err)

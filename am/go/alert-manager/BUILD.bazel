@@ -18,6 +18,7 @@ go_library(
         "//go/alogin/proxylogin",
         "//go/auth",
         "//go/baseapp",
+        "//go/common",
         "//go/ds",
         "//go/email",
         "//go/httputils",

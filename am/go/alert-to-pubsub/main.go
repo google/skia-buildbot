@@ -122,7 +122,9 @@ func (a *Alert) ResolvedAt(ts time.Time) bool {
 }
 
 func sendPubSub(ctx context.Context, m map[string]string, topic *pubsub.Topic) {
-	m[alerts.LOCATION] = *location
+	if m[alerts.LOCATION] == "" {
+		m[alerts.LOCATION] = *location
+	}
 	b, err := json.Marshal(m)
 	if err != nil {
 		sklog.Errorf("Failed to encode message Data: %s: %#v", err, m)
