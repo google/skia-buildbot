@@ -318,6 +318,7 @@ type TaskHealthReport struct {
 
 func (r *TaskHealthReport) String() string {
 	var sb strings.Builder
+	fmt.Fprint(&sb, "# Commit Log (most recent first)\n\n")
 	fmt.Fprint(&sb, Commits(r.Commits).String())
 
 	// Ensure that the results are in a predictable order.

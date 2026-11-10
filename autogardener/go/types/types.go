@@ -117,9 +117,12 @@ type SummaryForTasks struct {
 func (r SummaryForTasks) String() string {
 	return fmt.Sprintf(`**Task Names:** %s
 **Task IDs:** %s
-**Error:** %s
 **Analysis:** %s
-`, strings.Join(r.TaskNames, ", "), strings.Join(r.TaskIDs, ", "), r.ErrorMessage, r.Analysis)
+**Error:**
+`+"```"+`
+%s
+`+"```"+`
+`, strings.Join(r.TaskNames, ", "), strings.Join(r.TaskIDs, ", "), r.Analysis, r.ErrorMessage)
 }
 
 // FailureClass represents a set of task failures with the same root cause.

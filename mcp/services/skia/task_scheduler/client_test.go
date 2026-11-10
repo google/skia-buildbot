@@ -151,7 +151,9 @@ func TestTaskHealthReport_String(t *testing.T) {
 		},
 	}
 
-	expected := `| Commit  | Subject |
+	expected := `# Commit Log (most recent first)
+
+| Commit  | Subject |
 |---------|---------|
 | 0000000 | Commit 2 |
 | abcdef1 | Commit 1 |

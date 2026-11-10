@@ -141,8 +141,7 @@ func NewClient(ctx context.Context, db db.AutoGardenerDB, mcpClient mcp.MCPClien
 	}, nil
 }
 
-const generalPromptHeader = `
-# Role
+const generalPromptHeader = `# Role
 
 You are a gardener for the Skia project. Your role is to investigate any
 failures in Skia's infrastructure, determine their root cause, and provide a
@@ -599,14 +598,10 @@ func (c *clientImpl) GenerateReport(ctx context.Context, repo, branch string, nu
 	for _, report := range mergedSummaries {
 		_, _ = fmt.Fprintln(&sb, report.String())
 	}
-	prompt := fmt.Sprintf(`## Task Histories
+	prompt := fmt.Sprintf(`%s
+# Known Failure Modes
 
 %s
-
-## Known Failures
-
-%s
-
 %s
 
 # Task
