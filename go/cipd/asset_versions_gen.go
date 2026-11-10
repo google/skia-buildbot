@@ -6,7 +6,7 @@ var PACKAGES = map[string]*Package{
 	"infra/3pp/tools/cpython3/${platform}": {
 		Path:    ".",
 		Name:    "infra/3pp/tools/cpython3/${platform}",
-		Version: "version:3@3.14.10.chromium.2",
+		Version: "version:3@3.14.10.chromium.3",
 	},
 	"infra/3pp/tools/git/${platform}": {
 		Path:    ".",
