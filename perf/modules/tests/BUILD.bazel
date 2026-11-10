@@ -3,7 +3,6 @@
 load(
     "//infra-sk:index.bzl",
     "sk_element_playwright_test",
-    "sk_element_puppeteer_test",
     "ts_library",
 )
 
@@ -20,6 +19,7 @@ ts_library(
 ts_library(
     name = "pages_ts_lib",
     srcs = [
+        "pages/multigraph_page.ts",
         "pages/picker_helpers.ts",
         "pages/simplegraph_page.ts",
     ],
@@ -38,19 +38,16 @@ PLAYWRIGHT_TEST_DEPS = [
     "//puppeteer-tests:playwright_util_ts_lib",
 ]
 
-sk_element_puppeteer_test(
-    name = "explore_multi_page_test",
-    src = "explore_multi_page_puppeteer_test.ts",
-    sk_demo_page_server = "//perf/go/frontend/mock:frontend_mock_server",
-    deps = [
-        "//:node_modules/puppeteer",
-        "//puppeteer-tests:util_ts_lib",
-    ],
-)
-
 sk_element_playwright_test(
     name = "simplegraph_playwright_test",
     src = "simplegraph_playwright_test.ts",
+    sk_demo_page_server = "//perf/go/frontend/mock:frontend_mock_server",
+    deps = PLAYWRIGHT_TEST_DEPS,
+)
+
+sk_element_playwright_test(
+    name = "multigraph_playwright_test",
+    src = "multigraph_playwright_test.ts",
     sk_demo_page_server = "//perf/go/frontend/mock:frontend_mock_server",
     deps = PLAYWRIGHT_TEST_DEPS,
 )
