@@ -114,6 +114,9 @@ func main() {
 		newMetrics, err := performChecks(ctx, *cluster, clusterConfig.Repo, k8sClient, *ignoreNamespaces, repo, oldMetrics, allowedAppsByNamespace)
 		if err != nil {
 			sklog.Errorf("Error when checking for dirty configs: %s", err)
+			for m := range newMetrics {
+				oldMetrics[m] = struct{}{}
+			}
 		} else {
 			liveness.Reset()
 			oldMetrics = newMetrics
@@ -348,35 +351,35 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 
 	namespaces, err := getNamespaces(ctx, k8sClient, ignoreNamespaces)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "retrieving namespaces")
+		return newMetrics, skerr.Wrapf(err, "retrieving namespaces")
 	}
 
 	liveAppContainerToImagesByNamespace := make(map[string]map[string]map[string]string, len(namespaces))
 	for _, namespace := range namespaces {
 		// Check the namespace itself.
 		if err := getNamespaceMetrics(ctx, namespace, newMetrics); err != nil {
-			return nil, skerr.Wrapf(err, "obtaining namespace metrics")
+			return newMetrics, skerr.Wrapf(err, "obtaining namespace metrics")
 		}
 
 		// Check for evicted pods.
 		if err := getEvictedPods(ctx, cluster, namespace.Name, k8sClient, newMetrics); err != nil {
-			return nil, skerr.Wrapf(err, "checking for evicted pods from kubectl")
+			return newMetrics, skerr.Wrapf(err, "checking for evicted pods from kubectl")
 		}
 
 		// Check for crashing pods.
 		if err := getPodMetrics(ctx, cluster, namespace.Name, k8sClient, newMetrics); err != nil {
-			return nil, skerr.Wrapf(err, "checking for crashing pods from kubectl")
+			return newMetrics, skerr.Wrapf(err, "checking for crashing pods from kubectl")
 		}
 
 		// Check for events within the namespace.
 		if err := getEventMetrics(ctx, namespace, k8sClient, newMetrics); err != nil {
-			return nil, skerr.Wrapf(err, "checking namespace events")
+			return newMetrics, skerr.Wrapf(err, "checking namespace events")
 		}
 
 		// Get mapping from live apps to their containers and images.
 		liveAppContainerToImages, err := getLiveAppContainersToImages(ctx, namespace.Name, k8sClient)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "getting live pods from kubectl for cluster %s", cluster)
+			return newMetrics, skerr.Wrapf(err, "getting live pods from kubectl for cluster %s", cluster)
 		}
 		liveAppContainerToImagesByNamespace[namespace.Name] = liveAppContainerToImages
 	}
@@ -389,11 +392,11 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 	// Read files from the repo using gitiles.
 	commitHash, err := g.ResolveRef(ctx, git.MainBranch)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "resolving %s in %s", git.MainBranch, repo)
+		return newMetrics, skerr.Wrapf(err, "resolving %s in %s", git.MainBranch, repo)
 	}
 	fileInfos, err := g.ListDirAtRef(ctx, cluster, commitHash)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "listing files from %s", repo)
+		return newMetrics, skerr.Wrapf(err, "listing files from %s", repo)
 	}
 
 	checkedInAppsToContainers := map[string]util.StringSet{}
@@ -409,7 +412,7 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 		}
 		yamlContents, err := g.ReadFileAtRef(ctx, filepath.Join(cluster, f), commitHash)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "reading file %s from %s in cluster %s", f, repo, cluster)
+			return newMetrics, skerr.Wrapf(err, "reading file %s from %s in cluster %s", f, repo, cluster)
 		}
 
 		// There can be multiple YAML documents within a single YAML file.
