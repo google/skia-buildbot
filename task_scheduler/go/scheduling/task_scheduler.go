@@ -1416,6 +1416,10 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		})
 	}
 
+	if err := s.window.Update(ctx); err != nil {
+		return skerr.Wrapf(err, "Failed to update window")
+	}
+
 	if err := s.tCache.Update(ctx); err != nil {
 		return skerr.Wrapf(err, "Failed to update task cache")
 	}

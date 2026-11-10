@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/util"
@@ -18,6 +19,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
+	window_mocks "go.skia.org/infra/task_scheduler/go/window/mocks"
 )
 
 func testGetTasksForCommits(t *testing.T, c TaskCache, b *types.Task) {
@@ -942,4 +944,126 @@ func TestJobCache_RequestedJobs(t *testing.T) {
 
 	jobMap, err := c.GetMatchingJobsFromDateRange([]string{j1.Name}, start, end)
 	assertPresent(jobMap[j1.Name], err)
+}
+
+func TestTaskCacheMultiRepoExpiration(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryTaskDB()
+
+	const lowFreqRepo = "low-freq.git"
+	const highFreqRepo = "high-freq.git"
+
+	now := time.Now()
+	t0 := now.Add(-10 * 24 * time.Hour)
+	t1 := now.Add(-5 * 24 * time.Hour)
+	t2 := now.Add(-4 * 24 * time.Hour)
+
+	lowFreqTask := types.MakeTestTask(t0.Add(time.Hour), []string{"a"})
+	lowFreqTask.Repo = lowFreqRepo
+
+	highFreqExpiredTask := types.MakeTestTask(t1.Add(time.Hour), []string{"b"})
+	highFreqExpiredTask.Repo = highFreqRepo
+
+	highFreqActiveTask := types.MakeTestTask(t2.Add(time.Hour), []string{"c"})
+	highFreqActiveTask.Repo = highFreqRepo
+
+	require.NoError(t, d.PutTasks(ctx, []*types.Task{lowFreqTask, highFreqExpiredTask, highFreqActiveTask}))
+	d.Wait()
+
+	w := window_mocks.NewWindow(t)
+	highFreqStart := t1
+	w.On("StartTimesByRepo").Return(func() map[string]time.Time {
+		return map[string]time.Time{
+			lowFreqRepo:  t0,
+			highFreqRepo: highFreqStart,
+		}
+	})
+	w.On("TestTime", lowFreqRepo, mock.AnythingOfType("time.Time")).Return(func(_ string, ts time.Time) bool {
+		return !t0.After(ts)
+	})
+	w.On("TestTime", highFreqRepo, mock.AnythingOfType("time.Time")).Return(func(_ string, ts time.Time) bool {
+		return !highFreqStart.After(ts)
+	})
+
+	c, err := NewTaskCache(ctx, d, w, nil)
+	require.NoError(t, err)
+
+	// Initially all three tasks are in the window.
+	for _, task := range []*types.Task{lowFreqTask, highFreqExpiredTask, highFreqActiveTask} {
+		cached, err := c.GetTask(task.Id)
+		require.NoError(t, err)
+		assertdeep.Equal(t, task, cached)
+	}
+
+	// Advance the window for highFreqRepo to t2 so highFreqExpiredTask is expired,
+	// while lowFreqTask (which is older than highFreqExpiredTask) remains in window.
+	highFreqStart = t2
+	require.NoError(t, c.Update(ctx))
+
+	// highFreqExpiredTask should be expired even though lowFreqTask is older and still in window.
+	_, err = c.GetTask(highFreqExpiredTask.Id)
+	require.True(t, db.IsNotFound(err))
+
+	for _, task := range []*types.Task{lowFreqTask, highFreqActiveTask} {
+		cached, err := c.GetTask(task.Id)
+		require.NoError(t, err)
+		assertdeep.Equal(t, task, cached)
+	}
+}
+
+func TestJobCacheMultiRepoExpiration(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryJobDB()
+
+	const lowFreqRepo = "low-freq.git"
+	const highFreqRepo = "high-freq.git"
+
+	now := time.Now()
+	t0 := now.Add(-10 * 24 * time.Hour)
+	t1 := now.Add(-5 * 24 * time.Hour)
+	t2 := now.Add(-4 * 24 * time.Hour)
+
+	lowFreqJob := types.MakeTestJob(t0.Add(time.Hour))
+	lowFreqJob.Repo = lowFreqRepo
+
+	highFreqExpiredJob := types.MakeTestJob(t1.Add(time.Hour))
+	highFreqExpiredJob.Repo = highFreqRepo
+
+	highFreqActiveJob := types.MakeTestJob(t2.Add(time.Hour))
+	highFreqActiveJob.Repo = highFreqRepo
+
+	require.NoError(t, d.PutJobs(ctx, []*types.Job{lowFreqJob, highFreqExpiredJob, highFreqActiveJob}))
+	d.Wait()
+
+	w := window_mocks.NewWindow(t)
+	highFreqStart := t1
+	w.On("StartTimesByRepo").Return(func() map[string]time.Time {
+		return map[string]time.Time{
+			lowFreqRepo:  t0,
+			highFreqRepo: highFreqStart,
+		}
+	})
+	w.On("TestTime", lowFreqRepo, mock.AnythingOfType("time.Time")).Return(func(_ string, ts time.Time) bool {
+		return !t0.After(ts)
+	})
+	w.On("TestTime", highFreqRepo, mock.AnythingOfType("time.Time")).Return(func(_ string, ts time.Time) bool {
+		return !highFreqStart.After(ts)
+	})
+
+	c, err := NewJobCache(ctx, d, w, nil)
+	require.NoError(t, err)
+
+	// Initially all three jobs are in the window.
+	assertJobsCached(t, c, []*types.Job{lowFreqJob, highFreqExpiredJob, highFreqActiveJob})
+
+	// Advance the window for highFreqRepo to t2 so highFreqExpiredJob is expired,
+	// while lowFreqJob (which is older than highFreqExpiredJob) remains in window.
+	highFreqStart = t2
+	require.NoError(t, c.Update(ctx))
+
+	// highFreqExpiredJob should be expired even though lowFreqJob is older and still in window.
+	assertJobsNotCached(t, c, []*types.Job{highFreqExpiredJob})
+	assertJobsCached(t, c, []*types.Job{lowFreqJob, highFreqActiveJob})
 }

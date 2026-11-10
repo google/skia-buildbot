@@ -20,13 +20,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-const (
-	// Caches should initially allocate enough space for this many tasks.
-	tasksInitCapacity = 60000
-	// Caches should initially allocate enough space for this many jobs.
-	jobsInitCapacity = 10000
-)
-
 type TaskCache interface {
 
 	// GetTask returns the task with the given ID, or an error if no such task exists.
@@ -98,8 +91,8 @@ type taskCache struct {
 	tasksByCommit map[string]map[string]map[string]*types.Task
 	// map[TaskKey]map[task_id]*Task
 	tasksByKey map[types.TaskKey]map[string]*types.Task
-	// tasksByTime is sorted by Task.Created.
-	tasksByTime []*types.Task
+	// map[repo_name][]*Task, sorted by Task.Created.
+	tasksByTime map[string][]*types.Task
 	timeWindow  window.Window
 	unfinished  map[string]*types.Task
 
@@ -188,12 +181,15 @@ func searchTaskSlice(tasks []*types.Task, ts time.Time) int {
 func (c *taskCache) GetTasksFromDateRange(from time.Time, to time.Time) ([]*types.Task, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
-	fromIdx := searchTaskSlice(c.tasksByTime, from)
-	toIdx := searchTaskSlice(c.tasksByTime, to)
-	rv := make([]*types.Task, toIdx-fromIdx)
-	for i, task := range c.tasksByTime[fromIdx:toIdx] {
-		rv[i] = task.Copy()
+	rv := []*types.Task{}
+	for _, tasks := range c.tasksByTime {
+		fromIdx := searchTaskSlice(tasks, from)
+		toIdx := searchTaskSlice(tasks, to)
+		for _, task := range tasks[fromIdx:toIdx] {
+			rv = append(rv, task.Copy())
+		}
 	}
+	sort.Sort(types.TaskSlice(rv))
 	return rv, nil
 }
 
@@ -263,39 +259,43 @@ func (c *taskCache) expireTasks() {
 			}
 		}
 	}
-	for i, task := range c.tasksByTime {
-		if c.timeWindow.TestTime(task.Repo, task.Created) {
-			c.tasksByTime = c.tasksByTime[i:]
-			return
-		}
+	for repo, tasks := range c.tasksByTime {
+		allExpired := true
+		for i, task := range tasks {
+			if c.timeWindow.TestTime(task.Repo, task.Created) {
+				c.tasksByTime[repo] = tasks[i:]
+				allExpired = false
+				break
+			}
 
-		// Tasks by ID.
-		delete(c.tasks, task.Id)
+			// Tasks by ID.
+			delete(c.tasks, task.Id)
 
-		// Tasks by commit.
-		c.removeFromTasksByCommit(task)
+			// Tasks by commit.
+			c.removeFromTasksByCommit(task)
 
-		// Tasks by key.
-		byKey, ok := c.tasksByKey[task.TaskKey]
-		if ok {
-			delete(byKey, task.Id)
-			if len(byKey) == 0 {
-				delete(c.tasksByKey, task.TaskKey)
+			// Tasks by key.
+			byKey, ok := c.tasksByKey[task.TaskKey]
+			if ok {
+				delete(byKey, task.Id)
+				if len(byKey) == 0 {
+					delete(c.tasksByKey, task.TaskKey)
+				}
+			}
+
+			// Tasks by time.
+			tasks[i] = nil // Allow GC.
+
+			// Unfinished tasks.
+			if _, ok := c.unfinished[task.Id]; ok {
+				sklog.Warningf("Found unfinished task that is so old it is being expired. %#v", task)
+				delete(c.unfinished, task.Id)
 			}
 		}
-
-		// Tasks by time.
-		c.tasksByTime[i] = nil // Allow GC.
-
-		// Unfinished tasks.
-		if _, ok := c.unfinished[task.Id]; ok {
-			sklog.Warningf("Found unfinished task that is so old it is being expired. %#v", task)
-			delete(c.unfinished, task.Id)
+		if allExpired && len(tasks) > 0 {
+			sklog.Warningf("All tasks for %s expired because they are outside the window.", repo)
+			delete(c.tasksByTime, repo)
 		}
-	}
-	if len(c.tasksByTime) > 0 {
-		sklog.Warningf("All tasks expired because they are outside the window.")
-		c.tasksByTime = nil
 	}
 }
 
@@ -337,12 +337,13 @@ func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 		commitMap[commit][task.Name] = task
 	}
 
+	tasksByTime := c.tasksByTime[task.Repo]
 	if isUpdate {
 		// Loop in case there are multiple tasks with the same Created time.
-		for i := searchTaskSlice(c.tasksByTime, task.Created); i < len(c.tasksByTime); i++ {
-			other := c.tasksByTime[i]
+		for i := searchTaskSlice(tasksByTime, task.Created); i < len(tasksByTime); i++ {
+			other := tasksByTime[i]
 			if other.Id == task.Id {
-				c.tasksByTime[i] = task
+				tasksByTime[i] = task
 				break
 			}
 			if !other.Created.Equal(task.Created) {
@@ -354,18 +355,17 @@ func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 		// https://skia.googlesource.com/buildbot/+show/0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6
 		// for a different implementation.
 		// Most common case is that the new task should be inserted at the end.
-		if len(c.tasksByTime) == 0 {
-			c.tasksByTime = append(make([]*types.Task, 0, tasksInitCapacity), task)
-		} else if lastTask := c.tasksByTime[len(c.tasksByTime)-1]; !task.Created.Before(lastTask.Created) {
-			c.tasksByTime = append(c.tasksByTime, task)
+		if len(tasksByTime) == 0 || !task.Created.Before(tasksByTime[len(tasksByTime)-1].Created) {
+			c.tasksByTime[task.Repo] = append(tasksByTime, task)
 		} else {
-			insertIdx := searchTaskSlice(c.tasksByTime, task.Created)
+			insertIdx := searchTaskSlice(tasksByTime, task.Created)
 			// Extend size by one:
-			c.tasksByTime = append(c.tasksByTime, nil)
+			tasksByTime = append(tasksByTime, nil)
 			// Move later elements out of the way:
-			copy(c.tasksByTime[insertIdx+1:], c.tasksByTime[insertIdx:])
+			copy(tasksByTime[insertIdx+1:], tasksByTime[insertIdx:])
 			// Assign at the correct index:
-			c.tasksByTime[insertIdx] = task
+			tasksByTime[insertIdx] = task
+			c.tasksByTime[task.Repo] = tasksByTime
 		}
 	}
 
@@ -433,6 +433,7 @@ func NewTaskCache(ctx context.Context, d db.TaskReader, timeWindow window.Window
 		tasks:          map[string]*types.Task{},
 		tasksByCommit:  map[string]map[string]map[string]*types.Task{},
 		tasksByKey:     map[types.TaskKey]map[string]*types.Task{},
+		tasksByTime:    map[string][]*types.Task{},
 		unfinished:     map[string]*types.Task{},
 		modified:       map[string]*types.Task{},
 		timeWindow:     timeWindow,
@@ -508,8 +509,8 @@ type jobCache struct {
 	mtx                sync.RWMutex
 	jobs               map[string]*types.Job
 	jobsByNameAndState map[types.RepoState]map[string]map[string]*types.Job
-	// jobsByTime is sorted by Task.Created.
-	jobsByTime []*types.Job
+	// map[repo_name][]*Job, sorted by Job.Created.
+	jobsByTime map[string][]*types.Job
 	timeWindow window.Window
 	requested  map[string]*types.Job
 	inProgress map[string]*types.Job
@@ -576,11 +577,13 @@ func searchJobSlice(jobs []*types.Job, ts time.Time) int {
 	})
 }
 
-// jobSliceIsSorted returns true if jobs is sorted by Created time.
-func jobSliceIsSorted(jobs []*types.Job) bool {
-	for i := 0; i < len(jobs)-1; i++ {
-		if jobs[i+1].Created.Before(jobs[i].Created) {
-			return false
+// jobsByTimeAreSorted returns true if each slice in jobsByRepo is sorted by Created time.
+func jobsByTimeAreSorted(jobsByRepo map[string][]*types.Job) bool {
+	for _, jobs := range jobsByRepo {
+		for i := 0; i < len(jobs)-1; i++ {
+			if jobs[i+1].Created.Before(jobs[i].Created) {
+				return false
+			}
 		}
 	}
 	return true
@@ -590,12 +593,15 @@ func jobSliceIsSorted(jobs []*types.Job) bool {
 func (c *jobCache) GetJobsFromDateRange(from time.Time, to time.Time) ([]*types.Job, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
-	fromIdx := searchJobSlice(c.jobsByTime, from)
-	toIdx := searchJobSlice(c.jobsByTime, to)
-	rv := make([]*types.Job, toIdx-fromIdx)
-	for i, job := range c.jobsByTime[fromIdx:toIdx] {
-		rv[i] = job.Copy()
+	rv := []*types.Job{}
+	for _, jobs := range c.jobsByTime {
+		fromIdx := searchJobSlice(jobs, from)
+		toIdx := searchJobSlice(jobs, to)
+		for _, job := range jobs[fromIdx:toIdx] {
+			rv = append(rv, job.Copy())
+		}
 	}
+	sort.Sort(types.JobSlice(rv))
 	return rv, nil
 }
 
@@ -653,46 +659,50 @@ func (c *jobCache) expireJobs() {
 	}()
 	defer func() {
 		// Debugging for https://bugs.chromium.org/p/skia/issues/detail?id=9444
-		if len(c.jobsByTime) > 0 {
-			firstTs := c.jobsByTime[0].Created
-			for _, job := range c.inProgress {
+		for _, job := range c.inProgress {
+			jobs := c.jobsByTime[job.Repo]
+			if len(jobs) > 0 {
+				firstTs := jobs[0].Created
 				if job.Created.Before(firstTs) {
 					sklog.Warningf("Found job %q in unfinished, Created %s, before first jobsByTime, Created %s. %+v", job.Id, job.Created.Format(time.RFC3339Nano), firstTs.Format(time.RFC3339Nano), job)
 				}
-			}
-		} else {
-			if len(c.inProgress) > 0 {
-				sklog.Warningf("Found %d jobs in unfinished when jobsByTime is empty", len(c.inProgress))
+			} else {
+				sklog.Warningf("Found job %q in unfinished when jobsByTime[%q] is empty", job.Id, job.Repo)
 			}
 		}
 	}()
-	for i, job := range c.jobsByTime {
-		if c.timeWindow.TestTime(job.Repo, job.Created) {
-			c.jobsByTime = c.jobsByTime[i:]
-			return
-		}
-		// Allow GC.
-		c.jobsByTime[i] = nil
-		delete(c.jobs, job.Id)
-		delete(c.inProgress, job.Id)
+	for repo, jobs := range c.jobsByTime {
+		allExpired := true
+		for i, job := range jobs {
+			if c.timeWindow.TestTime(job.Repo, job.Created) {
+				c.jobsByTime[repo] = jobs[i:]
+				allExpired = false
+				break
+			}
+			// Allow GC.
+			jobs[i] = nil
+			delete(c.jobs, job.Id)
+			delete(c.inProgress, job.Id)
+			delete(c.requested, job.Id)
 
-		byName := c.jobsByNameAndState[job.RepoState]
-		byId := byName[job.Name]
-		delete(byId, job.Id)
-		if len(byId) == 0 {
-			delete(byName, job.Name)
-		}
-		if len(byName) == 0 {
-			delete(c.jobsByNameAndState, job.RepoState)
-		}
+			byName := c.jobsByNameAndState[job.RepoState]
+			byId := byName[job.Name]
+			delete(byId, job.Id)
+			if len(byId) == 0 {
+				delete(byName, job.Name)
+			}
+			if len(byName) == 0 {
+				delete(c.jobsByNameAndState, job.RepoState)
+			}
 
-		if !job.Done() {
-			expiredUnfinishedCount++
+			if !job.Done() {
+				expiredUnfinishedCount++
+			}
 		}
-	}
-	if len(c.jobsByTime) > 0 {
-		sklog.Warningf("All jobs expired because they are outside the window.")
-		c.jobsByTime = nil
+		if allExpired && len(jobs) > 0 {
+			sklog.Warningf("All jobs for %s expired because they are outside the window.", repo)
+			delete(c.jobsByTime, repo)
+		}
 	}
 }
 
@@ -734,12 +744,13 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 		delete(c.requested, job.Id)
 	}
 
+	jobsByTime := c.jobsByTime[job.Repo]
 	if isUpdate {
 		// Loop in case there are multiple tasks with the same Created time.
-		for i := searchJobSlice(c.jobsByTime, job.Created); i < len(c.jobsByTime); i++ {
-			other := c.jobsByTime[i]
+		for i := searchJobSlice(jobsByTime, job.Created); i < len(jobsByTime); i++ {
+			other := jobsByTime[i]
 			if other.Id == job.Id {
-				c.jobsByTime[i] = job
+				jobsByTime[i] = job
 				break
 			}
 			if !other.Created.Equal(job.Created) {
@@ -751,18 +762,17 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 		// https://skia.googlesource.com/buildbot/+show/0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6
 		// for a different implementation.
 		// Most common case is that the new job should be inserted at the end.
-		if len(c.jobsByTime) == 0 {
-			c.jobsByTime = append(make([]*types.Job, 0, jobsInitCapacity), job)
-		} else if lastJob := c.jobsByTime[len(c.jobsByTime)-1]; !job.Created.Before(lastJob.Created) {
-			c.jobsByTime = append(c.jobsByTime, job)
+		if len(jobsByTime) == 0 || !job.Created.Before(jobsByTime[len(jobsByTime)-1].Created) {
+			c.jobsByTime[job.Repo] = append(jobsByTime, job)
 		} else {
-			insertIdx := searchJobSlice(c.jobsByTime, job.Created)
+			insertIdx := searchJobSlice(jobsByTime, job.Created)
 			// Extend size by one:
-			c.jobsByTime = append(c.jobsByTime, nil)
+			jobsByTime = append(jobsByTime, nil)
 			// Move later elements out of the way:
-			copy(c.jobsByTime[insertIdx+1:], c.jobsByTime[insertIdx:])
+			copy(jobsByTime[insertIdx+1:], jobsByTime[insertIdx:])
 			// Assign at the correct index:
-			c.jobsByTime[insertIdx] = job
+			jobsByTime[insertIdx] = job
+			c.jobsByTime[job.Repo] = jobsByTime
 		}
 	}
 }
@@ -785,7 +795,7 @@ func (c *jobCache) Update(ctx context.Context) error {
 		}
 	}
 	// Debugging for https://bugs.chromium.org/p/skia/issues/detail?id=9444
-	if !jobSliceIsSorted(c.jobsByTime) {
+	if !jobsByTimeAreSorted(c.jobsByTime) {
 		sklog.Errorf("jobsByTime is not sorted after Update of %v", c.modified)
 	}
 	c.modified = map[string]*types.Job{}
@@ -802,7 +812,7 @@ func (c *jobCache) AddJobs(jobs []*types.Job) {
 		}
 	}
 	// Debugging for https://bugs.chromium.org/p/skia/issues/detail?id=9444
-	if !jobSliceIsSorted(c.jobsByTime) {
+	if !jobsByTimeAreSorted(c.jobsByTime) {
 		sklog.Errorf("jobsByTime is not sorted after AddJobs of %v", jobs)
 	}
 }
@@ -828,6 +838,7 @@ func NewJobCache(ctx context.Context, d db.JobReader, timeWindow window.Window, 
 		db:                 d,
 		jobs:               map[string]*types.Job{},
 		jobsByNameAndState: map[types.RepoState]map[string]map[string]*types.Job{},
+		jobsByTime:         map[string][]*types.Job{},
 		requested:          map[string]*types.Job{},
 		inProgress:         map[string]*types.Job{},
 		modified:           map[string]*types.Job{},
@@ -840,7 +851,7 @@ func NewJobCache(ctx context.Context, d db.JobReader, timeWindow window.Window, 
 		}
 	}
 	// Debugging for https://bugs.chromium.org/p/skia/issues/detail?id=9444
-	if !jobSliceIsSorted(c.jobsByTime) {
+	if !jobsByTimeAreSorted(c.jobsByTime) {
 		return nil, fmt.Errorf("jobsByTime is not sorted after initial load")
 	}
 	go func() {

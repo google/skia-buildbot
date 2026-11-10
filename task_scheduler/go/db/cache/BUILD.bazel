@@ -27,6 +27,8 @@ go_test(
         "//task_scheduler/go/db/memory",
         "//task_scheduler/go/types",
         "//task_scheduler/go/window",
+        "//task_scheduler/go/window/mocks",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )
