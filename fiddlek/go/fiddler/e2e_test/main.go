@@ -137,37 +137,31 @@ func runFiddlerTest(ctx context.Context, testName string, code string, expectSuc
 		return skerr.Wrapf(err, "failed to decode response")
 	}
 
-	// Check results.
-	if res.Compile.Errors != "" {
-		return skerr.Fmt("expected successful compilation, but got errors: %s", res.Compile.Errors)
-	}
-	if expectSuccess && res.Execute.Errors != "" {
-		return skerr.Fmt("expected successful execution, but got errors: %s", res.Execute.Errors)
-	} else if !expectSuccess {
-		if res.Execute.Errors == "" {
-			resJSON, _ := json.MarshalIndent(res, "", "  ")
-			// Read the logs from inside the container to see what happened.
-			var logStdout bytes.Buffer
-			_ = exec.Run(ctx, &exec.Command{
-				Name:   "docker",
-				Args:   []string{"exec", containerName, "cat", logFile},
-				Stdout: &logStdout,
-			})
-			return skerr.Fmt("expected failure (compile or execute error), but both were empty in test: %s\nResponse: %s\nFiddler Logs:\n%s", testName, string(resJSON), logStdout.String())
-		}
-		// If the code runs and prints BYPASS SUCCESS, then the bypass worked (which is what we are testing).
-		if strings.Contains(res.Execute.Output.Text, "BYPASS SUCCESS") {
-			return skerr.Fmt("security bypass succeeded! Vulnerability found in test: %s", testName)
-		}
-	}
+	// Re-encode the response as formatted JSON so it can be included in error messages.
 	resJSON, _ := json.MarshalIndent(res, "", "  ")
-	// Read the logs from inside the container to see what happened.
+	// Read the fiddler logs from inside the container so they can be included in the test output.
 	var logStdout bytes.Buffer
 	_ = exec.Run(ctx, &exec.Command{
 		Name:   "docker",
 		Args:   []string{"exec", containerName, "cat", logFile},
 		Stdout: &logStdout,
 	})
+
+	// Check results.
+	if res.Compile.Errors != "" {
+		return skerr.Fmt("expected successful compilation, but got errors: %s\nResponse: %s\nFiddler Logs:\n%s", res.Compile.Errors, string(resJSON), logStdout.String())
+	}
+	if expectSuccess && res.Execute.Errors != "" {
+		return skerr.Fmt("expected successful execution, but got errors: %s\nResponse: %s\nFiddler Logs:\n%s", res.Execute.Errors, string(resJSON), logStdout.String())
+	} else if !expectSuccess {
+		if res.Execute.Errors == "" {
+			return skerr.Fmt("expected failure (compile or execute error), but both were empty in test: %s\nResponse: %s\nFiddler Logs:\n%s", testName, string(resJSON), logStdout.String())
+		}
+		// If the code runs and prints BYPASS SUCCESS, then the bypass worked (which is what we are testing).
+		if strings.Contains(res.Execute.Output.Text, "BYPASS SUCCESS") || strings.Contains(res.Execute.Errors, "BYPASS SUCCESS") {
+			return skerr.Fmt("security bypass succeeded! Vulnerability found in test: %s\nResponse: %s\nFiddler Logs:\n%s", testName, string(resJSON), logStdout.String())
+		}
+	}
 	fmt.Fprintf(os.Stderr, "%s\nResponse: %s\nFiddler Logs:\n%s\n", testName, string(resJSON), logStdout.String())
 	sklog.Infof("PASSED: %s", testName)
 	return nil
