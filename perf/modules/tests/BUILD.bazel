@@ -22,7 +22,9 @@ ts_library(
         "pages/explore_v2_page.ts",
         "pages/multigraph_page.ts",
         "pages/picker_helpers.ts",
+        "pages/regressions_page.ts",
         "pages/simplegraph_page.ts",
+        "pages/triage_menu.ts",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -56,6 +58,13 @@ sk_element_playwright_test(
 sk_element_playwright_test(
     name = "explore_multi_v2_playwright_test",
     src = "explore_multi_v2_playwright_test.ts",
+    sk_demo_page_server = "//perf/go/frontend/mock:frontend_mock_server",
+    deps = PLAYWRIGHT_TEST_DEPS,
+)
+
+sk_element_playwright_test(
+    name = "regressions_page_playwright_test",
+    src = "regressions_page_playwright_test.ts",
     sk_demo_page_server = "//perf/go/frontend/mock:frontend_mock_server",
     deps = PLAYWRIGHT_TEST_DEPS,
 )
