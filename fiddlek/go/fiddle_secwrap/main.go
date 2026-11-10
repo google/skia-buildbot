@@ -243,17 +243,21 @@ func matchesPrefixes(rawPath string, prefixes []string) (string, bool) {
 
 // testAgainstPrefixes verifies that the given name begins with one of the given
 // prefixes. If the name is a relative path, it is resolved against the child's
-// current working directory. Exits the process with a non-zero code if the
-// name is invalid.
-func testAgainstPrefixes(child int, caller string, name string, prefixes []string) {
+// current working directory (when dirfd is AT_FDCWD) or the directory referred
+// to by dirfd. Exits the process with a non-zero code if the name is invalid.
+func testAgainstPrefixes(child int, dirfd int, caller string, name string, prefixes []string) {
 	var normalized string
 	if !strings.HasPrefix(name, "/") {
-		cwd, err := os.Readlink(fmt.Sprintf("/proc/%d/cwd", child))
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to read CWD of child %d: %v\n", child, err)
-			childFail(child, "Failed to read CWD.")
+		linkPath := fmt.Sprintf("/proc/%d/cwd", child)
+		if int32(dirfd) != unix.AT_FDCWD {
+			linkPath = fmt.Sprintf("/proc/%d/fd/%d", child, int32(dirfd))
 		}
-		normalized = filepath.Join(cwd, name)
+		baseDir, err := os.Readlink(linkPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to read base dir (%s) of child %d: %v\n", linkPath, child, err)
+			childFail(child, "Failed to read base dir.")
+		}
+		normalized = filepath.Join(baseDir, name)
 	} else {
 		normalized = filepath.Clean(name)
 	}
@@ -583,62 +587,71 @@ func doTrace(child int, allowedExec string) int {
 						if (flags & unix.O_ACCMODE) != unix.O_RDONLY {
 							prefixes = writingAllowedPrefixes
 						}
-						testAgainstPrefixes(wpid, "open", name, prefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "open", name, prefixes)
 					case unix.SYS_OPENAT, unix.SYS_OPENAT2:
+						dirfd := int(int32(regs.Rdi))
 						name := readString(wpid, regs.Rsi)
 						flags := regs.Rdx
 						prefixes := readonlyAllowedPrefixes
 						if (flags & unix.O_ACCMODE) != unix.O_RDONLY {
 							prefixes = writingAllowedPrefixes
 						}
-						testAgainstPrefixes(wpid, "openat", name, prefixes)
+						testAgainstPrefixes(wpid, dirfd, "openat", name, prefixes)
 					case unix.SYS_MKDIR:
 						name := readString(wpid, regs.Rdi)
-						testAgainstPrefixes(wpid, "mkdir", name, mkdirAllowedPrefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "mkdir", name, mkdirAllowedPrefixes)
 					case unix.SYS_MKDIRAT:
+						dirfd := int(int32(regs.Rdi))
 						name := readString(wpid, regs.Rsi)
-						testAgainstPrefixes(wpid, "mkdirat", name, mkdirAllowedPrefixes)
+						testAgainstPrefixes(wpid, dirfd, "mkdirat", name, mkdirAllowedPrefixes)
 					case unix.SYS_RMDIR:
 						name := readString(wpid, regs.Rdi)
-						testAgainstPrefixes(wpid, "rmdir", name, mkdirAllowedPrefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "rmdir", name, mkdirAllowedPrefixes)
 					case unix.SYS_UNLINK:
 						name := readString(wpid, regs.Rdi)
-						testAgainstPrefixes(wpid, "unlink", name, unlinkAllowedPrefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "unlink", name, unlinkAllowedPrefixes)
 					case unix.SYS_UNLINKAT:
+						dirfd := int(int32(regs.Rdi))
 						name := readString(wpid, regs.Rsi)
-						testAgainstPrefixes(wpid, "unlinkat", name, unlinkAllowedPrefixes)
+						testAgainstPrefixes(wpid, dirfd, "unlinkat", name, unlinkAllowedPrefixes)
 					case unix.SYS_MKNOD:
 						name := readString(wpid, regs.Rdi)
-						testAgainstPrefixes(wpid, "mknod", name, mknodAllowedPrefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "mknod", name, mknodAllowedPrefixes)
 					case unix.SYS_MKNODAT:
+						dirfd := int(int32(regs.Rdi))
 						name := readString(wpid, regs.Rsi)
-						testAgainstPrefixes(wpid, "mknodat", name, mknodAllowedPrefixes)
+						testAgainstPrefixes(wpid, dirfd, "mknodat", name, mknodAllowedPrefixes)
 					case unix.SYS_LINK:
 						name := readString(wpid, regs.Rdi)
-						testAgainstPrefixes(wpid, "link", name, linkAllowedPrefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "link", name, linkAllowedPrefixes)
 						name2 := readString(wpid, regs.Rsi)
-						testAgainstPrefixes(wpid, "link", name2, linkAllowedPrefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "link", name2, linkAllowedPrefixes)
 					case unix.SYS_LINKAT:
+						dirfd1 := int(int32(regs.Rdi))
 						name := readString(wpid, regs.Rsi)
-						testAgainstPrefixes(wpid, "linkat", name, linkAllowedPrefixes)
+						testAgainstPrefixes(wpid, dirfd1, "linkat", name, linkAllowedPrefixes)
+						dirfd2 := int(int32(regs.Rdx))
 						name2 := readString(wpid, regs.R10)
-						testAgainstPrefixes(wpid, "linkat", name2, linkAllowedPrefixes)
+						testAgainstPrefixes(wpid, dirfd2, "linkat", name2, linkAllowedPrefixes)
 					case unix.SYS_RENAME:
 						name := readString(wpid, regs.Rdi)
-						testAgainstPrefixes(wpid, "rename", name, renameAllowedPrefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "rename", name, renameAllowedPrefixes)
 						name2 := readString(wpid, regs.Rsi)
-						testAgainstPrefixes(wpid, "rename", name2, renameAllowedPrefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "rename", name2, renameAllowedPrefixes)
 					case unix.SYS_RENAMEAT, unix.SYS_RENAMEAT2:
+						dirfd1 := int(int32(regs.Rdi))
 						name := readString(wpid, regs.Rsi)
-						testAgainstPrefixes(wpid, "renameat*", name, renameAllowedPrefixes)
+						testAgainstPrefixes(wpid, dirfd1, "renameat*", name, renameAllowedPrefixes)
+						dirfd2 := int(int32(regs.Rdx))
 						name2 := readString(wpid, regs.R10)
-						testAgainstPrefixes(wpid, "renameat*", name2, renameAllowedPrefixes)
+						testAgainstPrefixes(wpid, dirfd2, "renameat*", name2, renameAllowedPrefixes)
 					case unix.SYS_READLINK:
 						name := readString(wpid, regs.Rdi)
-						testAgainstPrefixes(wpid, "readlink", name, readonlyAllowedPrefixes)
+						testAgainstPrefixes(wpid, unix.AT_FDCWD, "readlink", name, readonlyAllowedPrefixes)
 					case unix.SYS_READLINKAT:
+						dirfd := int(int32(regs.Rdi))
 						name := readString(wpid, regs.Rsi)
-						testAgainstPrefixes(wpid, "readlinkat", name, readonlyAllowedPrefixes)
+						testAgainstPrefixes(wpid, dirfd, "readlinkat", name, readonlyAllowedPrefixes)
 					default:
 						// childFail will kill the process
 						childFail(wpid, fmt.Sprintf("Untracked system call: %d", syscallNum))
