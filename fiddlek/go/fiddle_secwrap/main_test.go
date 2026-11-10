@@ -129,6 +129,21 @@ func TestMatchesPrefixes(t *testing.T) {
 			rawPath:  "/proc/self/task/123/maps/../../root/etc/passwd",
 			expected: false,
 		},
+		{
+			name:     "Blocked /usr/bin/X11/../../etc/passwd",
+			rawPath:  "/usr/bin/X11/../../etc/passwd",
+			expected: false,
+		},
+		{
+			name:     "Blocked /proc/thread-self/cwd/shadow",
+			rawPath:  "/proc/thread-self/cwd/shadow",
+			expected: false,
+		},
+		{
+			name:     "Blocked /dev/stdin (symlink into /proc/self/fd/0)",
+			rawPath:  "/dev/stdin",
+			expected: false,
+		},
 	}
 
 	for _, tc := range testCases {

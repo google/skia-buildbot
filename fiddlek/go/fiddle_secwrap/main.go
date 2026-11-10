@@ -231,8 +231,44 @@ func isAllowedExec(name string, allowedExec string, args, envp []string, buildMo
 var procSelfTaskRegex = regexp.MustCompile(`^/proc/self/task/[0-9]+/`)
 
 func matchesPrefixes(rawPath string, prefixes []string) (string, bool) {
-	normalized := filepath.Clean(rawPath)
-	normalized = procSelfTaskRegex.ReplaceAllString(normalized, "/proc/self/")
+	const maxSymlinks = 40
+	symlinks := 0
+	current := "/"
+	parts := strings.Split(rawPath, "/")
+	for len(parts) > 0 {
+		part := parts[0]
+		parts = parts[1:]
+		if part == "" || part == "." {
+			continue
+		}
+		if part == ".." {
+			if current == "/proc" || strings.HasPrefix(current, "/proc/") {
+				return "", false
+			}
+			current = filepath.Dir(current)
+			continue
+		}
+		next := filepath.Join(current, part)
+		if next != "/proc" && !strings.HasPrefix(next, "/proc/") {
+			if fi, err := os.Lstat(next); err == nil && fi.Mode()&os.ModeSymlink != 0 {
+				symlinks++
+				if symlinks > maxSymlinks {
+					return "", false
+				}
+				target, err := os.Readlink(next)
+				if err != nil {
+					return "", false
+				}
+				if strings.HasPrefix(target, "/") {
+					current = "/"
+				}
+				parts = append(strings.Split(target, "/"), parts...)
+				continue
+			}
+		}
+		current = next
+	}
+	normalized := procSelfTaskRegex.ReplaceAllString(current, "/proc/self/")
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(normalized, prefix) {
 			return normalized, true
@@ -246,7 +282,7 @@ func matchesPrefixes(rawPath string, prefixes []string) (string, bool) {
 // current working directory (when dirfd is AT_FDCWD) or the directory referred
 // to by dirfd. Exits the process with a non-zero code if the name is invalid.
 func testAgainstPrefixes(child int, dirfd int, caller string, name string, prefixes []string) {
-	var normalized string
+	rawPath := name
 	if !strings.HasPrefix(name, "/") {
 		linkPath := fmt.Sprintf("/proc/%d/cwd", child)
 		if int32(dirfd) != unix.AT_FDCWD {
@@ -257,12 +293,10 @@ func testAgainstPrefixes(child int, dirfd int, caller string, name string, prefi
 			fmt.Fprintf(os.Stderr, "Failed to read base dir (%s) of child %d: %v\n", linkPath, child, err)
 			childFail(child, "Failed to read base dir.")
 		}
-		normalized = filepath.Join(baseDir, name)
-	} else {
-		normalized = filepath.Clean(name)
+		rawPath = baseDir + "/" + name
 	}
 
-	normalized, okay := matchesPrefixes(normalized, prefixes)
+	normalized, okay := matchesPrefixes(rawPath, prefixes)
 	if !okay {
 		fmt.Fprintf(os.Stderr, "Invalid filename: %s (normalized: %s)\n", name, normalized)
 		fmt.Fprintf(os.Stderr, "%s: %s\n", caller, name)
