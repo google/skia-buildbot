@@ -242,10 +242,15 @@ inject_repo(
     rules_go = "rules_go",
 )
 
+# Name the SDK downloaded from go.mod so that @go_sdk refers to it. Without a
+# name, @go_sdk was mapped to rules_go's own "go_default_sdk", which follows
+# the go directive in rules_go's go.mod (1.25.0), not ours. That SDK is what
+# //bazel/go:go_toolchain_tar ships in container images.
 go_sdk.from_file(
+    name = "go_sdk",
     go_mod = "//:go.mod",
 )
-use_repo(go_sdk, go_sdk = "go_default_sdk")
+use_repo(go_sdk, "go_sdk")
 
 register_toolchains("@rules_go//go/toolchain:all")
 
