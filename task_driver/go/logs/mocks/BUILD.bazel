@@ -1,0 +1,12 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = ["LogsManager.go"],
+    importpath = "go.skia.org/infra/task_driver/go/logs/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//task_driver/go/logs",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

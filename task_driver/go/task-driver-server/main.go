@@ -62,7 +62,7 @@ var (
 	d db.DB
 
 	// BigTable connector used for storing and retrieving logs.
-	lm *logs.LogsManager
+	lm logs.LogsManager
 
 	// HTML templates.
 	tdTemplate *template.Template = nil

@@ -29,6 +29,7 @@ import (
 	td_bigtable "go.skia.org/infra/task_driver/go/db/bigtable"
 	"go.skia.org/infra/task_driver/go/display"
 	"go.skia.org/infra/task_driver/go/logs"
+	"go.skia.org/infra/task_driver/go/td"
 	ts_db "go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"golang.org/x/oauth2/google"
@@ -46,7 +47,7 @@ type TaskDetailsClient struct {
 	swarm           swarmingv2.SwarmingV2Client
 	swarmHttpClient *http.Client
 	td              td_db.DB
-	tdLogs          *logs.LogsManager
+	tdLogs          logs.LogsManager
 	ts              ts_db.DBCloser
 	logdog          LogDogClient
 }
@@ -246,9 +247,9 @@ func (c *TaskDetailsClient) GetTaskDriverLogsHandler(ctx context.Context, req mc
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	stepID, err := req.RequireString(argStepID)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+	stepID := req.GetString(argStepID, "")
+	if stepID == td.StepIDRoot {
+		stepID = ""
 	}
 	cursor := req.GetString(argCursor, "")
 	limit := req.GetInt(argLimit, defaultLogLimit)

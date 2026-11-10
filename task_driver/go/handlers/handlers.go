@@ -24,7 +24,7 @@ import (
 )
 
 // logsHandler reads log entries from BigTable and writes them to the ResponseWriter.
-func logsHandler(w http.ResponseWriter, r *http.Request, lm *logs.LogsManager, taskId, stepId, logId string) {
+func logsHandler(w http.ResponseWriter, r *http.Request, lm logs.LogsManager, taskId, stepId, logId string) {
 	// TODO(borenet): If we had access to the Task Driver DB, we could first
 	// retrieve the run and then limit our search to its duration. That
 	// might speed up the search quite a bit.
@@ -75,7 +75,7 @@ func getVar(w http.ResponseWriter, r *http.Request, key string) string {
 }
 
 // taskLogsHandler returns a handler which serves logs for a given task.
-func taskLogsHandler(lm *logs.LogsManager) http.HandlerFunc {
+func taskLogsHandler(lm logs.LogsManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		taskId := getVar(w, r, "taskId")
 		if taskId == "" {
@@ -86,7 +86,7 @@ func taskLogsHandler(lm *logs.LogsManager) http.HandlerFunc {
 }
 
 // stepLogsHandler returns a handler which serves logs for a given step.
-func stepLogsHandler(lm *logs.LogsManager) http.HandlerFunc {
+func stepLogsHandler(lm logs.LogsManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		taskId := getVar(w, r, "taskId")
 		stepId := getVar(w, r, "stepId")
@@ -98,7 +98,7 @@ func stepLogsHandler(lm *logs.LogsManager) http.HandlerFunc {
 }
 
 // singleLogHandler returns a handler which serves logs for a single log ID.
-func singleLogHandler(lm *logs.LogsManager) http.HandlerFunc {
+func singleLogHandler(lm logs.LogsManager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		taskId := getVar(w, r, "taskId")
 		stepId := getVar(w, r, "stepId")
@@ -211,7 +211,7 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 }
 
 // AddTaskDriverHandlers adds handlers for Task Drivers to the given Router.
-func AddTaskDriverHandlers(r chi.Router, d db.DB, lm *logs.LogsManager) {
+func AddTaskDriverHandlers(r chi.Router, d db.DB, lm logs.LogsManager) {
 	r.HandleFunc("/json/td/{taskId}", httputils.CorsHandler(jsonTaskDriverHandler(d)))
 	r.HandleFunc("/errors/{taskId}/{errId}", fullErrorHandler(d))
 	r.HandleFunc("/errors/{taskId}/{stepId}/{errId}", fullErrorHandler(d))

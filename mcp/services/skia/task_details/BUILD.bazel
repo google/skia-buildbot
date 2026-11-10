@@ -22,6 +22,7 @@ go_library(
         "//task_driver/go/db/bigtable",
         "//task_driver/go/display",
         "//task_driver/go/logs",
+        "//task_driver/go/td",
         "//task_scheduler/go/db",
         "//task_scheduler/go/db/firestore",
         "@com_github_mark3labs_mcp_go//mcp",
@@ -46,6 +47,8 @@ go_test(
     deps = [
         "//mcp/services/skia/task_details/mocks",
         "//task_driver/go/display",
+        "//task_driver/go/logs",
+        "//task_driver/go/logs/mocks",
         "//task_driver/go/td",
         "@com_github_mark3labs_mcp_go//mcp",
         "@com_github_stretchr_testify//require",

@@ -53,8 +53,7 @@ func GetTools(c *TaskDetailsClient) []common.Tool {
 				},
 				{
 					Name:        argStepID,
-					Description: "ID of the step.",
-					Required:    true,
+					Description: "ID of the step. If omitted or \"root\", logs for the entire task are returned.",
 				},
 				{
 					Name:        argLimit,

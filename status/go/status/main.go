@@ -85,7 +85,7 @@ var (
 	lkgrObj                    *lkgr.LKGR                         = nil
 	taskDb                     db.RemoteDB                        = nil
 	taskDriverDb               task_driver_db.DB                  = nil
-	taskDriverLogs             *logs.LogsManager                  = nil
+	taskDriverLogs             logs.LogsManager                   = nil
 	tasksPerCommit             *tasksPerCommitCache               = nil
 	tCache                     cache.TaskCache                    = nil
 	sseServer                  *sse.SSEServer                     = nil

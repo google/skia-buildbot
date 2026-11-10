@@ -104,33 +104,50 @@ type Entry struct {
 	Timestamp   time.Time   `json:"timestamp"`
 }
 
-// LogsManager is a struct which provides an interface for inserting and
+// LogsManager provides an interface for inserting and retrieving Task Driver
+// logs in Cloud BigTable.
+type LogsManager interface {
+	// Close the LogsManager.
+	Close() error
+
+	// Insert the given log entry.
+	Insert(ctx context.Context, e *Entry) error
+
+	// Search returns Entries matching the given search terms.
+	// If limit is provided, the results are paginated: a cursor will be returned
+	// which, if non-empty, can be passed to the next call to Search.
+	// If reverse is true, pages are loaded from the end of the stream but each page
+	// contains entries in chronological order.
+	Search(ctx context.Context, taskId, stepId, logId, cursor string, limit int, reverse bool) ([]*Entry, string, error)
+}
+
+// LogsManagerImpl is a struct which provides an interface for inserting and
 // retrieving Task Driver logs in Cloud BigTable.
-type LogsManager struct {
+type LogsManagerImpl struct {
 	client *bigtable.Client
 	table  *bigtable.Table
 }
 
-// NewLogsManager returns a LogsManager instance.
-func NewLogsManager(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*LogsManager, error) {
+// NewLogsManager returns a LogsManagerImpl instance.
+func NewLogsManager(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*LogsManagerImpl, error) {
 	client, err := bigtable.NewClient(ctx, project, instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create BigTable client")
 	}
 	table := client.Open(BT_TABLE)
-	return &LogsManager{
+	return &LogsManagerImpl{
 		client: client,
 		table:  table,
 	}, nil
 }
 
 // Close the LogsManager.
-func (m *LogsManager) Close() error {
+func (m *LogsManagerImpl) Close() error {
 	return m.client.Close()
 }
 
 // Insert the given log entry.
-func (m *LogsManager) Insert(ctx context.Context, e *Entry) error {
+func (m *LogsManagerImpl) Insert(ctx context.Context, e *Entry) error {
 	ctx, span := trace.StartSpan(ctx, "LogsManager_Insert")
 	defer span.End()
 	// Encode the log entry.
@@ -165,7 +182,7 @@ func (m *LogsManager) Insert(ctx context.Context, e *Entry) error {
 // which, if non-empty, can be passed to the next call to Search.
 // If reverse is true, pages are loaded from the end of the stream but each page
 // contains entries in chronological order.
-func (m *LogsManager) Search(ctx context.Context, taskId, stepId, logId, cursor string, limit int, reverse bool) ([]*Entry, string, error) {
+func (m *LogsManagerImpl) Search(ctx context.Context, taskId, stepId, logId, cursor string, limit int, reverse bool) ([]*Entry, string, error) {
 	ctx, span := trace.StartSpan(ctx, "LogsManager_Search")
 	defer span.End()
 	prefix := rowKey(taskId, stepId, logId, time.Time{}, "")
@@ -239,3 +256,5 @@ func (m *LogsManager) Search(ctx context.Context, taskId, stepId, logId, cursor 
 	}
 	return entries, nextCursor, nil
 }
+
+var _ LogsManager = &LogsManagerImpl{}

@@ -16,6 +16,8 @@ import (
 	annopb "go.chromium.org/luci/luciexe/legacy/annotee/proto"
 	"go.skia.org/infra/mcp/services/skia/task_details/mocks"
 	"go.skia.org/infra/task_driver/go/display"
+	"go.skia.org/infra/task_driver/go/logs"
+	logs_mocks "go.skia.org/infra/task_driver/go/logs/mocks"
 	"go.skia.org/infra/task_driver/go/td"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -369,4 +371,48 @@ func TestToRecipeStep_Finished(t *testing.T) {
 	resUnfinished := ToRecipeStep(unfinishedSubstep)
 	require.False(t, resUnfinished.Finished)
 	require.False(t, resUnfinished.Substeps[0].Finished)
+}
+
+func TestGetTaskDriverLogsHandler(t *testing.T) {
+	ctx := t.Context()
+	mockLogs := logs_mocks.NewLogsManager(t)
+	client := &TaskDetailsClient{
+		tdLogs: mockLogs,
+	}
+
+	// 1. step_id="root" should query with stepId="" so all task logs are returned.
+	mockLogs.On("Search", ctx, "task-1", "", "", "", defaultLogLimit, false).Return([]*logs.Entry{{TextPayload: "hello"}}, "", nil).Once()
+	res, err := client.GetTaskDriverLogsHandler(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Arguments: map[string]interface{}{
+				argTaskID: "task-1",
+				argStepID: td.StepIDRoot,
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, []string{"hello"}, res.(*GetLogsResponse).Logs)
+
+	// 2. Omitted step_id should also query with stepId="".
+	mockLogs.On("Search", ctx, "task-1", "", "", "", defaultLogLimit, false).Return([]*logs.Entry{{TextPayload: "hello"}}, "", nil).Once()
+	_, err = client.GetTaskDriverLogsHandler(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Arguments: map[string]interface{}{
+				argTaskID: "task-1",
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	// 3. Specific child step_id should be passed through unchanged.
+	mockLogs.On("Search", ctx, "task-1", "step-123", "", "", defaultLogLimit, false).Return([]*logs.Entry{{TextPayload: "hello"}}, "", nil).Once()
+	_, err = client.GetTaskDriverLogsHandler(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Arguments: map[string]interface{}{
+				argTaskID: "task-1",
+				argStepID: "step-123",
+			},
+		},
+	})
+	require.NoError(t, err)
 }
