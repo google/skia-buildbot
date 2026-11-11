@@ -146,6 +146,20 @@ func (m *LogsManagerImpl) Close() error {
 	return m.client.Close()
 }
 
+// rowKey returns the BigTable row key for this Entry.
+func (e *Entry) rowKey() string {
+	taskId := e.Labels["taskId"]
+	stepId, ok := e.Labels["stepId"]
+	if !ok {
+		stepId = "no_step_id"
+	}
+	logId, ok := e.Labels["logId"]
+	if !ok {
+		logId = "no_log_id"
+	}
+	return rowKey(taskId, stepId, logId, e.Timestamp, e.InsertID)
+}
+
 // Insert the given log entry.
 func (m *LogsManagerImpl) Insert(ctx context.Context, e *Entry) error {
 	ctx, span := trace.StartSpan(ctx, "LogsManager_Insert")
@@ -158,20 +172,11 @@ func (m *LogsManagerImpl) Insert(ctx context.Context, e *Entry) error {
 	// Insert the log entry into BigTable.
 	mt := bigtable.NewMutation()
 	mt.Set(BT_COLUMN_FAMILY, BT_COLUMN, bigtable.Time(e.Timestamp), buf.Bytes())
-	taskId, ok := e.Labels["taskId"]
-	if !ok {
+	if _, ok := e.Labels["taskId"]; !ok {
 		// TODO(borenet): We should Ack() the message in this case.
 		return skerr.Fmt("Log entry is missing a task ID! %+v", e)
 	}
-	stepId, ok := e.Labels["stepId"]
-	if !ok {
-		stepId = "no_step_id"
-	}
-	logId, ok := e.Labels["logId"]
-	if !ok {
-		logId = "no_log_id"
-	}
-	rk := rowKey(taskId, stepId, logId, e.Timestamp, e.InsertID)
+	rk := e.rowKey()
 	ctx, cancel := context.WithTimeout(ctx, INSERT_TIMEOUT)
 	defer cancel()
 	return m.table.Apply(ctx, rk, mt)
@@ -187,31 +192,53 @@ func (m *LogsManagerImpl) Search(ctx context.Context, taskId, stepId, logId, cur
 	defer span.End()
 	prefix := rowKey(taskId, stepId, logId, time.Time{}, "")
 	sklog.Infof("Searching for entries with prefix: %s", prefix)
-	entries := []*Entry{}
-	var decodeErr error
 	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT)
 	defer cancel()
 
-	var rr bigtable.RowRange
-	if cursor != "" {
-		// We'll perform a prefix check in ReadRows, so these unbounded ranges
-		// are okay.
-		if reverse {
-			// BigTable's NewRange(start, limit) uses an exclusive upper bound:
-			// [start, limit). During pagination, our cursor is the row key of
-			// the first item on the *next* page, meaning we MUST include it in
-			// this query. By appending a null byte (\x00) to the cursor, we
-			// push the exclusive upper bound just past our target row key,
-			// effectively making the range inclusive of the cursor.
-			rr = bigtable.NewRange("", cursor+"\x00")
-		} else {
-			// InfiniteRange(start) is inclusive of the start key:
-			// [start, infinity).
-			rr = bigtable.InfiniteRange(cursor)
-		}
+	// Row keys are structured as <taskId>#<stepId>#<logId>#<timestamp>#<insertId>.
+	// Within a single <taskId>#<stepId>#<logId> stream, BigTable rows are stored
+	// in chronological order. When stepId or logId is empty, we first discover
+	// all <taskId>#<stepId>#<logId> stream prefixes, and then query from each
+	// stream starting at its cursor.
+	var streamPrefixes []string
+	if stepId != "" && logId != "" {
+		streamPrefixes = []string{prefix}
 	} else {
-		rr = bigtable.PrefixRange(prefix)
+		searchPrefix := prefix + "#"
+		startKey := searchPrefix
+		endKey := searchPrefix + "\xff"
+		for {
+			var foundKey string
+			if err := m.table.ReadRows(ctx, bigtable.NewRange(startKey, endKey), func(row bigtable.Row) bool {
+				foundKey = row.Key()
+				return false
+			}, bigtable.LimitRows(1), bigtable.RowFilter(bigtable.StripValueFilter())); err != nil {
+				return nil, "", skerr.Wrapf(err, "failed to discover log streams from BigTable")
+			}
+			if foundKey == "" {
+				break
+			}
+			parts := strings.SplitN(foundKey, "#", 4)
+			if len(parts) < 4 {
+				startKey = foundKey + "\x00"
+				continue
+			}
+			sp := strings.Join(parts[:3], "#")
+			streamPrefixes = append(streamPrefixes, sp)
+			startKey = sp + "#\xff"
+		}
 	}
+
+	var cursorStreamPrefix, cursorChrono string
+	if cursor != "" {
+		parts := strings.SplitN(cursor, "#", 4)
+		if len(parts) != 4 {
+			return nil, "", skerr.Fmt("invalid cursor %q", cursor)
+		}
+		cursorStreamPrefix = strings.Join(parts[:3], "#")
+		cursorChrono = parts[3]
+	}
+
 	opts := []bigtable.ReadOption{
 		bigtable.RowFilter(bigtable.LatestNFilter(1)),
 	}
@@ -223,33 +250,76 @@ func (m *LogsManagerImpl) Search(ctx context.Context, taskId, stepId, logId, cur
 		opts = append(opts, bigtable.ReverseScan())
 	}
 
-	nextCursor := ""
-	if err := m.table.ReadRows(ctx, rr, func(row bigtable.Row) bool {
-		if !strings.HasPrefix(row.Key(), prefix) {
-			return false
-		}
-		if limit > 0 && len(entries) == limit {
-			nextCursor = row.Key()
-			return false
-		}
-		for _, ri := range row[BT_COLUMN_FAMILY] {
-			if ri.Column == BT_COLUMN_FULL {
-				var e Entry
-				decodeErr = gob.NewDecoder(bytes.NewReader(ri.Value)).Decode(&e)
-				if decodeErr != nil {
-					return false
+	entries := []*Entry{}
+	var decodeErr error
+	for _, sp := range streamPrefixes {
+		startKey := sp + "#"
+		endKey := sp + "#\xff"
+		if cursor != "" {
+			if reverse {
+				// BigTable's NewRange(start, limit) uses an exclusive upper bound:
+				// [start, limit). For streams <= cursorStreamPrefix in our tie-break
+				// order, entries at cursorChrono have not been returned yet, so we
+				// append a null byte (\x00) to make the upper bound inclusive.
+				if sp <= cursorStreamPrefix {
+					endKey = sp + "#" + cursorChrono + "\x00"
+				} else {
+					endKey = sp + "#" + cursorChrono
 				}
-				entries = append(entries, &e)
-				// We only store one entry per row.
-				return true
+			} else {
+				// NewRange(start, limit) is inclusive of start. For streams <
+				// cursorStreamPrefix in our tie-break order, entries at cursorChrono
+				// were already returned on the previous page, so we append \x00 to
+				// start strictly after cursorChrono.
+				if sp >= cursorStreamPrefix {
+					startKey = sp + "#" + cursorChrono
+				} else {
+					startKey = sp + "#" + cursorChrono + "\x00"
+				}
 			}
 		}
-		return true
-	}, opts...); err != nil {
-		return nil, "", skerr.Wrapf(err, "failed to retrieve data from BigTable")
+		rr := bigtable.NewRange(startKey, endKey)
+		if err := m.table.ReadRows(ctx, rr, func(row bigtable.Row) bool {
+			for _, ri := range row[BT_COLUMN_FAMILY] {
+				if ri.Column == BT_COLUMN_FULL {
+					var e Entry
+					decodeErr = gob.NewDecoder(bytes.NewReader(ri.Value)).Decode(&e)
+					if decodeErr != nil {
+						return false
+					}
+					entries = append(entries, &e)
+					// We only store one entry per row.
+					return true
+				}
+			}
+			return true
+		}, opts...); err != nil {
+			return nil, "", skerr.Wrapf(err, "failed to retrieve data from BigTable")
+		}
+		if decodeErr != nil {
+			return nil, "", skerr.Wrapf(decodeErr, "failed to gob-decode entry")
+		}
 	}
-	if decodeErr != nil {
-		return nil, "", skerr.Wrapf(decodeErr, "failed to gob-decode entry")
+
+	if len(streamPrefixes) > 1 {
+		slices.SortFunc(entries, func(a, b *Entry) int {
+			if cmp := a.Timestamp.Compare(b.Timestamp); cmp != 0 {
+				return cmp
+			}
+			if cmp := strings.Compare(a.InsertID, b.InsertID); cmp != 0 {
+				return cmp
+			}
+			return strings.Compare(a.rowKey(), b.rowKey())
+		})
+		if reverse {
+			slices.Reverse(entries)
+		}
+	}
+
+	nextCursor := ""
+	if limit > 0 && len(entries) > limit {
+		nextCursor = entries[limit].rowKey()
+		entries = entries[:limit]
 	}
 	if reverse {
 		slices.Reverse(entries)
