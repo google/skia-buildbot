@@ -151,7 +151,7 @@ func NewDataFrameIterator(
 	if refinerName == "" {
 		refinerName = anomalyConfig.DefaultRefiner
 	}
-	if !domain.IsSingleCommitMode() && (refinerName == "anomaly_bounds" || refinerName == "improved") {
+	if !domain.IsSingleCommitMode() && refinerNeedsPerTraceInput(refinerName) {
 		refinerMinPoints := int(math.Ceil(minRadiusRatioForRefinement * float64(alert.Radius)))
 		if refinerMinPoints > minPoints {
 			minPoints = refinerMinPoints
@@ -170,10 +170,27 @@ func NewDataFrameIterator(
 	// roughly estimate the MB/s of regression detection.
 	metrics2.GetCounter("perf_regression_detection_floats").Inc(int64(len(df.Header) * len(df.TraceSet)))
 
-	// The DfTraceSlicer will only work for stepfit (i.e individual and not kmeans)
-	if alert.Algo == types.StepFitGrouping {
-		return NewStepFitDfTraceSlicer(df, windowSize), nil
-	} else {
-		return NewKmeansDataframeSlicer(df, windowSize), nil
+	return newSlicer(df, windowSize, alert, anomalyConfig, refinerName), nil
+}
+
+// refinerNeedsPerTraceInput reports whether the refiner groups and refines
+// regressions per trace, and so needs single-trace windows and more history.
+func refinerNeedsPerTraceInput(refinerName string) bool {
+	return refinerName == "anomaly_bounds" || refinerName == "improved"
+}
+
+// newSlicer picks how the source dataframe is cut into detection windows.
+//
+// StepFit alerts get single-trace windows unless the instance sets
+// group_stepfit_traces (b/583849797). The per-trace refiners and the recursive
+// loader's sparse merged dataframe require single-trace windows, so they keep
+// them even then.
+func newSlicer(df *dataframe.DataFrame, windowSize int, alert *alerts.Alert, anomalyConfig config.AnomalyConfig, refinerName string) DataFrameIterator {
+	if alert.Algo != types.StepFitGrouping {
+		return NewKmeansDataframeSlicer(df, windowSize)
 	}
+	if anomalyConfig.GroupStepFitTraces && !anomalyConfig.UseRecursiveLoader && !refinerNeedsPerTraceInput(refinerName) {
+		return NewKmeansDataframeSlicer(df, windowSize)
+	}
+	return NewStepFitDfTraceSlicer(df, windowSize)
 }

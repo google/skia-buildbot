@@ -442,6 +442,14 @@ type AnomalyConfig struct {
 
 	// UseRecursiveLoader enables bulk loading of matching trace IDs using NewNFromKeysRecursive.
 	UseRecursiveLoader bool `json:"use_recursive_loader,omitempty"`
+
+	// GroupStepFitTraces makes StepFit alerts analyze all traces of a window
+	// together, so traces that step in the same direction at the same commit
+	// are reported as one regression listing all of them. By default each
+	// trace is analyzed alone, which on instances whose regression store keeps
+	// one regression per (commit, alert) drops all but one of those traces.
+	// Ignored when the refiner or recursive loader needs per-trace windows.
+	GroupStepFitTraces bool `json:"group_stepfit_traces,omitempty"`
 }
 
 // BackendFlags provide commandline flags for the Backend Service.

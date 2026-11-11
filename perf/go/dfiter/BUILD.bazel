@@ -34,6 +34,7 @@ go_test(
     srcs = [
         "dfIterProvider_test.go",
         "dfiter_test.go",
+        "slicer_selection_test.go",
         "traceSlicer_test.go",
     ],
     embed = [":dfiter"],

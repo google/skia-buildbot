@@ -68,6 +68,7 @@
     },
     "anomaly_config": {
       "settling_time": "5h",
+      "group_stepfit_traces": true,
       "backfill_topic_name": "perf-anomaly-backfill-android2"
     },
     "query_config": {

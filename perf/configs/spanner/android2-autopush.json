@@ -67,7 +67,8 @@
       "start_commit": "5f8b9aa0feafff7548336998a17723cb792cdb53"
     },
     "anomaly_config": {
-      "settling_time": "5h"
+      "settling_time": "5h",
+      "group_stepfit_traces": true
     },
     "query_config": {
       "include_params": [

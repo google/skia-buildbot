@@ -25,6 +25,9 @@
         },
         "use_recursive_loader": {
           "type": "boolean"
+        },
+        "group_stepfit_traces": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
