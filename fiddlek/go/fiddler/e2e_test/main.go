@@ -69,6 +69,9 @@ var (
 
 	//go:embed test_cases/fail_proc_thread_self.cpp
 	testCaseFailProcThreadSelf string
+
+	//go:embed test_cases/fail_openat2_write.cpp
+	testCaseFailOpenat2Write string
 )
 
 // Files used to mock the Skia repo.
@@ -249,6 +252,7 @@ func main() {
 		{"Fail openat dirfd", testCaseFailOpenatDirfd, false},
 		{"Fail symlink dotdot", testCaseFailSymlinkDotdot, false},
 		{"Fail /proc/thread-self", testCaseFailProcThreadSelf, false},
+		{"Fail openat2 write", testCaseFailOpenat2Write, false},
 	}
 
 	for _, tc := range tests {

@@ -366,6 +366,20 @@ func readStringArray(pid int, addr uint64) []string {
 	return strs
 }
 
+// readUint64 reads a single uint64 value from the child's address space.
+func readUint64(pid int, addr uint64) uint64 {
+	data := make([]byte, 8)
+	n, err := unix.PtracePeekData(pid, uintptr(addr), data)
+	if err != nil || n != 8 {
+		childFail(pid, fmt.Sprintf("Failed to read uint64 at 0x%x: %v (n=%d)", addr, err, n))
+	}
+	return binary.LittleEndian.Uint64(data)
+}
+
+func isWriteOpenFlags(flags uint64) bool {
+	return (flags&unix.O_ACCMODE) != unix.O_RDONLY || (flags&(unix.O_CREAT|unix.O_TRUNC)) != 0
+}
+
 // buildSeccompFilter builds a set of filters used to allow, deny, or trace
 // (in order to make the decision based on their properties) syscalls.
 // See the following for more detail:
@@ -618,19 +632,28 @@ func doTrace(child int, allowedExec string) int {
 						name := readString(wpid, regs.Rdi)
 						flags := regs.Rsi
 						prefixes := readonlyAllowedPrefixes
-						if (flags & unix.O_ACCMODE) != unix.O_RDONLY {
+						if isWriteOpenFlags(flags) {
 							prefixes = writingAllowedPrefixes
 						}
 						testAgainstPrefixes(wpid, unix.AT_FDCWD, "open", name, prefixes)
-					case unix.SYS_OPENAT, unix.SYS_OPENAT2:
+					case unix.SYS_OPENAT:
 						dirfd := int(int32(regs.Rdi))
 						name := readString(wpid, regs.Rsi)
 						flags := regs.Rdx
 						prefixes := readonlyAllowedPrefixes
-						if (flags & unix.O_ACCMODE) != unix.O_RDONLY {
+						if isWriteOpenFlags(flags) {
 							prefixes = writingAllowedPrefixes
 						}
 						testAgainstPrefixes(wpid, dirfd, "openat", name, prefixes)
+					case unix.SYS_OPENAT2:
+						dirfd := int(int32(regs.Rdi))
+						name := readString(wpid, regs.Rsi)
+						flags := readUint64(wpid, regs.Rdx)
+						prefixes := readonlyAllowedPrefixes
+						if isWriteOpenFlags(flags) {
+							prefixes = writingAllowedPrefixes
+						}
+						testAgainstPrefixes(wpid, dirfd, "openat2", name, prefixes)
 					case unix.SYS_MKDIR:
 						name := readString(wpid, regs.Rdi)
 						testAgainstPrefixes(wpid, unix.AT_FDCWD, "mkdir", name, mkdirAllowedPrefixes)

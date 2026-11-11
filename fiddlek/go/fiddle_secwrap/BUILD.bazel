@@ -76,4 +76,5 @@ go_test(
     name = "fiddle_secwrap_test",
     srcs = ["main_test.go"],
     embed = [":fiddle_secwrap_lib"],
+    deps = ["@org_golang_x_sys//unix"],
 )

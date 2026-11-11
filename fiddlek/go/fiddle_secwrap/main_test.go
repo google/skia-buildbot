@@ -7,6 +7,8 @@ package main
 
 import (
 	"testing"
+
+	"golang.org/x/sys/unix"
 )
 
 func TestIsAllowedExec(t *testing.T) {
@@ -151,6 +153,53 @@ func TestMatchesPrefixes(t *testing.T) {
 			normalized, actual := matchesPrefixes(tc.rawPath, readonlyAllowedPrefixes)
 			if actual != tc.expected {
 				t.Errorf("matchesPrefixes(%q) = (%q, %v), want %v", tc.rawPath, normalized, actual, tc.expected)
+			}
+		})
+	}
+}
+
+func TestIsWriteOpenFlags(t *testing.T) {
+	testCases := []struct {
+		name     string
+		flags    uint64
+		expected bool
+	}{
+		{
+			name:     "O_RDONLY",
+			flags:    unix.O_RDONLY,
+			expected: false,
+		},
+		{
+			name:     "O_RDONLY | O_CLOEXEC | O_DIRECTORY",
+			flags:    unix.O_RDONLY | unix.O_CLOEXEC | unix.O_DIRECTORY,
+			expected: false,
+		},
+		{
+			name:     "O_WRONLY",
+			flags:    unix.O_WRONLY,
+			expected: true,
+		},
+		{
+			name:     "O_RDWR",
+			flags:    unix.O_RDWR,
+			expected: true,
+		},
+		{
+			name:     "O_RDONLY | O_TRUNC",
+			flags:    unix.O_RDONLY | unix.O_TRUNC,
+			expected: true,
+		},
+		{
+			name:     "O_RDONLY | O_CREAT",
+			flags:    unix.O_RDONLY | unix.O_CREAT,
+			expected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if actual := isWriteOpenFlags(tc.flags); actual != tc.expected {
+				t.Errorf("isWriteOpenFlags(0x%x) = %v, want %v", tc.flags, actual, tc.expected)
 			}
 		})
 	}
