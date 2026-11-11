@@ -392,6 +392,13 @@ apt.install(
 use_repo(apt, "docsyserver-apt-install")
 
 apt.install(
+    name = "perf-e2e-test-runner-apt-install",
+    lock = "@@//perf:perf-e2e-test-runner.lock.json",
+    manifest = "//perf:perf-e2e-test-runner.yaml",
+)
+use_repo(apt, "perf-e2e-test-runner-apt-install")
+
+apt.install(
     name = "task-scheduler-jc-apt-install",
     lock = "@@//task_scheduler:task-scheduler-jc.lock.json",
     manifest = "//task_scheduler:task-scheduler-jc.yaml",
