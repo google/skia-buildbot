@@ -23,3 +23,26 @@ skia_app_container(
     repository = "skia-public/basealpine",
     visibility = ["//visibility:public"],
 )
+
+apko_image(
+    name = "basealpine-with-git_apko",
+    config = "basealpine-with-git.yaml",
+    contents = "@basealpine-with-git-apk-install//:contents",
+    tag = "basealpine-with-git:latest",
+)
+
+apko_lock(
+    name = "lock-with-git",
+    config = "basealpine-with-git.yaml",
+    lockfile_name = "basealpine-with-git.lock.json",
+)
+
+skia_app_container(
+    name = "basealpine-with-git",
+    base_image = ":basealpine-with-git_apko",
+    ca_certs = True,
+    create_skia_user = True,
+    dirs = {},
+    repository = "skia-public/basealpine-with-git",
+    visibility = ["//visibility:public"],
+)

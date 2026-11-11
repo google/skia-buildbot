@@ -1,0 +1,11 @@
+contents:
+  repositories:
+    - https://dl-4.alpinelinux.org/alpine/v3.22/main
+    - https://dl-4.alpinelinux.org/alpine/v3.22/community
+  packages:
+    - bash
+    - git
+    - procps
+
+archs:
+  - x86_64

@@ -212,11 +212,12 @@ def skia_app_container(
         )
 
     if ca_certs:
+        ca_certs_name = name + "_ca_certs"
         cacerts(
-            name = "ca-certs",
+            name = ca_certs_name,
             package = "@ca-certificates//:data.tar.xz",
         )
-        pkg_tars.append(":ca-certs")
+        pkg_tars.append(":" + ca_certs_name)
 
     if extra_tars:
         pkg_tars.extend(extra_tars)

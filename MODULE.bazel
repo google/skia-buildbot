@@ -74,7 +74,11 @@ apko.translate_lock(
     name = "basealpine-apk-install",
     lock = "@@//kube/basealpine:basealpine.lock.json",
 )
-use_repo(apko, "basealpine-apk-install")
+apko.translate_lock(
+    name = "basealpine-with-git-apk-install",
+    lock = "@@//kube/basealpine:basealpine-with-git.lock.json",
+)
+use_repo(apko, "basealpine-apk-install", "basealpine-with-git-apk-install")
 
 ####################################################################################################
 # aspect_rules_ts setup
