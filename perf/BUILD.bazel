@@ -30,7 +30,7 @@ filegroup(
 
 skia_app_container(
     name = "perfserver",
-    base_image = "//kube/base-cipd:base-cipd",
+    base_image = "//kube/basealpine:basealpine-with-git",
     dirs = {
         "/usr/local/bin": [
             [
