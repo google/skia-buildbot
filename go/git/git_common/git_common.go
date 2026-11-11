@@ -128,36 +128,12 @@ func FindGit(ctx context.Context) (string, int, int, bool, error) {
 	if !hasOverride {
 		sklog.Debugf("Git is %s; version %d.%d", gitPath, maj, min)
 	}
-	isFromCIPD := IsFromCIPD(gitPath)
-	isFromCIPDVal := 0
-	if isFromCIPD {
-		isFromCIPDVal = 1
-	}
-	metrics2.GetInt64Metric("git_from_cipd").Update(int64(isFromCIPDVal))
+	metrics2.GetFloat64Metric("git_version").Update(float64(maj) + float64(min)/1000)
 	git = gitPath
 	gitVersionMajor = maj
 	gitVersionMinor = min
 	gitIsWrapper = isWrapper
 	return git, gitVersionMajor, gitVersionMinor, gitIsWrapper, nil
-}
-
-// IsFromCIPD returns a bool indicating whether or not the given version of Git
-// appears to be obtained via CIPD.
-func IsFromCIPD(git string) bool {
-	return strings.Contains(git, "cipd_bin_packages") || (bazel.InBazel() && strings.Contains(git, bazel.RunfilesDir()))
-}
-
-// EnsureGitIsFromCIPD returns an error if the version of Git in PATH does not
-// appear to be obtained via CIPD.
-func EnsureGitIsFromCIPD(ctx context.Context) error {
-	git, _, _, _, err := FindGit(ctx)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	if !IsFromCIPD(git) {
-		return skerr.Fmt("Git does not appear to be obtained via CIPD: %s", git)
-	}
-	return nil
 }
 
 // Executable returns the path to Git.
