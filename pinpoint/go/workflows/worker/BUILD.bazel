@@ -36,7 +36,7 @@ go_binary(
 
 skia_app_container(
     name = "bisect_workflow",
-    base_image = "//kube/base-cipd:base-cipd",
+    base_image = "//kube/basealpine:basealpine-with-git",
     dirs = {
         "/usr/local/bin": [
             [
