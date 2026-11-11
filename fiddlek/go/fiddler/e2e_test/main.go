@@ -72,6 +72,9 @@ var (
 
 	//go:embed test_cases/fail_openat2_write.cpp
 	testCaseFailOpenat2Write string
+
+	//go:embed test_cases/fail_toctou_openat.cpp
+	testCaseFailToctouOpenat string
 )
 
 // Files used to mock the Skia repo.
@@ -253,6 +256,7 @@ func main() {
 		{"Fail symlink dotdot", testCaseFailSymlinkDotdot, false},
 		{"Fail /proc/thread-self", testCaseFailProcThreadSelf, false},
 		{"Fail openat2 write", testCaseFailOpenat2Write, false},
+		{"Fail toctou openat", testCaseFailToctouOpenat, false},
 	}
 
 	for _, tc := range tests {

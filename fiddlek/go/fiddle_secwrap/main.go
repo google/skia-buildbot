@@ -551,6 +551,23 @@ func buildSeccompFilter() []unix.SockFilter {
 	return filter
 }
 
+type waitEvent struct {
+	wpid   int
+	status unix.WaitStatus
+}
+
+// getOtherTasks returns all known ptraced task IDs other than wpid that are not
+// currently asleep in the kernel waiting for a vfork child.
+func getOtherTasks(wpid int, knownTasks, inVfork map[int]bool) []int {
+	var others []int
+	for tid := range knownTasks {
+		if tid != wpid && !inVfork[tid] {
+			others = append(others, tid)
+		}
+	}
+	return others
+}
+
 func doTrace(child int, allowedExec string) int {
 	var status unix.WaitStatus
 	_, err := unix.Wait4(child, &status, 0, nil)
@@ -564,6 +581,7 @@ func doTrace(child int, allowedExec string) int {
 		unix.PTRACE_O_TRACECLONE |
 		unix.PTRACE_O_TRACEFORK |
 		unix.PTRACE_O_TRACEVFORK |
+		unix.PTRACE_O_TRACEVFORKDONE |
 		unix.PTRACE_O_EXITKILL
 	err = unix.PtraceSetOptions(child, options)
 	if err != nil {
@@ -578,17 +596,30 @@ func doTrace(child int, allowedExec string) int {
 	}
 
 	syscallEntry := make(map[int]bool)
+	knownTasks := map[int]bool{child: true}
+	inVfork := make(map[int]bool)
+	var pendingEvents []waitEvent
 
 	for {
-		wpid, err := unix.Wait4(-1, &status, unix.WALL, nil)
-		if err != nil {
-			if err == unix.ECHILD {
-				break
+		var wpid int
+		if len(pendingEvents) > 0 {
+			ev := pendingEvents[0]
+			pendingEvents = pendingEvents[1:]
+			wpid = ev.wpid
+			status = ev.status
+		} else {
+			wpid, err = unix.Wait4(-1, &status, unix.WALL, nil)
+			if err != nil {
+				if err == unix.ECHILD {
+					break
+				}
+				continue
 			}
-			continue
 		}
 
 		if status.Exited() {
+			delete(knownTasks, wpid)
+			delete(inVfork, wpid)
 			delete(syscallEntry, wpid)
 			if wpid == child {
 				return status.ExitStatus()
@@ -597,6 +628,8 @@ func doTrace(child int, allowedExec string) int {
 		}
 
 		if status.Signaled() {
+			delete(knownTasks, wpid)
+			delete(inVfork, wpid)
 			delete(syscallEntry, wpid)
 			if wpid == child {
 				return 1
@@ -604,14 +637,86 @@ func doTrace(child int, allowedExec string) int {
 			continue
 		}
 
+		knownTasks[wpid] = true
+
 		if status.Stopped() {
 			sig := status.StopSignal()
 			if sig == unix.SIGTRAP {
 				event := uint32(status) >> 16
-				if event == unix.PTRACE_EVENT_SECCOMP {
+				if event == unix.PTRACE_EVENT_CLONE || event == unix.PTRACE_EVENT_FORK || event == unix.PTRACE_EVENT_VFORK {
+					if newPid, err := unix.PtraceGetEventMsg(wpid); err == nil {
+						knownTasks[int(newPid)] = true
+					}
+					if event == unix.PTRACE_EVENT_VFORK {
+						inVfork[wpid] = true
+					}
+				} else if event == unix.PTRACE_EVENT_VFORK_DONE {
+					delete(inVfork, wpid)
+				} else if event == unix.PTRACE_EVENT_SECCOMP {
+					// Freeze all other tasks before inspecting user-space memory and keep
+					// them frozen until the kernel finishes executing this syscall so a
+					// second thread cannot modify syscall arguments (TOCTOU).
+					otherTids := getOtherTasks(wpid, knownTasks, inVfork)
+					var pausedTids []int
+					if len(otherTids) > 0 {
+						alreadyPending := make(map[int]bool, len(pendingEvents))
+						for _, ev := range pendingEvents {
+							alreadyPending[ev.wpid] = true
+						}
+						for _, tid := range otherTids {
+							if alreadyPending[tid] {
+								continue
+							}
+							var tidStatus unix.WaitStatus
+							rpid, werr := unix.Wait4(tid, &tidStatus, unix.WALL|unix.WNOHANG, nil)
+							if werr == nil && rpid == tid {
+								if tidStatus.Exited() || tidStatus.Signaled() {
+									delete(knownTasks, tid)
+									delete(inVfork, tid)
+									delete(syscallEntry, tid)
+								} else if tidStatus.Stopped() {
+									pendingEvents = append(pendingEvents, waitEvent{wpid: tid, status: tidStatus})
+								}
+								continue
+							}
+							_, _, errno := unix.Syscall(unix.SYS_TKILL, uintptr(tid), uintptr(unix.SIGSTOP), 0)
+							if errno == unix.ESRCH {
+								delete(knownTasks, tid)
+								delete(inVfork, tid)
+								delete(syscallEntry, tid)
+								continue
+							}
+							for {
+								_, werr := unix.Wait4(tid, &tidStatus, unix.WALL, nil)
+								if werr == unix.EINTR {
+									continue
+								}
+								if werr != nil {
+									delete(knownTasks, tid)
+									delete(inVfork, tid)
+									delete(syscallEntry, tid)
+								} else if tidStatus.Exited() || tidStatus.Signaled() {
+									delete(knownTasks, tid)
+									delete(inVfork, tid)
+									delete(syscallEntry, tid)
+								} else if tidStatus.Stopped() {
+									if tidStatus.StopSignal() == unix.SIGSTOP && (uint32(tidStatus)>>16) == 0 {
+										pausedTids = append(pausedTids, tid)
+									} else {
+										pendingEvents = append(pendingEvents, waitEvent{wpid: tid, status: tidStatus})
+									}
+								}
+								break
+							}
+						}
+					}
+
 					var regs unix.PtraceRegs
 					if err := unix.PtraceGetRegs(wpid, &regs); err != nil {
 						fmt.Fprintf(os.Stderr, "The child %d failed to get regs: %v\n", wpid, err)
+						for _, tid := range pausedTids {
+							_ = unix.PtraceSyscall(tid, 0)
+						}
 						continue
 					}
 
@@ -713,6 +818,53 @@ func doTrace(child int, allowedExec string) int {
 						// childFail will kill the process
 						childFail(wpid, fmt.Sprintf("Untracked system call: %d", syscallNum))
 					}
+
+					if len(otherTids) > 0 {
+						if err := unix.PtraceSyscall(wpid, 0); err == nil {
+							for {
+								var wpidStatus unix.WaitStatus
+								_, werr := unix.Wait4(wpid, &wpidStatus, unix.WALL, nil)
+								if werr == unix.EINTR {
+									continue
+								}
+								if werr != nil {
+									break
+								}
+								status = wpidStatus
+								if status.Exited() || status.Signaled() {
+									break
+								}
+								if status.Stopped() {
+									if status.StopSignal() == unix.SIGTRAP && (uint32(status)>>16) == unix.PTRACE_EVENT_EXEC {
+										_ = unix.PtraceSyscall(wpid, 0)
+										continue
+									}
+									break
+								}
+							}
+						}
+						for _, tid := range pausedTids {
+							_ = unix.PtraceSyscall(tid, 0)
+						}
+						if status.Exited() {
+							delete(knownTasks, wpid)
+							delete(inVfork, wpid)
+							delete(syscallEntry, wpid)
+							if wpid == child {
+								return status.ExitStatus()
+							}
+							continue
+						}
+						if status.Signaled() {
+							delete(knownTasks, wpid)
+							delete(inVfork, wpid)
+							delete(syscallEntry, wpid)
+							if wpid == child {
+								return 1
+							}
+							continue
+						}
+					}
 				} else if event == 0 {
 					// Traditional ptrace syscall trap
 					var regs unix.PtraceRegs
@@ -727,11 +879,11 @@ func doTrace(child int, allowedExec string) int {
 			}
 		}
 
-		// If the child process received a signal other than SIGTRAP (which
-		// ptrace itself uses to pause the process), forward that signal to
-		// the child process.
+		// If the child process received a signal other than SIGTRAP or SIGSTOP
+		// (which ptrace itself uses to pause the process), forward that signal
+		// to the child process.
 		var signal int
-		if status.Stopped() && status.StopSignal() != unix.SIGTRAP {
+		if status.Stopped() && status.StopSignal() != unix.SIGTRAP && status.StopSignal() != unix.SIGSTOP {
 			signal = int(status.StopSignal())
 		}
 		if err := unix.PtraceSyscall(wpid, signal); err != nil && err != unix.ESRCH {
