@@ -10,6 +10,7 @@ archs:
   - amd64
 
 packages:
+  - git
   - wget
   - openssh-client
   - procps

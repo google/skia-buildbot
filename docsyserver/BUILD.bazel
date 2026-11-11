@@ -2,7 +2,9 @@ load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 skia_app_container(
     name = "docsyserver_container",
-    base_image = "//kube/base-cipd:base-cipd",
+    base_image = "@debian-testing-slim",
+    ca_certs = True,
+    create_skia_user = True,
     dirs = {
         "/usr/local/bin": [
             [
@@ -52,6 +54,7 @@ skia_app_container(
     entrypoint = "/usr/local/bin/docsyserver",
     env = {
         "PATH": "/go/bin:/home/skia/go/bin:$PATH:/home/skia/docsy/node/bin:/home/skia/docsy/node_modules/.bin",
+        "SSL_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
     },
     extra_tars = [
         "@docsyserver-apt-install//:flat",
