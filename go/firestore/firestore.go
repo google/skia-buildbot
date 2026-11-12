@@ -388,8 +388,8 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 			// retry in that case, otherwise we stop here.
 			return err
 		}
-		wait := BACKOFF_WAIT * time.Duration(2^i)
-		sklog.Errorf("Encountered Firestore error; retrying in %s: %s", wait, err)
+		wait := BACKOFF_WAIT * time.Duration(1<<i)
+		sklog.Warningf("Encountered Firestore error; retrying in %s: %s", wait, err)
 		time.Sleep(wait)
 	}
 	// Note that we could collect the errors using multierror, but that
