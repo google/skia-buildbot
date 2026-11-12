@@ -58,7 +58,7 @@ var (
 //
 // In the below statements you might see something like:
 //
-//	CONCAT('{"id": ["', $1, '"]}')::JSONB
+//	jsonb_build_object('id', jsonb_build_array($1::TEXT))
 //
 // This allows building up a JSONB expression while still allowing the use of
 // placeholders, like '$1'. The following will not work, since the $1 is inside
@@ -72,7 +72,7 @@ SELECT
 FROM
 	Description
 WHERE
-	dimensions @> CONCAT('{"id": ["', $1, '"]}')::JSONB
+	dimensions @> jsonb_build_object('id', jsonb_build_array($1::TEXT))
 FOR UPDATE`, descriptionAllNonComputedColumns),
 	Update: fmt.Sprintf(`
 UPSERT INTO
@@ -87,7 +87,7 @@ SELECT
 FROM
 	Description
 WHERE
-	dimensions @> CONCAT('{"id": ["', $1, '"]}')::JSONB
+	dimensions @> jsonb_build_object('id', jsonb_build_array($1::TEXT))
 `, descriptionAllNonComputedColumns),
 	ListPowerCycle: `
 SELECT
@@ -107,7 +107,7 @@ FROM
 DELETE FROM
 	Description
 WHERE
-	dimensions @> CONCAT('{"id": ["', $1, '"]}')::JSONB
+	dimensions @> jsonb_build_object('id', jsonb_build_array($1::TEXT))
 `,
 	GetFreeMachines: fmt.Sprintf(`
 SELECT
@@ -117,7 +117,7 @@ FROM
 WHERE
 	running_task = FALSE
 AND
-	dimensions @> CONCAT('{"task_type": ["sktask"], "pool":["', $1, '"]}')::JSONB
+	dimensions @> jsonb_build_object('task_type', jsonb_build_array('sktask'), 'pool', jsonb_build_array($1::TEXT))
 `, descriptionAllNonComputedColumns),
 }
 

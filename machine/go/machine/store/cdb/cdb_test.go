@@ -33,7 +33,7 @@ SELECT
 FROM
 	Description
 WHERE
-	dimensions @> CONCAT('{"id": ["', $1, '"]}')::JSONB
+	dimensions @> jsonb_build_object('id', jsonb_build_array($1::TEXT))
 FOR UPDATE`, cdb.Statements[cdb.GetAndLockRow])
 
 	require.Equal(t, `
