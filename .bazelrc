@@ -30,6 +30,9 @@ build --incompatible_allow_tags_propagation
 # host machine from invalidating the C++ toolchain and triggering full rebuilds.
 build --incompatible_strict_action_env=true
 
+# Retry repository downloads on transient errors (e.g. HTTP 500 from GitHub).
+common --experimental_repository_downloader_retries=3
+
 # Required for newer versions of abseil-cpp.
 build --action_env=BAZEL_CXXOPTS="-std=c++17"
 # This appears to have no effect because of the generated toolchain.
