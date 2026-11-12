@@ -133,6 +133,13 @@ func getHeaderValuesCaseInsensitive(r *http.Request, name string) []string {
 	return nil
 }
 
+func isAutopushPinpointQueue() bool {
+	if config.Config == nil {
+		return false
+	}
+	return strings.Contains(config.Config.TemporalConfig.PinpointTaskQueue, "autopush")
+}
+
 // createTryJobHandler takes the POST'd to create a Pinpoint try job request
 // then it calls legacy Pinpoint Service to create the job and returns the job id and job url.
 func (api *pinpointApi) createTryJobHandler(w http.ResponseWriter, r *http.Request) {
@@ -157,7 +164,7 @@ func (api *pinpointApi) createTryJobHandler(w http.ResponseWriter, r *http.Reque
 	}
 	sklog.Debugf("Got request of creating bisect job: %+v", cbr)
 
-	isNewPinpoint := cbr.UseNewPinpoint
+	isNewPinpoint := cbr.UseNewPinpoint || isAutopushPinpointQueue()
 	if isNewPinpoint {
 		repoUrl := getRepositoryUrl(cbr.Repository)
 		startCommit := &pinpoint_pb.CombinedCommit{
@@ -247,7 +254,7 @@ func (api *pinpointApi) createBisectHandler(w http.ResponseWriter, r *http.Reque
 	}
 	sklog.Debugf("Got request of creating bisect job: %+v", cbr)
 
-	isNewPinpoint := cbr.UseNewPinpoint
+	isNewPinpoint := cbr.UseNewPinpoint || isAutopushPinpointQueue()
 	if isNewPinpoint {
 		project := cbr.Project
 		if project == "" {

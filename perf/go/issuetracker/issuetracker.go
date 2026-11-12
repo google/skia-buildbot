@@ -34,7 +34,9 @@ import (
 )
 
 var TOP_ANOMALIES_COUNT = 10
-var COMPONENET_ID = 1325852
+
+const COMPONENT_ID = 1325852
+
 var ISSUESTATUS = "ASSIGNED"
 
 // IssueTracker defines an interface for accessing issuetracker v1 api.
@@ -304,7 +306,7 @@ func (s *issueTrackerImpl) FileBug(ctx context.Context, req *FileBugRequest) (in
 
 	originalComponentID := componentID
 	if s.OverrideComponent {
-		componentID = 1325852
+		componentID = COMPONENT_ID
 		sklog.Warningf("File Bug would use the following component: %d. Using a default component until migration is done.", componentID)
 	}
 
@@ -365,7 +367,7 @@ func (s *issueTrackerImpl) FileUserIssue(ctx context.Context, req *CreateUserIss
 	issueId, err := s.CreateIssue(ctx, &CreateIssueRequest{
 		Title:       title,
 		Description: "",
-		ComponentId: int64(COMPONENET_ID),
+		ComponentId: int64(COMPONENT_ID),
 		Priority:    "P2",
 		Severity:    "S2",
 		Assignee:    req.Assignee,
@@ -376,7 +378,7 @@ func (s *issueTrackerImpl) FileUserIssue(ctx context.Context, req *CreateUserIss
 			"[Perf_issuetracker] failed to create user issue: Title=%q, Assignee=%q, ComponentID=%d",
 			title,
 			req.Assignee,
-			COMPONENET_ID,
+			COMPONENT_ID,
 		)
 	}
 
@@ -570,20 +572,31 @@ func (s *issueTrackerImpl) CreateIssue(ctx context.Context, req *CreateIssueRequ
 		return 0, skerr.Fmt("Create issue request is null.")
 	}
 
+	componentID := req.ComponentId
+	rawCcs := req.Ccs
+	assigneeEmail := strings.TrimSpace(req.Assignee)
+	status := req.Status
+	if s.OverrideComponent {
+		componentID = int64(COMPONENT_ID)
+		rawCcs = nil
+		assigneeEmail = ""
+		status = "NEW"
+	}
+
 	ccs := []*issuetracker.User{}
-	for _, email := range req.Ccs {
+	for _, email := range rawCcs {
 		if trimmedEmail := strings.TrimSpace(email); trimmedEmail != "" {
 			ccs = append(ccs, &issuetracker.User{EmailAddress: trimmedEmail})
 		}
 	}
 
 	var reporter *issuetracker.User
-	if reporterEmail := strings.TrimSpace(req.Reporter); reporterEmail != "" {
+	if reporterEmail := strings.TrimSpace(req.Reporter); reporterEmail != "" && !s.OverrideComponent {
 		reporter = &issuetracker.User{EmailAddress: reporterEmail}
 	}
 
 	var assignee *issuetracker.User
-	if assigneeEmail := strings.TrimSpace(req.Assignee); assigneeEmail != "" {
+	if assigneeEmail != "" {
 		assignee = &issuetracker.User{EmailAddress: assigneeEmail}
 	}
 
@@ -593,13 +606,13 @@ func (s *issueTrackerImpl) CreateIssue(ctx context.Context, req *CreateIssueRequ
 			FormattingMode: "MARKDOWN",
 		},
 		IssueState: &issuetracker.IssueState{
-			ComponentId: req.ComponentId,
+			ComponentId: componentID,
 			Priority:    req.Priority,
 			Severity:    req.Severity,
 			Reporter:    reporter,
 			Assignee:    assignee,
 			Ccs:         ccs,
-			Status:      req.Status,
+			Status:      status,
 			Title:       req.Title,
 			Type:        "BUG",
 		},

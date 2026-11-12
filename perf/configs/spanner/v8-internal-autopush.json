@@ -28,7 +28,8 @@
   },
   "experiments": {
     "regressions_trace_id_field": true,
-    "trace_transform": true
+    "trace_transform": true,
+    "override_bug_component": true
   },
   "ingestion_config": {
     "source_config": {
@@ -58,7 +59,7 @@
   },
 
   "issue_tracker_config": {
-    "notification_type": "issuetracker",
+    "notification_type": "none",
     "issue_tracker_api_key_secret_project": "skia-infra-public",
     "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
   },

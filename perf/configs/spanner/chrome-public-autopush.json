@@ -20,10 +20,10 @@
     "chat_url": "http://go/berf-skia-chat",
     "filter_parent_traces": true,
     "notify_config": {
-        "notifications": "anomalygroup"
+        "notifications": "none"
     },
     "issue_tracker_config": {
-        "notification_type": "issuetracker",
+        "notification_type": "none",
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     },
@@ -111,8 +111,8 @@
     "temporal_config": {
         "host_port": "temporal.temporal:7233",
         "namespace": "perf-internal",
-        "grouping_task_queue": "perf.perf-chrome-internal.grouping",
-        "pinpoint_task_queue": "perf.perf-chrome-public.bisect"
+        "grouping_task_queue": "perf.perf-chrome-autopush.grouping",
+        "pinpoint_task_queue": "perf.perf-chrome-autopush.bisect"
     },
     "enable_sheriff_config": true,
     "help_url_override": "http://go/chrome-perf-user-doc",

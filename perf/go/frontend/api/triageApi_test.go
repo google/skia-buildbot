@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/issuetracker/v1"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/perf/go/config"
 	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	issueTrackerMock "go.skia.org/infra/perf/go/issuetracker/mocks"
 )
@@ -153,6 +154,61 @@ func TestFileNewBug_Success(t *testing.T) {
 
 	login.AssertExpectations(t)
 	mockBackend.AssertExpectations(t)
+}
+
+func TestFileNewBug_OverrideBugComponent_NeverCallsChromeperfLegacyBackend(t *testing.T) {
+	origConfig := config.Config
+	t.Cleanup(func() {
+		config.Config = origConfig
+	})
+	config.Config = &config.InstanceConfig{
+		URL:                         "https://chrome-perf-autopush.corp.goog",
+		FetchAnomaliesFromSql:       true,
+		FetchChromePerfAnomalies:    true,
+		SwitchBetweenAnomalySources: true,
+		Experiments: config.Experiments{
+			OverrideBugComponent: true,
+		},
+	}
+
+	login := &aloginMocks.Login{}
+	login.On("HasRole", mock.Anything, roles.Editor).Return(true)
+
+	cpBackend := &MockTriageBackend{}
+	cpBackend.On("FileBug", testutils.AnyContext, mock.AnythingOfType("*issuetracker.FileBugRequest")).Return(&SkiaFileBugResponse{BugId: 99999}, nil).Maybe()
+
+	var capturedSqlReq *perf_issuetracker.FileBugRequest
+	sqlBackend := &MockTriageBackend{}
+	sqlBackend.On("FileBug", testutils.AnyContext, mock.MatchedBy(func(req *perf_issuetracker.FileBugRequest) bool {
+		capturedSqlReq = req
+		return true
+	})).Return(&SkiaFileBugResponse{BugId: 12345}, nil).Maybe()
+
+	api := NewTriageApi(login, cpBackend, sqlBackend, nil)
+
+	fileBugRequest := perf_issuetracker.FileBugRequest{
+		Title:       "Autopush Triage Bug",
+		Description: "Testing override_bug_component on autopush.",
+		Component:   "999999",
+		Assignee:    "sheriff@google.com",
+		Ccs:         []string{"cc1@google.com", "cc2@google.com"},
+		Keys:        []string{"101", "102"},
+	}
+	body, err := json.Marshal(fileBugRequest)
+	require.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/_/triage/file_bug", bytes.NewBuffer(body))
+	r.AddCookie(&http.Cookie{Name: "fetch_anomalies_from_sql", Value: "false"})
+
+	api.FileNewBug(w, r)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	cpBackend.AssertNotCalled(t, "FileBug", mock.Anything, mock.Anything)
+	require.NotNil(t, capturedSqlReq)
+	require.Equal(t, "1325852", capturedSqlReq.Component)
+	require.Empty(t, capturedSqlReq.Assignee)
+	require.Empty(t, capturedSqlReq.Ccs)
 }
 
 func TestEditAnomalies_NotLoggedIn(t *testing.T) {

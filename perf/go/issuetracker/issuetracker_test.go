@@ -678,6 +678,34 @@ func TestCreateIssue_Success(t *testing.T) {
 	require.Equal(t, "NEW", receivedReq.IssueState.Status)
 }
 
+func TestCreateIssue_OverrideComponent_ForcesScratchComponentAndClearsCcs(t *testing.T) {
+	s, _, _, _, ts, receivedReq, _ := createIssueTrackerForTestInterceptRequests(t)
+	defer ts.Close()
+	s.OverrideComponent = true
+
+	req := &CreateIssueRequest{
+		Title:       "Autopush Test Bug",
+		Description: "Autopush Test Description",
+		ComponentId: 999999,
+		Priority:    "P1",
+		Severity:    "S1",
+		Reporter:    "reporter@google.com",
+		Assignee:    "sheriff@google.com",
+		Ccs:         []string{"cc1@google.com", "cc2@google.com"},
+		Status:      "ASSIGNED",
+	}
+
+	issueId, err := s.CreateIssue(context.Background(), req)
+	require.NoError(t, err)
+	require.Equal(t, int64(12345), issueId)
+
+	require.Equal(t, int64(COMPONENT_ID), receivedReq.IssueState.ComponentId)
+	require.Empty(t, receivedReq.IssueState.Ccs)
+	require.Nil(t, receivedReq.IssueState.Assignee)
+	require.Nil(t, receivedReq.IssueState.Reporter)
+	require.Equal(t, "NEW", receivedReq.IssueState.Status)
+}
+
 func TestModifyIssue_BothStatusAndComment(t *testing.T) {
 	var receivedReq issuetracker.ModifyIssueRequest
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

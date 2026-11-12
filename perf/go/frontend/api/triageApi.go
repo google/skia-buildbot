@@ -143,6 +143,13 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 		fileBugRequest.Host = config.Config.URL
 	}
 	fileBugRequest.Host = getOverrideNonProdHost(fileBugRequest.Host)
+	triageBackend := api.getTriageBackend(r)
+	if config.Config != nil && config.Config.Experiments.OverrideBugComponent {
+		fileBugRequest.Component = fmt.Sprintf("%d", perf_issuetracker.COMPONENT_ID)
+		fileBugRequest.Assignee = ""
+		fileBugRequest.Ccs = nil
+		triageBackend = api.sqlTriageBackend
+	}
 	sklog.Debugf("[SkiaTriage] File new bug request received from frontend: %s", fileBugRequest)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -150,7 +157,6 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultRequestProcessTimeout)
 	defer cancel()
 
-	triageBackend := api.getTriageBackend(r)
 	if triageBackend == nil {
 		httputils.ReportError(w, errors.New("triage backend not configured"), "Triage backend is not configured.", http.StatusInternalServerError)
 		return
