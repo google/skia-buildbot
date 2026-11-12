@@ -5,14 +5,16 @@
     state: directory
   register: get_ansible_binaries_directory
 
-# The k8s-config repo is protected, so use .gitcookies to get access to the URL.
+# The k8s-config repo is protected, so use gcloud application-default credentials
+# to get access to the URL.
 # The response is base64 encoded, so decode while we are here.
 - name: Get the version of the app to deploy from the k8s-config repo.
   run_once: true
   delegate_to: 127.0.0.1
   register: get_ansibile_binaries_head_version
   shell:
-    'curl --silent --cookie ~/.gitcookies
+    'curl --silent -H "Authorization: Bearer $(gcloud auth application-default
+    print-access-token)"
     https://skia.googlesource.com/a/k8s-config/+/refs/heads/main/ansible-tags/{{
     get_ansible_binaries_application }}/version.txt?format=TEXT | base64 -d'
 
