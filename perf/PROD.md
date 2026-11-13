@@ -149,3 +149,83 @@ WHERE
     param_value>'showmap_granular' AND
     param_value<'showmap_granulas' LIMIT 100000
 ```
+
+## perf_smoketest_failing
+
+This alert fires when `perf_smoketest_success` stays at 0 for more than 1 hour
+for either `chrome-internal-autopush` or `v8-internal-autopush`.
+
+Check which individual smoke check failed by querying
+`perf_smoketest_check_success{instance,check}` or inspecting the latest verdict
+in GCS and the pod logs:
+
+```
+gcloud storage cat gs://skia-perf-smoketest/perfserver/chrome-internal-autopush.json
+gcloud storage cat gs://skia-perf-smoketest/perfserver/v8-internal-autopush.json
+kubectl --context=gke_skia-infra-corp_us-central1-a_skia-infra-corp -n perf logs deployment/perf-smoketest --tail=100
+```
+
+If `historical_query` returns an empty traceset because the pinned benchmark or
+bot stopped reporting data, update the target query or 24-hour window in
+`skia-infra-corp/perf-smoketest.yaml` in `k8s-config`.
+
+## perf_smoketest_stale
+
+This alert fires when `perf_smoketest_last_run_timestamp` is more than 15
+minutes old. Check whether the `perf-smoketest` pod is crash-looping, pending,
+or failing to fetch `pipeline/stages.json` from Gitiles or write verdicts to
+`gs://skia-perf-smoketest`:
+
+```
+kubectl --context=gke_skia-infra-corp_us-central1-a_skia-infra-corp -n perf get pods -l app=perf-smoketest
+kubectl --context=gke_skia-infra-corp_us-central1-a_skia-infra-corp -n perf describe pod -l app=perf-smoketest
+```
+
+## Smoke test gate and release runbook
+
+The Louhi flow "Promote Perfserver Prod" runs weekly on Tuesday at 10:00 PT (and
+can be triggered manually at any time). Before `stagemanager` promotes `latest`
+to `prod`, `perf-smoketest gate` verifies that both `chrome-internal-autopush`
+and `v8-internal-autopush` have a `pass` verdict for the `latest` `perfserver`
+git hash with `consecutive_passes >= 3` and `finished_at` within the last 15
+minutes.
+
+### Reading a BLOCK table and re-running
+
+When the gate blocks promotion, the GCB step exits with status 1 and prints a
+table listing every failed condition per instance (`status`, `app_version`
+mismatch, short streak, or stale verdict age). Fix the underlying autopush issue
+or wait for 3 consecutive passing runs (~9 minutes after rollout), then click
+Run on the "Promote Perfserver Prod" flow in Louhi.
+
+### Pre-promotion check for grouping_workflow
+
+Smoke tests check only `perfserver`. Before voting `Code-Review +1` on the
+generated promotion CL, verify that `grouping_workflow:latest` started and is
+polling in `skia-infra-public-dev`:
+
+1. Run:
+   ```
+   kubectl --context=gke_skia-infra-public-dev_us-central1-a_skia-infra-public-dev -n perf get pods -l app=perf-grouping-worker -o jsonpath='{range .items[*]}{.metadata.name}{"  "}{.status.phase}{"  "}{.status.containerStatuses[0].restartCount}{"  "}{.status.containerStatuses[0].imageID}{"\n"}{end}'
+   ```
+2. Confirm every pod runs the `latest` `grouping_workflow` digest from
+   `pipeline/stages.json`, is `Running`, and is not restarting.
+3. Confirm live pollers at
+   https://temporal-ui-dev.corp.goog/namespaces/perf-internal/task-queues/perf.perf-chrome-internal.grouping.
+
+### Emergency gate bypass and rollback
+
+To promote during an autopush infrastructure outage unrelated to the build,
+trigger "Promote Perfserver Prod" manually in Louhi with `_SKIP_GATE=true`. The
+CL description records that the gate was skipped along with the Louhi execution
+ID.
+
+To roll back a bad production push, run the "Rollback Perfserver Prod" flow in
+Louhi, which restores `prod` from `previous_prod`.
+
+### Updating pinned gate and cd digests in skia-infra
+
+`skia-infra/.louhi/stage-types/promote-perfserver-prod.yaml` pins
+`gcr.io/skia-public/perf_smoketest` and `gcr.io/skia-public/cd` by digest. After
+modifying `perf/go/smoketest` or `cd/`, rebuild the image in Louhi and update
+the digest in `promote-perfserver-prod.yaml`.
