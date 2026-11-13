@@ -5,11 +5,13 @@ go_library(
     name = "smoketest_lib",
     srcs = [
         "checks.go",
+        "gate.go",
         "verdict.go",
     ],
     importpath = "go.skia.org/infra/perf/go/smoketest",
     visibility = ["//visibility:private"],
     deps = [
+        "//cd/go/stages",
         "//go/gcs",
         "//go/gcs/gcsclient",
         "//go/httputils",
@@ -24,6 +26,7 @@ go_test(
     name = "smoketest_test",
     srcs = [
         "checks_test.go",
+        "gate_test.go",
         "verdict_test.go",
     ],
     embed = [":smoketest_lib"],
