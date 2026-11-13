@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/skerr"
@@ -22,9 +23,13 @@ import (
 
 // Check names, as accepted by --checks and recorded in verdicts.
 const (
-	checkVersion   = "version"
-	checkHealth    = "health"
-	checkTemplates = "templates"
+	checkVersion         = "version"
+	checkHealth          = "health"
+	checkTemplates       = "templates"
+	checkParamset        = "paramset"
+	checkHistoricalQuery = "historical_query"
+	checkRegCount        = "reg_count"
+	checkSheriffList     = "sheriff_list"
 )
 
 // Check result statuses, as recorded in verdicts.
@@ -197,6 +202,135 @@ func templatesCheck(pages []string) Check {
 			if _, err := t.windowPerf(ctx, page); err != nil {
 				return err
 			}
+		}
+		return nil
+	}}
+}
+
+func paramsetCheck(required []string) Check {
+	return Check{Name: checkParamset, Run: func(ctx context.Context, t *target) error {
+		var resp struct {
+			DataFrame struct {
+				ParamSet map[string][]string `json:"paramset"`
+			} `json:"dataframe"`
+		}
+		if err := t.getJSON(ctx, "/_/initpage/", &resp); err != nil {
+			return err
+		}
+		var missing []string
+		for _, key := range required {
+			if len(resp.DataFrame.ParamSet[key]) == 0 {
+				missing = append(missing, key)
+			}
+		}
+		if len(missing) > 0 {
+			return skerr.Fmt("paramset has no values for %s", strings.Join(missing, ", "))
+		}
+		return nil
+	}}
+}
+
+// frameRequest and progressResponse mirror the JSON of frame.FrameRequest and
+// progress.SerializedProgress, because importing those packages would pull
+// the perfserver backend into this binary.
+type frameRequest struct {
+	Begin   int64    `json:"begin"`
+	End     int64    `json:"end"`
+	Queries []string `json:"queries"`
+	TZ      string   `json:"tz"`
+}
+
+type progressResponse struct {
+	Status   string `json:"status"`
+	Messages []struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	} `json:"messages"`
+	Results struct {
+		DataFrame struct {
+			TraceSet map[string]json.RawMessage `json:"traceset"`
+		} `json:"dataframe"`
+	} `json:"results"`
+	URL string `json:"url"`
+}
+
+func historicalQueryCheck(defaultQuery string, begin, end time.Time, pollInterval time.Duration) Check {
+	return Check{Name: checkHistoricalQuery, Run: func(ctx context.Context, t *target) error {
+		query := t.frameQuery
+		if query == "" {
+			query = defaultQuery
+		}
+		reqBody, err := json.Marshal(frameRequest{Begin: begin.Unix(), End: end.Unix(), Queries: []string{query}, TZ: "UTC"})
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		respBody, err := t.do(ctx, http.MethodPost, "/_/frame/start", reqBody)
+		if err != nil {
+			return err
+		}
+		var p progressResponse
+		if err := json.Unmarshal(respBody, &p); err != nil {
+			return skerr.Wrapf(err, "decoding POST /_/frame/start")
+		}
+		// Same contract as startRequest in perf/modules/progress/progress.ts:
+		// every Running response names the URL to poll next.
+		for p.Status == "Running" {
+			if !strings.HasPrefix(p.URL, "/") {
+				return skerr.Fmt("progress response has no polling url: %q", p.URL)
+			}
+			select {
+			case <-ctx.Done():
+				return skerr.Fmt("frame request still Running at the check deadline: %s", ctx.Err())
+			case <-time.After(pollInterval):
+			}
+			var next progressResponse
+			if err := t.getJSON(ctx, p.URL, &next); err != nil {
+				return err
+			}
+			p = next
+		}
+		switch p.Status {
+		case "Finished":
+			if len(p.Results.DataFrame.TraceSet) == 0 {
+				return skerr.Fmt("frame request finished with an empty traceset")
+			}
+			return nil
+		case "Error":
+			msgs := make([]string, 0, len(p.Messages))
+			for _, m := range p.Messages {
+				msgs = append(msgs, m.Key+": "+m.Value)
+			}
+			return skerr.Fmt("frame request failed: %s", strings.Join(msgs, "; "))
+		default:
+			return skerr.Fmt("unexpected progress status %q", p.Status)
+		}
+	}}
+}
+
+func regCountCheck() Check {
+	return Check{Name: checkRegCount, Run: func(ctx context.Context, t *target) error {
+		// The handler encodes an untagged struct{ Count int }.
+		var resp struct{ Count *int }
+		if err := t.getJSON(ctx, "/_/reg/count", &resp); err != nil {
+			return err
+		}
+		if resp.Count == nil {
+			return skerr.Fmt("GET /_/reg/count has no Count field")
+		}
+		return nil
+	}}
+}
+
+// sheriffListCheck is opt-in because every /_/anomalies/* handler answers
+// anonymous requests with 401.
+func sheriffListCheck() Check {
+	return Check{Name: checkSheriffList, Run: func(ctx context.Context, t *target) error {
+		body, err := t.do(ctx, http.MethodGet, "/_/anomalies/sheriff_list", nil)
+		if err != nil {
+			return err
+		}
+		if !json.Valid(body) {
+			return skerr.Fmt("GET /_/anomalies/sheriff_list returned invalid JSON")
 		}
 		return nil
 	}}

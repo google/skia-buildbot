@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
@@ -18,6 +19,11 @@ import (
 )
 
 const testPollInterval = 5 * time.Millisecond
+
+var (
+	testBegin = time.Date(2026, 10, 27, 0, 0, 0, 0, time.UTC)
+	testEnd   = testBegin.Add(24 * time.Hour)
+)
 
 func newTestTarget(t *testing.T, h http.Handler) *target {
 	srv := httptest.NewServer(h)
@@ -50,6 +56,31 @@ func versionHandler(calls *atomic.Int32, versions ...string) http.Handler {
 		_, _ = w.Write([]byte(pageHTML(versions[min(n, len(versions))-1])))
 	})
 }
+
+// frameHandler answers POST /_/frame/start with a Running progress, sends the
+// decoded request body to bodies, and serves one progress body per poll,
+// repeating the last one.
+func frameHandler(bodies chan<- map[string]any, polls *atomic.Int32, progress ...string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/_/frame/start":
+			var body map[string]any
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			bodies <- body
+			_, _ = w.Write([]byte(`{"status":"Running","messages":[],"url":"/_/status/abc"}`))
+		case r.Method == http.MethodGet && r.URL.Path == "/_/status/abc":
+			n := int(polls.Add(1))
+			_, _ = w.Write([]byte(progress[min(n, len(progress))-1]))
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+const runningProgress = `{"status":"Running","messages":[],"url":"/_/status/abc"}`
 
 func TestExtractWindowPerf_SpacedAndCompactForms_ReturnsContext(t *testing.T) {
 	for name, page := range map[string]string{
@@ -149,6 +180,151 @@ func TestTemplatesCheck_Redirect_FailsWithLocation(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, errorMessage(err), "GET /m/ returned 302")
 	assert.Contains(t, errorMessage(err), "Location /login?continue=/m/")
+}
+
+func TestParamsetCheck_RequiredKeys(t *testing.T) {
+	tests := []struct {
+		name    string
+		status  int
+		body    string
+		wantErr string
+	}{
+		{"all keys", http.StatusOK, `{"dataframe":{"paramset":{"benchmark":["b"],"bot":["m"],"test":["t"],"extra":["x"]}}}`, ""},
+		{"missing key", http.StatusOK, `{"dataframe":{"paramset":{"benchmark":["b"],"bot":["m"]}}}`, "paramset has no values for test"},
+		{"empty values", http.StatusOK, `{"dataframe":{"paramset":{"benchmark":[],"bot":["m"],"test":["t"]}}}`, "paramset has no values for benchmark"},
+		{"no dataframe", http.StatusOK, `{"dataframe":null}`, "paramset has no values for benchmark, bot, test"},
+		{"not found", http.StatusNotFound, "404 page not found", "GET /_/initpage/ returned 404"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tgt := newTestTarget(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/_/initpage/" {
+					http.NotFound(w, r)
+					return
+				}
+				w.WriteHeader(tc.status)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+
+			err := runCheck(t, paramsetCheck([]string{"benchmark", "bot", "test"}), tgt)
+			if tc.wantErr == "" {
+				require.NoError(t, err)
+				return
+			}
+			require.Error(t, err)
+			assert.Contains(t, errorMessage(err), tc.wantErr)
+		})
+	}
+}
+
+func TestHistoricalQueryCheck_FollowsProgressURL_Passes(t *testing.T) {
+	bodies := make(chan map[string]any, 1)
+	var polls atomic.Int32
+	tgt := newTestTarget(t, frameHandler(bodies, &polls,
+		runningProgress,
+		`{"status":"Finished","messages":[],"results":{"dataframe":{"traceset":{",arch=x86_64,os=Ubuntu,":[1,2]}}},"url":"/_/status/abc"}`))
+
+	require.NoError(t, runCheck(t, historicalQueryCheck("arch=x86_64&os=Ubuntu", testBegin, testEnd, testPollInterval), tgt))
+	assert.Equal(t, int32(2), polls.Load())
+	assert.Equal(t, map[string]any{
+		"begin":   float64(testBegin.Unix()),
+		"end":     float64(testEnd.Unix()),
+		"queries": []any{"arch=x86_64&os=Ubuntu"},
+		"tz":      "UTC",
+	}, <-bodies)
+}
+
+func TestHistoricalQueryCheck_PerTargetQueryOverridesDefault(t *testing.T) {
+	bodies := make(chan map[string]any, 1)
+	var polls atomic.Int32
+	tgt := newTestTarget(t, frameHandler(bodies, &polls,
+		`{"status":"Finished","messages":[],"results":{"dataframe":{"traceset":{",benchmark=v8,":[1]}}},"url":"/_/status/abc"}`))
+	tgt.frameQuery = "benchmark=v8&bot=linux-perf"
+
+	require.NoError(t, runCheck(t, historicalQueryCheck("benchmark=default", testBegin, testEnd, testPollInterval), tgt))
+	assert.Equal(t, map[string]any{
+		"begin":   float64(testBegin.Unix()),
+		"end":     float64(testEnd.Unix()),
+		"queries": []any{"benchmark=v8&bot=linux-perf"},
+		"tz":      "UTC",
+	}, <-bodies)
+}
+
+func TestHistoricalQueryCheck_EmptyTraceSet_Fails(t *testing.T) {
+	var polls atomic.Int32
+	tgt := newTestTarget(t, frameHandler(make(chan map[string]any, 1), &polls,
+		`{"status":"Finished","messages":[],"results":{"dataframe":{"traceset":{}}},"url":"/_/status/abc"}`))
+
+	err := runCheck(t, historicalQueryCheck("arch=x86_64", testBegin, testEnd, testPollInterval), tgt)
+	require.Error(t, err)
+	assert.Contains(t, errorMessage(err), "empty traceset")
+}
+
+func TestHistoricalQueryCheck_ErrorStatus_FailsWithMessages(t *testing.T) {
+	var polls atomic.Int32
+	tgt := newTestTarget(t, frameHandler(make(chan map[string]any, 1), &polls,
+		`{"status":"Error","messages":[{"key":"Error","value":"Failed to load data"}],"url":"/_/status/abc"}`))
+
+	err := runCheck(t, historicalQueryCheck("arch=x86_64", testBegin, testEnd, testPollInterval), tgt)
+	require.Error(t, err)
+	assert.Contains(t, errorMessage(err), "frame request failed: Error: Failed to load data")
+}
+
+func TestHistoricalQueryCheck_NeverFinishes_TimesOut(t *testing.T) {
+	var polls atomic.Int32
+	tgt := newTestTarget(t, frameHandler(make(chan map[string]any, 1), &polls, runningProgress))
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	err := historicalQueryCheck("arch=x86_64", testBegin, testEnd, testPollInterval).Run(ctx, tgt)
+	require.Error(t, err)
+	assert.Contains(t, errorMessage(err), "deadline")
+	assert.Greater(t, polls.Load(), int32(1))
+}
+
+func TestRegCountCheck_Responses(t *testing.T) {
+	tests := []struct {
+		name    string
+		status  int
+		body    string
+		wantErr bool
+	}{
+		{"count", http.StatusOK, `{"Count":3}`, false},
+		{"zero count", http.StatusOK, `{"Count":0}`, false},
+		{"no Count field", http.StatusOK, `{}`, true},
+		{"array", http.StatusOK, `[]`, true},
+		{"not json", http.StatusOK, `<html></html>`, true},
+		{"server error", http.StatusInternalServerError, `{"Count":1}`, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tgt := newTestTarget(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/_/reg/count" {
+					http.NotFound(w, r)
+					return
+				}
+				w.WriteHeader(tc.status)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+
+			err := runCheck(t, regCountCheck(), tgt)
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestSheriffListCheck_Unauthorized_Fails(t *testing.T) {
+	tgt := newTestTarget(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "User is not logged in or is not authorized.", http.StatusUnauthorized)
+	}))
+
+	err := runCheck(t, sheriffListCheck(), tgt)
+	require.Error(t, err)
+	assert.Contains(t, errorMessage(err), "GET /_/anomalies/sheriff_list returned 401")
 }
 
 func TestTarget_SendsHostAndForwardedProto(t *testing.T) {
