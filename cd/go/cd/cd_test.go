@@ -15,11 +15,16 @@ import (
 
 	"go.skia.org/infra/go/docker"
 	docker_mocks "go.skia.org/infra/go/docker/mocks"
+	"go.skia.org/infra/go/exec"
+	exec_testutils "go.skia.org/infra/go/exec/testutils"
+	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/task_driver/go/td"
 )
 
 func TestUploadedCLRegex(t *testing.T) {
@@ -153,4 +158,42 @@ func TestMatchDockerImagesToGitCommits(t *testing.T) {
 			Tags: []string{"git-3333333333333333333333333333333333333333"},
 		},
 	}, images)
+}
+
+func TestMaybeUploadCL_AppendsCommitBody(t *testing.T) {
+	const fakeGit = "/path/to/fake/git"
+	const fakeChangeID = "Change-Id: I1111222233334444555566667777888899990000"
+
+	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
+		mockExec := exec.CommandCollector{}
+		ctx = git_common.WithGitFinder(ctx, func() (string, error) {
+			return fakeGit, nil
+		})
+		mockExec.SetDelegateRun(func(_ context.Context, cmd *exec.Command) error {
+			if len(cmd.Args) == 1 && cmd.Args[0] == "--version" {
+				_, _ = cmd.CombinedOutput.Write([]byte("git version 2.40.0"))
+				return nil
+			}
+			if len(cmd.Args) == 3 && cmd.Args[0] == "diff" {
+				_, _ = cmd.CombinedOutput.Write([]byte("pipeline/stages.json\n"))
+				return nil
+			}
+			return nil
+		})
+		ctx = td.WithExecRunFn(ctx, mockExec.Run)
+		ctx = rubberstamper.WithDeterministicChangeID(ctx, fakeChangeID)
+
+		err := MaybeUploadCL(ctx, "/tmp/checkout", "Promote perfserver to prod", "OVERALL: PASS\n\nCommit range: https://skia.googlesource.com/buildbot/+log/aaa..bbb", "", "", "", "")
+		require.NoError(t, err)
+
+		exec_testutils.AssertCommandsMatch(t, [][]string{
+			{fakeGit, "--version"},
+			{fakeGit, "diff", "--name-only", "HEAD"},
+			{fakeGit, "commit", "-a", "-m", "Promote perfserver to prod\n\nOVERALL: PASS\n\nCommit range: https://skia.googlesource.com/buildbot/+log/aaa..bbb\n\n" + fakeChangeID},
+			{fakeGit, "push", "origin", rubberstamper.PushRequestAutoSubmit},
+		}, mockExec.Commands())
+		return nil
+	})
+	require.Empty(t, res.Errors)
+	require.Empty(t, res.Exceptions)
 }

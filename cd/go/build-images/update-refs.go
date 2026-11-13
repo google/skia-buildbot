@@ -149,7 +149,7 @@ func updateRefs(ctx context.Context, dockerClient docker.Client, repo, workspace
 		imageList = append(imageList, path.Base(image.Image))
 	}
 	commitSubject := fmt.Sprintf("Update %s", strings.Join(imageList, ", "))
-	return cd.MaybeUploadCL(ctx, checkoutDir, commitSubject, srcRepo, srcCommit, louhiPubsubProject, executionID)
+	return cd.MaybeUploadCL(ctx, checkoutDir, commitSubject, "", srcRepo, srcCommit, louhiPubsubProject, executionID)
 }
 
 func findRegexesAndReplaces(image *SingleImageInfo, digest string) ([]*regexp.Regexp, []string) {

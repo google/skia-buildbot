@@ -29,9 +29,10 @@ var uploadedCLRegex = regexp.MustCompile(`https://.*review\.googlesource\.com.*\
 // MaybeUploadCL uploads a CL if there are any diffs in checkoutDir. It builds
 // the commit message starting with the given commitSubject. If srcRepo and
 // srcCommit are provided, a link back to the source commit is added to the
-// commit message.  If louhiPubsubProject and louhiExecutionID are provided,
-// a pub/sub message is sent after the CL is uploaded.
-func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, srcRepo, srcCommit, louhiPubsubProject, louhiExecutionID string) error {
+// commit message. If commitBody is non-empty, it is appended before Change-Id.
+// If louhiPubsubProject and louhiExecutionID are provided, a pub/sub message
+// is sent after the CL is uploaded.
+func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, commitBody, srcRepo, srcCommit, louhiPubsubProject, louhiExecutionID string) error {
 	ctx = td.StartStep(ctx, td.Props("MaybeUploadCL"))
 	defer td.EndStep(ctx)
 
@@ -72,6 +73,9 @@ func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, srcRepo, src
 		commitMsg += fmt.Sprintf("%s/+/%s\n\n", srcRepo, srcCommit)
 		commitMsg += commitDetails.Subject
 		commitMsg += "\n\n"
+	}
+	if trimmedBody := strings.TrimSpace(commitBody); trimmedBody != "" {
+		commitMsg += trimmedBody + "\n\n"
 	}
 	commitMsg += rubberstamper.RandomChangeID(ctx)
 

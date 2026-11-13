@@ -41,6 +41,7 @@ import (
 func main() {
 	const (
 		flagCommit             = "commit"
+		flagCommitBodyFile     = "commit-body-file"
 		flagCommitSubject      = "commit-subject"
 		flagEmail              = "email"
 		flagExtraBazelArg      = "extra-bazel-arg"
@@ -208,11 +209,24 @@ func main() {
 						Usage:    "Email address to attribute the build.",
 						Required: true,
 					},
+					&cli.StringFlag{
+						Name:     flagCommitBodyFile,
+						Usage:    "Path to a file whose contents are appended to the commit message body.",
+						Required: false,
+					},
 				},
 				Action: func(ctx *cli.Context) error {
 					cwd, err := os.Getwd()
 					if err != nil {
 						return skerr.Wrap(err)
+					}
+					var commitBody string
+					if bodyFile := ctx.String(flagCommitBodyFile); bodyFile != "" {
+						b, err := os.ReadFile(bodyFile)
+						if err != nil {
+							return td.FailStep(ctx.Context, skerr.Wrapf(err, "reading --commit-body-file %s", bodyFile))
+						}
+						commitBody = string(b)
 					}
 					// Initialize git authentication.
 					ts, err := git_steps.Init(ctx.Context, true)
@@ -222,7 +236,7 @@ func main() {
 					if _, err := gitauth.New(ctx.Context, ts, "/tmp/.gitcookies", true, ctx.String(flagEmail)); err != nil {
 						return td.FailStep(ctx.Context, err)
 					}
-					return cd.MaybeUploadCL(ctx.Context, cwd, ctx.String(flagCommitSubject), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))
+					return cd.MaybeUploadCL(ctx.Context, cwd, ctx.String(flagCommitSubject), commitBody, ctx.String(flagSourceRepo), ctx.String(flagSourceCommit), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))
 				},
 			},
 		},
