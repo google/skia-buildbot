@@ -415,6 +415,7 @@ func gateCmd(ctx context.Context, args []string, stdout, stderr io.Writer, gcsOv
 	instances := common.FSNewMultiStringFlag(fs, "instances", nil, "Comma-separated instance names that must pass.")
 	minPasses := fs.Int("min_consecutive_passes", 3, "Minimum consecutive_passes required per instance.")
 	maxAge := fs.Duration("max_age", 15*time.Minute, "Maximum age of finished_at.")
+	reportFile := fs.String("report_file", "", "Optional path to write the smoke test gate report.")
 
 	if err := fs.Parse(args); err != nil {
 		return 2
@@ -461,6 +462,13 @@ func gateCmd(ctx context.Context, args []string, stdout, stderr io.Writer, gcsOv
 	}
 	decisions, overallPass := evaluateGate(latest, *instances, verdicts, *minPasses, *maxAge, time.Now())
 	printGateTable(stdout, latest, decisions, overallPass)
+	if *reportFile != "" {
+		report := formatGateReport(sf, latest, decisions, overallPass)
+		if err := os.WriteFile(*reportFile, []byte(report), 0o644); err != nil {
+			_, _ = fmt.Fprintf(stderr, "error: writing report_file %s: %s\n", *reportFile, errorMessage(err))
+			return 2
+		}
+	}
 	if !overallPass {
 		return 1
 	}

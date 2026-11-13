@@ -229,3 +229,48 @@ func TestEvaluateGate(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatGateReport_IncludesCommitRangeAndCompanionImages(t *testing.T) {
+	path := writeStagesFixture(t, `{
+	  "default_git_repo": "https://skia.googlesource.com/buildbot.git",
+	  "images": {
+	    "gcr.io/skia-public/perfserver": {
+	      "stages": {
+	        "latest": {"git_hash": "70e8b73d508ccfa242a67b29f8dd4647a67c3653", "digest": "sha256:ced38240a97b"},
+	        "prod": {"git_hash": "f588ad57c45fb1308f10699beb8449da26e00a35", "digest": "sha256:fe598856df12"}
+	      }
+	    },
+	    "gcr.io/skia-public/backendserver": {
+	      "stages": {
+	        "latest": {"git_hash": "06253ddd2a21566911267d8d9ce031adc6dbef3e", "digest": "sha256:70559288001e"},
+	        "prod": {"git_hash": "3f6d8459d32b9c02174a25f1a7957e912fccd973", "digest": "sha256:e4046544a031"}
+	      }
+	    },
+	    "gcr.io/skia-public/grouping_workflow": {
+	      "stages": {
+	        "latest": {"git_hash": "06253ddd2a21566911267d8d9ce031adc6dbef3e", "digest": "sha256:1bbe5f34f1f3"},
+	        "prod": {"git_hash": "3f6d8459d32b9c02174a25f1a7957e912fccd973", "digest": "sha256:62574fa2c4e9"}
+	      }
+	    }
+	  }
+	}`)
+	sf, err := latestStageFile(path)
+	require.NoError(t, err)
+	decisions := []gateDecision{
+		{
+			Instance:          "chrome-internal-autopush",
+			Decision:          gatePass,
+			AppVersion:        "70e8b73d508ccfa242a67b29f8dd4647a67c3653",
+			ConsecutivePasses: 3,
+			Age:               3 * time.Minute,
+			HasVerdict:        true,
+		},
+	}
+
+	report := formatGateReport(sf, "70e8b73d508ccfa242a67b29f8dd4647a67c3653", decisions, true)
+	assert.Contains(t, report, "OVERALL: PASS")
+	assert.Contains(t, report, "https://skia.googlesource.com/buildbot/+log/f588ad57c45fb1308f10699beb8449da26e00a35..70e8b73d508ccfa242a67b29f8dd4647a67c3653")
+	assert.Contains(t, report, "backendserver: 3f6d8459d3 -> 06253ddd2a (sha256:70559288001e): Same digest as autopush; not functionally checked by smoke tests.")
+	assert.Contains(t, report, "grouping_workflow: 3f6d8459d3 -> 06253ddd2a (sha256:1bbe5f34f1f3): latest started and is polling in skia-infra-public-dev; no workflows executed before prod.")
+	assert.Contains(t, report, "Rollback Perfserver Prod")
+}

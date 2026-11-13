@@ -11,6 +11,8 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -446,15 +448,21 @@ func TestLoopAndGate_WithGCSVerdictsAndMetrics(t *testing.T) {
 	}).Get())
 
 	stagesPath := writeStagesFixture(t, stagesJSON)
+	reportPath := filepath.Join(t.TempDir(), "gate_report.txt")
 	var gateOut, gateErr bytes.Buffer
 	gateCode := runCLIWithDeps(t.Context(), []string{
 		"gate",
 		"--stages_file=" + stagesPath,
 		"--verdict_dir=gs://skia-perf-smoketest/perfserver",
 		"--instances=chrome-internal-autopush",
+		"--report_file=" + reportPath,
 	}, &gateOut, &gateErr, memGCS)
 	assert.Equal(t, 0, gateCode, "stderr: %s", gateErr.String())
 	assert.Contains(t, gateOut.String(), "OVERALL: PASS")
+	reportBytes, err := os.ReadFile(reportPath)
+	require.NoError(t, err)
+	assert.Contains(t, string(reportBytes), "OVERALL: PASS")
+	assert.Contains(t, string(reportBytes), "Rollback Perfserver Prod")
 }
 
 func TestLoopCmd_CancellationAndErrorPaths(t *testing.T) {

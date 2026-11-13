@@ -6,12 +6,14 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -21,9 +23,11 @@ import (
 )
 
 const (
-	perfserverImage = "gcr.io/skia-public/perfserver"
-	gatePass        = "PASS"
-	gateBlock       = "BLOCK"
+	perfserverImage       = "gcr.io/skia-public/perfserver"
+	backendserverImage    = "gcr.io/skia-public/backendserver"
+	groupingWorkflowImage = "gcr.io/skia-public/grouping_workflow"
+	gatePass              = "PASS"
+	gateBlock             = "BLOCK"
 )
 
 func latestStageFile(stagesFile string) (*stages.StageFile, error) {
@@ -202,4 +206,67 @@ func printGateTable(w io.Writer, latest string, decisions []gateDecision, overal
 		overall = gatePass
 	}
 	_, _ = fmt.Fprintf(w, "OVERALL: %s (latest=%s)\n", overall, shortHash(latest))
+}
+
+func formatGateReport(sf *stages.StageFile, latest string, decisions []gateDecision, overallPass bool) string {
+	var buf bytes.Buffer
+	printGateTable(&buf, latest, decisions, overallPass)
+
+	if perfImg := sf.Images[perfserverImage]; perfImg != nil {
+		prodStage := perfImg.Stages["prod"]
+		latestStage := perfImg.Stages["latest"]
+		repoURL := perfImg.GitRepo
+		if repoURL == "" {
+			repoURL = sf.DefaultGitRepo
+		}
+		repoURL = strings.TrimSuffix(repoURL, ".git")
+		if repoURL == "" {
+			repoURL = "https://skia.googlesource.com/buildbot"
+		}
+		if prodStage != nil && latestStage != nil && prodStage.GitHash != "" && latestStage.GitHash != "" {
+			_, _ = fmt.Fprintf(&buf, "\nCommit range: %s/+log/%s..%s\n", repoURL, prodStage.GitHash, latestStage.GitHash)
+		}
+	}
+
+	companionNotes := []struct {
+		image string
+		note  string
+	}{
+		{
+			image: backendserverImage,
+			note:  "Same digest as autopush; not functionally checked by smoke tests.",
+		},
+		{
+			image: groupingWorkflowImage,
+			note:  "latest started and is polling in skia-infra-public-dev; no workflows executed before prod.",
+		},
+	}
+	var companionLines []string
+	for _, c := range companionNotes {
+		img := sf.Images[c.image]
+		if img == nil {
+			continue
+		}
+		prodStage := img.Stages["prod"]
+		latestStage := img.Stages["latest"]
+		if prodStage == nil || latestStage == nil {
+			continue
+		}
+		companionLines = append(companionLines, fmt.Sprintf("- %s: %s -> %s (%s): %s",
+			path.Base(c.image),
+			shortHash(prodStage.GitHash),
+			shortHash(latestStage.GitHash),
+			latestStage.Digest,
+			c.note,
+		))
+	}
+	if len(companionLines) > 0 {
+		_, _ = fmt.Fprintln(&buf, "\nCompanion images:")
+		for _, line := range companionLines {
+			_, _ = fmt.Fprintln(&buf, line)
+		}
+	}
+
+	_, _ = fmt.Fprintln(&buf, "\nRollback: run the \"Rollback Perfserver Prod\" flow in Louhi.")
+	return buf.String()
 }
