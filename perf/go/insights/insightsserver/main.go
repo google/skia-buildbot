@@ -21,11 +21,10 @@ import (
 	"flag"
 	"net/http"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 	"time"
 
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -166,26 +165,32 @@ func run() error {
 		MaxHeaderBytes:    64 << 10,
 	}
 
+	// Shut down gracefully on SIGINT or SIGTERM: the cleanup package runs the AtExit functions,
+	// then exits. common.Init* would enable it, but it isn't used (see main).
+	shutdownDone := make(chan struct{})
+	cleanup.AtExit(func() {
+		defer close(shutdownDone)
+		sklog.Infof("Shutting down.")
+		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			sklog.Errorf("Failed to shut down the server: %s", err)
+		}
+	})
+	cleanup.Enable()
+
 	errCh := make(chan error, 1)
 	go func() {
 		errCh <- srv.ListenAndServe()
 	}()
 	sklog.Infof("perfinsights serves the Perf instance %q at %s (MCP endpoint: %s/mcp, auth required: %t, UberProxy PEN: %t).", name, base, base, netCfg.RequireAuth, *uberproxyPEN)
 
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case err := <-errCh:
-		if errors.Is(err, http.ErrServerClosed) {
-			return nil
-		}
+	if err := <-errCh; !errors.Is(err, http.ErrServerClosed) {
 		return skerr.Wrap(err)
-	case sig := <-stop:
-		sklog.Infof("Received %s, shutting down.", sig)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
-	defer cancel()
-	return skerr.Wrap(srv.Shutdown(ctx))
+	// The AtExit function closed the server: let it finish the requests in flight.
+	<-shutdownDone
+	return nil
 }
 
 // newService creates the insights service on top of the Perf stores. Only read methods are

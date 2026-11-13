@@ -11,6 +11,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/insights/insightsserver",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/cleanup",
         "//go/metrics2",
         "//go/roles",
         "//go/skerr",
