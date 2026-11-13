@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trace viewer &middot; perfinsights &middot; {{.InstanceName}}</title>
+  <link rel="stylesheet" href="{{.BasePath}}/static/site.css">
+  <script src="{{.BasePath}}/static/site.js" defer></script>
+</head>
+<body data-page="trace" data-base="{{.BasePath}}">
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="{{.BasePath}}/">
+        <span class="logo" aria-hidden="true">&#9650;</span>
+        <span class="name">perfinsights</span>
+        <span class="tag">trace viewer &middot; v{{.Version}}</span>
+      </a>
+      <div class="instance">
+        <span class="label">Perf instance</span>
+        <span class="value">{{.InstanceName}}</span>
+        <span class="badge badge-{{.Visibility}}">{{.Visibility}}</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="crumbs"><a href="{{.BasePath}}/">&larr; perfinsights</a></nav>
+
+    <section class="trace-head">
+      <h1 id="trace-title">Trace of an anomaly</h1>
+      <p class="muted">
+        The measurements around an anomaly, read from the trace store, with what Perf stored when it
+        detected it. Open this page from a <strong>Trace</strong> link on the
+        <a href="{{.BasePath}}/">perfinsights page</a>, or paste an anomaly id. Nothing here changes Perf.
+      </p>
+      <div class="controls">
+        <label>Anomaly id
+          <input id="trace-id" class="wide" type="text" placeholder="e.g. 68bf6dad-916e-43f4-b59e-4d72d19f5ee3" spellcheck="false" autocomplete="off">
+        </label>
+        <label>Commits before
+          <select id="trace-before" class="narrow">
+            <option value="50">50</option>
+            <option value="100" selected>100</option>
+            <option value="250">250</option>
+            <option value="500">500</option>
+          </select>
+        </label>
+        <label>Commits after
+          <select id="trace-after" class="narrow">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="250">250</option>
+          </select>
+        </label>
+        <button id="trace-run" type="button" class="primary">Show trace</button>
+      </div>
+      <div id="trace-status" class="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="trace-result"></section>
+    <section id="trace-details"></section>
+  </main>
+
+  <footer class="wrap muted">
+    The data is {{.Visibility}}: do not share it outside the audience allowed for this Perf instance.
+    perfinsights is a proof of concept for the perf.v1 API.
+  </footer>
+</body>
+</html>

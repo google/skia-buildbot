@@ -1,0 +1,20 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "devseed_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/insights/devseed",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/insights/localonly",
+        "@com_github_jackc_pgx_v4//:pgx",
+    ],
+)
+
+go_binary(
+    name = "devseed",
+    embed = [":devseed_lib"],
+    visibility = ["//visibility:public"],
+)

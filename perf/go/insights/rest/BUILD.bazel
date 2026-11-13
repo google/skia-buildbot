@@ -1,0 +1,34 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "rest",
+    srcs = ["rest.go"],
+    embedsrcs = ["openapi.json"],
+    importpath = "go.skia.org/infra/perf/go/insights/rest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/insights",
+        "@com_github_go_chi_chi_v5//:chi",
+    ],
+)
+
+go_test(
+    name = "rest_test",
+    srcs = ["rest_test.go"],
+    embed = [":rest"],
+    deps = [
+        "//perf/go/clustering2",
+        "//perf/go/dataframe",
+        "//perf/go/insights",
+        "//perf/go/regression",
+        "//perf/go/subscription/proto/v1",
+        "//perf/go/types",
+        "//perf/go/ui/frame",
+        "@com_github_go_chi_chi_v5//:chi",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

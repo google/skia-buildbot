@@ -1,0 +1,34 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "mcptools",
+    srcs = ["mcptools.go"],
+    embedsrcs = ["glossary.md"],
+    importpath = "go.skia.org/infra/perf/go/insights/mcptools",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "//perf/go/insights",
+        "@com_github_mark3labs_mcp_go//mcp",
+        "@com_github_mark3labs_mcp_go//server",
+    ],
+)
+
+go_test(
+    name = "mcptools_test",
+    srcs = ["mcptools_test.go"],
+    embed = [":mcptools"],
+    deps = [
+        "//perf/go/clustering2",
+        "//perf/go/dataframe",
+        "//perf/go/insights",
+        "//perf/go/regression",
+        "//perf/go/subscription/proto/v1",
+        "//perf/go/types",
+        "//perf/go/ui/frame",
+        "@com_github_mark3labs_mcp_go//server",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

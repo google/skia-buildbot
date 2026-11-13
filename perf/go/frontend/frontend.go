@@ -1426,6 +1426,14 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 		router.Get("/r2", f.templateHandler("regressions.html"))
 	}
 
+	// perfinsights: read-only anomaly insights for LLM agents, under /insights.
+	if config.Config.EnableInsights {
+		if err := f.mountInsights(router); err != nil {
+			// Only log the error, the rest of Perf should continue to run.
+			sklog.Errorf("Failed to serve perfinsights: %s", err)
+		}
+	}
+
 	// TODO(ashwinpv): This should move to using the backend service.
 	// JSON handlers.
 	// Pinpoint JSON API handlers - /pinpoint/v1/...

@@ -1,0 +1,36 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "site",
+    srcs = ["site.go"],
+    embedsrcs = [
+        "index.html",
+        "llms.txt",
+        "site.css",
+        "site.js",
+        "trace.html",
+    ],
+    importpath = "go.skia.org/infra/perf/go/insights/site",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/insights/mcptools",
+        "//perf/go/insights/rest",
+        "@com_github_go_chi_chi_v5//:chi",
+    ],
+)
+
+go_test(
+    name = "site_test",
+    srcs = ["site_test.go"],
+    embed = [":site"],
+    deps = [
+        "//perf/go/insights/mcptools",
+        "//perf/go/insights/rest",
+        "@com_github_go_chi_chi_v5//:chi",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>perfinsights &middot; {{.InstanceName}}</title>
+  <link rel="stylesheet" href="{{.BasePath}}/static/site.css">
+  <script src="{{.BasePath}}/static/site.js" defer></script>
+</head>
+<body data-page="home" data-base="{{.BasePath}}">
+  <header class="top">
+    <div class="wrap">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">&#9650;</span>
+        <span class="name">perfinsights</span>
+        <span class="tag">proof of concept &middot; v{{.Version}}</span>
+      </div>
+      <div class="instance">
+        <span class="label">Perf instance</span>
+        <span class="value">{{.InstanceName}}</span>
+        <span class="badge badge-{{.Visibility}}">{{.Visibility}}</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Skia Perf anomaly insights for AI agents</h1>
+      <p>
+        A small, <strong>read-only</strong> API that lets LLM agents find, summarize and explain
+        performance anomalies (regressions and improvements) detected by Skia Perf, chart their
+        traces, propose how to triage them, and check whether a commit caused any. The same
+        operations are available over <strong>MCP</strong> and <strong>REST</strong>.
+      </p>
+      {{- if .InstanceURL}}
+      <p class="muted">Data comes from <a href="{{.InstanceURL}}" rel="noopener noreferrer">{{.InstanceURL}}</a>.</p>
+      {{- end}}
+      <ul class="endpoints">
+        <li><span class="k">MCP</span><code>{{.MCPURL}}</code><span class="muted">Streamable HTTP, stateless, POST only</span></li>
+        <li><span class="k">REST</span><code>{{.PublicURL}}/api/v1</code><a href="#api">endpoints</a><a href="{{.BasePath}}/openapi.json">openapi.json</a></li>
+        <li><span class="k">LLMs</span><code>{{.PublicURL}}/llms.txt</code><a href="{{.BasePath}}/llms.txt">llms.txt</a></li>
+        <li><span class="k">Trace</span><code>{{.PublicURL}}/trace?id=ID</code><a href="{{.BasePath}}/trace">trace viewer</a></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Connect an agent</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="card-head">
+            <h3>Gemini CLI</h3>
+            <button type="button" class="copy" data-copy="cfg-gemini">Copy</button>
+          </div>
+          <p class="muted">Add to <code>~/.gemini/settings.json</code>:</p>
+<pre id="cfg-gemini">{
+  "mcpServers": {
+    "perfinsights": {
+      "httpUrl": "{{.MCPURL}}"
+    }
+  }
+}</pre>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>Jetski</h3>
+            <button type="button" class="copy" data-copy="cfg-jetski">Copy</button>
+          </div>
+          <p class="muted">Add to <code>~/.gemini/config/mcp_config.json</code>:</p>
+<pre id="cfg-jetski">{
+  "mcpServers": {
+    "perfinsights": {
+      "url": "{{.MCPURL}}"
+    }
+  }
+}</pre>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>curl</h3>
+            <button type="button" class="copy" data-copy="cfg-curl">Copy</button>
+          </div>
+          <p class="muted">Or call the REST API directly:</p>
+<pre id="cfg-curl">curl -s '{{.PublicURL}}/api/v1/sheriffs'
+curl -s '{{.PublicURL}}/api/v1/insights:summarize?sheriff=NAME&amp;days=7'
+curl -s '{{.PublicURL}}/api/v1/insights:suggestTriage?sheriff=NAME&amp;days=1'
+curl -s '{{.PublicURL}}/api/v1/anomalies/ID/trace?commits_before=100'</pre>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Tools</h2>
+      <p class="muted">Every tool is read-only. Required arguments are marked with *.</p>
+      <div class="table-wrap">
+        <table class="tools">
+          <thead>
+            <tr><th>MCP tool</th><th>What it returns</th><th>REST</th></tr>
+          </thead>
+          <tbody>
+            {{- range .Tools}}
+            <tr>
+              <td><code class="tool">{{.Name}}</code><div class="args">{{join .Arguments ", "}}</div></td>
+              <td>{{.Description}}</td>
+              <td><code class="rest">{{.REST}}</code></td>
+            </tr>
+            {{- end}}
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">
+        MCP resources: <code>perf://glossary</code> (definitions) and <code>perf://instance</code>.
+        MCP prompts: <code>triage_digest</code>, <code>explain_anomaly</code>, <code>check_my_cl</code>.
+      </p>
+    </section>
+
+    <section id="api">
+      <h2>REST API <span class="tag">v{{.Version}}</span></h2>
+      <p class="muted">
+        Every endpoint only reads; <code>POST /api/v1/anomalies:batchGet</code> uses POST to take a
+        list of ids. Paths are relative to <code>{{.PublicURL}}</code>. Parameters marked with * are
+        required. Errors use <code>{"error": {"code", "message", "hint"}}</code>. The full contract
+        is in <a href="{{.BasePath}}/openapi.json">openapi.json</a>.
+      </p>
+      <div class="table-wrap">
+        <table class="tools">
+          <thead>
+            <tr><th>Endpoint</th><th>What it returns</th><th>Parameters</th></tr>
+          </thead>
+          <tbody>
+            {{- range .Endpoints}}
+            <tr>
+              <td class="endpoint"><span class="method">{{.Method}}</span> <code class="rest">{{.Path}}</code></td>
+              <td>{{.Summary}}</td>
+              <td class="args">{{join .Parameters ", "}}</td>
+            </tr>
+            {{- end}}
+            {{- range .ServiceEndpoints}}
+            <tr class="service">
+              <td class="endpoint"><span class="method">{{.Method}}</span> <code class="rest">{{.Path}}</code></td>
+              <td>{{.Summary}}</td>
+              <td class="args">{{join .Parameters ", "}}</td>
+            </tr>
+            {{- end}}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Ask your agent</h2>
+      <ul class="prompts">
+        {{- range .Prompts}}
+        <li>{{.}}</li>
+        {{- end}}
+      </ul>
+    </section>
+
+    <section id="try">
+      <h2>Try it</h2>
+      <p class="muted">
+        Summarizes the anomalies of a sheriff. <strong>Trace</strong> opens the
+        <a href="{{.BasePath}}/trace">trace viewer</a> of an anomaly in a new tab.
+      </p>
+      <div class="controls">
+        <label>Sheriff
+          <select id="try-sheriff" disabled><option>Loading&hellip;</option></select>
+        </label>
+        <label>Days
+          <input id="try-days" type="number" min="1" max="90" value="7">
+        </label>
+        <button id="try-run" type="button" class="primary" disabled>Summarize</button>
+      </div>
+      <div id="try-status" class="status" role="status" aria-live="polite"></div>
+      <div id="try-result"></div>
+    </section>
+
+    <section id="triage">
+      <h2>Triage assistant</h2>
+      <p class="muted">
+        Proposes how to triage the untriaged anomalies of the sheriff selected above, from the data
+        Perf stored with them. It never changes anything: open a suggestion in Perf to apply it with
+        your own account.
+      </p>
+      <div class="controls">
+        <label>Days
+          <select id="triage-days">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="7">7</option>
+            <option value="14">14</option>
+          </select>
+        </label>
+        <button id="triage-run" type="button" class="primary" disabled>Suggest triage</button>
+      </div>
+      <div id="triage-status" class="status" role="status" aria-live="polite"></div>
+      <div id="triage-result"></div>
+    </section>
+  </main>
+
+  <footer class="wrap muted">
+    The data is {{.Visibility}}: do not share it outside the audience allowed for this Perf instance.
+    perfinsights is a proof of concept for the perf.v1 API.
+  </footer>
+</body>
+</html>

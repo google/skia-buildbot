@@ -1,0 +1,270 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "perfinsights: Skia Perf anomaly insights API (PoC)",
+    "version": "0.2.0",
+    "description": "Read-only API that serves Skia Perf anomalies and derived insights to LLM agents and scripts. Errors use the envelope {\"error\": {\"code\", \"message\", \"hint\"}} (contract C1). List endpoints return an opaque next_page_token (contract C2). Every response carries X-Perf-Instance and X-Perf-Visibility headers (contract C4). The same operations are available as MCP tools at POST /mcp."
+  },
+  "paths": {
+    "/api/v1/instance": {
+      "get": {
+        "operationId": "GetInstance",
+        "summary": "Instance name, visibility and the limits enforced by the service.",
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/InstanceInfo"}}}}
+        }
+      }
+    },
+    "/api/v1/sheriffs": {
+      "get": {
+        "operationId": "ListSheriffs",
+        "summary": "Active sheriffs (subscriptions). Use the exact names as the sheriff parameter.",
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ListSheriffsResponse"}}}},
+          "500": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    },
+    "/api/v1/anomalies": {
+      "get": {
+        "operationId": "ListAnomalies",
+        "summary": "A sheriff's anomalies, newest first, filtered and paginated.",
+        "parameters": [
+          {"name": "sheriff", "in": "query", "required": true, "schema": {"type": "string"}, "description": "Exact sheriff name from ListSheriffs."},
+          {"name": "status", "in": "query", "schema": {"type": "string", "enum": ["untriaged", "triaged", "ignored", "pending", "any"], "default": "untriaged"}},
+          {"name": "direction", "in": "query", "schema": {"type": "string", "enum": ["regression", "improvement", "any"], "default": "regression"}},
+          {"name": "benchmark", "in": "query", "schema": {"type": "string"}, "description": "Exact benchmark name."},
+          {"name": "bot", "in": "query", "schema": {"type": "string"}, "description": "Exact bot name."},
+          {"name": "days", "in": "query", "schema": {"type": "integer", "minimum": 1, "maximum": 90, "default": 7}},
+          {"name": "min_abs_pct", "in": "query", "schema": {"type": "number", "minimum": 0}, "description": "Drop anomalies whose |pct_change| is lower."},
+          {"name": "page_size", "in": "query", "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 25}},
+          {"name": "page_token", "in": "query", "schema": {"type": "string"}, "description": "next_page_token from the previous call with the same filters."}
+        ],
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ListAnomaliesResponse"}}}},
+          "400": {"$ref": "#/components/responses/Error"},
+          "500": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    },
+    "/api/v1/anomalies/{id}": {
+      "get": {
+        "operationId": "GetAnomaly",
+        "summary": "One anomaly with its value window, alert config and suspect commits.",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}},
+          {"name": "view", "in": "query", "schema": {"type": "string", "enum": ["basic", "full"], "default": "full"}}
+        ],
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AnomalyDetail"}}}},
+          "400": {"$ref": "#/components/responses/Error"},
+          "404": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    },
+    "/api/v1/anomalies/{id}/trace": {
+      "get": {
+        "operationId": "GetAnomalyTrace",
+        "summary": "The measurements of the anomaly's trace around its commit range, from the trace store: is it a clean step or noise, did it persist or recover?",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}},
+          {"name": "commits_before", "in": "query", "schema": {"type": "integer", "minimum": 1, "maximum": 500, "default": 100}},
+          {"name": "commits_after", "in": "query", "schema": {"type": "integer", "minimum": 1, "maximum": 500, "default": 50}}
+        ],
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AnomalyTraceResponse"}}}},
+          "400": {"$ref": "#/components/responses/Error"},
+          "404": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    },
+    "/api/v1/anomalies:batchGet": {
+      "post": {
+        "operationId": "BatchGetAnomalies",
+        "summary": "Several anomalies by id, in request order. Up to 500 ids with view=basic, 20 with view=full.",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {
+            "type": "object",
+            "required": ["ids"],
+            "additionalProperties": false,
+            "properties": {
+              "ids": {"type": "array", "items": {"type": "string", "format": "uuid"}, "minItems": 1, "maxItems": 500},
+              "view": {"type": "string", "enum": ["basic", "full"], "default": "basic"}
+            }
+          }}}
+        },
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BatchGetAnomaliesResponse"}}}},
+          "400": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    },
+    "/api/v1/anomalyGroups/{id}": {
+      "get": {
+        "operationId": "GetAnomalyGroup",
+        "summary": "An anomaly group: action (NOACTION, REPORT, BISECT), member anomalies, culprits and reported issue.",
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}}],
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AnomalyGroupResponse"}}}},
+          "400": {"$ref": "#/components/responses/Error"},
+          "404": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    },
+    "/api/v1/revisions/{rev}/anomalies": {
+      "get": {
+        "operationId": "FindAnomaliesForRevision",
+        "summary": "Anomalies whose commit range contains the revision: did this commit regress anything?",
+        "parameters": [{"name": "rev", "in": "path", "required": true, "schema": {"type": "string"}, "description": "A commit number (e.g. 1234567) or a full 40-character git hash."}],
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/RevisionAnomaliesResponse"}}}},
+          "400": {"$ref": "#/components/responses/Error"},
+          "404": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    },
+    "/api/v1/insights:summarize": {
+      "get": {
+        "operationId": "SummarizeAnomalies",
+        "summary": "Aggregated insights for a sheriff: totals, top regressions, counts by benchmark and bot, overlapping commit ranges (likely shared culprits) and repeat offenders.",
+        "parameters": [
+          {"name": "sheriff", "in": "query", "required": true, "schema": {"type": "string"}},
+          {"name": "days", "in": "query", "schema": {"type": "integer", "minimum": 1, "maximum": 90, "default": 7}}
+        ],
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/InsightSummary"}}}},
+          "400": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    },
+    "/api/v1/insights:suggestTriage": {
+      "get": {
+        "operationId": "SuggestTriage",
+        "summary": "Proposed triage of a sheriff's untriaged anomalies: groups that may share a cause (file one bug), clean regressions (file a bug, with a draft), likely noise, improvements and the rest. Read-only: each suggestion links to Perf, where people apply triage.",
+        "parameters": [
+          {"name": "sheriff", "in": "query", "required": true, "schema": {"type": "string"}},
+          {"name": "days", "in": "query", "schema": {"type": "integer", "minimum": 1, "maximum": 90, "default": 1}}
+        ],
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/TriagePlan"}}}},
+          "400": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "Error": {
+        "description": "Error envelope (contract C1).",
+        "content": {"application/json": {"schema": {
+          "type": "object",
+          "properties": {"error": {"type": "object", "properties": {
+            "code": {"type": "string", "enum": ["INVALID_ARGUMENT", "NOT_FOUND", "UNAUTHENTICATED", "PERMISSION_DENIED", "RESOURCE_EXHAUSTED", "DEADLINE_EXCEEDED", "INTERNAL"]},
+            "message": {"type": "string"},
+            "hint": {"type": "string", "description": "What to do next, e.g. which call returns valid input."}
+          }}}
+        }}}
+      }
+    },
+    "schemas": {
+      "InstanceInfo": {"type": "object", "properties": {
+        "name": {"type": "string"}, "url": {"type": "string"}, "visibility": {"type": "string", "enum": ["internal", "public"]},
+        "limits": {"type": "object", "additionalProperties": {"type": "integer"}}
+      }},
+      "Sheriff": {"type": "object", "properties": {
+        "name": {"type": "string"}, "revision": {"type": "string"}, "bug_component": {"type": "string"}, "contact": {"type": "string"}
+      }},
+      "ListSheriffsResponse": {"type": "object", "properties": {"sheriffs": {"type": "array", "items": {"$ref": "#/components/schemas/Sheriff"}}}},
+      "TestInfo": {"type": "object", "properties": {
+        "test_path": {"type": "string"}, "master": {"type": "string"}, "bot": {"type": "string"}, "benchmark": {"type": "string"},
+        "test": {"type": "string"}, "subtests": {"type": "array", "items": {"type": "string"}}, "unit": {"type": "string"}, "trace_key": {"type": "string"}
+      }},
+      "CommitRange": {"type": "object", "description": "Commits that may contain the cause.", "properties": {
+        "start": {"type": "integer"}, "end": {"type": "integer"}, "display": {"type": "integer"}
+      }},
+      "AnomalySummary": {"type": "object", "properties": {
+        "id": {"type": "string", "format": "uuid"},
+        "headline": {"type": "string", "description": "Deterministic one-line description."},
+        "sheriff": {"type": "string"},
+        "test": {"$ref": "#/components/schemas/TestInfo"},
+        "num_traces": {"type": "integer"},
+        "direction": {"type": "string", "enum": ["regression", "improvement"]},
+        "median_before": {"type": "number"}, "median_after": {"type": "number"},
+        "pct_change": {"type": "number", "nullable": true}, "abs_delta": {"type": "number"},
+        "commit_range": {"$ref": "#/components/schemas/CommitRange"},
+        "detected_at": {"type": "string", "format": "date-time"},
+        "triage": {"type": "object", "properties": {"status": {"type": "string"}, "message": {"type": "string"}, "bug_ids": {"type": "array", "items": {"type": "string"}}}},
+        "alert_id": {"type": "integer"},
+        "links": {"type": "object", "properties": {"report": {"type": "string"}, "graph": {"type": "string"}}}
+      }},
+      "AnomalyDetail": {"allOf": [{"$ref": "#/components/schemas/AnomalySummary"}, {"type": "object", "properties": {
+        "window": {"type": "object", "description": "Data around the step as stored at detection time.", "properties": {
+          "normalized": {"type": "boolean"}, "step_at": {"type": "integer"}, "truncated": {"type": "boolean"},
+          "points": {"type": "array", "items": {"type": "object", "properties": {"commit": {"type": "integer"}, "ts": {"type": "integer"}, "value": {"type": "number"}}}}
+        }},
+        "alert": {"type": "object", "description": "Alert config that detected the anomaly.", "properties": {
+          "id": {"type": "integer"}, "display_name": {"type": "string"}, "query": {"type": "string"}, "algo": {"type": "string"}, "step": {"type": "string"},
+          "radius": {"type": "integer"}, "threshold": {"type": "number"}, "direction": {"type": "string"}, "group_by": {"type": "string"},
+          "minimum_num": {"type": "integer"}, "action": {"type": "string"}, "has_detection_rule": {"type": "boolean"}
+        }},
+        "commits": {"type": "object", "description": "Commits in commit_range (view=full).", "properties": {
+          "total": {"type": "integer"}, "truncated": {"type": "boolean"},
+          "in_range": {"type": "array", "items": {"type": "object", "properties": {"number": {"type": "integer"}, "hash": {"type": "string"}, "author": {"type": "string"}, "subject": {"type": "string"}, "url": {"type": "string"}, "ts": {"type": "integer"}}}}
+        }},
+        "other_traces": {"type": "array", "items": {"type": "string"}}
+      }}]},
+      "ListAnomaliesResponse": {"type": "object", "properties": {
+        "anomalies": {"type": "array", "items": {"$ref": "#/components/schemas/AnomalySummary"}},
+        "next_page_token": {"type": "string"}, "total_scanned": {"type": "integer"}, "truncated": {"type": "boolean"}
+      }},
+      "BatchGetAnomaliesResponse": {"type": "object", "properties": {
+        "anomalies": {"type": "array", "items": {"$ref": "#/components/schemas/AnomalyDetail"}},
+        "not_found": {"type": "array", "items": {"type": "string"}}
+      }},
+      "AnomalyGroupResponse": {"type": "object", "properties": {
+        "id": {"type": "string"}, "action": {"type": "string"}, "sheriff": {"type": "string"}, "sheriff_revision": {"type": "string"},
+        "benchmark": {"type": "string"}, "reported_issue_id": {"type": "integer"}, "num_anomalies": {"type": "integer"},
+        "anomalies": {"type": "array", "items": {"$ref": "#/components/schemas/AnomalySummary"}},
+        "culprits": {"type": "array", "items": {"type": "object", "properties": {"id": {"type": "string"}, "host": {"type": "string"}, "project": {"type": "string"}, "ref": {"type": "string"}, "revision": {"type": "string"}, "issue_ids": {"type": "array", "items": {"type": "string"}}}}},
+        "truncated": {"type": "boolean"}
+      }},
+      "RevisionAnomaliesResponse": {"type": "object", "properties": {
+        "revision": {"type": "integer"}, "anomalies": {"type": "array", "items": {"$ref": "#/components/schemas/AnomalySummary"}}, "truncated": {"type": "boolean"}
+      }},
+      "AnomalyTraceResponse": {"type": "object", "properties": {
+        "anomaly": {"$ref": "#/components/schemas/AnomalySummary"},
+        "trace_key": {"type": "string"},
+        "begin": {"type": "integer", "description": "First commit read, inclusive."},
+        "end": {"type": "integer", "description": "Last commit read, inclusive."},
+        "points": {"type": "array", "description": "Measurements in commit order; commits without data are left out.", "items": {"type": "object", "properties": {"commit": {"type": "integer"}, "value": {"type": "number"}}}},
+        "other_traces": {"type": "integer", "description": "Other traces in the anomaly's cluster, not included."}
+      }},
+      "TriagePlan": {"type": "object", "properties": {
+        "scope": {"type": "object", "properties": {"sheriff": {"type": "string"}, "days": {"type": "integer"}, "since": {"type": "string", "format": "date-time"}, "total_scanned": {"type": "integer"}, "truncated": {"type": "boolean"}}},
+        "untriaged": {"type": "integer"},
+        "note": {"type": "string", "description": "How the suggestions were made."},
+        "suggestions": {"type": "array", "items": {"type": "object", "properties": {
+          "action": {"type": "string", "enum": ["file_one_bug", "file_bug", "ignore_likely_noise", "review_improvements", "review"]},
+          "title": {"type": "string"}, "reason": {"type": "string"}, "count": {"type": "integer"},
+          "anomaly_ids": {"type": "array", "maxItems": 25, "items": {"type": "string", "format": "uuid"}},
+          "representative": {"$ref": "#/components/schemas/AnomalySummary"},
+          "commit_range": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2},
+          "benchmarks": {"type": "array", "items": {"type": "string"}},
+          "bots": {"type": "array", "items": {"type": "string"}},
+          "triage_url": {"type": "string", "description": "Opens the anomalies in Perf, where people apply triage."},
+          "bug_draft": {"type": "object", "properties": {"title": {"type": "string"}, "description": {"type": "string"}}}
+        }}}
+      }},
+      "InsightSummary": {"type": "object", "properties": {
+        "scope": {"type": "object", "properties": {"sheriff": {"type": "string"}, "days": {"type": "integer"}, "since": {"type": "string", "format": "date-time"}, "total_scanned": {"type": "integer"}, "truncated": {"type": "boolean"}}},
+        "totals": {"type": "object", "additionalProperties": {"type": "integer"}},
+        "top_regressions": {"type": "array", "items": {"$ref": "#/components/schemas/AnomalySummary"}},
+        "by_benchmark": {"type": "array", "items": {"type": "object", "properties": {"benchmark": {"type": "string"}, "regressions": {"type": "integer"}, "median_pct_change": {"type": "number"}}}},
+        "by_bot": {"type": "array", "items": {"type": "object", "properties": {"bot": {"type": "string"}, "regressions": {"type": "integer"}}}},
+        "overlapping_ranges": {"type": "array", "items": {"type": "object", "description": "Regressions whose commit ranges intersect; they may share a culprit.", "properties": {"commit_range": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2}, "count": {"type": "integer"}, "benchmarks": {"type": "array", "items": {"type": "string"}}, "anomaly_ids": {"type": "array", "items": {"type": "string"}}}}},
+        "repeat_offenders": {"type": "array", "items": {"type": "object", "properties": {"test_path": {"type": "string"}, "anomalies": {"type": "integer"}}}}
+      }}
+    }
+  }
+}

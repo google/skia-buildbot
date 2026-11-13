@@ -478,6 +478,9 @@
         "new_alerts_page": {
           "type": "boolean"
         },
+        "enable_insights": {
+          "type": "boolean"
+        },
         "optimize_sqltracestore": {
           "type": "boolean"
         },

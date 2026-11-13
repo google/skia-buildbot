@@ -1177,6 +1177,11 @@ type InstanceConfig struct {
 	// which one it routes to. Default is /a/, alternative is /r2/
 	NewAlertsPage bool `json:"new_alerts_page,omitempty"`
 
+	// EnableInsights serves perfinsights under /insights: a read-only page, REST API and MCP
+	// endpoint that let LLM agents read the instance's anomalies. See perf/go/insights. Only for
+	// autopush instances until FIX-01 (Gate G1) lands.
+	EnableInsights bool `json:"enable_insights,omitempty"`
+
 	// Whether or not to use experimental sqltracestore concurrency optimization.
 	OptimizeSQLTraceStore bool `json:"optimize_sqltracestore,omitempty"`
 	// Experiment flags

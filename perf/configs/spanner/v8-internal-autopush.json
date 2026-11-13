@@ -112,6 +112,7 @@
     "show_json_file_display": false
   },
   "new_alerts_page": true,
+  "enable_insights": true,
   "optimize_sqltracestore": true,
   "enable_sheriff_config": true,
   "show_triage_link": false,

@@ -1,0 +1,17 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "localonly",
+    srcs = ["localonly.go"],
+    importpath = "go.skia.org/infra/perf/go/insights/localonly",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
+)
+
+go_test(
+    name = "localonly_test",
+    srcs = ["localonly_test.go"],
+    embed = [":localonly"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)

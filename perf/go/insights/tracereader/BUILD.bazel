@@ -1,0 +1,27 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "tracereader",
+    srcs = ["tracereader.go"],
+    importpath = "go.skia.org/infra/perf/go/insights/tracereader",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/query",
+        "//go/skerr",
+        "//perf/go/types",
+        "@com_github_jackc_pgx_v4//:pgx",
+    ],
+)
+
+go_test(
+    name = "tracereader_test",
+    srcs = ["tracereader_test.go"],
+    embed = [":tracereader"],
+    deps = [
+        "//perf/go/types",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
