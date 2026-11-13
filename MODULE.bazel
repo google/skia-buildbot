@@ -534,27 +534,27 @@ oci.pull(
 )
 use_repo(oci, "golang")
 
-# docker.io/temporalio/server:1.32.1 as of 10/28/2026.
+# docker.io/temporalio/server:1.32.2 as of 11/13/2026.
 oci.pull(
     name = "temporal-server",
-    digest = "sha256:acecbab5b0b8ae9cf4012b508866ca97feda3709577bf157b537239f40029049",
+    digest = "sha256:7bf69188a6232fea14869b9cef3d94aa82a1601d99517f7e86c71f22da4e0670",
     image = "docker.io/temporalio/server",
     platforms = ["linux/amd64"],
 )
 use_repo(oci, "temporal-server")
 
-# docker.io/temporalio/admin-tools:1.32.1 as of 10/28/2026.
+# docker.io/temporalio/admin-tools:1.32.2 as of 11/13/2026.
 oci.pull(
     name = "temporal-admin-tools",
-    digest = "sha256:9ef0dc5b063bf4ffd5c1512de72e0e73e225bd2c7006a18ce69bd592a8862a83",
+    digest = "sha256:4a95866efba29d7e17ab012df5232795e8b0ad0f7d5f9d1ec4df321f7792a754",
     image = "docker.io/temporalio/admin-tools",
     platforms = ["linux/amd64"],
 )
 
-# docker.io/temporalio/ui:2.57.0 (compatible with 1.32.1) as of 10/28/2026.
+# docker.io/temporalio/ui:2.58.1 (compatible with 1.32.2) as of 11/13/2026.
 oci.pull(
     name = "temporal-ui",
-    digest = "sha256:d944f959d0923c35cd991a17a0edbe087770eff843724b181933e0cfdd563ab2",
+    digest = "sha256:ac3c13eddb4547d830991bb5eee93a5d97140134522b7297fdb2be1fe25ef925",
     image = "docker.io/temporalio/ui",
     platforms = ["linux/amd64"],
 )
