@@ -6,8 +6,12 @@
 package main
 
 import (
+	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -50,6 +54,56 @@ func latestPerfserverHashFromStageFile(sf *stages.StageFile, source string) (str
 		return "", skerr.Fmt("stage \"latest\" for %q has no git_hash in %s", perfserverImage, source)
 	}
 	return latest.GitHash, nil
+}
+
+func normalizeStagesURL(stagesURL string) (string, error) {
+	u, err := url.Parse(stagesURL)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return "", skerr.Fmt("invalid stages_url %q", stagesURL)
+	}
+	if strings.HasSuffix(u.Hostname(), ".googlesource.com") && !strings.HasPrefix(u.Path, "/a/") {
+		u.Path = "/a/" + strings.TrimPrefix(u.Path, "/")
+	}
+	q := u.Query()
+	if q.Get("format") == "" {
+		q.Set("format", "TEXT")
+		u.RawQuery = q.Encode()
+	}
+	return u.String(), nil
+}
+
+// fetchLatestPerfserverHash downloads stages.json from a Gitiles URL
+// (?format=TEXT, base64-encoded) and returns the latest perfserver git hash.
+func fetchLatestPerfserverHash(ctx context.Context, client *http.Client, stagesURL string) (string, error) {
+	reqURL, err := normalizeStagesURL(stagesURL)
+	if err != nil {
+		return "", err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", skerr.Wrapf(err, "fetching %s", reqURL)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", skerr.Wrapf(err, "reading %s", reqURL)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", skerr.Fmt("GET %s returned %d", reqURL, resp.StatusCode)
+	}
+	raw, err := base64.StdEncoding.DecodeString(strings.TrimSpace(string(body)))
+	if err != nil {
+		return "", skerr.Wrapf(err, "base64-decoding stages file from %s", stagesURL)
+	}
+	sf, err := stages.Decode(raw)
+	if err != nil {
+		return "", skerr.Wrapf(err, "decoding stages file from %s", stagesURL)
+	}
+	return latestPerfserverHashFromStageFile(sf, stagesURL)
 }
 
 type gateDecision struct {

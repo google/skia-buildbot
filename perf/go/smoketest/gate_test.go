@@ -7,6 +7,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -46,6 +49,61 @@ func TestLatestPerfserverHash_MissingImage_Errors(t *testing.T) {
 	_, err := latestPerfserverHash(path)
 	require.Error(t, err)
 	assert.Contains(t, errorMessage(err), perfserverImage)
+}
+
+func TestFetchLatestPerfserverHash_DecodesGitilesBase64(t *testing.T) {
+	const stagesJSON = `{
+	  "images": {
+	    "gcr.io/skia-public/perfserver": {
+	      "stages": {
+	        "latest": {"git_hash": "70e8b73d508ccfa242a67b29f8dd4647a67c3653", "digest": "sha256:aaa"}
+	      }
+	    }
+	  }
+	}`
+	var gotFormat string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotFormat = r.URL.Query().Get("format")
+		_, _ = w.Write([]byte(base64.StdEncoding.EncodeToString([]byte(stagesJSON))))
+	}))
+	t.Cleanup(srv.Close)
+
+	got, err := fetchLatestPerfserverHash(t.Context(), srv.Client(), srv.URL+"/k8s-config/+/refs/heads/main/pipeline/stages.json")
+	require.NoError(t, err)
+	assert.Equal(t, "TEXT", gotFormat)
+	assert.Equal(t, "70e8b73d508ccfa242a67b29f8dd4647a67c3653", got)
+
+	authURL, err := normalizeStagesURL("https://skia.googlesource.com/k8s-config/+/refs/heads/main/pipeline/stages.json")
+	require.NoError(t, err)
+	assert.Equal(t, "https://skia.googlesource.com/a/k8s-config/+/refs/heads/main/pipeline/stages.json?format=TEXT", authURL)
+
+	nonGoogleURL, err := normalizeStagesURL("http://127.0.0.1:8080/mirror/skia.googlesource.com/stages.json")
+	require.NoError(t, err)
+	assert.Equal(t, "http://127.0.0.1:8080/mirror/skia.googlesource.com/stages.json?format=TEXT", nonGoogleURL)
+}
+
+func TestFetchLatestPerfserverHash_ErrorPaths(t *testing.T) {
+	t.Run("non_200_status", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, "not found", http.StatusNotFound)
+		}))
+		t.Cleanup(srv.Close)
+
+		_, err := fetchLatestPerfserverHash(t.Context(), srv.Client(), srv.URL+"/pipeline/stages.json")
+		require.Error(t, err)
+		assert.Contains(t, errorMessage(err), "returned 404")
+	})
+
+	t.Run("invalid_base64", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("%%%not-base64%%%"))
+		}))
+		t.Cleanup(srv.Close)
+
+		_, err := fetchLatestPerfserverHash(t.Context(), srv.Client(), srv.URL+"/pipeline/stages.json")
+		require.Error(t, err)
+		assert.Contains(t, errorMessage(err), "base64-decoding")
+	})
 }
 
 func TestEvaluateGate(t *testing.T) {

@@ -13,10 +13,13 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//cd/go/stages",
+        "//go/auth",
+        "//go/cleanup",
         "//go/common",
         "//go/gcs",
         "//go/gcs/gcsclient",
         "//go/httputils",
+        "//go/metrics2",
         "//go/skerr",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
@@ -41,6 +44,7 @@ go_test(
     embed = [":smoketest_lib"],
     deps = [
         "//go/gcs/mem_gcsclient",
+        "//go/metrics2",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

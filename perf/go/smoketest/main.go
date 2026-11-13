@@ -12,6 +12,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"regexp"
@@ -19,8 +20,14 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"golang.org/x/oauth2/google"
+
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -28,6 +35,7 @@ const usage = `usage: perf-smoketest <command> [flags]
 
 Commands:
   run    Run smoke checks against perfserver frontends and write verdicts.
+  loop   Continuously run smoke checks on an interval and export metrics.
   gate   Evaluate smoke test verdicts for the latest perfserver build.
 `
 
@@ -52,7 +60,23 @@ var (
 )
 
 func main() {
-	os.Exit(runCLI(context.Background(), os.Args[1:], os.Stdout, os.Stderr))
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	// Block AtExit until runCLI returns because go/cleanup calls os.Exit
+	// immediately after AtExit callbacks finish.
+	cleanup.AtExit(func() {
+		cancel()
+		<-done
+	})
+	cleanup.Enable()
+
+	code := runCLI(ctx, os.Args[1:], os.Stdout, os.Stderr)
+	close(done)
+	if ctx.Err() != nil {
+		// Park so go/cleanup's signal goroutine owns process termination.
+		select {}
+	}
+	os.Exit(code)
 }
 
 func runCLI(ctx context.Context, args []string, stdout, stderr io.Writer) int {
@@ -67,6 +91,8 @@ func runCLIWithDeps(ctx context.Context, args []string, stdout, stderr io.Writer
 	switch args[0] {
 	case "run":
 		return runCmd(ctx, args[1:], stdout, stderr, gcsOverride)
+	case "loop":
+		return loopCmd(ctx, args[1:], stdout, stderr, gcsOverride)
 	case "gate":
 		return gateCmd(ctx, args[1:], stdout, stderr, gcsOverride)
 	default:
@@ -160,26 +186,210 @@ func runCmd(ctx context.Context, args []string, stdout, stderr io.Writer, gcsOve
 	return 0
 }
 
+func loopCmd(ctx context.Context, args []string, stdout, stderr io.Writer, gcsOverride gcs.GCSClient) int {
+	fs := flag.NewFlagSet("loop", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	var targetSpecs []string
+	fs.Func("target", "Target frontend in name=url[,host=...][,query=...] form (repeatable).", func(v string) error {
+		targetSpecs = append(targetSpecs, v)
+		return nil
+	})
+	stagesURL := fs.String("stages_url", "", "Gitiles URL to stages.json to read latest perfserver git_hash.")
+	stagesFile := fs.String("stages_file", "", "Local path to stages.json to read latest perfserver git_hash.")
+	interval := fs.Duration("interval", 3*time.Minute, "Interval between smoke check runs.")
+	iterations := fs.Int("iterations", 0, "Maximum number of loop iterations to run (0 means run until canceled).")
+	promPort := fs.String("prom_port", ":20000", "Prometheus metrics listen address (empty disables HTTP server).")
+	checkNames := common.FSNewMultiStringFlag(fs, "checks", defaultChecks, "Ordered allowlist of checks to execute.")
+	pages := common.FSNewMultiStringFlag(fs, "pages", defaultPages, "Page paths for the templates check.")
+	requiredParams := common.FSNewMultiStringFlag(fs, "required_params", defaultRequiredParams, "Required keys for the paramset check.")
+	healthPath := fs.String("health_path", "/healthz", "Endpoint path for the health check.")
+	frameQuery := fs.String("frame_query", "", "Default URL query string for historical_query.")
+	frameBegin := fs.String("frame_begin", "", "RFC 3339 start timestamp for historical_query.")
+	frameEnd := fs.String("frame_end", "", "RFC 3339 end timestamp for historical_query.")
+	hostHeader := fs.String("host_header", "", "Host header override applied to every request.")
+	forwardedHTTPS := fs.Bool("forwarded_proto_https", false, "Set X-Forwarded-Proto: https on every request.")
+	timeout := fs.Duration("timeout", 60*time.Second, "Deadline per check.")
+	verdictDir := fs.String("verdict_dir", "", "Directory or gs:// URI where <instance>.json verdicts are written.")
+
+	if err := fs.Parse(args); err != nil {
+		return 2
+	}
+	if *verdictDir == "" {
+		_, _ = fmt.Fprintln(stderr, "error: --verdict_dir is required")
+		return 2
+	}
+	if *interval <= 0 {
+		_, _ = fmt.Fprintln(stderr, "error: --interval must be > 0")
+		return 2
+	}
+	if *iterations < 0 {
+		_, _ = fmt.Fprintln(stderr, "error: --iterations must be >= 0")
+		return 2
+	}
+	if (*stagesURL == "") == (*stagesFile == "") {
+		_, _ = fmt.Fprintln(stderr, "error: loop requires exactly one of --stages_url or --stages_file")
+		return 2
+	}
+	targets, err := parseTargets(targetSpecs, *hostHeader, *forwardedHTTPS)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+		return 2
+	}
+	baseCfg := runConfig{
+		checkNames:          *checkNames,
+		expectedGitHash:     "placeholder-hash",
+		pages:               *pages,
+		requiredParams:      *requiredParams,
+		healthPath:          *healthPath,
+		frameQuery:          *frameQuery,
+		allTargetsHaveQuery: allTargetsHaveQuery(targets),
+		frameBegin:          *frameBegin,
+		frameEnd:            *frameEnd,
+		rolloutTimeout:      0,
+		timeout:             *timeout,
+	}
+	if _, err := buildChecks(baseCfg); err != nil {
+		_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+		return 2
+	}
+	httpClient, err := newGitilesHTTPClient(ctx, *stagesURL, *timeout)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+		return 2
+	}
+	store, err := newVerdictStore(ctx, *verdictDir, false, gcsOverride)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+		return 2
+	}
+	if *promPort != "" {
+		metrics2.InitPrometheus(*promPort)
+	}
+
+	for iter := 1; ; iter++ {
+		if ctx.Err() != nil {
+			return 0
+		}
+		var expected string
+		if *stagesURL != "" {
+			expected, err = fetchLatestPerfserverHash(ctx, httpClient, *stagesURL)
+		} else {
+			expected, err = latestPerfserverHash(*stagesFile)
+		}
+		allPassed := false
+		if err != nil {
+			if ctx.Err() != nil {
+				return 0
+			}
+			_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+		} else {
+			cfg := baseCfg
+			cfg.expectedGitHash = expected
+			checks, buildErr := buildChecks(cfg)
+			if buildErr != nil {
+				_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(buildErr))
+			} else {
+				allPassed, err = executeTargets(ctx, targets, checks, store, stdout)
+				if err != nil {
+					if ctx.Err() != nil {
+						return 0
+					}
+					_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+				}
+			}
+		}
+		if *iterations > 0 && iter >= *iterations {
+			if !allPassed {
+				return 1
+			}
+			return 0
+		}
+		if ctx.Err() != nil {
+			return 0
+		}
+		timer := time.NewTimer(*interval)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return 0
+		case <-timer.C:
+		}
+	}
+}
+
+func newGitilesHTTPClient(ctx context.Context, stagesURL string, timeout time.Duration) (*http.Client, error) {
+	if timeout <= 0 {
+		timeout = 60 * time.Second
+	}
+	if stagesURL == "" {
+		return &http.Client{Timeout: timeout}, nil
+	}
+	u, err := url.Parse(stagesURL)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return nil, skerr.Fmt("invalid stages_url %q", stagesURL)
+	}
+	if !strings.HasSuffix(u.Hostname(), ".googlesource.com") {
+		return &http.Client{Timeout: timeout}, nil
+	}
+	ts, err := google.DefaultTokenSource(ctx, auth.ScopeGerrit)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting Gerrit token source")
+	}
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	c.Timeout = timeout
+	return c, nil
+}
+
 func executeTargets(ctx context.Context, targets []*target, checks []Check, store *verdictStore, stdout io.Writer) (bool, error) {
 	allPassed := true
 	for _, tgt := range targets {
+		if err := ctx.Err(); err != nil {
+			return false, err
+		}
 		prev, err := store.read(ctx, tgt.name)
 		if err != nil {
 			return false, err
 		}
 		startedAt := time.Now()
 		results := runChecks(ctx, tgt, checks)
+		if err := ctx.Err(); err != nil {
+			return false, err
+		}
 		finishedAt := time.Now()
 		v := newVerdict(tgt.name, tgt.baseURL, tgt.appVersion, startedAt, finishedAt, results, prev)
 		printRunTable(stdout, v)
 		if err := store.write(ctx, v); err != nil {
 			return false, err
 		}
+		recordMetrics(v)
 		if v.Status != statusPass {
 			allPassed = false
 		}
 	}
 	return allPassed, nil
+}
+
+func recordMetrics(v Verdict) {
+	instanceTags := map[string]string{"instance": v.Instance}
+	success := int64(0)
+	if v.Status == statusPass {
+		success = 1
+	}
+	metrics2.GetInt64Metric("perf_smoketest_success", instanceTags).Update(success)
+	metrics2.GetInt64Metric("perf_smoketest_last_run_timestamp", instanceTags).Update(v.FinishedAt.Unix())
+	for _, c := range v.Checks {
+		if c.Status == statusSkipped {
+			continue
+		}
+		checkSuccess := int64(0)
+		if c.Status == statusPass {
+			checkSuccess = 1
+		}
+		metrics2.GetInt64Metric("perf_smoketest_check_success", map[string]string{
+			"instance": v.Instance,
+			"check":    c.Name,
+		}).Update(checkSuccess)
+	}
 }
 
 func printRunTable(w io.Writer, v Verdict) {
