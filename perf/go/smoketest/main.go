@@ -28,6 +28,7 @@ const usage = `usage: perf-smoketest <command> [flags]
 
 Commands:
   run    Run smoke checks against perfserver frontends and write verdicts.
+  gate   Evaluate smoke test verdicts for the latest perfserver build.
 `
 
 const (
@@ -66,6 +67,8 @@ func runCLIWithDeps(ctx context.Context, args []string, stdout, stderr io.Writer
 	switch args[0] {
 	case "run":
 		return runCmd(ctx, args[1:], stdout, stderr, gcsOverride)
+	case "gate":
+		return gateCmd(ctx, args[1:], stdout, stderr, gcsOverride)
 	default:
 		_, _ = fmt.Fprintf(stderr, "unknown command %q\n\n%s", args[0], usage)
 		return 2
@@ -192,6 +195,66 @@ func printRunTable(w io.Writer, v Verdict) {
 	_ = tw.Flush()
 	_, _ = fmt.Fprintf(w, "VERDICT: instance=%s status=%s app_version=%s consecutive_passes=%d\n",
 		v.Instance, v.Status, shortHash(v.AppVersion), v.ConsecutivePasses)
+}
+
+func gateCmd(ctx context.Context, args []string, stdout, stderr io.Writer, gcsOverride gcs.GCSClient) int {
+	fs := flag.NewFlagSet("gate", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	stagesFile := fs.String("stages_file", "", "Path to stages.json.")
+	verdictDir := fs.String("verdict_dir", "", "Directory or gs:// URI containing <instance>.json verdicts.")
+	instances := common.FSNewMultiStringFlag(fs, "instances", nil, "Comma-separated instance names that must pass.")
+	minPasses := fs.Int("min_consecutive_passes", 3, "Minimum consecutive_passes required per instance.")
+	maxAge := fs.Duration("max_age", 15*time.Minute, "Maximum age of finished_at.")
+
+	if err := fs.Parse(args); err != nil {
+		return 2
+	}
+	if *stagesFile == "" || *verdictDir == "" || len(*instances) == 0 {
+		_, _ = fmt.Fprintln(stderr, "error: --stages_file, --verdict_dir, and --instances are required")
+		return 2
+	}
+	if *minPasses < 1 || *maxAge <= 0 {
+		_, _ = fmt.Fprintln(stderr, "error: --min_consecutive_passes must be >= 1 and --max_age must be > 0")
+		return 2
+	}
+	for _, inst := range *instances {
+		if !targetNamePattern.MatchString(inst) {
+			_, _ = fmt.Fprintf(stderr, "error: instance name %q must match ^[a-z0-9-]+$\n", inst)
+			return 2
+		}
+	}
+	sf, err := latestStageFile(*stagesFile)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+		return 2
+	}
+	latest, err := latestPerfserverHashFromStageFile(sf, *stagesFile)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+		return 2
+	}
+	store, err := newVerdictStore(ctx, *verdictDir, true, gcsOverride)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+		return 2
+	}
+	verdicts := make(map[string]*Verdict, len(*instances))
+	for _, inst := range *instances {
+		v, err := store.read(ctx, inst)
+		if err != nil {
+			_, _ = fmt.Fprintf(stderr, "error: %s\n", errorMessage(err))
+			return 2
+		}
+		if v != nil {
+			verdicts[inst] = v
+		}
+	}
+	decisions, overallPass := evaluateGate(latest, *instances, verdicts, *minPasses, *maxAge, time.Now())
+	printGateTable(stdout, latest, decisions, overallPass)
+	if !overallPass {
+		return 1
+	}
+	return 0
 }
 
 // parseTargets validates target names at the CLI boundary because each target

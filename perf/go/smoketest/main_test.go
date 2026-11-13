@@ -331,3 +331,57 @@ func TestRunCmd(t *testing.T) {
 		}
 	})
 }
+
+func TestGateCmd_DefaultThresholds(t *testing.T) {
+	const latest = "0830cc0646bf9ce301e7fac1a3c9339f5503e90b"
+	stagesPath := writeStagesFixture(t, `{
+	  "images": {
+	    "gcr.io/skia-public/perfserver": {
+	      "stages": {
+	        "latest": {"git_hash": "`+latest+`", "digest": "sha256:aaa"}
+	      }
+	    }
+	  }
+	}`)
+
+	t.Run("streak_3_and_age_5m_passes", func(t *testing.T) {
+		vDir := t.TempDir()
+		require.NoError(t, writeVerdict(verdictPath(vDir, "chrome-internal-autopush"), Verdict{
+			Instance:          "chrome-internal-autopush",
+			AppVersion:        latest,
+			Status:            statusPass,
+			ConsecutivePasses: 3,
+			FinishedAt:        time.Now().UTC().Add(-5 * time.Minute),
+		}))
+		var out, errOut bytes.Buffer
+		code := runCLI(t.Context(), []string{
+			"gate",
+			"--stages_file=" + stagesPath,
+			"--verdict_dir=" + vDir,
+			"--instances=chrome-internal-autopush",
+		}, &out, &errOut)
+		assert.Equal(t, 0, code)
+		assert.Contains(t, out.String(), "OVERALL: PASS")
+	})
+
+	t.Run("age_20m_blocks_under_default_15m_max_age", func(t *testing.T) {
+		vDir := t.TempDir()
+		require.NoError(t, writeVerdict(verdictPath(vDir, "chrome-internal-autopush"), Verdict{
+			Instance:          "chrome-internal-autopush",
+			AppVersion:        latest,
+			Status:            statusPass,
+			ConsecutivePasses: 5,
+			FinishedAt:        time.Now().UTC().Add(-20 * time.Minute),
+		}))
+		var out, errOut bytes.Buffer
+		code := runCLI(t.Context(), []string{
+			"gate",
+			"--stages_file=" + stagesPath,
+			"--verdict_dir=" + vDir,
+			"--instances=chrome-internal-autopush",
+		}, &out, &errOut)
+		assert.Equal(t, 1, code)
+		assert.Contains(t, out.String(), "max_age 15m0s")
+		assert.Contains(t, out.String(), "OVERALL: BLOCK")
+	})
+}
