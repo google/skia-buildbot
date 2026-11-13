@@ -216,6 +216,21 @@ skia_app_container(
     repository = "skia-public/perf_e2e_test_runner",
 )
 
+skia_app_container(
+    name = "perf_smoketest",
+    base_image = "//kube/basealpine:basealpine",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//perf/go/smoketest:perf-smoketest",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/perf-smoketest",
+    repository = "skia-public/perf_smoketest",
+)
+
 sh_test(
     name = "gen_version_test",
     srcs = ["gen_version_test.sh"],
