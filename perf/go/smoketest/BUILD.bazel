@@ -1,4 +1,4 @@
-load("@rules_go//go:def.bzl", "go_library")
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
@@ -6,12 +6,14 @@ go_library(
     srcs = [
         "checks.go",
         "gate.go",
+        "main.go",
         "verdict.go",
     ],
     importpath = "go.skia.org/infra/perf/go/smoketest",
     visibility = ["//visibility:private"],
     deps = [
         "//cd/go/stages",
+        "//go/common",
         "//go/gcs",
         "//go/gcs/gcsclient",
         "//go/httputils",
@@ -22,11 +24,18 @@ go_library(
     ],
 )
 
+go_binary(
+    name = "perf-smoketest",
+    embed = [":smoketest_lib"],
+    visibility = ["//visibility:public"],
+)
+
 go_test(
     name = "smoketest_test",
     srcs = [
         "checks_test.go",
         "gate_test.go",
+        "main_test.go",
         "verdict_test.go",
     ],
     embed = [":smoketest_lib"],
