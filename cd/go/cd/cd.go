@@ -8,7 +8,9 @@ package cd
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 
 	"go.skia.org/infra/cd/go/stages"
@@ -19,12 +21,71 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/louhi"
 	"go.skia.org/infra/go/louhi/pubsub"
+	"go.skia.org/infra/go/rotations"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
 var uploadedCLRegex = regexp.MustCompile(`https://.*review\.googlesource\.com.*\d+`)
+
+// ResolveReviewersPushTarget builds the Gerrit push refspec for the given
+// reviewer emails or rotation URLs, falling back to backupReviewers if rotation
+// lookup fails or returns no emails.
+func ResolveReviewersPushTarget(client *http.Client, reviewerSources, backupReviewers []string) (string, error) {
+	if len(reviewerSources) == 0 && len(backupReviewers) == 0 {
+		return rubberstamper.PushRequestAutoSubmit, nil
+	}
+	emails := util.StringSet{}
+	for _, src := range reviewerSources {
+		if strings.HasPrefix(src, "http://") || strings.HasPrefix(src, "https://") {
+			members, err := rotations.FromURL(client, src)
+			if err != nil {
+				sklog.Errorf("Failed to resolve reviewer rotation %q: %s", src, err)
+				continue
+			}
+			for _, m := range members {
+				m = strings.TrimSpace(m)
+				if m == "" {
+					continue
+				}
+				if strings.Count(m, "@") != 1 {
+					sklog.Errorf("Ignoring invalid reviewer %q from rotation %q", m, src)
+					continue
+				}
+				emails[m] = true
+			}
+			continue
+		}
+		src = strings.TrimSpace(src)
+		if strings.Count(src, "@") != 1 {
+			return "", skerr.Fmt("invalid reviewer %q: must be an email or URL", src)
+		}
+		emails[src] = true
+	}
+	if len(emails) == 0 {
+		sklog.Errorf("No reviewers resolved from %v; falling back to backup reviewers %v", reviewerSources, backupReviewers)
+		for _, b := range backupReviewers {
+			b = strings.TrimSpace(b)
+			if strings.Count(b, "@") != 1 {
+				return "", skerr.Fmt("invalid backup reviewer %q: must be an email", b)
+			}
+			emails[b] = true
+		}
+	}
+	if len(emails) == 0 {
+		return "", skerr.Fmt("no reviewers resolved from --reviewer or --backup-reviewer")
+	}
+	sorted := emails.Keys()
+	sort.Strings(sorted)
+	target := "HEAD:refs/for/" + git.MainBranch + "%ready,l=Auto-Submit+1"
+	for _, email := range sorted {
+		target += ",r=" + email
+	}
+	return target, nil
+}
 
 // MaybeUploadCL uploads a CL if there are any diffs in checkoutDir. It builds
 // the commit message starting with the given commitSubject. If srcRepo and
@@ -32,7 +93,7 @@ var uploadedCLRegex = regexp.MustCompile(`https://.*review\.googlesource\.com.*\
 // commit message. If commitBody is non-empty, it is appended before Change-Id.
 // If louhiPubsubProject and louhiExecutionID are provided, a pub/sub message
 // is sent after the CL is uploaded.
-func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, commitBody, srcRepo, srcCommit, louhiPubsubProject, louhiExecutionID string) error {
+func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, commitBody, srcRepo, srcCommit, louhiPubsubProject, louhiExecutionID, pushTarget string) error {
 	ctx = td.StartStep(ctx, td.Props("MaybeUploadCL"))
 	defer td.EndStep(ctx)
 
@@ -79,11 +140,15 @@ func MaybeUploadCL(ctx context.Context, checkoutDir, commitSubject, commitBody, 
 	}
 	commitMsg += rubberstamper.RandomChangeID(ctx)
 
+	if pushTarget == "" {
+		pushTarget = rubberstamper.PushRequestAutoSubmit
+	}
+
 	// Commit and push.
 	if _, err := exec.RunCwd(ctx, checkoutDir, gitExec, "commit", "-a", "-m", commitMsg); err != nil {
 		return skerr.Wrap(err)
 	}
-	output, err := exec.RunCwd(ctx, checkoutDir, gitExec, "push", git.DefaultRemote, rubberstamper.PushRequestAutoSubmit)
+	output, err := exec.RunCwd(ctx, checkoutDir, gitExec, "push", git.DefaultRemote, pushTarget)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

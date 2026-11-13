@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/git_steps"
@@ -40,6 +41,7 @@ import (
 
 func main() {
 	const (
+		flagBackupReviewer     = "backup-reviewer"
 		flagCommit             = "commit"
 		flagCommitBodyFile     = "commit-body-file"
 		flagCommitSubject      = "commit-subject"
@@ -49,6 +51,7 @@ func main() {
 		flagLouhiExecutionID   = "louhi-execution-id"
 		flagLouhiPubSubProject = "louhi-pubsub-project"
 		flagRepo               = "repo"
+		flagReviewer           = "reviewer"
 		flagSourceRepo         = "source-repo"
 		flagSourceCommit       = "source-commit"
 		flagTarget             = "target"
@@ -214,6 +217,16 @@ func main() {
 						Usage:    "Path to a file whose contents are appended to the commit message body.",
 						Required: false,
 					},
+					&cli.StringSliceFlag{
+						Name:     flagReviewer,
+						Usage:    "Reviewer email address or rotation URL (repeatable).",
+						Required: false,
+					},
+					&cli.StringSliceFlag{
+						Name:     flagBackupReviewer,
+						Usage:    "Fallback reviewer email address when rotation lookup fails or returns nobody (repeatable).",
+						Required: false,
+					},
 				},
 				Action: func(ctx *cli.Context) error {
 					cwd, err := os.Getwd()
@@ -228,6 +241,10 @@ func main() {
 						}
 						commitBody = string(b)
 					}
+					pushTarget, err := cd.ResolveReviewersPushTarget(httputils.NewTimeoutClient(), ctx.StringSlice(flagReviewer), ctx.StringSlice(flagBackupReviewer))
+					if err != nil {
+						return td.FailStep(ctx.Context, err)
+					}
 					// Initialize git authentication.
 					ts, err := git_steps.Init(ctx.Context, true)
 					if err != nil {
@@ -236,7 +253,7 @@ func main() {
 					if _, err := gitauth.New(ctx.Context, ts, "/tmp/.gitcookies", true, ctx.String(flagEmail)); err != nil {
 						return td.FailStep(ctx.Context, err)
 					}
-					return cd.MaybeUploadCL(ctx.Context, cwd, ctx.String(flagCommitSubject), commitBody, ctx.String(flagSourceRepo), ctx.String(flagSourceCommit), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))
+					return cd.MaybeUploadCL(ctx.Context, cwd, ctx.String(flagCommitSubject), commitBody, ctx.String(flagSourceRepo), ctx.String(flagSourceCommit), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID), pushTarget)
 				},
 			},
 		},

@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/cd/go/stages"
 	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gerrit/rubberstamper"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
@@ -149,7 +150,7 @@ func updateRefs(ctx context.Context, dockerClient docker.Client, repo, workspace
 		imageList = append(imageList, path.Base(image.Image))
 	}
 	commitSubject := fmt.Sprintf("Update %s", strings.Join(imageList, ", "))
-	return cd.MaybeUploadCL(ctx, checkoutDir, commitSubject, "", srcRepo, srcCommit, louhiPubsubProject, executionID)
+	return cd.MaybeUploadCL(ctx, checkoutDir, commitSubject, "", srcRepo, srcCommit, louhiPubsubProject, executionID, rubberstamper.PushRequestAutoSubmit)
 }
 
 func findRegexesAndReplaces(image *SingleImageInfo, digest string) ([]*regexp.Regexp, []string) {

@@ -7,9 +7,12 @@ package cd
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -160,40 +163,140 @@ func TestMatchDockerImagesToGitCommits(t *testing.T) {
 	}, images)
 }
 
-func TestMaybeUploadCL_AppendsCommitBody(t *testing.T) {
+func TestResolveReviewersPushTarget(t *testing.T) {
+	rotSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/ok":
+			_, _ = w.Write([]byte(`{"emails":["oncall2@google.com","oncall1@google.com"]}`))
+		case "/empty":
+			_, _ = w.Write([]byte(`{"emails":[]}`))
+		case "/blank":
+			_, _ = w.Write([]byte(`{"emails":["", "  "]}`))
+		default:
+			http.Error(w, "boom", http.StatusInternalServerError)
+		}
+	}))
+	t.Cleanup(rotSrv.Close)
+
+	t.Run("default_rubberstamper_when_no_reviewers", func(t *testing.T) {
+		got, err := ResolveReviewersPushTarget(rotSrv.Client(), nil, nil)
+		require.NoError(t, err)
+		assert.Equal(t, rubberstamper.PushRequestAutoSubmit, got)
+	})
+
+	t.Run("rotation_url_and_email_resolved", func(t *testing.T) {
+		got, err := ResolveReviewersPushTarget(
+			rotSrv.Client(),
+			[]string{rotSrv.URL + "/ok", "extra@google.com"},
+			[]string{"backup@google.com"},
+		)
+		require.NoError(t, err)
+		assert.Equal(t, "HEAD:refs/for/main%ready,l=Auto-Submit+1,r=extra@google.com,r=oncall1@google.com,r=oncall2@google.com", got)
+	})
+
+	t.Run("empty_rotation_falls_back_to_backup_reviewer", func(t *testing.T) {
+		got, err := ResolveReviewersPushTarget(
+			rotSrv.Client(),
+			[]string{rotSrv.URL + "/empty"},
+			[]string{"backup@google.com"},
+		)
+		require.NoError(t, err)
+		assert.Equal(t, "HEAD:refs/for/main%ready,l=Auto-Submit+1,r=backup@google.com", got)
+	})
+
+	t.Run("blank_rotation_emails_fall_back_to_backup_reviewer", func(t *testing.T) {
+		got, err := ResolveReviewersPushTarget(
+			rotSrv.Client(),
+			[]string{rotSrv.URL + "/blank"},
+			[]string{"backup@google.com"},
+		)
+		require.NoError(t, err)
+		assert.Equal(t, "HEAD:refs/for/main%ready,l=Auto-Submit+1,r=backup@google.com", got)
+	})
+
+	t.Run("failed_rotation_falls_back_to_backup_reviewer", func(t *testing.T) {
+		got, err := ResolveReviewersPushTarget(
+			rotSrv.Client(),
+			[]string{rotSrv.URL + "/fail"},
+			[]string{"backup@google.com"},
+		)
+		require.NoError(t, err)
+		assert.Equal(t, "HEAD:refs/for/main%ready,l=Auto-Submit+1,r=backup@google.com", got)
+	})
+
+	t.Run("invalid_reviewer_email_returns_error", func(t *testing.T) {
+		_, err := ResolveReviewersPushTarget(rotSrv.Client(), []string{"not-an-email"}, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid reviewer")
+	})
+
+	t.Run("invalid_backup_reviewer_email_returns_error", func(t *testing.T) {
+		_, err := ResolveReviewersPushTarget(rotSrv.Client(), []string{rotSrv.URL + "/empty"}, []string{"not-an-email"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid backup reviewer")
+	})
+
+	t.Run("empty_rotation_without_backup_returns_error", func(t *testing.T) {
+		_, err := ResolveReviewersPushTarget(rotSrv.Client(), []string{rotSrv.URL + "/empty"}, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "no reviewers resolved")
+	})
+}
+
+func TestMaybeUploadCL_AppendsCommitBodyAndUsesPushTarget(t *testing.T) {
 	const fakeGit = "/path/to/fake/git"
 	const fakeChangeID = "Change-Id: I1111222233334444555566667777888899990000"
+	const customTarget = "HEAD:refs/for/main%ready,l=Auto-Submit+1,r=oncall@google.com"
 
-	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
-		mockExec := exec.CommandCollector{}
-		ctx = git_common.WithGitFinder(ctx, func() (string, error) {
-			return fakeGit, nil
-		})
-		mockExec.SetDelegateRun(func(_ context.Context, cmd *exec.Command) error {
-			if len(cmd.Args) == 1 && cmd.Args[0] == "--version" {
-				_, _ = cmd.CombinedOutput.Write([]byte("git version 2.40.0"))
+	for _, tc := range []struct {
+		name       string
+		pushTarget string
+		wantTarget string
+	}{
+		{
+			name:       "custom_push_target",
+			pushTarget: customTarget,
+			wantTarget: customTarget,
+		},
+		{
+			name:       "empty_push_target_defaults_to_rubberstamper",
+			pushTarget: "",
+			wantTarget: rubberstamper.PushRequestAutoSubmit,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			res := td.RunTestSteps(t, false, func(ctx context.Context) error {
+				mockExec := exec.CommandCollector{}
+				ctx = git_common.WithGitFinder(ctx, func() (string, error) {
+					return fakeGit, nil
+				})
+				mockExec.SetDelegateRun(func(_ context.Context, cmd *exec.Command) error {
+					if len(cmd.Args) == 1 && cmd.Args[0] == "--version" {
+						_, _ = cmd.CombinedOutput.Write([]byte("git version 2.40.0"))
+						return nil
+					}
+					if len(cmd.Args) == 3 && cmd.Args[0] == "diff" {
+						_, _ = cmd.CombinedOutput.Write([]byte("pipeline/stages.json\n"))
+						return nil
+					}
+					return nil
+				})
+				ctx = td.WithExecRunFn(ctx, mockExec.Run)
+				ctx = rubberstamper.WithDeterministicChangeID(ctx, fakeChangeID)
+
+				err := MaybeUploadCL(ctx, "/tmp/checkout", "Promote perfserver to prod", "OVERALL: PASS\n\nCommit range: https://skia.googlesource.com/buildbot/+log/aaa..bbb", "", "", "", "", tc.pushTarget)
+				require.NoError(t, err)
+
+				exec_testutils.AssertCommandsMatch(t, [][]string{
+					{fakeGit, "--version"},
+					{fakeGit, "diff", "--name-only", "HEAD"},
+					{fakeGit, "commit", "-a", "-m", "Promote perfserver to prod\n\nOVERALL: PASS\n\nCommit range: https://skia.googlesource.com/buildbot/+log/aaa..bbb\n\n" + fakeChangeID},
+					{fakeGit, "push", "origin", tc.wantTarget},
+				}, mockExec.Commands())
 				return nil
-			}
-			if len(cmd.Args) == 3 && cmd.Args[0] == "diff" {
-				_, _ = cmd.CombinedOutput.Write([]byte("pipeline/stages.json\n"))
-				return nil
-			}
-			return nil
+			})
+			require.Empty(t, res.Errors)
+			require.Empty(t, res.Exceptions)
 		})
-		ctx = td.WithExecRunFn(ctx, mockExec.Run)
-		ctx = rubberstamper.WithDeterministicChangeID(ctx, fakeChangeID)
-
-		err := MaybeUploadCL(ctx, "/tmp/checkout", "Promote perfserver to prod", "OVERALL: PASS\n\nCommit range: https://skia.googlesource.com/buildbot/+log/aaa..bbb", "", "", "", "")
-		require.NoError(t, err)
-
-		exec_testutils.AssertCommandsMatch(t, [][]string{
-			{fakeGit, "--version"},
-			{fakeGit, "diff", "--name-only", "HEAD"},
-			{fakeGit, "commit", "-a", "-m", "Promote perfserver to prod\n\nOVERALL: PASS\n\nCommit range: https://skia.googlesource.com/buildbot/+log/aaa..bbb\n\n" + fakeChangeID},
-			{fakeGit, "push", "origin", rubberstamper.PushRequestAutoSubmit},
-		}, mockExec.Commands())
-		return nil
-	})
-	require.Empty(t, res.Errors)
-	require.Empty(t, res.Exceptions)
+	}
 }

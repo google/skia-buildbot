@@ -15,6 +15,7 @@ go_library(
         "//cd/go/stages",
         "//go/docker",
         "//go/exec",
+        "//go/gerrit/rubberstamper",
         "//go/git",
         "//go/gitauth",
         "//go/httputils",
