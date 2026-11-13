@@ -3,17 +3,32 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "smoketest_lib",
-    srcs = ["checks.go"],
+    srcs = [
+        "checks.go",
+        "verdict.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/smoketest",
     visibility = ["//visibility:private"],
-    deps = ["//go/skerr"],
+    deps = [
+        "//go/gcs",
+        "//go/gcs/gcsclient",
+        "//go/httputils",
+        "//go/skerr",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
+    ],
 )
 
 go_test(
     name = "smoketest_test",
-    srcs = ["checks_test.go"],
+    srcs = [
+        "checks_test.go",
+        "verdict_test.go",
+    ],
     embed = [":smoketest_lib"],
     deps = [
+        "//go/gcs/mem_gcsclient",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
