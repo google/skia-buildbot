@@ -2280,7 +2280,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "krzTx1/2VHq7bQg8zCEtMK+b+899UwVfWDGxUE9ieCE=",
+        "usagesDigest": "Lp5W+kdyuZj/jlJ9I1IpFCXwWmfyGRh7BqCuDkzt4DQ=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -2373,7 +2373,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "skia-public/basealpine",
-              "identifier": "sha256:d32779ee655c9879c85ca22fee69f2c0d9ecc63df24fe269794d5a8abdcf0b6a",
+              "identifier": "sha256:2b2f6bffd7c097903e46585f47365706e479a5ddca84c6811dea31586ef08f06",
               "target_name": "basealpine_single",
               "bazel_tags": []
             }
@@ -2386,7 +2386,7 @@
               "scheme": "https",
               "registry": "gcr.io",
               "repository": "skia-public/basealpine",
-              "identifier": "sha256:d32779ee655c9879c85ca22fee69f2c0d9ecc63df24fe269794d5a8abdcf0b6a",
+              "identifier": "sha256:2b2f6bffd7c097903e46585f47365706e479a5ddca84c6811dea31586ef08f06",
               "platforms": {},
               "platform": "@@rules_oci+//oci:basealpine_single",
               "bzlmod_repository": "basealpine",
