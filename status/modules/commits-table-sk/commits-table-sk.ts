@@ -20,7 +20,6 @@ import { fromObject } from '../../../infra-sk/modules/query';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { define } from '../../../elements-sk/modules/define';
-import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Commit } from '../util';
 
@@ -40,15 +39,12 @@ import '../details-dialog-sk';
 import {
   Branch,
   Comment,
-  GetIncrementalCommitsRequest,
   GetIncrementalCommitsResponse,
   IncrementalUpdate,
   LongCommit,
-  StatusService,
   Task,
 } from '../rpc/status';
 import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
-import { GetStatusService } from '../rpc';
 import { BranchesSk } from '../branches-sk/branches-sk';
 import { defaultRepo, repos, taskSchedulerUrl } from '../settings';
 import { truncate } from '../../../infra-sk/modules/string';
@@ -69,6 +65,10 @@ const RELAND_HIGHLIGHT_CLASS = 'highlight-reland';
 const TASK_STATUS_SUCCESS = 'SUCCESS';
 const TASK_STATUS_FAILURE = 'FAILURE';
 const TASK_STATUS_MISHAP = 'MISHAP';
+
+export const KEEPALIVE_TIMEOUT_MS = 2 * 60 * 1000;
+export const KEEPALIVE_CHECK_INTERVAL_MS = 5000;
+export const RECONNECT_DELAY_MS = 5000;
 
 // Makes some maps more self-documenting.
 export type CommitHash = string;
@@ -125,14 +125,14 @@ export class TaskSpecDetails {
   }
 }
 
-type Filter = 'Interesting' | 'Failures' | 'All' | 'Nocomment' | 'Comments' | 'Search';
+type TaskFilter = 'Interesting' | 'Failures' | 'All' | 'Search';
 
-interface FilterInfo {
+interface TaskFilterInfo {
   text: string;
   title: string;
 }
 
-const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
+const TASK_FILTER_INFO: Map<TaskFilter, TaskFilterInfo> = new Map([
   [
     'Interesting',
     {
@@ -145,20 +145,6 @@ const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
     {
       text: 'Failures',
       title: 'Tasks which have failures within the visible commit window.',
-    },
-  ],
-  [
-    'Comments',
-    {
-      text: 'Comments',
-      title: 'Tasks which have comments.',
-    },
-  ],
-  [
-    'Nocomment',
-    {
-      text: 'Failing w/o comment',
-      title: 'Tasks which have failures within the visible commit window but have no comments.',
     },
   ],
   [
@@ -177,8 +163,8 @@ const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
     },
   ],
 ]);
-// Used to translate tabs-sk event indices to Filters.
-const FILTER_INDEX = Array.from(FILTER_INFO).map(([filter, _]) => filter);
+// Used to translate tabs-sk event indices to TaskFilters.
+const TASK_FILTER_INDEX = Array.from(TASK_FILTER_INFO).map(([filter, _]) => filter);
 
 // An internal class used to keep the fetching and preprocessing of data untangled from the logic
 // to render the table itself.
@@ -208,7 +194,7 @@ class Data {
   // Internal state.
   private serverPodId: string = '';
 
-  private client: StatusService = GetStatusService();
+  private eventSource: EventSource | null = null;
 
   private _lastLoaded?: Date;
 
@@ -217,42 +203,195 @@ class Data {
 
   private numCommits: number = -1;
 
+  private branchFilter: string = '';
+
+  private cursor: string = '';
+
+  private taskFilter: TaskFilter = 'Interesting';
+
+  private taskSearch: string = '';
+
+  private keepaliveReconnectTimeout?: number;
+
+  private lastKeepaliveTime: number = Date.now();
+
+  private keepaliveInterval?: number;
+
   get lastLoaded() {
     return this._lastLoaded;
   }
 
-  update(repo: string, numCommits: number) {
-    const req: GetIncrementalCommitsRequest = {
-      n: numCommits,
-      pod: this.serverPodId,
-      repoPath: repo,
-    };
-    if (this.lastLoaded && repo === this.repo && numCommits === this.numCommits) {
-      // We incrementally update if this is the same repo and numCommits as the
-      // previous call, and we have a starting point.
-      req.from = this.lastLoaded.toISOString();
-    }
-    this.repo = repo;
-    this.numCommits = numCommits;
-    // Date.now to allow mocking of time. Take time before the server gets the request to make sure
-    // we don't miss commits, but only set it if the request was successful.
-    const reqTime = new Date(Date.now());
-    return this.client
-      .getIncrementalCommits(req)
-      .then((json: GetIncrementalCommitsResponse) => {
-        this._lastLoaded = reqTime;
-        if (json.metadata!.startOver) {
-          this.clearData();
-        }
-        this.serverPodId = json.metadata!.pod;
-        this.extractData(json.update!);
-        // We clear this derived data, as it may have changed with incremental updates.
-        this.taskSpecs = new Map();
-        this.categories = new Map();
+  private startKeepaliveCheck(onUpdate: () => void) {
+    this.lastKeepaliveTime = Date.now();
+    this.stopKeepaliveCheck();
+    this.keepaliveInterval = window.setInterval(() => {
+      const elapsed = Date.now() - this.lastKeepaliveTime;
+      if (elapsed > KEEPALIVE_TIMEOUT_MS) {
+        console.warn(
+          `No SSE activity for ${KEEPALIVE_TIMEOUT_MS / 1000}s. Connection has stalled. Reconnecting...`
+        );
+        this.resetEventSource(
+          this.repo,
+          this.numCommits,
+          this.branchFilter,
+          this.cursor,
+          this.taskFilter,
+          this.taskSearch,
+          onUpdate,
+          true
+        );
+      }
+    }, KEEPALIVE_CHECK_INTERVAL_MS);
+  }
 
-        this.processCommits();
-      })
-      .catch(errorMessage);
+  private stopKeepaliveCheck() {
+    if (this.keepaliveInterval) {
+      window.clearInterval(this.keepaliveInterval);
+      this.keepaliveInterval = undefined;
+    }
+  }
+
+  private scheduleKeepaliveReconnect(onUpdate: () => void) {
+    // Debounce concurrent connection triggers by clearing any existing
+    // scheduled reconnect.
+    if (this.keepaliveReconnectTimeout) {
+      window.clearTimeout(this.keepaliveReconnectTimeout);
+    }
+    // Delay reconnection by RECONNECT_DELAY_MS. This ensures that we don't
+    // overwhelm the server with requests or create a tight client-side loop
+    // which wastes CPU unnecessarily.
+    this.keepaliveReconnectTimeout = window.setTimeout(() => {
+      if (this.eventSource && this.eventSource.readyState === EventSource.CLOSED) {
+        console.log('EventSource is CLOSED. Forcing reconnection...');
+        this.resetEventSource(
+          this.repo,
+          this.numCommits,
+          this.branchFilter,
+          this.cursor,
+          this.taskFilter,
+          this.taskSearch,
+          onUpdate,
+          true
+        );
+      }
+    }, RECONNECT_DELAY_MS);
+  }
+
+  resetEventSource(
+    repo: string,
+    numCommits: number,
+    branchFilter: string,
+    cursor: string,
+    taskFilter: TaskFilter,
+    taskSearch: string,
+    onUpdate: () => void,
+    force: boolean = false
+  ): Promise<void> {
+    if (
+      force ||
+      this.repo !== repo ||
+      this.numCommits !== numCommits ||
+      this.branchFilter !== branchFilter ||
+      this.cursor !== cursor ||
+      this.taskFilter !== taskFilter ||
+      (taskFilter === 'Search' && this.taskSearch !== taskSearch)
+    ) {
+      if (this.keepaliveReconnectTimeout) {
+        window.clearTimeout(this.keepaliveReconnectTimeout);
+        this.keepaliveReconnectTimeout = undefined;
+      }
+      this.stopKeepaliveCheck();
+      if (this.eventSource) {
+        this.eventSource.close();
+        this.eventSource = null;
+      }
+      this.repo = repo;
+      this.numCommits = numCommits;
+      this.branchFilter = branchFilter;
+      this.cursor = cursor;
+      this.taskFilter = taskFilter;
+      this.taskSearch = taskSearch;
+
+      const queryParams = new URLSearchParams({
+        repo: repo,
+        n: numCommits.toString(),
+        taskFilter: taskFilter,
+      });
+      if (branchFilter) {
+        queryParams.set('branch', branchFilter);
+      }
+      if (cursor) {
+        queryParams.set('cursor', cursor);
+      }
+      if (taskFilter === 'Search' && taskSearch) {
+        queryParams.set('taskSearch', taskSearch);
+      }
+
+      const url = `/sse?${queryParams.toString()}`;
+      try {
+        this.eventSource = new EventSource(url);
+        this.eventSource.addEventListener('keepalive', () => {
+          console.log('Received SSE keepalive event');
+          this.lastKeepaliveTime = Date.now();
+        });
+      } catch (err) {
+        console.error('Failed to create event source');
+        console.error(err);
+        return Promise.reject();
+      }
+
+      return new Promise<void>((resolve, reject) => {
+        let firstMessage = true;
+        let disconnected = false;
+        this.startKeepaliveCheck(onUpdate);
+        this.eventSource!.onmessage = (event) => {
+          console.log('Received message:');
+          this.lastKeepaliveTime = Date.now();
+          if (this.keepaliveReconnectTimeout) {
+            window.clearTimeout(this.keepaliveReconnectTimeout);
+            this.keepaliveReconnectTimeout = undefined;
+          }
+          try {
+            const json: GetIncrementalCommitsResponse = JSON.parse(event.data);
+            console.log(json);
+            this._lastLoaded = new Date(Date.now());
+            if (firstMessage || disconnected) {
+              this.clearData();
+              disconnected = false;
+            }
+            this.serverPodId = json.metadata!.pod;
+            this.extractData(json.update!);
+            // We clear this derived data, as it may have changed with incremental updates.
+            this.taskSpecs = new Map();
+            this.categories = new Map();
+
+            this.processCommits();
+            onUpdate();
+            if (firstMessage) {
+              firstMessage = false;
+              resolve();
+            }
+          } catch (err) {
+            console.error('Failed to parse SSE event data', err);
+            if (firstMessage) {
+              firstMessage = false;
+              reject(err);
+            }
+          }
+        };
+
+        this.eventSource!.onerror = (err) => {
+          console.error('SSE EventSource encountered an error, reconnecting...', err);
+          disconnected = true;
+          if (firstMessage) {
+            firstMessage = false;
+            reject(err);
+          }
+          this.scheduleKeepaliveReconnect(onUpdate);
+        };
+      });
+    }
+    return Promise.resolve();
   }
 
   private clearData() {
@@ -311,6 +450,25 @@ class Data {
       }
     }
 
+    // Handle hidden task specs
+    const hideSpecs = update.hideTaskSpecs;
+    if (hideSpecs && hideSpecs.length > 0) {
+      const hideSet = new Set(hideSpecs);
+      for (const [id, task] of this.tasks) {
+        if (hideSet.has(task.name)) {
+          this.tasks.delete(id);
+        }
+      }
+      for (const spec of hideSpecs) {
+        this.taskSpecs.delete(spec);
+      }
+      for (const [, tasksForCommit] of this.tasksByCommit) {
+        for (const spec of hideSpecs) {
+          tasksForCommit.delete(spec);
+        }
+      }
+    }
+
     // Map commits to tasks
     for (const [, task] of this.tasks) {
       if (task.commits) {
@@ -324,13 +482,6 @@ class Data {
         }
       }
     }
-
-    // TODO(westont): Remove deleted comments. This is broken at the backend already delete
-    // comments are only deleted in incremental updates if there is another comment in the
-    // same category(e.g. A commit comment won't be recognized as deleted unless another
-    // commit comment exists somewhere, to populate the commit_comments update field.)
-    // For now this just means deleted comments aren't conveyed to clients until they or the
-    // backend forces a full update.
 
     // Map comments.
     for (const comment of update.comments || []) {
@@ -346,9 +497,20 @@ class Data {
         comment.taskSpecName,
         Array
       );
-      comments.push(comment);
-      // Keep comments sorted by timestamp, if there are multiple.
-      comments.sort((a: Comment, b: Comment) => Number(a.timestamp) - Number(b.timestamp));
+      const existingIdx = comment.id ? comments.findIndex((c: Comment) => c.id === comment.id) : -1;
+      if (comment.deleted) {
+        if (existingIdx !== -1) {
+          comments.splice(existingIdx, 1);
+        }
+      } else {
+        if (existingIdx !== -1) {
+          comments[existingIdx] = comment;
+        } else {
+          comments.push(comment);
+        }
+        // Keep comments sorted by timestamp, if there are multiple.
+        comments.sort((a: Comment, b: Comment) => Number(a.timestamp) - Number(b.timestamp));
+      }
     }
   }
 
@@ -384,6 +546,8 @@ class Data {
    * taskspecs references by commits.
    */
   private processCommits() {
+    this.revertedMap = new Map();
+    this.relandedMap = new Map();
     for (const commit of this.commits) {
       // Metadata for display/links.
       commit.shortAuthor = shortAuthor(commit.author);
@@ -393,15 +557,13 @@ class Data {
 
       this.mapRevertsAndRelands(commit);
 
-      // Check for commit-specific comments with ignoreFailure.
+      // Check for commit-specific comments with ignoreFailure or if this commit was reverted.
       const commitComments = this.comments.get(commit.hash)?.get('');
-      if (
-        commitComments &&
-        commitComments.length &&
-        commitComments[commitComments.length - 1].ignoreFailure
-      ) {
-        commit.ignoreFailure = true;
-      }
+      commit.ignoreFailure =
+        this.revertedMap.has(commit.hash) ||
+        (commitComments !== undefined &&
+          commitComments.length > 0 &&
+          commitComments[commitComments.length - 1].ignoreFailure);
 
       const commitTasks = this.tasksByCommit.get(commit.hash) || [];
       this.processCommitTasks(commitTasks, commit);
@@ -509,35 +671,41 @@ class RequestLimiter {
 }
 
 class State {
-  filter: Filter = 'Interesting';
+  taskFilter: TaskFilter = 'Interesting';
 
-  search: string = '';
+  taskSearch: string = '';
 
   displayCommitSubject: boolean = false;
 
   repo: string = defaultRepo();
 
   branchFilter: string = '';
+
+  cursor: string = '';
 }
 
 export class CommitsTableSk extends ElementSk {
   private _displayCommitSubject: boolean = false;
 
-  private _filter: Filter = 'Interesting';
+  private _taskFilter: TaskFilter = 'Interesting';
 
-  private _search: string = '';
+  private _taskSearch: string = '';
 
   private _repo: string = defaultRepo();
 
   private _branchFilter: string = '';
 
-  commits: Array<Commit> = [];
+  private _cursor: string = '';
+
+  private cursorStack: string[] = [];
+
+  private loading: boolean = false;
 
   private lastColumn: number = 1;
 
   private mishapTasks: Array<Task> = [];
 
-  private refreshHandle?: number;
+  private failedTaskIds: Array<string> = [];
 
   private requestLimiter: RequestLimiter = new RequestLimiter();
 
@@ -567,7 +735,7 @@ export class CommitsTableSk extends ElementSk {
           <select
             id="repoSelector"
             @change=${(e: Event) => {
-              el.repo = (e.target as any).value;
+              el.repo = (e.target as HTMLSelectElement).value;
             }}>
             ${repos().map((r) => html`<option value=${r}>${r}</option>`)}
           </select>
@@ -594,9 +762,9 @@ export class CommitsTableSk extends ElementSk {
       </div>
       <branches-sk
         style=${el.gridLocation(
-          COMMIT_START_ROW,
+          COMMIT_START_ROW + (el.cursor ? 2 : 0),
           BRANCH_START_COL,
-          COMMIT_START_ROW + el.commits.length
+          COMMIT_START_ROW + (el.cursor ? 2 : 0) + el.data.commits.length
         )}></branches-sk>
       <div
         class="controls"
@@ -622,13 +790,14 @@ export class CommitsTableSk extends ElementSk {
 
           <div class="horizontal">
             <tabs-sk
-              @tab-selected-sk=${(e: CustomEvent) => (el.filter = FILTER_INDEX[e.detail.index])}>
-              ${Array.from(FILTER_INFO).map(([filter, info]) =>
+              @tab-selected-sk=${(e: CustomEvent) =>
+                (el.taskFilter = TASK_FILTER_INDEX[e.detail.index])}>
+              ${Array.from(TASK_FILTER_INFO).map(([filter, info]) =>
                 filter === 'Search'
                   ? html``
                   : html`<button
                       title=${info.title}
-                      class=${el._filter === filter ? 'selected' : ''}>
+                      class=${el._taskFilter === filter ? 'selected' : ''}>
                       ${info.text}
                       <help-icon-sk class="tiny"></help-icon-sk>
                     </button> `
@@ -636,9 +805,9 @@ export class CommitsTableSk extends ElementSk {
             </tabs-sk>
             <input-sk
               id="searchInput"
-              class=${el.filter === 'Search' ? 'selected' : ''}
+              class=${el.taskFilter === 'Search' ? 'selected' : ''}
               label="Filter task spec"
-              @change=${el.searchFilter}>
+              @change=${el.taskSearchFilter}>
             </input-sk>
             <a href="${taskSchedulerUrl()}/trigger" target="_blank" rel="noopener">
               <button>
@@ -687,22 +856,24 @@ export class CommitsTableSk extends ElementSk {
   // deltas from.  This allows our 'default' values to still be reflected in the url.
   private getState = () => {
     const hintableSettings: HintableObject = {
-      filter: '',
-      search: '',
+      taskFilter: '',
+      taskSearch: '',
       repo: '',
       displayCommitSubject: false,
       branchFilter: '',
+      cursor: '',
     };
     return hintableSettings;
   };
 
   private getCurrentState(): HintableObject {
     const state: State = {
-      filter: this.filter,
-      search: this.search,
+      taskFilter: this.taskFilter,
+      taskSearch: this.taskSearch,
       displayCommitSubject: this.displayCommitSubject,
       repo: this.repo,
       branchFilter: this.branchFilter,
+      cursor: this.cursor,
     };
     return state as unknown as HintableObject;
   }
@@ -710,16 +881,16 @@ export class CommitsTableSk extends ElementSk {
   private setState(fromUrl: HintableObject) {
     const state = fromUrl as unknown as State;
     // Using empty default values in the default State object (so all values, including our true
-    // defaults are reflected in the url) means the initial load will try to set filter and
+    // defaults are reflected in the url) means the initial load will try to set taskFilter and
     // repo to the empty string, prevent this.
-    if (state.filter) {
-      this._filter = state.filter;
+    if (state.taskFilter) {
+      this._taskFilter = state.taskFilter;
     }
-    this._search = state.search;
-    $$<HTMLInputElement>('#searchInput', this)!.value = this._search;
+    this._taskSearch = state.taskSearch;
+    $$<HTMLInputElement>('#searchInput', this)!.value = this._taskSearch;
     this._branchFilter = state.branchFilter || '';
     $$<HTMLInputElement>('#branchSearchInput', this)!.value = this._branchFilter;
-    this.filterCommits();
+    this._cursor = state.cursor || '';
     this._displayCommitSubject = state.displayCommitSubject;
     if (state.repo) {
       this.repo = state.repo;
@@ -747,33 +918,13 @@ export class CommitsTableSk extends ElementSk {
     this.stateHasChanged();
     $('.commit-text').forEach((el, i) => {
       if (v) {
-        el.textContent = this.commits[i].shortSubject;
-        el.setAttribute('title', this.commits[i].shortAuthor);
+        el.textContent = this.data.commits[i].shortSubject;
+        el.setAttribute('title', this.data.commits[i].shortAuthor);
       } else {
-        el.textContent = this.commits[i].shortAuthor;
-        el.setAttribute('title', this.commits[i].shortSubject);
+        el.textContent = this.data.commits[i].shortAuthor;
+        el.setAttribute('title', this.data.commits[i].shortSubject);
       }
     });
-  }
-
-  get filter(): Filter {
-    return this._filter;
-  }
-
-  set filter(v: Filter) {
-    this._filter = v;
-    this.stateHasChanged();
-    this.draw();
-  }
-
-  get search(): string {
-    return this._search;
-  }
-
-  set search(v: string) {
-    this._search = v;
-    this.stateHasChanged();
-    this.draw();
   }
 
   get branchFilter(): string {
@@ -782,42 +933,59 @@ export class CommitsTableSk extends ElementSk {
 
   set branchFilter(v: string) {
     this._branchFilter = v;
-    this.filterCommits();
+    this.update();
     this.stateHasChanged();
     this.draw();
   }
 
-  private filterCommits(): void {
-    if (!this._branchFilter) {
-      this.commits = this.data.commits;
-      return;
-    }
+  get cursor(): string {
+    return this._cursor;
+  }
 
-    let regex: RegExp | null = null;
-    try {
-      regex = new RegExp(this._branchFilter, 'i');
-    } catch (e) {
-      errorMessage(e as Error);
-      return;
-    }
+  set cursor(v: string) {
+    this._cursor = v;
+    this.update();
+    this.stateHasChanged();
+    this.draw();
+  }
 
-    const branchHeads = this.data.branchHeads
-      .filter((branch) => regex.test(branch.name))
-      .map((branch) => branch.head);
-    if (branchHeads.length === 0) {
-      this.commits = [];
-      return;
+  pageOlder() {
+    if (this.data.commits.length > 0) {
+      const oldestCommit = this.data.commits[this.data.commits.length - 1];
+      this.cursorStack.push(this.cursor);
+      this.cursor = oldestCommit.hash;
     }
+  }
 
-    const reachable = new Set<string>(branchHeads);
-    const filteredCommits: Commit[] = [];
-    for (const commit of this.data.commits) {
-      if (reachable.has(commit.hash)) {
-        filteredCommits.push(commit);
-        commit.parents?.forEach((p) => reachable.add(p));
-      }
+  pageNewer() {
+    const prevCursor = this.cursorStack.pop();
+    if (prevCursor !== undefined) {
+      this.cursor = prevCursor;
+    } else {
+      this.cursor = '';
     }
-    this.commits = filteredCommits;
+  }
+
+  get taskFilter(): TaskFilter {
+    return this._taskFilter;
+  }
+
+  set taskFilter(v: TaskFilter) {
+    this._taskFilter = v;
+    this.update();
+    this.stateHasChanged();
+    this.draw();
+  }
+
+  get taskSearch(): string {
+    return this._taskSearch;
+  }
+
+  set taskSearch(v: string) {
+    this._taskSearch = v;
+    this.update();
+    this.stateHasChanged();
+    this.draw();
   }
 
   get repo(): string {
@@ -834,9 +1002,9 @@ export class CommitsTableSk extends ElementSk {
     }
   }
 
-  private searchFilter(e: Event) {
-    this._filter = 'Search'; // Use the private member to avoid double-render
-    this.search = (<HTMLInputElement>e.target).value;
+  private taskSearchFilter(e: Event) {
+    this._taskFilter = 'Search'; // Use the private member to avoid double-render
+    this.taskSearch = (<HTMLInputElement>e.target).value;
   }
 
   // Arrow notation to allow for reference of same function in removeEventListener.
@@ -858,7 +1026,7 @@ export class CommitsTableSk extends ElementSk {
         dialog.displayTaskSpec(taskExecutor || '', spec, comments);
       }
     } else if (target.classList.contains('commit')) {
-      const commit = this.commits[Number(target.dataset.commitIndex)]!;
+      const commit = this.data.commits[Number(target.dataset.commitIndex)]!;
       const comments = this.data.comments.get(commit.hash)?.get('') || [];
       dialog.displayCommit(commit, comments);
     } else if (target.hasAttribute('data-task-id')) {
@@ -903,35 +1071,6 @@ export class CommitsTableSk extends ElementSk {
     return styleMap({
       gridArea: `${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}`,
     });
-  }
-
-  /**
-   * includeTaskSpec checks the spec against the filter type currently set for the table and
-   * returns true if the taskspec should be displayed.
-   * @param taskSpec The taskSpec name to check against the filter.
-   * @param searchRegex Regex to search with, must be set if this._filter === "Search".
-   */
-  private includeTaskSpec(taskSpec: string, searchRegex?: RegExp): boolean {
-    const specDetails = this.data.taskSpecs.get(taskSpec);
-    if (!specDetails) {
-      return true;
-    }
-    switch (this._filter) {
-      case 'All':
-        return true;
-      case 'Comments':
-        return specDetails.hasComment();
-      case 'Nocomment':
-        return specDetails.hasFailingNoComment();
-      case 'Failures':
-        return specDetails.hasFailing();
-      case 'Interesting':
-        return specDetails.interesting();
-      case 'Search':
-        return searchRegex!.test(taskSpec);
-      default:
-        return false;
-    }
   }
 
   /**
@@ -1024,8 +1163,6 @@ export class CommitsTableSk extends ElementSk {
   private addTaskHeaders(res: Array<TemplateResult>): Map<TaskSpec, number> {
     const taskSpecStartCols: Map<TaskSpec, number> = new Map();
     let categoryStartCol = TASK_START_COL;
-    // We compile our regex once, rather than on ever taskspec.
-    const searchRegex = this._filter === 'Search' ? new RegExp(this._search, 'i') : undefined;
     // We walk category/subcategory/taskspec info 'depth-first' so filtered out taskspecs can
     // correctly filter out unnecessary subcategories, etc.
     const sortedCategoryNames = Array.from(this.data.categories.keys()).sort();
@@ -1038,20 +1175,17 @@ export class CommitsTableSk extends ElementSk {
       sortedSubcategoryNames.forEach((subcategoryName: string) => {
         const taskSpecs = categoryDetails.taskSpecsBySubCategory.get(subcategoryName)!;
         let taskSpecStartCol = subcategoryStartCol;
-        taskSpecs
-          .sort()
-          .filter((ts) => this.includeTaskSpec(ts, searchRegex))
-          .forEach((taskSpec: string) => {
-            taskSpecStartCols.set(taskSpec, taskSpecStartCol);
-            res.push(
-              html`<div
-                class="category task-spec"
-                style=${this.gridLocation(TASKSPEC_START_ROW, taskSpecStartCol++)}
-                title=${taskSpec}>
-                ${this.taskSpecIcons(taskSpec)}
-              </div>`
-            );
-          });
+        taskSpecs.sort().forEach((taskSpec: string) => {
+          taskSpecStartCols.set(taskSpec, taskSpecStartCol);
+          res.push(
+            html`<div
+              class="category task-spec"
+              style=${this.gridLocation(TASKSPEC_START_ROW, taskSpecStartCol++)}
+              title=${taskSpec}>
+              ${this.taskSpecIcons(taskSpec)}
+            </div>`
+          );
+        });
         if (taskSpecStartCol !== subcategoryStartCol) {
           // Added at least one TaskSpec in this subcategory, so add a Subcategory header.
           const subcategoryEndCol = taskSpecStartCol;
@@ -1146,6 +1280,9 @@ export class CommitsTableSk extends ElementSk {
         if (task.status === TASK_STATUS_MISHAP) {
           this.mishapTasks.push(task);
         }
+        if (task.status === TASK_STATUS_FAILURE || task.status === TASK_STATUS_MISHAP) {
+          this.failedTaskIds.push(task.id);
+        }
         const displayTaskRows = this.displayTaskRows(task, commitIndex);
         if (displayTaskRows.every(Boolean)) {
           // The task bubble is contiguous, just draw a single div over that span.
@@ -1155,8 +1292,8 @@ export class CommitsTableSk extends ElementSk {
               style=${this.gridLocation(rowStart, colStart, rowStart + displayTaskRows.length)}
               title=${taskTitle(task)}
               data-task-id=${task.id}
-              @mouseenter=${() => this.taskMouseInOut(task)}
-              @mouseleave=${() => this.taskMouseInOut(task)}>
+              @mouseenter=${() => this.taskMouseInOut(task, true)}
+              @mouseleave=${() => this.taskMouseInOut(task, false)}>
               ${this.taskIcon(task)}
             </div>`
           );
@@ -1167,8 +1304,8 @@ export class CommitsTableSk extends ElementSk {
           res.push(
             html`<div
               class="multicommit-task grow"
-              @mouseenter=${() => this.taskMouseInOut(task)}
-              @mouseleave=${() => this.taskMouseInOut(task)}
+              @mouseenter=${() => this.taskMouseInOut(task, true)}
+              @mouseleave=${() => this.taskMouseInOut(task, false)}
               style=${this.gridLocation(rowStart, colStart, rowStart + displayTaskRows.length)}>
               ${this.multiCommitTaskSlots(displayTaskRows, rowStart, task)}
             </div>`
@@ -1178,12 +1315,35 @@ export class CommitsTableSk extends ElementSk {
     }
   }
 
-  private taskMouseInOut(task: Task) {
+  private taskMouseInOut(task: Task, hovered: boolean = false) {
     task.commits!.forEach((hash) => {
       $$<HTMLDivElement>(`.${this.attributeStringFromHash(hash)}`, this)?.classList.toggle(
-        `task-emphasize-${task.status.toLowerCase()}`
+        `task-emphasize-${task.status?.toLowerCase() || 'unknown'}`
       );
     });
+    this.dispatchEvent(
+      new CustomEvent('task-hover', {
+        bubbles: true,
+        detail: { taskId: task.id, hovered },
+      })
+    );
+  }
+
+  highlightTasks(taskIds: string[]) {
+    const container = $$('.commitsTableContainer', this);
+    $('.highlight-failure-class', this).forEach((el) =>
+      el.classList.remove('highlight-failure-class')
+    );
+    if (!taskIds || taskIds.length === 0) {
+      container?.classList.remove('highlighting-failure-class');
+      return;
+    }
+    container?.classList.add('highlighting-failure-class');
+    for (const id of taskIds) {
+      $(`[data-task-id="${id}"]`, this).forEach((el) =>
+        el.classList.add('highlight-failure-class')
+      );
+    }
   }
 
   // Return a time label if one should be used for the commit at the given index.
@@ -1220,7 +1380,22 @@ export class CommitsTableSk extends ElementSk {
     // at least 1 more than the commits panel, even if we have no tasks displayed.
     this.lastColumn = Math.max(taskSpecStartCols.size + TASK_START_COL, TASK_START_COL + 1);
     this.mishapTasks = [];
-    const taskStartRow = COMMIT_START_ROW;
+    this.failedTaskIds = [];
+    let taskStartRow = COMMIT_START_ROW;
+    if (this.cursor) {
+      res.push(html`
+        <div
+          class="pagination-bar newer-bar in-grid"
+          style=${this.gridLocation(COMMIT_START_ROW, 1, COMMIT_START_ROW + 2, this.lastColumn)}
+          @click=${() => this.pageNewer()}>
+          ${this.loading
+            ? html`<autorenew-icon-sk class="loading-spinner"></autorenew-icon-sk>`
+            : html`<expand-less-icon-sk></expand-less-icon-sk>`}
+          Newer Commits
+        </div>
+      `);
+      taskStartRow += 2;
+    }
     const tasksAddedToTemplate: Set<TaskId> = new Set();
     const now = Date.now();
     // Explicitly privide 'now' in case we patched it out for testing.
@@ -1236,11 +1411,11 @@ export class CommitsTableSk extends ElementSk {
     ];
     timePoints.sort((a, b) => b.time.valueOf() - a.time.valueOf());
     // Commits are ordered newest to oldest, so the first commit is visually near the top.
-    for (const [i, commit] of this.commits.entries()) {
+    for (const [i, commit] of this.data.commits.entries()) {
       const rowStart = taskStartRow + i;
       const title = this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
       const text = !this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
-      const timeLabel = this.timeLabel(this.commits, i, timePoints);
+      const timeLabel = this.timeLabel(this.data.commits, i, timePoints);
 
       const tasksBySpec = this.data.tasksByCommit.get(commit.hash);
       if (tasksBySpec) {
@@ -1274,8 +1449,25 @@ export class CommitsTableSk extends ElementSk {
     const nextRowDiv = () =>
       html` <div style=${this.gridLocation(row, 1, ++row, this.lastColumn)}></div>`;
     res.push(
-      html` <div class="rowUnderlay">${Array(this.commits.length).fill(1).map(nextRowDiv)}</div>`
+      html` <div class="rowUnderlay">
+        ${Array(this.data.commits.length).fill(1).map(nextRowDiv)}
+      </div>`
     );
+
+    // Render Older Commits button inside the grid
+    const olderRowStart = taskStartRow + this.data.commits.length;
+    res.push(html`
+      <div
+        class="pagination-bar older-bar in-grid"
+        style=${this.gridLocation(olderRowStart, 1, olderRowStart + 2, this.lastColumn)}
+        @click=${() => this.pageOlder()}>
+        ${this.loading
+          ? html`<autorenew-icon-sk class="loading-spinner"></autorenew-icon-sk>`
+          : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+        Older Commits
+      </div>
+    `);
+
     return res;
   }
 
@@ -1307,13 +1499,13 @@ export class CommitsTableSk extends ElementSk {
    */
   private displayTaskRows(task: Task, latestCommitIndex: number) {
     // Only a single commit, or the last shown commit, obviously contiguous.
-    if (task.commits!.length < 2 || latestCommitIndex >= this.commits.length - 1) {
+    if (task.commits!.length < 2 || latestCommitIndex >= this.data.commits.length - 1) {
       return [true];
     }
     const visibleCommitsCount = task.commits!.filter((hash) => {
       const commit = this.data.commitsByHash.get(hash);
       if (!commit) return false;
-      const index = this.commits.indexOf(commit);
+      const index = this.data.commits.indexOf(commit);
       return index >= latestCommitIndex;
     }).length;
 
@@ -1321,19 +1513,19 @@ export class CommitsTableSk extends ElementSk {
     // Check for parental gaps. Commits may be sorted, but we don't assume that.
     let displayCommitsCount = 1;
     // We update this as we 'walk backward' through the commits this task covers.
-    let currentCommitInTask = this.commits[latestCommitIndex];
+    let currentCommitInTask = this.data.commits[latestCommitIndex];
     // Follow the ancestory up to the penultimate commit, since we look ahead by 1.
     // Earlier here means visually below.
     for (
       let earlierCommitIndex = latestCommitIndex + 1;
-      earlierCommitIndex < this.commits.length;
+      earlierCommitIndex < this.data.commits.length;
       earlierCommitIndex++
     ) {
       // Exit if we know we've account for all commits in the task, to avoid an extra 'false' at
       // the end of the returned array.
       if (displayCommitsCount === visibleCommitsCount) break;
 
-      const earlierCommit = this.commits[earlierCommitIndex];
+      const earlierCommit = this.data.commits[earlierCommitIndex];
       if (currentCommitInTask.parents!.indexOf(earlierCommit.hash) === -1) {
         // Branch leaves a gap.
         thisTaskOverCommits.push(false);
@@ -1349,43 +1541,47 @@ export class CommitsTableSk extends ElementSk {
   }
 
   private update() {
-    if (!this.requestLimiter.beginUpdate()) {
-      // There is already an outstanding request, we'll re-update once that resolves.
+    if (!this.isConnected) {
       return;
     }
-    this.updatesRunning = true;
-    const refreshSeconds = 60;
     const numCommits = Number((<HTMLInputElement>$$('#commitsInput', this)).value);
-    window.clearTimeout(this.refreshHandle);
-    this.refreshHandle = undefined;
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-    this.data.update(this.repo, numCommits).finally(() => {
-      this.filterCommits();
-      this.draw();
-      const branchesSk = $$('branches-sk', this) as BranchesSk;
-      if (branchesSk) {
-        branchesSk.commits = this.commits;
-        branchesSk.branchHeads = this.data.branchHeads;
-      }
-      this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
-      // If an additional update was requested, start it, otherwise schedule it.
-      if (this.requestLimiter.endUpdate()) {
-        this.update();
-      } else {
-        this.refreshHandle = window.setTimeout(() => this.update(), refreshSeconds * 1000);
-      }
-    });
+    this.loading = true;
+    this.draw();
+
+    this.data
+      .resetEventSource(
+        this.repo,
+        numCommits,
+        this.branchFilter,
+        this.cursor,
+        this.taskFilter,
+        this.taskSearch,
+        () => {
+          this.loading = false;
+          this.draw();
+          const branchesSk = $$('branches-sk', this) as BranchesSk;
+          if (branchesSk) {
+            branchesSk.commits = this.data.commits;
+            branchesSk.branchHeads = this.data.branchHeads;
+          }
+        }
+      )
+      .finally(() => {
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      });
   }
 
   private draw() {
-    console.time('render');
+    //console.time('render');
     this._render();
-    const branchesSk = $$('branches-sk', this) as BranchesSk;
-    if (branchesSk) {
-      branchesSk.commits = this.commits;
-      branchesSk.branchHeads = this.data.branchHeads;
-    }
-    console.timeEnd('render');
+    //console.timeEnd('render');
+    this.dispatchEvent(
+      new CustomEvent('failed-tasks-changed', {
+        bubbles: true,
+        detail: { taskIds: this.failedTaskIds.slice() },
+      })
+    );
   }
 }
 

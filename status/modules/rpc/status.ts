@@ -16,16 +16,6 @@ interface GetIncrementalCommitsRequestJSON {
   repo_path?: string;
 }
 
-const GetIncrementalCommitsRequestToJSON = (m: GetIncrementalCommitsRequest): GetIncrementalCommitsRequestJSON => {
-  return {
-    from: m.from,
-    to: m.to,
-    n: m.n,
-    pod: m.pod,
-    repo_path: m.repoPath,
-  };
-};
-
 export interface GetIncrementalCommitsResponse {
   metadata?: ResponseMetadata;
   update?: IncrementalUpdate;
@@ -35,13 +25,6 @@ interface GetIncrementalCommitsResponseJSON {
   metadata?: ResponseMetadataJSON;
   update?: IncrementalUpdateJSON;
 }
-
-const JSONToGetIncrementalCommitsResponse = (m: GetIncrementalCommitsResponseJSON): GetIncrementalCommitsResponse => {
-  return {
-    metadata: m.metadata && JSONToResponseMetadata(m.metadata),
-    update: m.update && JSONToIncrementalUpdate(m.update),
-  };
-};
 
 export interface IncrementalUpdate {
   commits?: LongCommit[];
@@ -59,16 +42,6 @@ interface IncrementalUpdateJSON {
   hide_task_specs?: string[];
 }
 
-const JSONToIncrementalUpdate = (m: IncrementalUpdateJSON): IncrementalUpdate => {
-  return {
-    commits: m.commits && m.commits.map(JSONToLongCommit),
-    branchHeads: m.branch_heads && m.branch_heads.map(JSONToBranch),
-    tasks: m.tasks && m.tasks.map(JSONToTask),
-    comments: m.comments && m.comments.map(JSONToComment),
-    hideTaskSpecs: m.hide_task_specs,
-  };
-};
-
 export interface Branch {
   name: string;
   head: string;
@@ -78,13 +51,6 @@ interface BranchJSON {
   name?: string;
   head?: string;
 }
-
-const JSONToBranch = (m: BranchJSON): Branch => {
-  return {
-    name: m.name || "",
-    head: m.head || "",
-  };
-};
 
 export interface Task {
   commits?: string[];
@@ -106,18 +72,6 @@ interface TaskJSON {
   task_executor?: string;
 }
 
-const JSONToTask = (m: TaskJSON): Task => {
-  return {
-    commits: m.commits,
-    name: m.name || "",
-    id: m.id || "",
-    revision: m.revision || "",
-    status: m.status || "",
-    swarmingTaskId: m.swarming_task_id || "",
-    taskExecutor: m.task_executor || "",
-  };
-};
-
 export interface LongCommit {
   hash: string;
   author: string;
@@ -137,18 +91,6 @@ interface LongCommitJSON {
   timestamp?: string;
   is_ancestor_of?: string[];
 }
-
-const JSONToLongCommit = (m: LongCommitJSON): LongCommit => {
-  return {
-    hash: m.hash || "",
-    author: m.author || "",
-    subject: m.subject || "",
-    parents: m.parents,
-    body: m.body || "",
-    timestamp: m.timestamp,
-    isAncestorOf: m.is_ancestor_of,
-  };
-};
 
 export interface Comment {
   id: string;
@@ -178,22 +120,6 @@ interface CommentJSON {
   commit?: string;
 }
 
-const JSONToComment = (m: CommentJSON): Comment => {
-  return {
-    id: m.id || "",
-    repo: m.repo || "",
-    timestamp: m.timestamp,
-    user: m.user || "",
-    message: m.message || "",
-    deleted: m.deleted || false,
-    ignoreFailure: m.ignore_failure || false,
-    flaky: m.flaky || false,
-    taskSpecName: m.task_spec_name || "",
-    taskId: m.task_id || "",
-    commit: m.commit || "",
-  };
-};
-
 export interface ResponseMetadata {
   startOver: boolean;
   pod: string;
@@ -205,14 +131,6 @@ interface ResponseMetadataJSON {
   pod?: string;
   timestamp?: string;
 }
-
-const JSONToResponseMetadata = (m: ResponseMetadataJSON): ResponseMetadata => {
-  return {
-    startOver: m.start_over || false,
-    pod: m.pod || "",
-    timestamp: m.timestamp,
-  };
-};
 
 export interface AddCommentRequest {
   repo: string;
@@ -417,7 +335,6 @@ const JSONToBotSet = (m: BotSetJSON): BotSet => {
 };
 
 export interface StatusService {
-  getIncrementalCommits: (getIncrementalCommitsRequest: GetIncrementalCommitsRequest) => Promise<GetIncrementalCommitsResponse>;
   addComment: (addCommentRequest: AddCommentRequest) => Promise<AddCommentResponse>;
   deleteComment: (deleteCommentRequest: DeleteCommentRequest) => Promise<DeleteCommentResponse>;
   getAutorollerStatuses: (getAutorollerStatusesRequest: GetAutorollerStatusesRequest) => Promise<GetAutorollerStatusesResponse>;
@@ -436,21 +353,6 @@ export class StatusServiceClient implements StatusService {
     this.fetch = fetch;
     this.writeCamelCase = writeCamelCase;
     this.optionsOverride = optionsOverride;
-  }
-
-  getIncrementalCommits(getIncrementalCommitsRequest: GetIncrementalCommitsRequest): Promise<GetIncrementalCommitsResponse> {
-    const url = this.hostname + this.pathPrefix + "GetIncrementalCommits";
-    let body: GetIncrementalCommitsRequest | GetIncrementalCommitsRequestJSON = getIncrementalCommitsRequest;
-    if (!this.writeCamelCase) {
-      body = GetIncrementalCommitsRequestToJSON(getIncrementalCommitsRequest);
-    }
-    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
-      if (!resp.ok) {
-        return throwTwirpError(resp);
-      }
-
-      return resp.json().then(JSONToGetIncrementalCommitsResponse);
-    });
   }
 
   addComment(addCommentRequest: AddCommentRequest): Promise<AddCommentResponse> {

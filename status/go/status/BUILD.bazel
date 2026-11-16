@@ -28,7 +28,6 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//status/go/capacity",
-        "//status/go/incremental",
         "//status/go/lkgr",
         "//status/go/rpc",
         "//status/go/sse",

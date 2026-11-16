@@ -6,9 +6,6 @@ import "google/protobuf/timestamp.proto";
 
 // API (non-page, non-resource) endpoints for Status.
 service StatusService {
-  // Method to get updates to the lists of recent commits, their tasks, etc.
-  rpc GetIncrementalCommits(GetIncrementalCommitsRequest)
-      returns (GetIncrementalCommitsResponse);
   // Method to add a comment to a task, commit, or task spec.
   rpc AddComment(AddCommentRequest) returns (AddCommentResponse);
   // Method to delete a comment to a task, commit, or task spec.

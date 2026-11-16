@@ -460,11 +460,6 @@ packages:
       dir: "{{.InterfaceDir}}/../mocks"
     interfaces:
       CapacityClient:
-  go.skia.org/infra/status/go/incremental:
-    config:
-      dir: "{{.InterfaceDir}}/../mocks"
-    interfaces:
-      IncrementalCache:
   go.skia.org/infra/task_driver/go/db:
     config:
       dir: "{{.InterfaceDir}}/mocks"

@@ -121,8 +121,6 @@ func GetCQTryBots(cqJobsToConfig map[string]*specs.CommitQueueJobConfig) ([]stri
 		}
 		tryJobs = append(tryJobs, tryJob)
 	}
-
-	sklog.Infof("The list of CQ trybots is: %s", tryJobs)
 	return tryJobs, nil
 }
 

@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/status/go/capacity"
-	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -31,7 +30,6 @@ import (
 //go:generate bazelisk run --config=mayberemote //:protoc -- --twirp_typescript_out=../../modules/rpc status.proto
 
 type statusServerImpl struct {
-	iCache                incremental.IncrementalCache
 	taskDb                db.RemoteDB
 	capacityClient        capacity.CapacityClient
 	getAutorollerStatuses func() *GetAutorollerStatusesResponse
@@ -39,42 +37,6 @@ type statusServerImpl struct {
 	maxCommitsToLoad      int
 	defaultCommitsToLoad  int
 	podID                 string
-}
-
-// This is incrementalJsonHandler, adjusted for Twirp, using ConvertUpdate to use generated types.
-func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
-	req *GetIncrementalCommitsRequest) (*GetIncrementalCommitsResponse, error) {
-	defer metrics2.FuncTimer().Stop()
-	_, repoURL, err := s.getRepo(req.RepoPath)
-	if err != nil {
-		return nil, err
-	}
-
-	hasFromTime := req.From.IsValid()
-	n := req.N
-	expectPodId := req.Pod
-	numCommits := s.defaultCommitsToLoad
-	if n != 0 {
-		numCommits = int(n)
-		if numCommits > s.maxCommitsToLoad {
-			numCommits = s.maxCommitsToLoad
-		}
-	}
-	var update *incremental.Update
-	if (expectPodId != "" && expectPodId != s.podID) || !hasFromTime {
-		update, err = s.iCache.GetAll(repoURL, numCommits)
-	} else {
-		fromTime := req.From.AsTime()
-		if req.To.IsValid() {
-			update, err = s.iCache.GetRange(repoURL, fromTime, req.To.AsTime(), numCommits)
-		} else {
-			update, err = s.iCache.Get(repoURL, fromTime, numCommits)
-		}
-	}
-	if err != nil {
-		return nil, err
-	}
-	return ConvertUpdate(update, s.podID), nil
 }
 
 func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentRequest) (*AddCommentResponse, error) {
@@ -135,9 +97,6 @@ func (s *statusServerImpl) AddComment(ctx context.Context, req *AddCommentReques
 		}
 	} else {
 		return nil, fmt.Errorf("no Task ID, Task Spec, or Commit given")
-	}
-	if err := s.iCache.Update(context.Background(), false); err != nil {
-		return nil, fmt.Errorf("failed to update cache: %s", err)
 	}
 	return &AddCommentResponse{Timestamp: timestamppb.New(now)}, nil
 }
@@ -202,10 +161,6 @@ func (s *statusServerImpl) DeleteComment(ctx context.Context, req *DeleteComment
 	} else {
 		return nil, fmt.Errorf("no Task ID, Task Spec, or Commit given")
 	}
-
-	if err := s.iCache.Update(context.Background(), false); err != nil {
-		return nil, fmt.Errorf("failed to update cache: %s", err)
-	}
 	return &DeleteCommentResponse{}, nil
 }
 
@@ -249,9 +204,8 @@ func (s *statusServerImpl) GetBotUsage(ctx context.Context, req *GetBotUsageRequ
 }
 
 // newStatusServerImpl creates and returns a statusServerImpl instance.
-func newStatusServerImpl(iCache incremental.IncrementalCache, taskDb db.RemoteDB, capacityClient capacity.CapacityClient, getAutorollerStatuses func() *GetAutorollerStatusesResponse, getRepo func(string) (string, string, error), maxCommitsToLoad, defaultCommitsToLoad int, podID string) *statusServerImpl {
+func newStatusServerImpl(taskDb db.RemoteDB, capacityClient capacity.CapacityClient, getAutorollerStatuses func() *GetAutorollerStatusesResponse, getRepo func(string) (string, string, error), maxCommitsToLoad, defaultCommitsToLoad int, podID string) *statusServerImpl {
 	return &statusServerImpl{
-		iCache:                iCache,
 		taskDb:                taskDb,
 		capacityClient:        capacityClient,
 		getAutorollerStatuses: getAutorollerStatuses,
@@ -263,7 +217,6 @@ func newStatusServerImpl(iCache incremental.IncrementalCache, taskDb db.RemoteDB
 
 // NewStatusServer creates and returns a Twirp HTTP Server.
 func NewStatusServer(
-	iCache incremental.IncrementalCache,
 	taskDb db.RemoteDB,
 	capacityClient capacity.CapacityClient,
 	getAutorollerStatuses func() *GetAutorollerStatusesResponse,
@@ -272,7 +225,6 @@ func NewStatusServer(
 	defaultCommitsToLoad int,
 	podID string) http.Handler {
 	return NewStatusServiceServer(newStatusServerImpl(
-		iCache,
 		taskDb,
 		capacityClient,
 		getAutorollerStatuses,
@@ -280,92 +232,4 @@ func NewStatusServer(
 		maxCommitsToLoad,
 		defaultCommitsToLoad,
 		podID), nil)
-}
-
-/*
-ConvertUpdate converts an incremental.Update and Pod Id to a struct generated from a .proto,
-with matching clientside TS definition.
-*/
-func ConvertUpdate(u *incremental.Update, podID string) *GetIncrementalCommitsResponse {
-	if u == nil {
-		return nil
-	}
-
-	rv := GetIncrementalCommitsResponse{
-		Metadata: &ResponseMetadata{},
-		Update:   &IncrementalUpdate{},
-	}
-	rv.Metadata.Pod = podID
-	rv.Metadata.StartOver = u.StartOver != nil && *u.StartOver
-	rv.Metadata.Timestamp = timestamppb.New(u.Timestamp)
-
-	update := rv.Update
-	for _, b := range u.BranchHeads {
-		update.BranchHeads = append(update.BranchHeads, &Branch{Name: b.Name, Head: b.Head})
-	}
-	for _, c := range u.Commits {
-		update.Commits = append(update.Commits, &LongCommit{
-			Hash:      c.Hash,
-			Author:    c.Author,
-			Subject:   c.Subject,
-			Parents:   c.Parents,
-			Body:      c.Body,
-			Timestamp: timestamppb.New(c.Timestamp)})
-	}
-	for _, t := range u.Tasks {
-		update.Tasks = append(update.Tasks, &Task{
-			Commits:        t.Commits,
-			Name:           t.Name,
-			Id:             t.Id,
-			Revision:       t.Revision,
-			Status:         string(t.Status),
-			SwarmingTaskId: t.SwarmingTaskId,
-			TaskExecutor:   t.TaskExecutor,
-		})
-	}
-	for hash, srcComments := range u.CommitComments {
-		for _, c := range srcComments {
-			update.Comments = append(update.Comments, &Comment{
-				Commit:        hash,
-				Id:            c.Id,
-				Repo:          c.Repo,
-				Timestamp:     timestamppb.New(c.Timestamp),
-				User:          c.User,
-				IgnoreFailure: c.IgnoreFailure,
-				Message:       c.Message,
-				Deleted:       c.Deleted != nil && *c.Deleted})
-		}
-	}
-	for _, srcComments := range u.TaskSpecComments {
-		for _, c := range srcComments {
-			update.Comments = append(update.Comments, &Comment{
-				Id:            c.Id,
-				Repo:          c.Repo,
-				TaskSpecName:  c.Name,
-				Timestamp:     timestamppb.New(c.Timestamp),
-				User:          c.User,
-				Flaky:         c.Flaky,
-				IgnoreFailure: c.IgnoreFailure,
-				Message:       c.Message,
-				Deleted:       c.Deleted != nil && *c.Deleted})
-		}
-	}
-	for hash, commitComments := range u.TaskComments {
-		for _, srcComments := range commitComments {
-			for _, c := range srcComments {
-				update.Comments = append(update.Comments, &Comment{
-					Commit:       hash,
-					Id:           c.Id,
-					Repo:         c.Repo,
-					TaskSpecName: c.Name,
-					Timestamp:    timestamppb.New(c.Timestamp),
-					TaskId:       c.TaskId,
-					User:         c.User,
-					Message:      c.Message,
-					Deleted:      c.Deleted != nil && *c.Deleted})
-			}
-		}
-	}
-
-	return &rv
 }

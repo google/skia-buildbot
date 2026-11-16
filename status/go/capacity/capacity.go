@@ -192,7 +192,7 @@ func (c *CapacityClientImpl) computeBotConfigs(ctx context.Context, durations ma
 		// branches of the repo. If the dimensions were updated recently, this may lead
 		// to some inaccuracies. In practice, this probably won't happen because updates
 		// tend to update, say, all the Nexus10s to a new OS version, which is effectively no change.
-		tasksCfg, hash, err := c.getTasksCfg(ctx, repo)
+		tasksCfg, _, err := c.getTasksCfg(ctx, repo)
 		if err != nil {
 			sklog.Errorf("Skipping repo %s: %s", repo, err)
 			continue
@@ -202,7 +202,6 @@ func (c *CapacityClientImpl) computeBotConfigs(ctx context.Context, durations ma
 			// Look up the TaskSpec to get the dimensions.
 			taskSpec, ok := tasksCfg.Tasks[taskName]
 			if !ok {
-				sklog.Warningf("Could not find taskspec for %s at %s@%s.", taskName, repo, hash)
 				continue
 			}
 			dims := taskSpec.Dimensions

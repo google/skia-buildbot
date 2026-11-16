@@ -26,6 +26,8 @@ sk_element(
         "//elements-sk/modules/icons/expand-less-icon-sk",
         "//elements-sk/modules/icons/expand-more-icon-sk",
         "//infra-sk/modules/alogin-sk",
+        "//status/modules/details-dialog-sk",
+        "//status/modules/failure-classes-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",

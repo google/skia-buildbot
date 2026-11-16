@@ -330,6 +330,7 @@ func TestBroadcastTasks_Cleanup(t *testing.T) {
 
 	// Simulate unregister by cancelling the client's context
 	clientCancel()
+	tc.mockCache.On("AddTasks", mock.Anything).Once()
 	// Run broadcastTasks with a dummy task, which will clean up the unregistered client
 	tc.server.broadcastTasks([]*types.Task{{Id: "dummy-task"}})
 	require.Len(t, tc.server.clients, 0)
@@ -456,27 +457,31 @@ func TestCheckForNewCommits_BroadcastsToSubscribers(t *testing.T) {
 	tc.server.register(client)
 	go client.run()
 
-	// Let's make a new commit in the in-memory repository
+	// Let's make two new commits in the in-memory repository
 	c1 := "commit1"
+	c2 := "commit2"
 	tc.memRepo.Commits[c1] = makeMemCommit(c1, "me@google.com", "file1", time.Now().Add(-5*time.Minute), c0)
+	tc.memRepo.Commits[c2] = makeMemCommit(c2, "me@google.com", "file2", time.Now().Add(-2*time.Minute), c1)
 	tc.memRepo.BranchList = []*git.Branch{
 		{
 			Name: "main",
-			Head: c1,
+			Head: c2,
 		},
 	}
 
-	err := tc.repo.Update(tc.ctx)
-	require.NoError(t, err)
+	// Run checkForNewCommits, which will update the repository map and get added commits under the hood
+	tc.server.checkForNewCommits(tc.ctx)
 
-	// Run checkForNewCommits
-	tc.server.checkForNewCommits()
-
-	// Read and verify if c1 was broadcasted
+	// Read and verify that c2 and c1 were broadcasted in newest-first order
 	resps := readSSEStream(t, &buf)
 	require.Len(t, resps, 1)
-	require.Len(t, resps[0].Update.Commits, 1)
-	require.Equal(t, c1, resps[0].Update.Commits[0].Hash)
+	require.Len(t, resps[0].Update.Commits, 2)
+	require.Equal(t, c2, resps[0].Update.Commits[0].Hash)
+	require.Equal(t, c1, resps[0].Update.Commits[1].Hash)
+	require.Len(t, client.displayedCommits, 3)
+	require.Equal(t, c2, client.displayedCommits[0].Hash)
+	require.Equal(t, c1, client.displayedCommits[1].Hash)
+	require.Equal(t, c0, client.displayedCommits[2].Hash)
 }
 
 func TestSendUpdate_RemovesOldCommits(t *testing.T) {

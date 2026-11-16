@@ -70,6 +70,30 @@
     footer {
       z-index: 3;
     }
+
+    .main-layout {
+      display: flex;
+      align-items: flex-start;
+      position: relative;
+      width: 100%;
+    }
+
+    .commits-panel {
+      flex: 1;
+      min-width: 0;
+      overflow-x: auto;
+    }
+
+    aside.right-sidebar {
+      flex-shrink: 0;
+      width: 25%;
+
+      &.closed {
+        position: absolute;
+        top: 10px;
+        right: 0;
+      }
+    }
   }
 }
 

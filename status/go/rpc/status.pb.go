@@ -1362,9 +1362,8 @@ const file_status_proto_rawDesc = "" +
 	"\rms_per_commit\x18\x06 \x01(\x03R\vmsPerCommit\x1a=\n" +
 	"\x0fDimensionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xb6\x03\n" +
-	"\rStatusService\x12d\n" +
-	"\x15GetIncrementalCommits\x12$.status.GetIncrementalCommitsRequest\x1a%.status.GetIncrementalCommitsResponse\x12C\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xd0\x02\n" +
+	"\rStatusService\x12C\n" +
 	"\n" +
 	"AddComment\x12\x19.status.AddCommentRequest\x1a\x1a.status.AddCommentResponse\x12L\n" +
 	"\rDeleteComment\x12\x1c.status.DeleteCommentRequest\x1a\x1d.status.DeleteCommentResponse\x12d\n" +
@@ -1423,18 +1422,16 @@ var file_status_proto_depIdxs = []int32{
 	14, // 13: status.GetAutorollerStatusesResponse.rollers:type_name -> status.AutorollerStatus
 	17, // 14: status.GetBotUsageResponse.bot_sets:type_name -> status.BotSet
 	18, // 15: status.BotSet.dimensions:type_name -> status.BotSet.DimensionsEntry
-	0,  // 16: status.StatusService.GetIncrementalCommits:input_type -> status.GetIncrementalCommitsRequest
-	8,  // 17: status.StatusService.AddComment:input_type -> status.AddCommentRequest
-	10, // 18: status.StatusService.DeleteComment:input_type -> status.DeleteCommentRequest
-	12, // 19: status.StatusService.GetAutorollerStatuses:input_type -> status.GetAutorollerStatusesRequest
-	15, // 20: status.StatusService.GetBotUsage:input_type -> status.GetBotUsageRequest
-	1,  // 21: status.StatusService.GetIncrementalCommits:output_type -> status.GetIncrementalCommitsResponse
-	9,  // 22: status.StatusService.AddComment:output_type -> status.AddCommentResponse
-	11, // 23: status.StatusService.DeleteComment:output_type -> status.DeleteCommentResponse
-	13, // 24: status.StatusService.GetAutorollerStatuses:output_type -> status.GetAutorollerStatusesResponse
-	16, // 25: status.StatusService.GetBotUsage:output_type -> status.GetBotUsageResponse
-	21, // [21:26] is the sub-list for method output_type
-	16, // [16:21] is the sub-list for method input_type
+	8,  // 16: status.StatusService.AddComment:input_type -> status.AddCommentRequest
+	10, // 17: status.StatusService.DeleteComment:input_type -> status.DeleteCommentRequest
+	12, // 18: status.StatusService.GetAutorollerStatuses:input_type -> status.GetAutorollerStatusesRequest
+	15, // 19: status.StatusService.GetBotUsage:input_type -> status.GetBotUsageRequest
+	9,  // 20: status.StatusService.AddComment:output_type -> status.AddCommentResponse
+	11, // 21: status.StatusService.DeleteComment:output_type -> status.DeleteCommentResponse
+	13, // 22: status.StatusService.GetAutorollerStatuses:output_type -> status.GetAutorollerStatusesResponse
+	16, // 23: status.StatusService.GetBotUsage:output_type -> status.GetBotUsageResponse
+	20, // [20:24] is the sub-list for method output_type
+	16, // [16:20] is the sub-list for method input_type
 	16, // [16:16] is the sub-list for extension type_name
 	16, // [16:16] is the sub-list for extension extendee
 	0,  // [0:16] is the sub-list for field type_name

@@ -144,8 +144,7 @@ commits-table-sk {
     border-left-color: var(--unexpected);
   }
 
-  .commit.task-emphasize-unknown,
-  .commit.task-emphasize- {
+  .commit.task-emphasize-unknown {
     border-left-color: var(--primary);
   }
 
@@ -322,6 +321,25 @@ commits-table-sk {
     background-color: var(--unexpected);
   }
 
+  .commitsTableContainer.highlighting-failure-class .task:not(.highlight-failure-class) {
+    opacity: 0.35;
+  }
+
+  .task.highlight-failure-class {
+    outline: 2px solid var(--on-surface);
+    transform: scale(1.1);
+    opacity: 1;
+    z-index: 3;
+
+    &.bg-failure {
+      background-color: var(--failure);
+    }
+
+    &.bg-mishap {
+      background-color: var(--unexpected);
+    }
+  }
+
   .fill-green {
     fill: var(--success);
   }
@@ -337,4 +355,49 @@ div.hidden.task {
 
 tabs-sk > button {
   border-bottom-color: var(--surface-2dp);
+}
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface-1dp);
+  border: 1px solid var(--surface-2dp);
+  border-radius: 4px;
+  padding: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  color: var(--primary);
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
+  user-select: none;
+
+  &.in-grid {
+    border-radius: 0;
+    height: 36px;
+    box-sizing: border-box;
+  }
+
+  &:hover {
+    background-color: var(--surface-2dp);
+    box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
+  }
+
+  expand-less-icon-sk,
+  expand-more-icon-sk,
+  autorenew-icon-sk {
+    fill: var(--primary);
+    margin-right: 8px;
+  }
+
+  .loading-spinner {
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
 }

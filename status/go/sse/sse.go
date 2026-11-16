@@ -305,7 +305,7 @@ func (s *SSEServer) broadcastLoop(ctx context.Context) {
 		case tasks := <-s.modifiedTasksCh:
 			s.broadcastTasks(tasks)
 		case <-commitsTicker.C:
-			s.checkForNewCommits()
+			s.checkForNewCommits(ctx)
 		case <-commentsTicker.C:
 			s.checkForNewComments(ctx)
 		case <-keepaliveTicker.C:
@@ -317,6 +317,8 @@ func (s *SSEServer) broadcastLoop(ctx context.Context) {
 }
 
 func (s *SSEServer) broadcastTasks(tasks []*types.Task) {
+	s.cfg.TCache.AddTasks(tasks)
+
 	tasksByRepo := map[string][]*types.Task{}
 	for _, t := range tasks {
 		if !t.IsTryJob() {
@@ -331,32 +333,38 @@ func (s *SSEServer) broadcastTasks(tasks []*types.Task) {
 	}
 }
 
-func (s *SSEServer) checkForNewCommits() {
+func (s *SSEServer) checkForNewCommits(ctx context.Context) {
+	added, _, err := s.cfg.Repos.UpdateAndReturnCommitDiffs(ctx)
+	if err != nil {
+		sklog.Errorf("failed to update repos and get commit diffs: %s", err)
+		return
+	}
+
 	var updates []clientEvent
 	s.mtx.Lock()
 	for repoURL, repo := range s.cfg.Repos {
-		var newCommits []*repograph.Commit
-
-		_ = repo.RecurseAllBranches(func(c *repograph.Commit) error {
-			// Presence in ancestryCache indicates that we've seen this commit before.
-			if _, ok := s.ancestryCache[repoURL][c.Hash]; ok {
-				return repograph.ErrStopRecursing
+		addedCommits := added[repoURL]
+		if len(addedCommits) > 0 {
+			var newCommits []*repograph.Commit
+			for _, ac := range addedCommits {
+				if c := repo.Get(ac.Hash); c != nil {
+					newCommits = append(newCommits, c)
+				}
 			}
-			newCommits = append(newCommits, c)
-			return nil
-		})
 
-		if len(newCommits) > 0 {
-			updateAncestryCache(s.ancestryCache[repoURL], repo, s.lastBranchHeads[repoURL])
-			rpcCommits := convertCommits(newCommits, s.ancestryCache[repoURL])
+			if len(newCommits) > 0 {
+				s.sortCandidates(newCommits)
+				updateAncestryCache(s.ancestryCache[repoURL], repo, s.lastBranchHeads[repoURL])
+				rpcCommits := convertCommits(newCommits, s.ancestryCache[repoURL])
 
-			newBranchHeads := repo.BranchHeads()
-			s.lastBranchHeads[repoURL] = newBranchHeads
-			updates = append(updates, clientEvent{
-				repoURL:     repoURL,
-				commits:     rpcCommits,
-				branchHeads: newBranchHeads,
-			})
+				newBranchHeads := repo.BranchHeads()
+				s.lastBranchHeads[repoURL] = newBranchHeads
+				updates = append(updates, clientEvent{
+					repoURL:     repoURL,
+					commits:     rpcCommits,
+					branchHeads: newBranchHeads,
+				})
+			}
 		}
 	}
 	s.mtx.Unlock()
