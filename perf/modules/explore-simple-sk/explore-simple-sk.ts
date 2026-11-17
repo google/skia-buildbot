@@ -588,8 +588,49 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     }
   }
 
+  private _activeFrameUpdates = 0;
+
+  private _hasCompletedFrameUpdate = false;
+
+  private _frameUpdateComplete: Promise<void> = Promise.resolve();
+
+  private _resolveFrameUpdate: (() => void) | null = null;
+
+  private beginFrameUpdate(): void {
+    if (this._activeFrameUpdates === 0) {
+      this._frameUpdateComplete = new Promise<void>((resolve) => {
+        this._resolveFrameUpdate = resolve;
+      });
+    }
+    this._activeFrameUpdates++;
+  }
+
+  private endFrameUpdate(): void {
+    this._activeFrameUpdates--;
+    this._hasCompletedFrameUpdate = true;
+    if (this._activeFrameUpdates === 0 && this._resolveFrameUpdate) {
+      const resolve = this._resolveFrameUpdate;
+      this._resolveFrameUpdate = null;
+      resolve();
+    }
+  }
+
   public get requestComplete(): Promise<number> {
+    if (this._activeFrameUpdates > 0) {
+      return this._frameUpdateComplete.then(
+        () => this.dfRepo.value?.requestComplete ?? Promise.resolve(0)
+      );
+    }
     return this.dfRepo.value?.requestComplete ?? Promise.resolve(0);
+  }
+
+  public get loadComplete(): boolean {
+    return (
+      this._hasCompletedFrameUpdate &&
+      this._activeFrameUpdates === 0 &&
+      !this._spinning &&
+      !this.dataLoading
+    );
   }
 
   constructor(useTestPicker?: boolean) {
@@ -719,7 +760,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     </div>
 
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
-    <div class="chart-container">
+    <div class="chart-container hide_on_query_only">
         ${html`<plot-google-chart-sk
           .domain=${ele._state.domain}
           ${ref(ele.googleChartPlot)}
@@ -2810,18 +2851,21 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       this._state.queries.length === 0 &&
       this._state.keys === ''
     ) {
+      this._hasCompletedFrameUpdate = true;
       return;
     }
 
     const body = this.requestFrameBodyDeltaFromState();
 
     if (body.begin === body.end) {
+      this._hasCompletedFrameUpdate = true;
       return;
     }
     if (this.commitTime) {
       this.commitTime!.textContent = '';
     }
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    this.beginFrameUpdate();
     this.requestFrame(body)
       .then(async (json) => {
         if (json === null || json === undefined) {
@@ -2845,6 +2889,9 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
             errorCode: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
           });
         }
+      })
+      .finally(() => {
+        this.endFrameUpdate();
       });
   }
 
@@ -2862,41 +2909,46 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     extendRange: boolean = true,
     replaceAnomalies: boolean = false
   ): Promise<void> {
-    this.render();
-    const dfRepo = this.dfRepo.value;
-    if (!dfRepo) {
-      console.error('DataFrameRepository is not available.');
-      return;
-    }
-
-    await this.dfRepo.value?.resetWithDataframeAndRequest(
-      frameResponse.dataframe!,
-      frameResponse.anomalymap,
-      frameRequest!,
-      replaceAnomalies
-    );
-
-    // Code previously in .then() now runs after await.
-    const loadingMore: Promise<void> = this.addTraces(
-      frameResponse,
-      switchToTab,
-      selectedRange,
-      extendRange
-    );
-    this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
-    this.updateTitle();
-    if (isValidSelection(this._state.selected)) {
-      const e = selectionToEvent(this._state.selected, this._dataframe.header);
-      // If the range has moved to no longer include the selected commit then
-      // clear the selection.
-      if (e.detail.x === -1) {
-        this.clearSelectedState();
-      } else {
-        this.traceSelected(e);
+    this.beginFrameUpdate();
+    try {
+      this.render();
+      const dfRepo = this.dfRepo.value;
+      if (!dfRepo) {
+        console.error('DataFrameRepository is not available.');
+        return;
       }
+
+      await this.dfRepo.value?.resetWithDataframeAndRequest(
+        frameResponse.dataframe!,
+        frameResponse.anomalymap,
+        frameRequest!,
+        replaceAnomalies
+      );
+
+      // Code previously in .then() now runs after await.
+      const loadingMore: Promise<void> = this.addTraces(
+        frameResponse,
+        switchToTab,
+        selectedRange,
+        extendRange
+      );
+      this.updateTracePointMetadata(frameResponse.dataframe!.traceMetadata);
+      this.updateTitle();
+      if (isValidSelection(this._state.selected)) {
+        const e = selectionToEvent(this._state.selected, this._dataframe.header);
+        // If the range has moved to no longer include the selected commit then
+        // clear the selection.
+        if (e.detail.x === -1) {
+          this.clearSelectedState();
+        } else {
+          this.traceSelected(e);
+        }
+      }
+      this.render();
+      return await loadingMore;
+    } finally {
+      this.endFrameUpdate();
     }
-    this.render();
-    return await loadingMore;
   }
 
   /**
@@ -2923,6 +2975,11 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
   ) {
     const dataframe = json.dataframe!;
     if (dataframe.traceset === null || Object.keys(dataframe.traceset).length === 0) {
+      errorMessage('Failed to find any matching traces.', 0, {
+        source: EXPLORE_SIMPLE_PAGE_SOURCE,
+        errorCode: StatusCodes.NOT_FOUND.toString(),
+      });
+      this.tracesRendered = false;
       this.displayMode = 'display_query_only';
       return;
     }
@@ -3257,10 +3314,11 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     this._stateHasChanged();
     this.updateTestPickerUrl();
 
+    this.beginFrameUpdate();
     try {
       if (createFromScratch) {
         const body = this.requestFrameBodyFullFromState();
-        return this.requestFrame(body).then(async (json) => {
+        return await this.requestFrame(body).then(async (json) => {
           if (json) {
             return await this.UpdateWithFrameResponse(
               json,
@@ -3275,7 +3333,7 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
       } else {
         const requestNewData = this.requestFrameBodyForTrace(plotType, q, f, j);
         const requestAllData = this.requestFrameBodyFullFromState();
-        return this.requestFrame(requestNewData).then(async (json) => {
+        return await this.requestFrame(requestNewData).then(async (json) => {
           if (!json) {
             return;
           }
@@ -3298,6 +3356,8 @@ export class ExploreSimpleSk extends ElementSk implements KeyboardShortcutHandle
     } catch (error) {
       // errorMessage is likely already called by requestFrame or its callees.
       console.error('Error in addFromQueryOrFormula during requestFrame:', error);
+    } finally {
+      this.endFrameUpdate();
     }
   }
 

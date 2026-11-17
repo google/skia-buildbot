@@ -259,6 +259,14 @@ describe('plot-builder', () => {
       assert.isNull(convertFromDataframe({ traceset: TraceSet({}), header: [] }));
     });
 
+    it('returns null for non-empty header with empty traceset', () => {
+      const header: ColumnHeader[] = [
+        { offset: 100, timestamp: 1000 },
+        { offset: 101, timestamp: 2000 },
+      ] as any;
+      assert.isNull(convertFromDataframe({ traceset: TraceSet({}), header }, 'commit'));
+    });
+
     it('converts dataframe correctly', () => {
       const traceset: TraceSet = TraceSet({
         trace1: Trace([1, 2]),

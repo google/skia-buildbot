@@ -60,7 +60,7 @@ export const convertFromDataframe = (
   domain: 'commit' | 'date' | 'both' = 'commit',
   traceKey?: string
 ) => {
-  if ((df?.header?.length || 0) === 0) {
+  if ((df?.header?.length || 0) === 0 || Object.keys(df?.traceset || {}).length === 0) {
     return null;
   }
   if (traceKey && !(traceKey in df!.traceset)) {

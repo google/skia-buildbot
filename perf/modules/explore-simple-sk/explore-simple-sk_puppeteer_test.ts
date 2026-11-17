@@ -575,6 +575,9 @@ describe('explore-simple-sk', () => {
 
   describe('Scrolling', () => {
     it('should scroll up and down', async () => {
+      await testBed.page.click('#demo-show-graph');
+      const plotPO = simplePageSkPO.plotGoogleChartSk;
+      await plotPO.waitForChartVisible({ timeout: CLIPBOARD_READ_TIMEOUT_MS });
       // Ensure the page is long enough to scroll.
       await testBed.page.setViewport({ width: 800, height: 300 });
 

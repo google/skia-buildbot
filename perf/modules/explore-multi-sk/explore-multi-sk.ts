@@ -158,6 +158,10 @@ export class ExploreMultiSk extends ElementSk {
 
   private _dataLoading: boolean = false;
 
+  private _populatingTestPicker: boolean = false;
+
+  private _renderingPage: boolean = false;
+
   private progress: string = '';
 
   private initialLoadStartTime: number = 0;
@@ -557,6 +561,10 @@ export class ExploreMultiSk extends ElementSk {
         this.renderCurrentPage(true);
         // The newly added graph is at index 0.
         explore = this.currentPageExploreElements[0];
+        if (!explore) {
+          return;
+        }
+        explore.state.doNotQueryData = false;
       } else {
         return;
       }
@@ -567,12 +575,12 @@ export class ExploreMultiSk extends ElementSk {
 
       this.exploreElements.splice(1);
       this.allGraphConfigs.splice(1);
-      this.allFrameRequests.splice(1);
-      this.allFrameResponses.splice(1);
+      this.allFrameRequests = [];
+      this.allFrameResponses = [];
       this.totalGraphs = this.exploreElements.length;
 
       // Ensure the main graph is in the DOM so it can process data.
-      await this.renderCurrentPage(false);
+      await this.renderCurrentPage(true);
       explore = this.currentPageExploreElements[0];
       if (!explore) {
         return;
@@ -1435,76 +1443,115 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private async populateTestPicker(paramSet: { [key: string]: string[] }) {
-    const paramSets: ParamSet = ParamSet({});
-
-    const timeoutMs = 50000; // Timeout for waiting for non-empty tracesets.
-    const pollIntervalMs = 500; // Interval to re-check.
-
-    const backfillMissingParams = (params: any, isParamSet: boolean = false) => {
-      if (this.defaults?.include_params) {
-        this.defaults.include_params.forEach((key) => {
-          if (params[key] === undefined) {
-            params[key] = isParamSet ? [MISSING_VALUE_SENTINEL] : MISSING_VALUE_SENTINEL;
-          }
-        });
-      }
-      return params;
-    };
-
-    // Create a promise that resolves when the tracesets are ready.
-    // This checks if all explore elements have reported a traceset,
-    // and at least one of those tracesets contains actual trace strings.
-    const tracesetsReadyPromise = new Promise<string[][]>((resolve) => {
-      const checkTracesets = () => {
-        const currentTracesets = this.getTracesets();
-        if (
-          currentTracesets.length === this.exploreElements.length &&
-          currentTracesets.some((ts) => ts.length > 0)
-        ) {
-          resolve(currentTracesets);
-        } else {
-          setTimeout(checkTracesets, pollIntervalMs);
-        }
-      };
-      checkTracesets(); // Start checking immediately
-    });
-
-    // Create a timeout promise.
-    const timeoutPromise = new Promise<string[][]>((_, reject) => {
-      setTimeout(() => reject(new Error('Getting Tracesets timed out.')), timeoutMs);
-    });
-
-    if (this.state.manual_plot_mode) {
-      addParamSet(paramSets, backfillMissingParams(paramSet, true));
-    } else {
-      let allTracesets: string[][];
-      try {
-        allTracesets = await Promise.race([tracesetsReadyPromise, timeoutPromise]);
-      } catch (error: unknown) {
-        const e = error as { message?: string };
-        errorMessage(e.message || 'An unknown error occurred while getting tracesets.', 0, {
-          countMetricSource: CountMetric.FrontendErrorReported,
-          source: EXPLORE_MULTI_PAGE_SOURCE,
-          errorCode: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
-        });
-        return;
-      }
-
-      allTracesets.forEach((traceset) => {
-        traceset.forEach((trace) => {
-          const params = fromKey(trace);
-          addParamsToParamSet(paramSets, backfillMissingParams(params));
-        });
-      });
+    if (this._populatingTestPicker) {
+      return;
     }
+    this._populatingTestPicker = true;
+    try {
+      const paramSets: ParamSet = ParamSet({});
 
-    await this.testPicker!.populateFieldDataFromParamSet(
-      paramSets,
-      paramSet,
-      this.state.splitByKeys
-    );
-    this.testPicker!.setReadOnly(false);
-    this.testPicker!.scrollIntoView();
+      const timeoutMs = 50000; // Timeout for waiting for non-empty tracesets.
+      const pollIntervalMs = 500; // Interval to re-check.
+
+      const backfillMissingParams = (params: any, isParamSet: boolean = false) => {
+        if (this.defaults?.include_params) {
+          this.defaults.include_params.forEach((key) => {
+            if (params[key] === undefined) {
+              params[key] = isParamSet ? [MISSING_VALUE_SENTINEL] : MISSING_VALUE_SENTINEL;
+            }
+          });
+        }
+        return params;
+      };
+
+      const tracesetsReadyPromise = new Promise<string[][]>((resolve) => {
+        const checkTracesets = async () => {
+          const currentTracesets = this.getTracesets();
+          if (
+            currentTracesets.length === this.exploreElements.length &&
+            currentTracesets.some((ts) => ts.length > 0)
+          ) {
+            resolve(currentTracesets);
+            return;
+          }
+          const targetElements =
+            this.currentPageExploreElements.length > 0
+              ? this.currentPageExploreElements
+              : this.exploreElements;
+          const allGraphsFinished =
+            !this._renderingPage &&
+            currentTracesets.length === this.exploreElements.length &&
+            targetElements.length > 0 &&
+            targetElements.every((e) => !e.dataLoading && !e.spinning && e.loadComplete);
+          if (allGraphsFinished) {
+            await Promise.all(targetElements.map((e) => e.requestComplete));
+            const settledTracesets = this.getTracesets();
+            const stillFinished =
+              !this._renderingPage &&
+              settledTracesets.length === this.exploreElements.length &&
+              targetElements.every((e) => !e.dataLoading && !e.spinning && e.loadComplete);
+            if (
+              settledTracesets.length === this.exploreElements.length &&
+              (settledTracesets.some((ts) => ts.length > 0) || stillFinished)
+            ) {
+              resolve(settledTracesets);
+              return;
+            }
+          }
+          setTimeout(checkTracesets, pollIntervalMs);
+        };
+        void checkTracesets();
+      });
+
+      // Create a timeout promise.
+      const timeoutPromise = new Promise<string[][]>((_, reject) => {
+        setTimeout(() => reject(new Error('Getting Tracesets timed out.')), timeoutMs);
+      });
+
+      if (this.state.manual_plot_mode) {
+        addParamSet(paramSets, backfillMissingParams(paramSet, true));
+      } else {
+        let allTracesets: string[][];
+        try {
+          allTracesets = await Promise.race([tracesetsReadyPromise, timeoutPromise]);
+        } catch (error: unknown) {
+          const e = error as { message?: string };
+          errorMessage(e.message || 'An unknown error occurred while getting tracesets.', 0, {
+            countMetricSource: CountMetric.FrontendErrorReported,
+            source: EXPLORE_MULTI_PAGE_SOURCE,
+            errorCode: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
+          });
+          return;
+        }
+
+        allTracesets.forEach((traceset) => {
+          traceset.forEach((trace) => {
+            const params = fromKey(trace);
+            addParamsToParamSet(paramSets, backfillMissingParams(params));
+          });
+        });
+
+        if (Object.keys(paramSets).length === 0) {
+          if (this.allGraphConfigs.length > 0 && this.allGraphConfigs[0].queries?.length > 0) {
+            this.allGraphConfigs[0].queries.forEach((q) => {
+              addParamSet(paramSets, ParamSet(toParamSet(q)));
+            });
+          } else if (Object.keys(paramSet).length > 0) {
+            addParamSet(paramSets, ParamSet({ ...paramSet }));
+          }
+        }
+      }
+
+      await this.testPicker!.populateFieldDataFromParamSet(
+        paramSets,
+        paramSet,
+        this.state.splitByKeys
+      );
+      this.testPicker!.setReadOnly(false);
+      this.testPicker!.scrollIntoView();
+    } finally {
+      this._populatingTestPicker = false;
+    }
   }
 
   private removeExploreEvent = (e: Event) => {
@@ -1571,6 +1618,7 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private async renderCurrentPage(doNotQueryData: boolean = true): Promise<void> {
+    this._renderingPage = true;
     // Logic: In Standard Mode (not manual), if we have multiple graphs,
     // the first one (Index 0) is the "Summary" and is hidden from pagination.
     const isSummaryView = !this.state.manual_plot_mode && this.allGraphConfigs.length > 1;
@@ -1651,11 +1699,14 @@ export class ExploreMultiSk extends ElementSk {
     this.graphDiv!.appendChild(fragment);
     this.updateChartHeights();
     this._render();
-    this.checkDataLoaded();
 
     if (this.state.manual_plot_mode && doNotQueryData) {
+      this._renderingPage = false;
+      this.checkDataLoaded();
       return;
     }
+
+    this.checkDataLoaded();
 
     // Now that the elements are in the DOM, we can update them with data.
     // This avoids race conditions where the element is not yet connected/rendered
@@ -1671,9 +1722,8 @@ export class ExploreMultiSk extends ElementSk {
           if (this.allGraphConfigs.length > 0 && startIndex > 0) {
             const i = 0;
             const explore = this.exploreElements[0];
-            if (explore) {
-              const isDefaultResponse = !this.allFrameResponses[i];
-              const frameResponse = this.allFrameResponses[i] || this.createFrameResponse();
+            if (explore && this.allFrameResponses[i]) {
+              const frameResponse = this.allFrameResponses[i];
               const frameRequest = this.allFrameRequests[i] || this.createFrameRequest();
 
               if ((explore as any).updateComplete) {
@@ -1686,7 +1736,7 @@ export class ExploreMultiSk extends ElementSk {
                   false,
                   this.mainGraphSelectedRange,
                   false,
-                  !isDefaultResponse
+                  true
                 )
               );
             }
@@ -1699,13 +1749,12 @@ export class ExploreMultiSk extends ElementSk {
             if (!explore) {
               continue;
             }
-            const isDefaultResponse = !this.allFrameResponses[i];
-            // If we don't have a cached response and the graph is already fetching
-            // its own data, skip this update to avoid triggering "No data found" errors.
-            if (isDefaultResponse && !explore.state.doNotQueryData) {
+            // Skip graphs that do not have a cached response so a synthetic empty
+            // FrameResponse cannot trigger a spurious "Failed to find any matching traces." toast.
+            if (!this.allFrameResponses[i]) {
               continue;
             }
-            const frameResponse = this.allFrameResponses[i] || this.createFrameResponse();
+            const frameResponse = this.allFrameResponses[i];
             const frameRequest = this.allFrameRequests[i] || this.createFrameRequest();
 
             // Wait for the element to be ready.
@@ -1720,7 +1769,7 @@ export class ExploreMultiSk extends ElementSk {
                 false,
                 this.mainGraphSelectedRange,
                 false,
-                !isDefaultResponse
+                true
               )
             );
           }
@@ -1728,6 +1777,7 @@ export class ExploreMultiSk extends ElementSk {
         } catch (error) {
           console.error('Error updating charts:', error);
         } finally {
+          this._renderingPage = false;
           this.checkDataLoaded();
           resolve();
         }

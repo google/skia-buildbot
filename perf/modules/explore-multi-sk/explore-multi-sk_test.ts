@@ -2192,4 +2192,241 @@ describe('ExploreMultiSk', () => {
       assert.include(redirectStub.firstCall.args[0], '/e2');
     });
   });
+
+  describe('populateTestPicker with empty tracesets', () => {
+    it('resolves immediately and populates from graph queries without backfilling unselected fields when all explore elements finish loading with empty tracesets', async () => {
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: { useTestPicker: 'true' },
+        include_params: ['benchmark', 'bot', 'test'],
+      });
+      element.state.useTestPicker = true;
+      await element['initializeTestPicker']();
+
+      const mockExplore = {
+        dataLoading: false,
+        spinning: false,
+        loadComplete: true,
+        requestComplete: Promise.resolve(0),
+        getTraceset: () => ({}),
+        getParamSet: () => ({}),
+      } as unknown as ExploreSimpleSk;
+
+      element['exploreElements'] = [mockExplore];
+      const graphConfig = new GraphConfig();
+      graphConfig.queries = ['benchmark=speedometer3'];
+      element['allGraphConfigs'] = [graphConfig];
+
+      const testPicker = element.querySelector('test-picker-sk') as TestPickerSk;
+      const populateStub = sinon.stub(testPicker, 'populateFieldDataFromParamSet').resolves();
+      const setReadOnlySpy = sinon.spy(testPicker, 'setReadOnly');
+
+      await element['populateTestPicker']({});
+
+      assert.isTrue(populateStub.calledOnce);
+      const populatedParamSets = populateStub.firstCall.args[0];
+      assert.deepEqual(populatedParamSets['benchmark'], ['speedometer3']);
+      assert.isUndefined(populatedParamSets['bot']);
+      assert.isUndefined(populatedParamSets['test']);
+      assert.isTrue(setReadOnlySpy.calledWith(false));
+    });
+
+    it('falls back to paramSet argument when graph config queries is empty', async () => {
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: { useTestPicker: 'true' },
+        include_params: ['benchmark', 'bot', 'test'],
+      });
+      element.state.useTestPicker = true;
+      await element['initializeTestPicker']();
+
+      const mockExplore = {
+        dataLoading: false,
+        spinning: false,
+        loadComplete: true,
+        requestComplete: Promise.resolve(0),
+        getTraceset: () => ({}),
+        getParamSet: () => ({}),
+      } as unknown as ExploreSimpleSk;
+
+      element['exploreElements'] = [mockExplore];
+      element['allGraphConfigs'] = [new GraphConfig()];
+
+      const testPicker = element.querySelector('test-picker-sk') as TestPickerSk;
+      const populateStub = sinon.stub(testPicker, 'populateFieldDataFromParamSet').resolves();
+
+      await element['populateTestPicker']({ benchmark: ['jetstream2'] });
+
+      assert.isTrue(populateStub.calledOnce);
+      const populatedParamSets = populateStub.firstCall.args[0];
+      assert.deepEqual(populatedParamSets['benchmark'], ['jetstream2']);
+    });
+
+    it('does not trigger duplicate concurrent requestFrame in _onAddToGraph when current graph has empty traceset', async () => {
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: { useTestPicker: 'true' },
+        include_params: ['arch', 'os', 'test'],
+      });
+      element.state.useTestPicker = true;
+      await element['initializeTestPicker']();
+
+      const graph = element['addEmptyGraph']()!;
+      graph.state.doNotQueryData = true;
+      graph.state.queries = ['arch=nonexistent'];
+      element['allGraphConfigs'][0].queries = ['arch=nonexistent'];
+      await element['renderCurrentPage'](true);
+
+      const rangeChangeSpy = sinon.spy(graph as any, 'rangeChangeImpl');
+      const addFromQueryStub = sinon.stub(graph, 'addFromQueryOrFormula').resolves();
+
+      const event = new CustomEvent('add-to-graph', {
+        detail: { query: 'arch=nonexistent&os=Android' },
+        bubbles: true,
+      });
+      const reportedErrors: string[] = [];
+      const onError = (e: Event) => {
+        reportedErrors.push((e as CustomEvent).detail.message);
+      };
+      document.addEventListener('error-sk', onError);
+      try {
+        await element['_onAddToGraph'](event);
+      } finally {
+        document.removeEventListener('error-sk', onError);
+      }
+
+      assert.isFalse(
+        rangeChangeSpy.called,
+        'renderCurrentPage inside _onAddToGraph must not trigger rangeChangeImpl before addFromQueryOrFormula'
+      );
+      assert.deepEqual(
+        reportedErrors,
+        [],
+        'renderCurrentPage inside _onAddToGraph must not emit a spurious empty-traceset error toast'
+      );
+      assert.isTrue(addFromQueryStub.calledOnce);
+      assert.equal(addFromQueryStub.firstCall.args[2], 'arch=nonexistent&os=Android');
+    });
+
+    it('waits for deferred UpdateWithFrameResponse in renderCurrentPage and requestComplete before resolving populateTestPicker', async () => {
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: { useTestPicker: 'true' },
+        include_params: ['benchmark', 'bot', 'test'],
+      });
+      element.state.useTestPicker = true;
+      await element['initializeTestPicker']();
+
+      const testPicker = element.querySelector('test-picker-sk') as TestPickerSk;
+      let loaded = false;
+      const populateStub = sinon
+        .stub(testPicker, 'populateFieldDataFromParamSet')
+        .callsFake(async () => {
+          loaded = true;
+        });
+      sinon.stub(testPicker, 'isLoaded').callsFake(() => loaded);
+
+      element['addEmptyGraph']();
+      element['allGraphConfigs'][0].queries = ['benchmark=speedometer3'];
+      element['allFrameRequests'] = [
+        {
+          queries: ['benchmark=speedometer3'],
+          request_type: 0,
+          begin: 900,
+          end: 1100,
+          tz: '',
+        },
+      ];
+      element['allFrameResponses'] = [
+        {
+          dataframe: {
+            traceset: {
+              ',benchmark=speedometer3,bot=mac-m5-pro-perf,test=Score,': [10],
+            } as any,
+            header: [
+              {
+                offset: 100 as any,
+                timestamp: 1000 as any,
+                author: '',
+                hash: '',
+                message: '',
+                url: '',
+              },
+            ],
+            paramset: {} as any,
+            skip: 0,
+            traceMetadata: [],
+          },
+          anomalymap: {},
+          display_mode: 'display_plot',
+          msg: '',
+        },
+      ];
+
+      await element['renderCurrentPage'](true);
+      // Wait for populateTestPicker triggered by checkDataLoaded to finish.
+      while (element['_populatingTestPicker']) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+
+      assert.isTrue(populateStub.calledOnce);
+      const populatedParamSets = populateStub.firstCall.args[0];
+      assert.deepEqual(populatedParamSets['benchmark'], ['speedometer3']);
+      assert.deepEqual(populatedParamSets['bot'], ['mac-m5-pro-perf']);
+      assert.deepEqual(populatedParamSets['test'], ['Score']);
+    });
+
+    it('does not resolve populateTestPicker with empty tracesets before requestComplete settles', async () => {
+      await setupElement({
+        default_param_selections: {},
+        default_url_values: { useTestPicker: 'true' },
+        include_params: ['benchmark', 'bot', 'test'],
+      });
+      element.state.useTestPicker = true;
+      await element['initializeTestPicker']();
+
+      let resolveRequestComplete!: (val: number) => void;
+      const pendingRequest = new Promise<number>((resolve) => {
+        resolveRequestComplete = resolve;
+      });
+      let loadDone = false;
+
+      const mockExplore = {
+        dataLoading: false,
+        spinning: false,
+        get loadComplete() {
+          return loadDone;
+        },
+        requestComplete: pendingRequest,
+        getTraceset: () => ({}),
+        getParamSet: () => ({}),
+      } as unknown as ExploreSimpleSk;
+
+      element['exploreElements'] = [mockExplore];
+      const graphConfig = new GraphConfig();
+      graphConfig.queries = ['benchmark=speedometer3'];
+      element['allGraphConfigs'] = [graphConfig];
+
+      const testPicker = element.querySelector('test-picker-sk') as TestPickerSk;
+      const populateStub = sinon.stub(testPicker, 'populateFieldDataFromParamSet').resolves();
+
+      const populatePromise = element['populateTestPicker']({});
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      assert.isFalse(
+        populateStub.called,
+        'populateTestPicker must not resolve before loadComplete and requestComplete'
+      );
+
+      loadDone = true;
+      await new Promise((resolve) => setTimeout(resolve, 550));
+      assert.isFalse(
+        populateStub.called,
+        'populateTestPicker must still wait while requestComplete is pending'
+      );
+
+      resolveRequestComplete(0);
+      await populatePromise;
+      assert.isTrue(populateStub.calledOnce);
+    });
+  });
 });

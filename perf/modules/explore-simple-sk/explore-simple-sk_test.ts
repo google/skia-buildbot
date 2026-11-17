@@ -1615,4 +1615,121 @@ describe('Domain Picker Interaction', () => {
       }
     });
   });
+
+  describe('Empty Traceset Handling', () => {
+    it('sets display_query_only and hides chart-container when header is non-empty but traceset is empty', async () => {
+      const exploreEl = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await waitForRender(exploreEl);
+      (exploreEl as any).tracesRendered = true;
+
+      const frameResponse: FrameResponse = {
+        dataframe: {
+          traceset: TraceSet({}),
+          header: [
+            {
+              offset: CommitNumber(100),
+              timestamp: TimestampSeconds(1000),
+              author: '',
+              hash: '',
+              message: '',
+              url: '',
+            },
+          ],
+          paramset: {} as any,
+          skip: 0,
+          traceMetadata: [],
+        },
+        anomalymap: {},
+        display_mode: 'display_plot',
+        msg: '',
+      };
+      const frameRequest: FrameRequest = {
+        queries: ['bot=mac-m5-pro-perf'],
+        request_type: 0,
+        begin: 900,
+        end: 1100,
+        tz: '',
+      };
+
+      let reportedError = '';
+      const onError = (e: Event) => {
+        reportedError = (e as CustomEvent).detail.message;
+      };
+      document.addEventListener('error-sk', onError);
+      try {
+        await exploreEl.UpdateWithFrameResponse(frameResponse, frameRequest, false);
+        await waitForRender(exploreEl);
+      } finally {
+        document.removeEventListener('error-sk', onError);
+      }
+
+      const exploreDiv = exploreEl.querySelector('#explore') as HTMLElement;
+      assert.isTrue(exploreDiv.classList.contains('display_query_only'));
+      assert.isFalse((exploreEl as any).tracesRendered);
+      assert.equal(reportedError, 'Failed to find any matching traces.');
+      const chartContainer = exploreEl.querySelector('.chart-container') as HTMLElement;
+      assert.isTrue(chartContainer.classList.contains('hide_on_query_only'));
+    });
+
+    it('keeps loadComplete false and requestComplete pending until UpdateWithFrameResponse finishes', async () => {
+      const exploreEl = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      await waitForRender(exploreEl);
+
+      assert.isFalse(exploreEl.loadComplete);
+
+      const frameResponse: FrameResponse = {
+        dataframe: {
+          traceset: TraceSet({}),
+          header: [],
+          paramset: {} as any,
+          skip: 0,
+          traceMetadata: [],
+        },
+        anomalymap: {},
+        display_mode: 'display_plot',
+        msg: '',
+      };
+
+      let resolveUpdate!: () => void;
+      const updateGate = new Promise<void>((resolve) => {
+        resolveUpdate = resolve;
+      });
+      sinon.stub(exploreEl as any, 'sendFrameRequest').resolves(frameResponse);
+      const origUpdate = exploreEl.UpdateWithFrameResponse.bind(exploreEl);
+      sinon.stub(exploreEl, 'UpdateWithFrameResponse').callsFake(async (...args) => {
+        await updateGate;
+        return await origUpdate(...args);
+      });
+
+      const nextState = structuredClone(exploreEl.state);
+      nextState.queries = ['bot=mac-m5-pro-perf'];
+      nextState.begin = 900;
+      nextState.end = 1100;
+      nextState.doNotQueryData = false;
+      exploreEl.state = nextState;
+
+      // Let requestFrame settle so spinning and dataLoading become false while UpdateWithFrameResponse is still blocked.
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      assert.isFalse(exploreEl.spinning);
+      assert.isFalse(exploreEl.dataLoading);
+      assert.isFalse(
+        exploreEl.loadComplete,
+        'loadComplete must remain false while UpdateWithFrameResponse is still pending'
+      );
+
+      let requestCompleteResolved = false;
+      const reqPromise = exploreEl.requestComplete.then(() => {
+        requestCompleteResolved = true;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      assert.isFalse(
+        requestCompleteResolved,
+        'requestComplete must remain pending while UpdateWithFrameResponse is still pending'
+      );
+
+      resolveUpdate();
+      await reqPromise;
+      assert.isTrue(exploreEl.loadComplete);
+    });
+  });
 });
