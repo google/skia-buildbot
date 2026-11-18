@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -27,11 +28,25 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 const (
 	livenessMetric       = "k8s_deployer"
 	gitstoreSubscriberID = "k8s-deployer"
+
+	// inClusterCAPath is the cluster CA certificate mounted into every pod
+	// which has automountServiceAccountToken enabled.
+	inClusterCAPath = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+
+	// cloudPlatformScope is the OAuth2 scope used to authenticate to the GKE
+	// control plane with Google credentials.
+	cloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform"
+
+	// tokenExpiryMargin is how long before expiry an access token is
+	// considered expired and refreshed.
+	tokenExpiryMargin = 5 * time.Minute
 )
 
 var (
@@ -73,6 +88,7 @@ func main() {
 	prune := flag.Bool("prune", false, "Whether to run 'kubectl apply' with '--prune'")
 	kubectl := flag.String("kubectl", "kubectl", "Path to the kubectl executable.")
 	k8sServer := flag.String("k8s_server", "", "Address of the Kubernetes server.")
+	googleAuth := flag.Bool("google_auth", false, "If set, authenticate kubectl to the cluster using the pod's Google credentials (e.g. Workload Identity) via a generated kubeconfig, instead of relying on the kubectl wrapper to obtain credentials. Requires --k8s_server.")
 
 	common.InitWithMust(
 		"k8s_deployer",
@@ -104,6 +120,20 @@ func main() {
 
 	ctx := context.Background()
 
+	var tokenSource oauth2.TokenSource
+	if *googleAuth {
+		if *k8sServer == "" {
+			sklog.Fatal("--google_auth requires --k8s_server.")
+		}
+		ts, err := google.DefaultTokenSource(ctx, cloudPlatformScope)
+		if err != nil {
+			sklog.Fatalf("Failed to create Google token source: %s", err)
+		}
+		// Refresh the token well before it expires so that it doesn't expire
+		// in the middle of a long-running "kubectl apply".
+		tokenSource = oauth2.ReuseTokenSourceWithExpiry(nil, ts, tokenExpiryMargin)
+	}
+
 	// Gitiles repo.
 	repo, err := gitiles.NewRepo(ctx, *configRepo)
 	if err != nil {
@@ -125,7 +155,7 @@ func main() {
 	// too much of a delay.
 	liveness := metrics2.NewLiveness(livenessMetric)
 	go util.RepeatCtx(ctx, *interval, func(ctx context.Context) {
-		applyErr := applyConfigs(ctx, repo, *kubectl, *k8sServer, *configSubdir, configFileRegexes, *prune, client)
+		applyErr := applyConfigs(ctx, repo, *kubectl, *k8sServer, tokenSource, *configSubdir, configFileRegexes, *prune, client)
 		if applyErr != nil {
 			sklog.Errorf("Failed to apply configs to cluster: %s", applyErr)
 		}
@@ -149,7 +179,7 @@ func main() {
 	httputils.RunHealthCheckServer(*port)
 }
 
-func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, configSubdir string, configFileRegexes []*regexp.Regexp, prune bool, client k8s.Client) error {
+func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer string, tokenSource oauth2.TokenSource, configSubdir string, configFileRegexes []*regexp.Regexp, prune bool, client k8s.Client) error {
 	// Download the configs from Gitiles instead of maintaining a local Git
 	// checkout, to avoid dealing with Git, persistent checkouts, etc.
 
@@ -232,7 +262,22 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 	// a much more complicated and error-prone approach, but it would allow us
 	// to partially apply configurations in the case of a failure and to alert
 	// on specific components which fail to apply for whatever reason.
-	cmd := []string{kubectl, "apply"}
+	cmd := []string{kubectl}
+	if tokenSource != nil {
+		// Write the kubeconfig outside of the config dir, so that it is not
+		// applied to the cluster along with the configs.
+		kubeconfigDir, err := os.MkdirTemp("", "kubeconfig")
+		if err != nil {
+			return skerr.Wrapf(err, "failed to create kubeconfig dir")
+		}
+		defer util.RemoveAll(kubeconfigDir)
+		kubeconfigPath, err := writeKubeconfig(kubeconfigDir, k8sServer, inClusterCAPath, tokenSource)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to write kubeconfig")
+		}
+		cmd = append(cmd, "--kubeconfig", kubeconfigPath)
+	}
+	cmd = append(cmd, "apply")
 	if k8sServer != "" {
 		cmd = append(cmd, "--server", k8sServer)
 	}
@@ -256,6 +301,45 @@ func applyConfigs(ctx context.Context, repo *gitiles.Repo, kubectl, k8sServer, c
 		}
 	}
 	return nil
+}
+
+// writeKubeconfig writes a kubeconfig file to dir which authenticates to the
+// given Kubernetes server using an OAuth2 access token from tokenSource, which
+// the GKE control plane accepts for Google identities. This replaces the
+// "gcloud container clusters get-credentials" + gke-gcloud-auth-plugin flow of
+// the gcr.io/cloud-builders/kubectl wrapper while using the same identity.
+// Returns the path to the kubeconfig file.
+func writeKubeconfig(dir, server, caPath string, tokenSource oauth2.TokenSource) (string, error) {
+	tok, err := tokenSource.Token()
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to obtain access token")
+	}
+	if tok.AccessToken == "" {
+		return "", skerr.Fmt("obtained an empty access token")
+	}
+	kubeconfig := fmt.Sprintf(`apiVersion: v1
+kind: Config
+clusters:
+- name: cluster
+  cluster:
+    server: %q
+    certificate-authority: %q
+users:
+- name: k8s-deployer
+  user:
+    token: %q
+contexts:
+- name: default
+  context:
+    cluster: cluster
+    user: k8s-deployer
+current-context: default
+`, server, caPath, tok.AccessToken)
+	kubeconfigPath := filepath.Join(dir, "kubeconfig")
+	if err := os.WriteFile(kubeconfigPath, []byte(kubeconfig), 0600); err != nil {
+		return "", skerr.Wrapf(err, "failed to write %s", kubeconfigPath)
+	}
+	return kubeconfigPath, nil
 }
 
 func isError(logLine string) bool {

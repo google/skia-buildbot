@@ -1,4 +1,5 @@
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "k8s-deployer_lib",
@@ -16,6 +17,8 @@ go_library(
         "//go/sklog",
         "//go/util",
         "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
+        "@org_golang_x_oauth2//:oauth2",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
@@ -23,4 +26,15 @@ go_binary(
     name = "k8s-deployer",
     embed = [":k8s-deployer_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "k8s-deployer_test",
+    srcs = ["main_test.go"],
+    embed = [":k8s-deployer_lib"],
+    deps = [
+        "@com_github_stretchr_testify//require",
+        "@io_k8s_sigs_yaml//:yaml",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
 )
