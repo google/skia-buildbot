@@ -436,7 +436,7 @@ oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 # and looking for sha256 on the jsfiddle-final image.
 oci.pull(
     name = "pinned_jsfiddle",
-    digest = "sha256:7982f9a0057e9d0110a3e2640bde891853397606b4769abb15cd9448f614ffd2",
+    digest = "sha256:47dbe682f621a87e2a97b29afe7b2291797231eff72e4a815c587d325f30f8e3",
     image = "gcr.io/skia-public/jsfiddle-final",
 )
 use_repo(oci, "pinned_jsfiddle")
