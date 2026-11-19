@@ -220,7 +220,7 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarmingv2.Swar
 			}
 
 			uptimeMetric := metricsClient.GetInt64Metric(measurementSwarmingBotsUptime, tags)
-			uptimeMetric.Update(st.UptimeSeconds)
+			uptimeMetric.Update(machineUptimeSeconds(st))
 			newMetrics = append(newMetrics, uptimeMetric)
 
 		}
@@ -238,17 +238,29 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarmingv2.Swar
 }
 
 type botState struct {
-	BotTemperatureMap map[string]float32       `json:"temp"`
-	DeviceMap         map[string]androidDevice `json:"devices"`
-	UptimeSeconds     int64                    `json:"uptime"`
+	BotTemperatureMap map[string]float32        `json:"temp"`
+	DeviceMap         map[string]attachedDevice `json:"devices"`
+	UptimeSeconds     int64                     `json:"uptime"`
 }
 
-type androidDevice struct {
+type attachedDevice struct {
 	// BatteryMap can map to either numbers or array of numbers, so we use interface{} and
 	// do a type assertion above.
 	BatteryMap        map[string]interface{} `json:"battery"`
 	DevTemperatureMap map[string]float32     `json:"temp"`
 	State             string                 `json:"state"`
+	UptimeSeconds     *float64               `json:"uptime"`
+}
+
+// machineUptimeSeconds returns the uptime in seconds for a machine, preferring
+// the attached device's uptime over the host's top-level uptime when available.
+func machineUptimeSeconds(st botState) int64 {
+	for _, device := range st.DeviceMap {
+		if device.UptimeSeconds != nil {
+			return int64(*device.UptimeSeconds)
+		}
+	}
+	return st.UptimeSeconds
 }
 
 // StartSwarmingBotMetrics spins up several go routines to begin reporting

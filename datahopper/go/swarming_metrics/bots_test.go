@@ -416,3 +416,189 @@ func TestBotUptimeMetrics(t *testing.T) {
 	actual := metrics_util.GetRecordedMetric(t, measurementSwarmingBotsUptime, tags)
 	require.Equal(t, "153", actual)
 }
+
+func TestMachineUptimeSeconds(t *testing.T) {
+	floatPtr := func(v float64) *float64 { return &v }
+
+	tests := []struct {
+		name       string
+		state      botState
+		wantUptime int64
+	}{
+		{
+			name: "ChromeOS online device reports truncated device uptime",
+			state: botState{
+				UptimeSeconds: 428312,
+				DeviceMap: map[string]attachedDevice{
+					"lin-249-e505--cros-1-e505": {UptimeSeconds: floatPtr(242.92)},
+				},
+			},
+			wantUptime: 242,
+		},
+		{
+			name: "Android online device reports truncated device uptime",
+			state: botState{
+				UptimeSeconds: 58567,
+				DeviceMap: map[string]attachedDevice{
+					"2A291FDH200CKS": {State: "available", UptimeSeconds: floatPtr(219.98)},
+				},
+			},
+			wantUptime: 219,
+		},
+		{
+			name: "Attached device with zero uptime reports zero",
+			state: botState{
+				UptimeSeconds: 428312,
+				DeviceMap: map[string]attachedDevice{
+					"lin-249-e505--cros-2-e505": {UptimeSeconds: floatPtr(0)},
+				},
+			},
+			wantUptime: 0,
+		},
+		{
+			name: "Attached device with nil uptime falls back to host uptime",
+			state: botState{
+				UptimeSeconds: 36763,
+				DeviceMap: map[string]attachedDevice{
+					"R5CYA0KYA5W": {State: "unauthorized", UptimeSeconds: nil},
+				},
+			},
+			wantUptime: 36763,
+		},
+		{
+			name: "Nil DeviceMap falls back to host uptime",
+			state: botState{
+				UptimeSeconds: 428212,
+			},
+			wantUptime: 428212,
+		},
+		{
+			name: "Empty DeviceMap falls back to host uptime",
+			state: botState{
+				UptimeSeconds: 153,
+				DeviceMap:     map[string]attachedDevice{},
+			},
+			wantUptime: 153,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.wantUptime, machineUptimeSeconds(tc.state))
+		})
+	}
+}
+
+func TestMachineUptimeMetrics_AttachedDevices(t *testing.T) {
+	ctx := context.Background()
+	ms := &mocks.SwarmingV2Client{}
+	defer ms.AssertExpectations(t)
+
+	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
+
+	machines := []*apipb.BotInfo{
+		{
+			BotId:      "lin-249-e505--cros-1-e505",
+			LastSeenTs: timestamppb.New(now.Add(-time.Minute)),
+			Dimensions: []*apipb.StringListPair{
+				{Key: swarming.DIMENSION_OS_KEY, Value: []string{"ChromeOS"}},
+			},
+			State: `{
+				"uptime": 428312,
+				"devices": {
+					"lin-249-e505--cros-1-e505": {
+						"battery": {"battery_percent": 97.9, "battery_status": "Charging"},
+						"status": "online",
+						"temperature": {"TCPU": [38.0]},
+						"uptime": 242.92
+					}
+				}
+			}`,
+		},
+		{
+			BotId:      "lin-229-e505--device1",
+			LastSeenTs: timestamppb.New(now.Add(-time.Minute)),
+			Dimensions: []*apipb.StringListPair{
+				{Key: swarming.DIMENSION_OS_KEY, Value: []string{"Android"}},
+			},
+			State: `{"uptime": 58567, "devices": {"2A291FDH200CKS": {"state": "available", "uptime": 219.98}}}`,
+		},
+		{
+			BotId:       "lin-147-e505--cros-33-e505",
+			LastSeenTs:  timestamppb.New(now.Add(-time.Minute)),
+			Quarantined: true,
+			Dimensions: []*apipb.StringListPair{
+				{Key: swarming.DIMENSION_OS_KEY, Value: []string{"ChromeOS"}},
+			},
+			State: `{"uptime": 428212, "devices": null}`,
+		},
+		{
+			BotId:       "lin-2-e505--device1",
+			LastSeenTs:  timestamppb.New(now.Add(-time.Minute)),
+			Quarantined: true,
+			Dimensions: []*apipb.StringListPair{
+				{Key: swarming.DIMENSION_OS_KEY, Value: []string{"Android"}},
+			},
+			State: `{"uptime": 36763, "devices": {"R5CYA0KYA5W": {"state": "unauthorized"}}}`,
+		},
+		{
+			BotId:      "lin-147-e505--cros-36-e505",
+			LastSeenTs: timestamppb.New(now.Add(-time.Minute)),
+			Dimensions: []*apipb.StringListPair{
+				{Key: swarming.DIMENSION_OS_KEY, Value: []string{"ChromeOS"}},
+			},
+			State: `{"uptime": 1000, "devices": {"lin-147-e505--cros-36-e505": {"status": "offline", "uptime": null}}}`,
+		},
+		{
+			BotId:      "mac-723-e505",
+			LastSeenTs: timestamppb.New(now.Add(-time.Minute)),
+			Dimensions: []*apipb.StringListPair{
+				{Key: swarming.DIMENSION_OS_KEY, Value: []string{"Mac", "iOS-18.2.1"}},
+			},
+			State: `{"uptime": 7493}`,
+		},
+	}
+
+	ms.On("ListBots", testutils.AnyContext, &apipb.BotsRequest{
+		Dimensions: []*apipb.StringPair{
+			{Key: swarming.DIMENSION_POOL_KEY, Value: MOCK_POOL},
+		},
+		Limit: 1000,
+	}).Return(&apipb.BotInfoListResponse{
+		Items: machines,
+	}, nil)
+
+	for _, m := range machines {
+		ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
+			BotId: m.BotId,
+			Limit: 1,
+			State: apipb.StateQuery_QUERY_ALL,
+		}).Return(&apipb.TaskListResponse{}, nil)
+	}
+
+	pc := getPromClient()
+
+	newMetrics, err := reportBotMetrics(ctx, now, ms, pc, MOCK_POOL, MOCK_SERVER)
+	require.NoError(t, err)
+	require.Len(t, newMetrics, 48, "6 machines * 8 metrics each = 48 expected metrics")
+
+	makeTags := func(machineID, os string) map[string]string {
+		return map[string]string{
+			"bot":                              machineID,
+			"pool":                             MOCK_POOL,
+			"swarming":                         MOCK_SERVER,
+			swarming.DIMENSION_OS_KEY:          os,
+			swarming.DIMENSION_DEVICE_TYPE_KEY: "",
+			swarming.DIMENSION_DEVICE_OS_KEY:   "",
+			swarming.DIMENSION_GPU_KEY:         "",
+			swarming.DIMENSION_QUARANTINED_KEY: "",
+		}
+	}
+
+	require.Equal(t, "242", metrics_util.GetRecordedMetric(t, measurementSwarmingBotsUptime, makeTags("lin-249-e505--cros-1-e505", "ChromeOS")))
+	require.Equal(t, "219", metrics_util.GetRecordedMetric(t, measurementSwarmingBotsUptime, makeTags("lin-229-e505--device1", "Android")))
+	require.Equal(t, "428212", metrics_util.GetRecordedMetric(t, measurementSwarmingBotsUptime, makeTags("lin-147-e505--cros-33-e505", "ChromeOS")))
+	require.Equal(t, "36763", metrics_util.GetRecordedMetric(t, measurementSwarmingBotsUptime, makeTags("lin-2-e505--device1", "Android")))
+	require.Equal(t, "1000", metrics_util.GetRecordedMetric(t, measurementSwarmingBotsUptime, makeTags("lin-147-e505--cros-36-e505", "ChromeOS")))
+	require.Equal(t, "7493", metrics_util.GetRecordedMetric(t, measurementSwarmingBotsUptime, makeTags("mac-723-e505", "iOS-18.2.1")))
+}
