@@ -11,10 +11,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"os/exec"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	cipd_pkg "go.chromium.org/luci/cipd/client/cipd/pkg"
@@ -48,15 +46,10 @@ var (
 	refs           = common.NewMultiStringFlag("ref", nil, "Refs to apply to the package.")
 	metadata       = common.NewMultiStringFlag("metadata", nil, "Metadata to apply to the package, in key:value format.")
 	rbe            = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
+	rbeConfig      = flag.String("rbe_config", "", "Optional Bazel --config name to use when --rbe is true (defaults to \"remote\").")
 	rbeKey         = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
 	local          = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
 	output         = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
-)
-
-var (
-	// executableSuffixRegex is used to parse an --include_path which uses the
-	// path[.extension] format.
-	executableSuffixRegex = regexp.MustCompile(`(.+)\[(.+)\]`)
 )
 
 func main() {
@@ -128,69 +121,15 @@ func main() {
 		opts := bazel.BazelOptions{
 			CachePath:           *bazelCacheDir,
 			RepositoryCachePath: *bazelRepoCacheDir,
+			RBEConfig:           *rbeConfig,
 		}
 		bzl, err := bazel.New(ctx, *buildDir, *rbeKey, opts)
 		if err != nil {
 			return err
 		}
+		defer bzl.Cleanup()
 
-		// Find the execution_root, in which all outputs will be built.
-		cmd := exec.CommandContext(ctx, "bazelisk", "info", "execution_root")
-		output, err := cmd.Output()
-		if err != nil {
-			return err
-		}
-		executionRoot := strings.TrimSpace(string(output))
-
-		for _, pkg := range pkgs {
-			if err := td.Do(ctx, td.Props("Build "+pkg.cipdPlatform), func(ctx context.Context) error {
-				// We're building for multiple platforms, and Bazel writes all
-				// of the build products into the same directory regardless of
-				// platform, so there's a potential for accidental inclusion of
-				// incompatible binaries in the CIPD package, eg. "app.exe" vs
-				// "app". "bazel clean" prevents that by emptying the output
-				// directory between builds.
-				if _, err := bzl.Do(ctx, "clean"); err != nil {
-					return err
-				}
-
-				// Perform the build.
-				platformFlag := fmt.Sprintf("--platforms=%s", pkg.bazelPlatform)
-				args := []string{platformFlag}
-				args = append(args, *targets...)
-				doFunc := bzl.Do
-				if *rbe {
-					doFunc = bzl.DoOnRBE
-				}
-				if _, err := doFunc(ctx, "build", args...); err != nil {
-					return err
-				}
-
-				// Copy the outputs to the destination dir.
-				for _, target := range *targets {
-					cmd := exec.CommandContext(ctx, "bazelisk", "cquery", target, "--output", "files", platformFlag)
-					output, err := cmd.Output()
-					if err != nil {
-						return err
-					}
-					outputFiles := strings.Split(strings.TrimSpace(string(output)), "\n")
-					for _, path := range outputFiles {
-						path := filepath.Join(executionRoot, path)
-						if _, err := os_steps.Stat(ctx, path); err != nil {
-							return err
-						}
-						dest := filepath.Join(pkg.tmpDir, filepath.Base(path))
-						if err := os_steps.CopyFile(ctx, path, dest); err != nil {
-							return err
-						}
-					}
-				}
-				return nil
-			}); err != nil {
-				return err
-			}
-		}
-		return nil
+		return buildPackages(ctx, bzl, *targets, pkgs, *rbe)
 	}); err != nil {
 		td.Fatal(ctx, err)
 	}
@@ -251,6 +190,69 @@ func splitPair(ctx context.Context, elem, sep string) (string, string) {
 		td.Fatalf(ctx, "Expected <key>%s<value> format for %q", sep, elem)
 	}
 	return split[0], split[1]
+}
+
+// buildPackages builds each requested target for every platform in pkgs and
+// copies the outputs reported by `bazelisk cquery --output=files` into each
+// platform's temporary directory.
+func buildPackages(ctx context.Context, bzl *bazel.Bazel, targets []string, pkgs []*pkgSpec, rbe bool) error {
+	// Find the execution_root, in which all outputs will be built.
+	output, err := bzl.Do(ctx, "info", "execution_root")
+	if err != nil {
+		return err
+	}
+	executionRoot := strings.TrimSpace(output)
+	if executionRoot == "" {
+		return skerr.Fmt("bazelisk info execution_root returned empty output")
+	}
+
+	doFunc := bzl.Do
+	if rbe {
+		doFunc = bzl.DoOnRBE
+	}
+
+	for _, pkg := range pkgs {
+		if err := td.Do(ctx, td.Props("Build "+pkg.cipdPlatform), func(ctx context.Context) error {
+			// Perform the build.
+			platformFlag := fmt.Sprintf("--platforms=%s", pkg.bazelPlatform)
+			args := append([]string{platformFlag}, targets...)
+			if _, err := doFunc(ctx, "build", args...); err != nil {
+				return err
+			}
+
+			// Copy the outputs to the destination dir. Run cquery with the same
+			// flags as build so Bazel reuses the analysis cache.
+			for _, target := range targets {
+				output, err := doFunc(ctx, "cquery", platformFlag, "--output=files", target)
+				if err != nil {
+					return err
+				}
+				trimmed := strings.TrimSpace(output)
+				if trimmed == "" {
+					return skerr.Fmt("no output files found for %s (%s)", target, pkg.bazelPlatform)
+				}
+				outputFiles := strings.Split(trimmed, "\n")
+				for _, relPath := range outputFiles {
+					relPath = strings.TrimSpace(relPath)
+					if relPath == "" {
+						continue
+					}
+					fullPath := filepath.Join(executionRoot, relPath)
+					if _, err := os_steps.Stat(ctx, fullPath); err != nil {
+						return err
+					}
+					dest := filepath.Join(pkg.tmpDir, filepath.Base(fullPath))
+					if err := os_steps.CopyFile(ctx, fullPath, dest); err != nil {
+						return err
+					}
+				}
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // pkgSpec contains information about how to build and upload an indivdual CIPD

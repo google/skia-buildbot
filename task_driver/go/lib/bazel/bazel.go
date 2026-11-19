@@ -6,6 +6,7 @@
 package bazel
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -23,6 +24,7 @@ import (
 // https://github.com/bazelbuild/bazelisk).
 type Bazel struct {
 	cachePath           string
+	rbeConfig           string
 	rbeCredentialFile   string
 	repositoryCachePath string
 	workspace           string
@@ -32,6 +34,9 @@ type Bazel struct {
 type BazelOptions struct {
 	CachePath           string
 	RepositoryCachePath string
+	// RBEConfig is the Bazel --config name passed by DoOnRBE. If empty,
+	// defaults to "remote".
+	RBEConfig string
 }
 
 // OverrideBazelRC masks the user .bazelrc file using the provided configuration
@@ -93,6 +98,7 @@ func New(ctx context.Context, workspace, rbeCredentialFile string, opts BazelOpt
 	}
 	return &Bazel{
 		cachePath:           opts.CachePath,
+		rbeConfig:           opts.RBEConfig,
 		rbeCredentialFile:   absCredentialFile,
 		repositoryCachePath: opts.RepositoryCachePath,
 		workspace:           workspace,
@@ -100,18 +106,35 @@ func New(ctx context.Context, workspace, rbeCredentialFile string, opts BazelOpt
 	}, nil
 }
 
-// Do executes a Bazel subcommand.
+// Do executes a Bazel subcommand and returns its stdout.
 func (b *Bazel) Do(ctx context.Context, subCmd string, args ...string) (string, error) {
-	cmd := []string{"bazelisk", subCmd}
-	cmd = append(cmd, args...)
-	return exec.RunCwd(ctx, b.workspace, cmd...)
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := &exec.Command{
+		Name:   "bazelisk",
+		Args:   append([]string{subCmd}, args...),
+		Dir:    b.workspace,
+		Stdout: &stdout,
+		Stderr: &stderr,
+	}
+	if err := exec.Run(ctx, cmd); err != nil {
+		if stderr.Len() > 0 {
+			return stdout.String(), skerr.Wrapf(err, "bazelisk %s failed; stderr:\n%s", subCmd, stderr.String())
+		}
+		return stdout.String(), skerr.Wrapf(err, "bazelisk %s failed", subCmd)
+	}
+	return stdout.String(), nil
 }
 
-// DoOnRBE executes a Bazel subcommand on RBE.
+// DoOnRBE executes a Bazel subcommand on RBE and returns its stdout.
 func (b *Bazel) DoOnRBE(ctx context.Context, subCmd string, args ...string) (string, error) {
+	rbeConfig := b.rbeConfig
+	if rbeConfig == "" {
+		rbeConfig = "remote"
+	}
 	// See https://bazel.build/reference/command-line-reference
 	cmd := []string{
-		"--config=remote",
+		"--config=" + rbeConfig,
 		"--sandbox_base=/dev/shm", // Make builds faster by using a RAM disk for the sandbox.
 	}
 	if b.rbeCredentialFile != "" {
@@ -121,7 +144,6 @@ func (b *Bazel) DoOnRBE(ctx context.Context, subCmd string, args ...string) (str
 	}
 	cmd = append(cmd, args...)
 	return b.Do(ctx, subCmd, cmd...)
-
 }
 
 // Cleanup must be run after the caller is finished with this Bazel instance.
