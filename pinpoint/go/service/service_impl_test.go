@@ -214,9 +214,9 @@ func TestScheduleCulpritFinder_BadRequestParams_JobBlocked(t *testing.T) {
 		Benchmark:     "speedometer3",
 		Story:         "Speedometer3",
 		Chart:         "Score",
-		Configuration: "android-pixel-fold-perf",
+		Configuration: "mac-m1-pro-perf",
 	}
-	test("invalid bot", req, "bot (android-pixel-fold-perf) is currently unsupported")
+	test("invalid bot", req, "bot (mac-m1-pro-perf) is currently unsupported")
 
 	req = &pb.ScheduleCulpritFinderRequest{
 		StartGitHash:      "fake-start",

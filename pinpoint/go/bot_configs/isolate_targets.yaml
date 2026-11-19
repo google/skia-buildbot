@@ -8,7 +8,6 @@ BotExactTargets:
   android-go-wembley-perf: performance_test_suite_android_chrome_google_bundle
   android-new-pixel-perf: performance_test_suite_android_chrome_google_bundle
   android-new-pixel-pro-perf: performance_test_suite_android_chrome_google_bundle
-  android-pixel-fold-perf: performance_test_suite_android_chrome_google_bundle
   android-pixel-tangor-perf: performance_test_suite_android_chrome_google_bundle
   android-pixel-tangor-perf-cbb: performance_test_suite_android_chrome_google_bundle
   android-pixel10-perf: performance_test_suite_android_chrome_google_bundle
@@ -19,8 +18,6 @@ BotExactTargets:
   android-pixel6-perf-pgo: performance_test_suite_android_chrome_google_bundle
   android-pixel6-pro-perf: performance_test_suite_android_chrome_google_bundle
   android-pixel9-perf: performance_test_suite_android_chrome_google_bundle
-  android-pixel9-pro-perf: performance_test_suite_android_chrome_google_bundle
-  android-pixel9-pro-xl-perf: performance_test_suite_android_chrome_google_bundle
   android-samsung-foldable-perf: performance_test_suite_android_chrome_google_bundle
 BotRegexTargets:
   # This is a special-case for webview

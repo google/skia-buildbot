@@ -62,7 +62,7 @@ func validateCulpritFinderRequest(req *pb.ScheduleCulpritFinderRequest) error {
 		return skerr.Fmt("chart is empty")
 	case req.Configuration == "":
 		return skerr.Fmt("configuration (aka the device name) is empty")
-	case req.Configuration == "android-pixel-fold-perf" || req.Configuration == "mac-m1-pro-perf":
+	case req.Configuration == "mac-m1-pro-perf":
 		return skerr.Fmt("bot (%s) is currently unsupported due to low resources", req.Configuration)
 	case !read_values.IsSupportedAggregation(req.AggregationMethod):
 		return skerr.Fmt("aggregation method (%s) is not available", req.AggregationMethod)

@@ -52,27 +52,6 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "android-pixel-fold-perf": {
-    "browser": "android-chrome-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 High End Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "felix"
-      },
-      {
-        "key": "device_os_flavor",
-        "value": "google"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
   "android-pixel-tangor-perf": {
     "browser": "android-chrome-bundle",
     "bucket": "luci.chrome.try",
@@ -358,48 +337,6 @@
       {
         "key": "device_type",
         "value": "tokay"
-      },
-      {
-        "key": "device_os",
-        "value": "B"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-pixel9-pro-perf": {
-    "browser": "android-chrome-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 High End Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "caiman"
-      },
-      {
-        "key": "device_os",
-        "value": "B"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-pixel9-pro-xl-perf": {
-    "browser": "android-chrome-bundle",
-    "bucket": "luci.chrome.try",
-    "builder": "Android arm64 High End Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "komodo"
       },
       {
         "key": "device_os",
