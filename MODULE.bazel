@@ -419,6 +419,21 @@ http_file(
     url = "https://github.com/bazelbuild/bazelisk/releases/download/v1.30.0/bazelisk-linux-amd64",
 )
 
+####################################################################################################
+# kubectl
+####################################################################################################
+
+# Static kubectl binary for the k8s-deployer image (replaces the deprecated
+# gcr.io/cloud-builders/kubectl base image, b/584076641). Keep within one minor
+# version of the GKE control planes.
+http_file(
+    name = "kubectl_linux_amd64",
+    downloaded_file_path = "kubectl",
+    executable = True,
+    sha256 = "29818b6729dc9262b692307470d0558d027725e738be5dd47c760261868a2634",
+    url = "https://dl.k8s.io/release/v1.36.6/bin/linux/amd64/kubectl",
+)
+
 ######################
 # Docker containers. #
 ######################
@@ -510,13 +525,6 @@ oci.pull(
 )
 use_repo(oci, "node_alpine")
 
-# Pulls the https://gcr.io/cloud-builders/kubectl container, needed by apps that use kubectl.
-oci.pull(
-    name = "kubectl",
-    digest = "sha256:91b5e70a175811782e7a1b09e64b2a376879cbc3bd8fe2a9234e6051561aab13",  # 28 Oct 2026 (linux/amd64)
-    image = "gcr.io/cloud-builders/kubectl",
-)
-use_repo(oci, "kubectl")
 
 # Pulls the gcr.io/google.com/cloudsdktool/cloud-sdk:latest container needed by Perf backup.
 oci.pull(

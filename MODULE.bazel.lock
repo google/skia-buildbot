@@ -2280,7 +2280,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "48mBsGmRAc9avLzUVYibjYzgMDj5MPLQjRGJUm1fvjA=",
-        "usagesDigest": "Jd/z62TKr3PMQItclR3TrXFPUKo8LbZDqZuCCmtCL8A=",
+        "usagesDigest": "x1nhkwp6ZkRKvmJne1242zmixb//beu8G5qDJ7LwiGQ=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -2527,33 +2527,6 @@
               "platforms": {},
               "platform": "@@rules_oci+//oci:node_alpine_single",
               "bzlmod_repository": "node_alpine",
-              "reproducible": true
-            }
-          },
-          "kubectl_single": {
-            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
-            "attributes": {
-              "www_authenticate_challenges": {},
-              "scheme": "https",
-              "registry": "gcr.io",
-              "repository": "cloud-builders/kubectl",
-              "identifier": "sha256:91b5e70a175811782e7a1b09e64b2a376879cbc3bd8fe2a9234e6051561aab13",
-              "target_name": "kubectl_single",
-              "bazel_tags": []
-            }
-          },
-          "kubectl": {
-            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
-            "attributes": {
-              "target_name": "kubectl",
-              "www_authenticate_challenges": {},
-              "scheme": "https",
-              "registry": "gcr.io",
-              "repository": "cloud-builders/kubectl",
-              "identifier": "sha256:91b5e70a175811782e7a1b09e64b2a376879cbc3bd8fe2a9234e6051561aab13",
-              "platforms": {},
-              "platform": "@@rules_oci+//oci:kubectl_single",
-              "bzlmod_repository": "kubectl",
               "reproducible": true
             }
           },
@@ -2824,7 +2797,6 @@
             "docsyserver-base",
             "envoy_alpine",
             "node_alpine",
-            "kubectl",
             "cloudsdk",
             "golang",
             "temporal-server",
