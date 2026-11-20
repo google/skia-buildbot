@@ -24,6 +24,27 @@ node_module_tar(
 )
 
 node_module_tar(
+    name = "npm_glob_tar",
+    mode = "a+rx",
+    package = "@npmcli/package-json/node_modules/glob",
+    package_dir = "/usr/local/lib/node_modules/npm/node_modules/glob",
+)
+
+node_module_tar(
+    name = "npm_minimatch_tar",
+    mode = "a+rx",
+    package = "@npmcli/package-json/node_modules/minimatch",
+    package_dir = "/usr/local/lib/node_modules/npm/node_modules/minimatch",
+)
+
+node_module_tar(
+    name = "npm_postcss_selector_parser_tar",
+    mode = "a+rx",
+    package = "postcss-selector-parser",
+    package_dir = "/usr/local/lib/node_modules/npm/node_modules/postcss-selector-parser",
+)
+
+node_module_tar(
     name = "npm_ip_address_tar",
     mode = "a+rx",
     package = "ip-address",
@@ -52,6 +73,9 @@ skia_app_container(
         ":verdaccio_tar",
         ":npm_undici_tar",
         ":npm_brace_expansion_tar",
+        ":npm_glob_tar",
+        ":npm_minimatch_tar",
+        ":npm_postcss_selector_parser_tar",
         ":npm_ip_address_tar",
         ":verdaccio_symlink",
     ],
