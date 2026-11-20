@@ -19,7 +19,6 @@ skia_app_container(
         "//bazel/external/cipd:git_credential_luci_tar",
         "//bazel/external/cipd:git_tar",
         "//bazel/external/cipd:git_wrapper_tar",
-        "//bazel/external/cipd:goldctl_tar",
         "//bazel/external/cipd:isolate_tar",
         "//bazel/external/cipd:kitchen_tar",
         "//bazel/external/cipd:luci_auth_tar",

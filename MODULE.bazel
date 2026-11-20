@@ -739,6 +739,8 @@ cipd.download_http(
     },
     postinstall_cmds_posix = [
         "rm -rf 3.8 3.11/lib/python3.11/ensurepip",
+        "rm -rf 3.11/bin/pip* 3.11/lib/python3.11/site-packages/pip*",
+        "rm -rf 3.11/lib/python3.11/site-packages/setuptools* 3.11/lib/python3.11/site-packages/_distutils_hack 3.11/lib/python3.11/site-packages/distutils-precedence.pth",
     ],
     tag = "git_revision:e91c778d73cde10d6d995c3cb003616b9d57fc78",
 )
