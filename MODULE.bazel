@@ -731,16 +731,16 @@ cipd.download_http(
     name = "vpython3",
     cipd_package = "infra/tools/luci/vpython3/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "b4454d0dbc42420babaff91bef9a6ec50c034eeccd7c0e876ed8d859bf1efbbb",
-        "linux-arm64": "76d972e3d463db340ebc13413af8cb8ec414f9ce89e121273c27868187b97185",
-        "mac-amd64": "ee6e4ec80bcf74439e1d97bf5d561884c53df055df85d379692ebbc015720097",
-        "mac-arm64": "70b56788f2ac0fd420f6fc66bab02e1794aff4daeb2ea570b28965d74de42fbc",
-        "windows-amd64": "ebbae8bda76a3acd67f2270013b1ece21e07bf54282ed20371bf1018e84f1a6a",
+        "linux-amd64": "9fc785c1b04dbada9957fe3fbf8b830792fc8d22d00e539ce3bfba15293cd321",
+        "linux-arm64": "cfbc20108624a5b08552a82c75626211ad45ddfe9ee3e9e9b2de36520068ab9b",
+        "mac-amd64": "cb62e052bb57782547098dd54cbe1b87ddea5cda531f8d535d874330927cc00c",
+        "mac-arm64": "f104aeb98f29aa4b63e8b221bde1cc0d5a4bd5c62a2eb57a43093063417e77ae",
+        "windows-amd64": "f875bbbea6253bc55c7855e0537af8d0dab7ad2339162f5e8994bb726519f64e",
     },
     postinstall_cmds_posix = [
         "rm -rf 3.8 3.11/lib/python3.11/ensurepip",
     ],
-    tag = "git_revision:d271f620c45a5096bbf1fa4c2c7bb77cd87f5baa",
+    tag = "git_revision:e91c778d73cde10d6d995c3cb003616b9d57fc78",
 )
 use_repo(cipd, "vpython3_linux-amd64")
 
