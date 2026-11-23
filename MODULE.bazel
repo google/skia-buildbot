@@ -689,13 +689,13 @@ cipd.download_http(
     name = "isolate",
     cipd_package = "infra/tools/luci/isolate/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "dd0446831c98dafc546aa7f1a5c7d9c40cf4b375fba2b26523274291f542f1dc",
-        "linux-arm64": "68cafb96dcfd0773e2ce0181a92ee53a15fef1bc0738e3cecc98dd21d63afd64",
-        "mac-amd64": "8f19c1576246902eeb59dd13054c7b419cc239c59282ad00cfb6975377273a48",
-        "mac-arm64": "1e75a7388722239144269b57553a945f230403ca699d874331245266e0d58b3a",
-        "windows-amd64": "e722a0dc3054b0ef370ebc73410980f5e4e165b451c603c05f60a456d810ff31",
+        "linux-amd64": "69df1e1059f27aa3555e8e0c09fc214f57e52b9a29196e1122317e2625439d79",
+        "linux-arm64": "d7472b4320384952515d96fec425d5f577f9ccde44bc6a40cea2acfc09fd7666",
+        "mac-amd64": "58831c344fa64e770bc38e7bca7804570dfccce9dd77e5a00b50fd063739ebe8",
+        "mac-arm64": "c81fe8ee33b772bfc4f8771226397c01411d80321d0338bfa48da993e52e535c",
+        "windows-amd64": "ea3e9fed0dd6297f963863a43c31bf04ff9adb9c4a7d55823d6fefd5186557a1",
     },
-    tag = "git_revision:64f75d49386156e9902adae7d8bef26046ad7f1e",
+    tag = "git_revision:e91c778d73cde10d6d995c3cb003616b9d57fc78",
 )
 use_repo(cipd, "isolate_linux-amd64")
 
