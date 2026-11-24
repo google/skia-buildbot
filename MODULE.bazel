@@ -764,13 +764,13 @@ cipd.download_http(
     name = "cpython3",
     cipd_package = "infra/3pp/tools/cpython3/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "bc175076789506c07b01f8e56ef70d7964d8d01869b5dc2efb8fe1412cc0dd35",
-        "linux-arm64": "b9f353a5c097a41d40e4819f2f9798c74293c1697498812a88362afdfedea7c4",
-        "mac-amd64": "a4048bca0d7f71ed447d8cdd3a7afd4ead2c926ab4f47023a64c9235c6ba6993",
-        "mac-arm64": "46a7198ea21bb3a93c708113f57c060b59a15e7a3d13f6483c310ca3a6f82c05",
-        "windows-amd64": "b682f206a5e340ddd5031d3d49cf2aaf87be097da268200f917b0ee9145681cd",
+        "linux-amd64": "1d508015210772a3fc3be96d71b43878b148a720d5f41b2fcc5b46c4ba3e0693",
+        "linux-arm64": "27b71ec9d17017ce4cf7619e4737ed4e415857e3c58ecb10ddc19c96a5e433bc",
+        "mac-amd64": "33f4122b90b499b513cf8d96bac936fe93ef8b4a6c479d2f81bb344b34f01157",
+        "mac-arm64": "f9825b409914b88a8b9711d8fe3f7044953087f483edff2267af925f8488793c",
+        "windows-amd64": "18442a6a012e94eb4c723ddcf53e581b5fdddac79c3a4c8c815c650fb6c03369",
     },
-    tag = "version:3@3.14.10.chromium.4",
+    tag = "version:3@3.14.10.chromium.5",
 )
 use_repo(cipd, "cpython3_linux-amd64")
 
