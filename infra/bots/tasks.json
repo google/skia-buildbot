@@ -44,7 +44,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:110f9813c058f6798877e612ca1f837d640ad2c8"
+          "version": "git_revision:d5811a0300b3ef490c58d0ceedbec6f45ef21653"
         }
       ],
       "command": [
@@ -90,7 +90,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:110f9813c058f6798877e612ca1f837d640ad2c8"
+          "version": "git_revision:d5811a0300b3ef490c58d0ceedbec6f45ef21653"
         }
       ],
       "command": [
@@ -136,7 +136,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:110f9813c058f6798877e612ca1f837d640ad2c8"
+          "version": "git_revision:d5811a0300b3ef490c58d0ceedbec6f45ef21653"
         }
       ],
       "command": [
@@ -187,7 +187,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:110f9813c058f6798877e612ca1f837d640ad2c8"
+          "version": "git_revision:d5811a0300b3ef490c58d0ceedbec6f45ef21653"
         }
       ],
       "command": [
@@ -270,7 +270,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:110f9813c058f6798877e612ca1f837d640ad2c8"
+          "version": "git_revision:d5811a0300b3ef490c58d0ceedbec6f45ef21653"
         }
       ],
       "command": [
@@ -354,7 +354,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:110f9813c058f6798877e612ca1f837d640ad2c8"
+          "version": "git_revision:d5811a0300b3ef490c58d0ceedbec6f45ef21653"
         }
       ],
       "command": [
@@ -440,7 +440,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:110f9813c058f6798877e612ca1f837d640ad2c8"
+          "version": "git_revision:d5811a0300b3ef490c58d0ceedbec6f45ef21653"
         }
       ],
       "command": [
