@@ -378,7 +378,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/isolate/${platform}@git_revision:e91c778d73cde10d6d995c3cb003616b9d57fc78",
         "--cipd",
-        "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:110f9813c058f6798877e612ca1f837d640ad2c8",
+        "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:d5811a0300b3ef490c58d0ceedbec6f45ef21653",
         "--cipd",
         "bazelisk_linux_amd64:skia/bots/bazelisk_linux_amd64@version:1",
         "--cipd",
