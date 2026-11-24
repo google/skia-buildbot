@@ -577,3 +577,15 @@ spec:
           image: gcr.io/skia-public/status@sha256:4a75315fabbfe385da4cdebc9d0db6a742ef8d41319fe3100dd435a6e4bc58c2
 `)
 }
+
+func TestCommitHashFromTag(t *testing.T) {
+	hash, ok := CommitHashFromTag("git-6e2fb7dbe8533d1497dae1d08b2f855a5b3bd2e8")
+	require.True(t, ok)
+	require.Equal(t, "6e2fb7dbe8533d1497dae1d08b2f855a5b3bd2e8", hash)
+
+	_, ok = CommitHashFromTag("prod")
+	require.False(t, ok)
+
+	_, ok = CommitHashFromTag("git-short")
+	require.False(t, ok)
+}

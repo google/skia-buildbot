@@ -57,3 +57,28 @@ skia_app_container(
     ],
     repository = "skia-public/cd",
 )
+
+skia_app_container(
+    name = "cd_dashboard_container",
+    base_image = "@basealpine",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//cd/go/dashboard:dashboard",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/cd-dashboard/dist": [
+            [
+                "//cd/pages:production/index.%s" % ext,
+                "0644",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    repository = "skia-public/cd-dashboard",
+)

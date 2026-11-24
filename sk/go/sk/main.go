@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/sk/go/agent"
 	"go.skia.org/infra/sk/go/asset"
+	"go.skia.org/infra/sk/go/infra"
 	release_branch "go.skia.org/infra/sk/go/release-branch"
 	"go.skia.org/infra/sk/go/try"
 )
@@ -21,6 +22,7 @@ func main() {
 		Commands: append([]*cli.Command{
 			agent.Command(),
 			asset.Command(),
+			infra.Command(),
 			release_branch.Command(),
 		}, try.Command()...),
 		Usage: "sk <subcommand>",

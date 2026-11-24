@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//sk/go/agent",
         "//sk/go/asset",
+        "//sk/go/infra",
         "//sk/go/release-branch",
         "//sk/go/try",
         "@com_github_urfave_cli_v2//:cli",

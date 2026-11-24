@@ -1,0 +1,16 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "deployment-status-sk",
+    sass_srcs = ["deployment-status-sk.scss"],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+    ],
+    ts_srcs = [
+        "deployment-status-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

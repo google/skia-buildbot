@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "infra",
+    srcs = [
+        "deployment_status.go",
+        "infra.go",
+    ],
+    importpath = "go.skia.org/infra/sk/go/infra",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//cd/go/deployment_status",
+        "//go/auth",
+        "//go/common",
+        "//go/docker",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/term",
+        "@com_github_urfave_cli_v2//:cli",
+        "@org_golang_x_oauth2//google",
+    ],
+)

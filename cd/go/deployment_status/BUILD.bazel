@@ -1,0 +1,51 @@
+load("@rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "deployment_status",
+    srcs = [
+        "deployment_status.go",
+        "entries.go",
+        "repo.go",
+    ],
+    importpath = "go.skia.org/infra/cd/go/deployment_status",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//cd/go/stages",
+        "//go/depot_tools/deps_parser",
+        "//go/docker",
+        "//go/gerrit",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/gitiles",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//go/vcsinfo",
+    ],
+)
+
+go_test(
+    name = "deployment_status_test",
+    srcs = [
+        "deployment_status_test.go",
+        "entries_test.go",
+        "repo_test.go",
+    ],
+    embed = [":deployment_status"],
+    deps = [
+        "//cd/go/stages",
+        "//go/depot_tools/deps_parser",
+        "//go/docker",
+        "//go/docker/mocks",
+        "//go/gerrit",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/gitiles",
+        "//go/gitiles/mocks",
+        "//go/mockhttpclient",
+        "//go/testutils",
+        "//go/vcsinfo",
+        "@com_github_stretchr_testify//require",
+    ],
+)

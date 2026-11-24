@@ -395,6 +395,19 @@ func GetStagesFromAnnotations(annotations map[string]string) (map[string]string,
 	return rv, nil
 }
 
+// CommitHashFromTag extracts a full git commit hash from a "git-<hash>" image
+// tag.
+func CommitHashFromTag(tag string) (string, bool) {
+	if !strings.HasPrefix(tag, GitTagPrefix) {
+		return "", false
+	}
+	maybeHash := strings.TrimPrefix(tag, GitTagPrefix)
+	if !git.IsFullCommitHash(maybeHash) {
+		return "", false
+	}
+	return maybeHash, true
+}
+
 // GetCommitHashesForImage finds all "git-<hash>" tags associated with the given
 // image and returns a slice of strings containing the hashes.
 func GetCommitHashesForImage(ctx context.Context, c docker.Client, registry, repository, digest string) ([]string, error) {
@@ -404,12 +417,9 @@ func GetCommitHashesForImage(ctx context.Context, c docker.Client, registry, rep
 	}
 	commitHashes := []string{}
 	for _, tag := range tags {
-		if strings.HasPrefix(tag, GitTagPrefix) {
-			maybeHash := strings.TrimPrefix(tag, GitTagPrefix)
-			if git.IsFullCommitHash(maybeHash) {
-				commitHashes = append(commitHashes, maybeHash)
-				break
-			}
+		if hash, ok := CommitHashFromTag(tag); ok {
+			commitHashes = append(commitHashes, hash)
+			break
 		}
 	}
 	return commitHashes, nil
