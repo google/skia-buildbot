@@ -56,7 +56,7 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/luci/swarming/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/luci/swarming/${platform}",
-		Version: "git_revision:e91c778d73cde10d6d995c3cb003616b9d57fc78",
+		Version: "git_revision:3f3b387a2197286c1a12f74ac328a2af4e62e886",
 	},
 	"infra/tools/luci/vpython3/${platform}": {
 		Path:    ".",
