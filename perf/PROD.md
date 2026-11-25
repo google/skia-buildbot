@@ -200,9 +200,14 @@ Run on the "Promote Perfserver Prod" flow in Louhi.
 
 ### Pre-promotion check for grouping_workflow
 
-Smoke tests check only `perfserver`. Before voting `Code-Review +1` on the
-generated promotion CL, verify that `grouping_workflow:latest` started and is
-polling in `skia-infra-public-dev`:
+Smoke tests check only `perfserver`. Chrome autopush isolated its grouping task
+queue to `perf.perf-chrome-autopush.grouping` in
+[CL 1426881](https://skia-review.googlesource.com/c/buildbot/+/1426881), while
+`grouping_workflow:latest` runs only in `skia-infra-public-dev`
+(`perf.perf-chrome-internal.grouping`) with no pre-prod workflow executions.
+
+Before approving the generated promotion CL on `skia-review`, verify that
+`grouping_workflow:latest` started and is polling in `skia-infra-public-dev`:
 
 1. Run:
    ```
@@ -212,6 +217,11 @@ polling in `skia-infra-public-dev`:
    `pipeline/stages.json`, is `Running`, and is not restarting.
 3. Confirm live pollers at
    https://temporal-ui-dev.corp.goog/namespaces/perf-internal/task-queues/perf.perf-chrome-internal.grouping.
+
+Once verified, open Gerrit's Reply dialog on the `k8s-config` promotion CL and
+vote `Code-Review +1` and `Commit-Queue +2` together so SkCQ runs presubmits and
+submits the CL (`Auto-Submit +1` alone does not trigger SkCQ without
+Rubber-Stamper).
 
 ### Emergency gate bypass and rollback
 
