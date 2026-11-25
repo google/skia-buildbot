@@ -731,18 +731,18 @@ cipd.download_http(
     name = "vpython3",
     cipd_package = "infra/tools/luci/vpython3/${platform}",
     platform_to_sha256 = {
-        "linux-amd64": "d64b67430e990b15083e6ab8ca613fac0ffe528b61a1fe42fa581b9d3b3b94fc",
-        "linux-arm64": "3d09eddf03b154a7ffa434df25e2ddfbe6e4ce01420eadd830f1f7b970bdecaf",
-        "mac-amd64": "c8e8263b28062e6a999702c95f222360bec1b32cd35f9a38d019a64d354dbcb4",
-        "mac-arm64": "3e9b48239d0836a9b0fb747c36cb034eff1ed0a7763cc6da45f7073c766be632",
-        "windows-amd64": "2f7d376a523d6727d0a4e9cab5432d4e7a31e32ae34715d49ec1952f45fd1d96",
+        "linux-amd64": "eb0c9297b6bc1c7df3bea8c2ed0661e6c87a31a46a3b6fe0473954c72c52f4af",
+        "linux-arm64": "100f606c8b3d834ed03761dc8c109bb8825d5abecc16fcee9f3166eef5107312",
+        "mac-amd64": "5058b3f9d5adc05ab7147ae836c5c13c9acb0c26940bc56d28e6208d783b5c27",
+        "mac-arm64": "ebe25107ccce9bd62500b20c830bdf057b347a5ab927478d18dbabe6c96f86a3",
+        "windows-amd64": "531d3705b91b37f4fc40c0d3cd70af6b0bcdda7d535f56490e35110497727dde",
     },
     postinstall_cmds_posix = [
         "rm -rf 3.8 3.11/lib/python3.11/ensurepip",
         "rm -rf 3.11/bin/pip* 3.11/lib/python3.11/site-packages/pip*",
         "rm -rf 3.11/lib/python3.11/site-packages/setuptools* 3.11/lib/python3.11/site-packages/_distutils_hack 3.11/lib/python3.11/site-packages/distutils-precedence.pth",
     ],
-    tag = "git_revision:2ad5f22b85ab0eaab1d30744eec55868f05d18e4",
+    tag = "git_revision:90f67d90b5293ae0039dfe99ba76bb016bccc4b6",
 )
 use_repo(cipd, "vpython3_linux-amd64")
 
