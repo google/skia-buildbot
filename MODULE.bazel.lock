@@ -1200,7 +1200,7 @@
         "bzlTransitiveDigest": "zFQPREJgEyD5QTfHAufFaMmv8NhrkP1NqmMjt7sTzwM=",
         "usagesDigest": "da5fH/t0uO4LcftLx08z3bjwXlYngTYVvSu+n02F6yY=",
         "recordedFileInputs": {
-          "@@//kube/basealpine/basealpine-with-git.lock.json": "6158ca5bb0b18636e9a858d997916b717e0348309969355fbaef088b4061e9d2",
+          "@@//kube/basealpine/basealpine-with-git.lock.json": "2d59b46530dbfd5b7d9ff97adb4f0b04cd9adc955c638be58dcdee4853d96fc3",
           "@@//kube/basealpine/basealpine.lock.json": "56d24095bcabad079429bd2828b36f1dcf61ea66b4fa9eb0a56a3ed6850f5ae4"
         },
         "recordedDirentsInputs": {},
@@ -1571,19 +1571,19 @@
               "data_checksum": "sha256-/YgOioGOUhInJpIwHF5QZTFUb8Jo8de8xE2ko9X0oR8="
             }
           },
-          "basealpine-with-git-apk-install_libcrypto3_x86_64_3.5.9-r0": {
+          "basealpine-with-git-apk-install_libcrypto3_x86_64_3.5.9-r2": {
             "repoRuleId": "@@rules_apko+//apko/private:apk.bzl%apk_import",
             "attributes": {
               "package_name": "libcrypto3",
-              "version": "3.5.9-r0",
+              "version": "3.5.9-r2",
               "architecture": "x86_64",
-              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/libcrypto3-3.5.9-r0.apk",
+              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/libcrypto3-3.5.9-r2.apk",
               "signature_range": "bytes=0-722",
-              "signature_checksum": "sha1-KP2BH+ZDVmUg7ukpTmN54FFSxag=",
-              "control_range": "bytes=723-1278",
-              "control_checksum": "sha1-oh3VN2UxBgaVmtvnt5CjXfB97sk=",
-              "data_range": "bytes=1279-1986878",
-              "data_checksum": "sha256-eAQYoj6lwORSo54XZsUlWlyml7fSBKsWUUptPZgDeb4="
+              "signature_checksum": "sha1-R0CgxrRiMgblyU0iVmMnzE3CJfY=",
+              "control_range": "bytes=723-1282",
+              "control_checksum": "sha1-GAkGX1sO/LpWkvXNhr7Cs7hwqfw=",
+              "data_range": "bytes=1283-1986918",
+              "data_checksum": "sha256-AFZv48gXwrUazMW1nfoJCopztGebXcAH6A5EGQmPN1k="
             }
           },
           "basealpine-with-git-apk-install_libunistring_x86_64_1.3-r0": {
@@ -1646,19 +1646,19 @@
               "data_checksum": "sha256-yGOkzMTdcSfUN+Q3lFPlxTinW7F2ThAstMG13trrSvw="
             }
           },
-          "basealpine-with-git-apk-install_libssl3_x86_64_3.5.9-r0": {
+          "basealpine-with-git-apk-install_libssl3_x86_64_3.5.9-r2": {
             "repoRuleId": "@@rules_apko+//apko/private:apk.bzl%apk_import",
             "attributes": {
               "package_name": "libssl3",
-              "version": "3.5.9-r0",
+              "version": "3.5.9-r2",
               "architecture": "x86_64",
-              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/libssl3-3.5.9-r0.apk",
-              "signature_range": "bytes=0-720",
-              "signature_checksum": "sha1-7GPPJvrAsqXd3Qh1umbLbuZJK9k=",
-              "control_range": "bytes=721-1285",
-              "control_checksum": "sha1-vg55k+/1wPY5bIUvUA2ERnX9nTc=",
-              "data_range": "bytes=1286-383679",
-              "data_checksum": "sha256-a1RDoohOtCK/B91X0PgSJboCrsaXfUEIjG0NurfiAjE="
+              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/libssl3-3.5.9-r2.apk",
+              "signature_range": "bytes=0-722",
+              "signature_checksum": "sha1-yZSB7vI1GaHdOqG6HdV4CLUpcaI=",
+              "control_range": "bytes=723-1290",
+              "control_checksum": "sha1-3Eb3+gMcVi5n1/2E4U7e80V5JGQ=",
+              "data_range": "bytes=1291-383786",
+              "data_checksum": "sha256-A9p3eH8QecTM1vRWQMhb3gnvsHDF1d9Qm8qozUrBIe8="
             }
           },
           "basealpine-with-git-apk-install_zlib_x86_64_1.4-r0": {
@@ -1676,19 +1676,19 @@
               "data_checksum": "sha256-ny16Q4sOsKQ709Bg9G7CBgpb82JrniXWpS5+etKvLrA="
             }
           },
-          "basealpine-with-git-apk-install_zstd-libs_x86_64_1.5.7-r0": {
+          "basealpine-with-git-apk-install_zstd-libs_x86_64_1.6.0-r1": {
             "repoRuleId": "@@rules_apko+//apko/private:apk.bzl%apk_import",
             "attributes": {
               "package_name": "zstd-libs",
-              "version": "1.5.7-r0",
+              "version": "1.6.0-r1",
               "architecture": "x86_64",
-              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/zstd-libs-1.5.7-r0.apk",
-              "signature_range": "bytes=0-719",
-              "signature_checksum": "sha1-WmKknzVdGIgoxD61Pz/5U4Vxpaw=",
-              "control_range": "bytes=720-1310",
-              "control_checksum": "sha1-UMgxErVhn0jTbWkZCky3xx8Vx9I=",
-              "data_range": "bytes=1311-377568",
-              "data_checksum": "sha256-U8s4SG/gqSZrO2bpnJMpJB46a4LRwau2mxvk5y2kKh4="
+              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/zstd-libs-1.6.0-r1.apk",
+              "signature_range": "bytes=0-720",
+              "signature_checksum": "sha1-d142uu9E2foAELwu1snwj9YH+3Y=",
+              "control_range": "bytes=721-1307",
+              "control_checksum": "sha1-CQ2ATWUH0YBxMat7Lj56FvF4buc=",
+              "data_range": "bytes=1308-347799",
+              "data_checksum": "sha256-2PY2sRArVBvfLFjFX1QjH36lEjZCP0TFIyFYsGvhZaE="
             }
           },
           "basealpine-with-git-apk-install_libcurl_x86_64_8.14.1-r4": {
@@ -1706,19 +1706,19 @@
               "data_checksum": "sha256-qu7ngf2RCmioQHppBoYQ+Q9go7NKyWI9LHCo64Z8RzA="
             }
           },
-          "basealpine-with-git-apk-install_libexpat_x86_64_2.10.0-r0": {
+          "basealpine-with-git-apk-install_libexpat_x86_64_2.11.0-r0": {
             "repoRuleId": "@@rules_apko+//apko/private:apk.bzl%apk_import",
             "attributes": {
               "package_name": "libexpat",
-              "version": "2.10.0-r0",
+              "version": "2.11.0-r0",
               "architecture": "x86_64",
-              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/libexpat-2.10.0-r0.apk",
-              "signature_range": "bytes=0-720",
-              "signature_checksum": "sha1-LdoAXp38ghJfD2c+vJX39CtP+ns=",
-              "control_range": "bytes=721-1275",
-              "control_checksum": "sha1-HOwPuYAsDiIq7yeu88CrkNBm00s=",
-              "data_range": "bytes=1276-63750",
-              "data_checksum": "sha256-UtdwSgt4gJdtWRIvdV8pAlm5SXyDmiDgq3kBe/K4qIw="
+              "url": "https://dl-4.alpinelinux.org/alpine/v3.22/main/x86_64/libexpat-2.11.0-r0.apk",
+              "signature_range": "bytes=0-721",
+              "signature_checksum": "sha1-IMg1OUQ8U6yjMips3hp8K4TDSKc=",
+              "control_range": "bytes=722-1274",
+              "control_checksum": "sha1-sSNcm9qryjUPegiGDrvjIepyBvU=",
+              "data_range": "bytes=1275-65381",
+              "data_checksum": "sha256-cZJSduKuY1/DlIQQDbuvVntqSxZ2K4gSaGlcpgzpvnQ="
             }
           },
           "basealpine-with-git-apk-install_pcre2_x86_64_10.46-r1": {
