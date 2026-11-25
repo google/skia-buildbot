@@ -6,8 +6,11 @@
 package mirrors
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -62,6 +65,49 @@ func TestGetTarballsInMirrorStorage(t *testing.T) {
 	require.True(t, pkg2ok)
 	_, pkg3ok := tarballs["pkg3.tgz"]
 	require.False(t, pkg3ok)
+}
+
+func TestMigrateVerdaccioDBSecret_MissingFile_NoOp(t *testing.T) {
+	require.NoError(t, migrateVerdaccioDBSecret(t.TempDir()))
+}
+
+func TestMigrateVerdaccioDBSecret_Valid32CharSecret_Unchanged(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, verdaccioDBFileName)
+	validSecret := strings.Repeat("a", verdaccioSecretKeyLength)
+	orig := fmt.Sprintf(`{"list":["pkg1"],"secret":%q}`, validSecret)
+	require.NoError(t, os.WriteFile(dbPath, []byte(orig), 0644))
+
+	require.NoError(t, migrateVerdaccioDBSecret(dir))
+
+	got, err := os.ReadFile(dbPath)
+	require.NoError(t, err)
+	require.Equal(t, orig, string(got))
+}
+
+func TestMigrateVerdaccioDBSecret_Legacy64CharSecret_ClearedAndPreservesList(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, verdaccioDBFileName)
+	legacySecret := strings.Repeat("b", 64)
+	orig := fmt.Sprintf(`{"list":["pkg1","pkg2"],"secret":%q}`, legacySecret)
+	require.NoError(t, os.WriteFile(dbPath, []byte(orig), 0644))
+
+	require.NoError(t, migrateVerdaccioDBSecret(dir))
+
+	gotBytes, err := os.ReadFile(dbPath)
+	require.NoError(t, err)
+	var db map[string]any
+	require.NoError(t, json.Unmarshal(gotBytes, &db))
+	require.Equal(t, "", db["secret"])
+	require.Equal(t, []any{"pkg1", "pkg2"}, db["list"])
+}
+
+func TestMigrateVerdaccioDBSecret_InvalidJSON_ReturnsError(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, verdaccioDBFileName)
+	require.NoError(t, os.WriteFile(dbPath, []byte("{not-json"), 0644))
+
+	require.Error(t, migrateVerdaccioDBSecret(dir))
 }
 
 // This is not a real test, but a fake implementation of the executable in question.

@@ -1038,7 +1038,7 @@
         "bzlTransitiveDigest": "CeK+NldP1nUPjYpJZMVsvmIIJKmHgNzDaZXR4tV8UcM=",
         "usagesDigest": "I0QZzsCampGZ+dQXo9t64WHBuHPZJ2fxUA1G3iYq7FI=",
         "recordedFileInputs": {
-          "@@//package.json": "52cf1f6f9d4dffee80fedf2713edec54d070d7d341c0b1a2ab47330a1d4d7134",
+          "@@//package.json": "f2004eb399bbbbfb99bbc34b6ef980f6232551d7bec72e8e1a21bb74b4d2b2cb",
           "@@rules_browsers+//package.json": "0d8cc69cc2c9ecf0eff677fa86843ad9146eca22462aace022a09c3adcb979f8"
         },
         "recordedDirentsInputs": {},

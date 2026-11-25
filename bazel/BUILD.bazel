@@ -1,7 +1,14 @@
+load("@rules_python//python:defs.bzl", "py_test")
 load(":owners_layers_test.bzl", "get_fixup_owners_layers_test_suite")
 
 get_fixup_owners_layers_test_suite(
     name = "get_fixup_owners_layers_test",
+)
+
+py_test(
+    name = "strip_package_lock_test",
+    srcs = ["strip_package_lock_test.py"],
+    data = ["strip-package-lock.py"],
 )
 
 exports_files([

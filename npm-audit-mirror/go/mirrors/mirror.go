@@ -8,8 +8,10 @@ package mirrors
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -24,9 +26,11 @@ import (
 )
 
 const (
-	verdaccioDirName        = "verdaccio"
-	verdaccioStorageDirName = "storage"
-	verdaccioLogFileName    = "verdaccio.log"
+	verdaccioDirName         = "verdaccio"
+	verdaccioStorageDirName  = "storage"
+	verdaccioLogFileName     = "verdaccio.log"
+	verdaccioDBFileName      = ".verdaccio-db.json"
+	verdaccioSecretKeyLength = 32
 )
 
 // VerdaccioMirror implements types.ProjectMirror.
@@ -61,6 +65,9 @@ func NewVerdaccioMirror(projectName, workDir, host string, cfgTmpl *template.Tem
 	}
 	// Verdaccio storage dir. This will be created automatically by verdaccio.
 	verdaccioStorageDir := path.Join(verdaccioDir, verdaccioStorageDirName)
+	if err := migrateVerdaccioDBSecret(verdaccioStorageDir); err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	// Populate the in-memory map of downloaded package tarballs.
 	downloadedPackageTarballs, err := GetTarballsInMirrorStorage(verdaccioStorageDir)
@@ -99,6 +106,44 @@ func createCfgFile(projectName, workDir, verdaccioDir string, cfgTmpl *template.
 	}
 
 	return verdaccioConfigFilePath, nil
+}
+
+// migrateVerdaccioDBSecret clears any legacy non-32-character secret in
+// .verdaccio-db.json so Verdaccio 7 regenerates a valid 32-character secret on
+// startup instead of failing (Verdaccio 5 generated 64-character secrets).
+func migrateVerdaccioDBSecret(verdaccioStorageDir string) error {
+	dbPath := filepath.Join(verdaccioStorageDir, verdaccioDBFileName)
+	data, err := os.ReadFile(dbPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return skerr.Wrapf(err, "failed to read %s", dbPath)
+	}
+
+	var db map[string]any
+	if err := json.Unmarshal(data, &db); err != nil {
+		return skerr.Wrapf(err, "failed to parse %s", dbPath)
+	}
+	secret, ok := db["secret"].(string)
+	if !ok || secret == "" || len(secret) == verdaccioSecretKeyLength {
+		return nil
+	}
+
+	db["secret"] = ""
+	updated, err := json.Marshal(db)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to marshal updated %s", dbPath)
+	}
+
+	if err := util.WithWriteFile(dbPath, func(w io.Writer) error {
+		_, err := w.Write(updated)
+		return err
+	}); err != nil {
+		return skerr.Wrapf(err, "failed to write updated %s", dbPath)
+	}
+	sklog.Infof("Cleared legacy %d-char Verdaccio storage secret in %s for Verdaccio 7 compatibility", len(secret), dbPath)
+	return nil
 }
 
 // GetProjectName implements the types.ProjectMirror interface.
