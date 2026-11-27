@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
@@ -138,12 +140,19 @@ func newVerdictStore(ctx context.Context, verdictDir string, readOnly bool, gcsO
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting GCS token source")
 	}
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	httpClient := newGCSHTTPClient(ts)
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "creating GCS client")
 	}
 	return &verdictStore{gcsClient: gcsclient.New(storageClient, bucket), gcsPrefix: prefix}, nil
+}
+
+// newGCSHTTPClient builds the HTTP client for storage.NewClient without
+// With2xxOnly so GCS 404 responses reach cloud.google.com/go/storage as
+// storage.ErrObjectNotExist instead of a transport error.
+func newGCSHTTPClient(ts oauth2.TokenSource) *http.Client {
+	return httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 }
 
 func (s *verdictStore) read(ctx context.Context, instance string) (*Verdict, error) {

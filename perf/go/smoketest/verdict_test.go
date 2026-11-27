@@ -6,12 +6,22 @@
 package main
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
+
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
 )
 
@@ -173,4 +183,74 @@ func TestVerdictStore_GCS_RoundTripAndMissing(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, want, *got)
+}
+
+func TestVerdictStore_GCSHTTPClient_Read(t *testing.T) {
+	existing := newVerdict(
+		"chrome-internal-autopush",
+		"http://perf-fe-chrome-non-public-autopush.perf.svc.cluster.local:8000",
+		"70e8b73d508ccfa242a67b29f8dd4647a67c3653",
+		time.Date(2026, 11, 27, 22, 0, 0, 0, time.UTC),
+		time.Date(2026, 11, 27, 22, 0, 5, 0, time.UTC),
+		[]CheckResult{{Name: checkVersion, Status: statusPass, LatencyMS: 50}},
+		nil,
+	)
+	existingBody, err := json.Marshal(existing)
+	require.NoError(t, err)
+
+	var missingHits, existingHits, forbiddenHits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/perfserver/missing-instance.json"):
+			missingHits.Add(1)
+			w.Header().Set("Content-Type", "application/xml")
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte(`<?xml version='1.0' encoding='UTF-8'?><Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message></Error>`))
+		case strings.HasSuffix(r.URL.Path, "/perfserver/chrome-internal-autopush.json"):
+			existingHits.Add(1)
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write(existingBody)
+		case strings.HasSuffix(r.URL.Path, "/perfserver/forbidden-instance.json"):
+			forbiddenHits.Add(1)
+			w.Header().Set("Content-Type", "application/xml")
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = w.Write([]byte(`<?xml version='1.0' encoding='UTF-8'?><Error><Code>AccessDenied</Code><Message>Access denied.</Message></Error>`))
+		default:
+			t.Errorf("unexpected request path: %s", r.URL.Path)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}))
+	t.Cleanup(srv.Close)
+
+	httpClient := newGCSHTTPClient(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "test-token"}))
+	storageClient, err := storage.NewClient(
+		t.Context(),
+		option.WithEndpoint(srv.URL),
+		option.WithHTTPClient(httpClient),
+	)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = storageClient.Close() })
+
+	store := &verdictStore{
+		gcsClient: gcsclient.New(storageClient, "test-bucket"),
+		gcsPrefix: "perfserver",
+	}
+
+	missing, err := store.read(t.Context(), "missing-instance")
+	require.NoError(t, err)
+	assert.Nil(t, missing)
+	assert.Equal(t, int32(1), missingHits.Load())
+
+	got, err := store.read(t.Context(), "chrome-internal-autopush")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, existing, *got)
+	assert.Equal(t, int32(1), existingHits.Load())
+
+	forbidden, err := store.read(t.Context(), "forbidden-instance")
+	require.Error(t, err)
+	assert.Nil(t, forbidden)
+	assert.Contains(t, err.Error(), "reading verdict gs://test-bucket/perfserver/forbidden-instance.json")
+	assert.Equal(t, int32(1), forbiddenHits.Load())
 }

@@ -23,6 +23,7 @@ go_library(
         "//go/skerr",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_oauth2//google",
     ],
 )
@@ -43,9 +44,13 @@ go_test(
     ],
     embed = [":smoketest_lib"],
     deps = [
+        "//go/gcs/gcsclient",
         "//go/gcs/mem_gcsclient",
         "//go/metrics2",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )
